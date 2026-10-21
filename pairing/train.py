@@ -40,8 +40,7 @@ import time
 
 import torch
 import torch.nn.functional as F
-from peft import LoraConfig, get_peft_model, set_peft_model_state_dict
-from safetensors.torch import load_file
+from peft import LoraConfig, PeftModel, get_peft_model
 
 import ddp
 import games as G
@@ -109,11 +108,12 @@ XB = tuple(int(v) for v in args.xblocks.split(','))
 toks, models = {}, {}
 for x in SIDES:
     toks[x], m = load(x)
-    cfg = LoraConfig(r=args.rank, lora_alpha=2 * args.rank, lora_dropout=0.0,
-                     target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
-    m = get_peft_model(m, cfg)
     if args.init:
-        set_peft_model_state_dict(m, load_file(os.path.join(args.init, x, 'adapter_model.safetensors')))
+        m = PeftModel.from_pretrained(m, os.path.join(args.init, x), is_trainable=True)
+    else:
+        cfg = LoraConfig(r=args.rank, lora_alpha=2 * args.rank, lora_dropout=0.0,
+                         target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
+        m = get_peft_model(m, cfg)
     if args.ckpt in ('both', x):
         m.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
     m.config.use_cache = False
@@ -130,7 +130,7 @@ if args.coread > 0 or (args.coread_first > 0 and args.coread_first_p > 0):
     TEST_COREAD = coread.Coread(replies, 'test', seed=1000 + args.seed, path=args.coread_data)
 
 if args.init:
-    ck = torch.load(os.path.join(args.init, 'bridge.pt'), weights_only=False)
+    ck = torch.load(os.path.join(args.init, 'bridge.pt'), map_location='cpu', weights_only=False)
     assert tuple(ck['xblocks']) == XB and ck['heads'] == args.heads and ck['head_dim'] == args.head_dim, \
         (ck['xblocks'], ck['heads'], ck['head_dim'])
     pair = Pair.from_checkpoint(models, toks, ck)
@@ -432,7 +432,8 @@ while step < args.steps:
     if args.minutes and step == args.first_eval + 1:
         # k more steps cost k * per, plus an evaluation every eval_every steps and at the end, plus a save
         E = t_eval[args.first_eval]
-        per = (time.time() - t1 - E) / (args.first_eval - 1)
+        measured_eval = sum(seconds for at, seconds in t_eval.items() if 2 <= at <= args.first_eval)
+        per = (time.time() - t1 - measured_eval) / (args.first_eval - 1)
         left = args.minutes * 60 - (time.time() - t0) - 60
         k = int((left - E) / (1.1 * per + E / args.eval_every))
         n = ddp.gather(min(args.steps, max(args.first_eval + k, args.first_eval + 1)))[0]      # rank 0 decides

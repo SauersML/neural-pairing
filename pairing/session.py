@@ -47,6 +47,24 @@ def stable(ltok, text, final=False):
     return t if final else t[:-1]
 
 
+def content(ep, toks, x, turn=None):
+    """Reply token IDs and which were sampled; replay keeps IDs instead of re-tokenizing decoded text."""
+    if turn is None:
+        tokens = ep.get('reply_tokens', {}).get(x)
+        sampled = ep.get('reply_sampled', {}).get(x)
+        text = ep['reply'][x][0]
+    else:
+        tokens = ep.get('turn_tokens', [None] * len(ep['turns']))[turn]
+        sampled = ep.get('turn_sampled', [None] * len(ep['turns']))[turn]
+        text = ep['turns'][turn][1]
+    end = toks[x].convert_tokens_to_ids('<|im_end|>')
+    tokens = ids(toks[x], text) + [end] if tokens is None else tokens
+    sampled = [True] * len(tokens) if sampled is None else sampled
+    if not tokens or tokens[-1] != end or len(tokens) != len(sampled):
+        raise ValueError('replay tokens must end in im_end and have one sampling flag per token')
+    return tokens, sampled
+
+
 class Timeline:
     """Builds one model pair's token streams, with the tick at which each token is read."""
 
@@ -55,6 +73,7 @@ class Timeline:
         self.seq = {x: [] for x in SIDES}
         self.time = {x: [] for x in SIDES}
         self.labels = {x: [] for x in SIDES}         # (position, token, weight)
+        self.policy = {x: [] for x in SIDES}         # whether each label was actually sampled
         self.turn_t = []                             # the tick that opens each turn
         self.spans = {x: [] for x in SIDES}          # (turn, first label, end label) of each turn a model writes
 
@@ -62,8 +81,9 @@ class Timeline:
         self.seq[x] += toks
         self.time[x] += [t] * len(toks)
 
-    def label(self, x, token, w):
+    def label(self, x, token, w, sampled=True):
         self.labels[x].append((len(self.seq[x]) - 1, token, w))
+        self.policy[x].append(sampled)
 
 
 def build(ep, toks):
@@ -72,42 +92,42 @@ def build(ep, toks):
     ep: mode ('duplex' or 'dialogue'), system {x}, task {x or None}, and
       duplex: reply {x: (text, weight)}; a model's reply text is written one token per tick from tick 0.
       dialogue: turns [(speaker, text, weight)], optionally link_off_after.
+    replay() supplies exact reply/turn token IDs and sampling flags for policy updates.
     Returns {x: dict(ids, time, labels, cut, spans)}: cut is the first tick whose tokens do not read the partner (or None);
     spans lists (turn, start, end) of the labels of each turn the model writes."""
-    end = {x: toks[x].convert_tokens_to_ids('<|im_end|>') for x in SIDES}
     tl = Timeline(toks)
     if ep['mode'] == 'duplex':
         for x in SIDES:
             p = prefix(toks[x], x, ep['system'][x], ep['task'][x]) + assistant_header(toks[x], x)
-            text, w = ep['reply'][x]
-            r = ids(toks[x], text) + [end[x]]
+            _, w = ep['reply'][x]
+            r, sampled = content(ep, toks, x)
             tl.add(x, p[:-1], -1)
             tl.add(x, p[-1:], 0)
-            tl.label(x, r[0], w)
+            tl.label(x, r[0], w, sampled[0])
             for j in range(len(r) - 1):
                 tl.add(x, [r[j]], j + 1)
-                tl.label(x, r[j + 1], w)
+                tl.label(x, r[j + 1], w, sampled[j + 1])
             tl.spans[x].append((0, 0, len(tl.labels[x])))
-        return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], cut=None, spans=tl.spans[x])
+        return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=None, spans=tl.spans[x])
                 for x in SIDES}
     for x in SIDES:
         tl.add(x, prefix(toks[x], x, ep['system'][x], ep['task'][x]), -1)
     t = 0
     for k, (s, text, w) in enumerate(ep['turns']):
         lis = partner(s)
-        content = ids(toks[s], text) + [end[s]]
+        tokens, sampled = content(ep, toks, s, k)
         # the tick that opens a turn also reads the end of the previous turn (added at the same tick below)
         tl.turn_t.append(t)
         start = len(tl.labels[s])
         tl.add(s, assistant_header(toks[s], s), t)
-        tl.label(s, content[0], w)
+        tl.label(s, tokens[0], w, sampled[0])
         tl.add(lis, ids(toks[lis], '<|im_start|>user\n'), t)
         t += 1
         got = []
-        for j in range(len(content) - 1):
-            tl.add(s, [content[j]], t)
-            tl.label(s, content[j + 1], w)
-            st = stable(toks[lis], toks[s].decode(content[:j + 1]))
+        for j in range(len(tokens) - 1):
+            tl.add(s, [tokens[j]], t)
+            tl.label(s, tokens[j + 1], w, sampled[j + 1])
+            st = stable(toks[lis], toks[s].decode(tokens[:j + 1]))
             if st is not None and len(st) > len(got):
                 tl.add(lis, st[len(got):], t)
                 got = st
@@ -115,12 +135,13 @@ def build(ep, toks):
         tl.spans[s].append((k, start, len(tl.labels[s])))
         if k == len(ep['turns']) - 1:
             break
-        full = ids(toks[lis], toks[s].decode(content[:-1]))
-        tl.add(s, [content[-1]] + ids(toks[s], '\n'), t)
+        full = ids(toks[lis], toks[s].decode(tokens[:-1]))
+        tl.add(s, [tokens[-1]] + ids(toks[s], '\n'), t)
         tl.add(lis, full[len(got):] + ids(toks[lis], '<|im_end|>\n'), t)
     k = ep.get('link_off_after')
     cut = None if k is None else (tl.turn_t[k] if k < len(tl.turn_t) else FAR)
-    return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], cut=cut, spans=tl.spans[x]) for x in SIDES}
+    return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=cut, spans=tl.spans[x])
+            for x in SIDES}
 
 
 
@@ -184,13 +205,14 @@ def collate(built, pads, owners=None):
         ids_ = torch.full((B, L), pads[x], dtype=torch.long)
         att = torch.zeros((B, L), dtype=torch.long)
         tick = torch.full((B, L), FAR, dtype=torch.long)
-        idx, lab, w, own, row = [], [], [], [], []
+        idx, lab, w, own, row, pg = [], [], [], [], [], []
         for i, e in enumerate(built):
             s = e[x]
             n = len(s['ids'])
             ids_[i, :n] = torch.tensor(s['ids'])
             att[i, :n] = 1
             tick[i, :n] = torch.tensor(s['time'])
+            pg.extend(s.get('policy', [True] * len(s['labels'])))
             for p, tokid, wt in s['labels']:
                 idx.append(i * L + p)
                 lab.append(tokid)
@@ -202,6 +224,7 @@ def collate(built, pads, owners=None):
                     tick=tick.to(DEVICE), cut=cut.to(DEVICE),
                     idx=torch.tensor(idx, device=DEVICE, dtype=torch.long), lab=torch.tensor(lab, device=DEVICE, dtype=torch.long),
                     w=torch.tensor(w, device=DEVICE, dtype=torch.float), own=own,
+                    pg=torch.tensor(pg, device=DEVICE, dtype=torch.float),
                     own_mask={o: torch.tensor([o in s for s in own], device=DEVICE, dtype=torch.float) for o in SIDES},
                     row=torch.tensor(row, device=DEVICE, dtype=torch.long))
     return b
@@ -230,16 +253,30 @@ class Stream:
         self.pending = []          # tokens to read at the next tick
         self.speaking = False      # whether the last token read predicts this model's next token
         self.out = []              # tokens this model wrote in the current turn
+        self.sampled = []          # false for forced tokens and the artificial length-limit EOS
         self.turns = []            # (speaker, text) of finished turns
+        self.turn_tokens = []
+        self.turn_sampled = []
         self.gates = []            # per tick: the gate of each token read (mean over the exchanges)
         self.gate_turn = []        # per tick: the turn under way (-1: the prompt)
         self.h = []                # (keep) per tick: the last hidden states of the tokens read
         self.p = []                # (keep) per tick: their gates at every exchange
 
 
+def replay(ep, result):
+    """The generated replies as an episode for training, retaining any later quiz turns."""
+    if ep['mode'] == 'duplex':
+        return dict(ep, reply={x: (result['text'][x], 1.0) for x in SIDES},
+                    reply_tokens=result['tokens'], reply_sampled=result['sampled'])
+    n = len(result['turns'])
+    return dict(ep, turns=[(x, text, ep['turns'][j][2]) for j, (x, text) in enumerate(result['turns'])]
+                + ep['turns'][n:], turn_tokens=result['tokens'] + [None] * (len(ep['turns']) - n),
+                turn_sampled=result['sampled'] + [None] * (len(ep['turns']) - n))
+
+
 @torch.no_grad()
 def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=None, force=None,
-             link_off_after=None, keep=False, write_mode=None):
+             link_off_after=None, keep=False, write_mode=None, keep_tokens=False):
     """Runs both models through the episodes (all of the same mode) together, tick by tick, block by block, with KV
     caches (link.Pair.step).
 
@@ -249,7 +286,8 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
     (link.Pair). mute: {x: [bool per episode]}: x reads nothing from its partner. link_off_after (dialogue): number of
     finished turns after which neither model reads the other (an episode's own link_off_after comes first). Returns
     per episode the texts and, per tick, the gate of each token read, prompt first (keep: also every token's last
-    hidden state, 'h' {x: [n, d]}, and its gates at every exchange, 'p' {x: [n, n exchanges]}, in reading order)."""
+    hidden state, 'h' {x: [n, d]}, and its gates at every exchange, 'p' {x: [n, n exchanges]}, in reading order).
+    keep_tokens (also enabled by keep) retains exact emitted IDs and sampling flags for replay()."""
     toks = pair.toks
     head = {x: inner(pair.models[x])[1] for x in SIDES}
     B = len(eps)
@@ -314,6 +352,7 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
         st[s][i].pending += assistant_header(toks[s], s)
         st[s][i].speaking, st[lis][i].speaking = True, False
         st[s][i].out = []
+        st[s][i].sampled = []
         st[lis][i].pending += ids(toks[lis], '<|im_start|>user\n')
         got[i] = []
 
@@ -351,15 +390,14 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
                 if st[x][i].speaking:
                     k = int(nxt[i])
                     forced = force or (dmode == 'dialogue' and turn[i] in eps[i].get('forced', ()))
+                    sampled = not forced and len(st[x][i].out) < max_turn
                     if forced:
-                        if dmode == 'duplex':
-                            want = ids(toks[x], eps[i]['reply'][x][0]) + [end[x]]
-                        else:
-                            want = ids(toks[x], eps[i]['turns'][turn[i]][1]) + [end[x]]
+                        want, _ = content(eps[i], toks, x, None if dmode == 'duplex' else turn[i])
                         k = want[len(st[x][i].out)] if len(st[x][i].out) < len(want) else end[x]
                     if not forced and len(st[x][i].out) >= max_turn:
                         k = end[x]
                     st[x][i].out.append(k)
+                    st[x][i].sampled.append(sampled)
                     st[x][i].pending = [k]
         # turn bookkeeping: listeners read stable text, finished turns close
         for i in range(B):
@@ -382,6 +420,8 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
                 st[lis][i].pending += full[len(got[i]):] + ids(toks[lis], '<|im_end|>\n')
                 for x in SIDES:
                     st[x][i].turns.append((s, text))
+                    st[x][i].turn_tokens.append(list(out))
+                    st[x][i].turn_sampled.append(list(st[s][i].sampled))
                 turn[i] += 1
                 start_turn(i)
             else:
@@ -397,6 +437,11 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
         else:
             res.append(dict(turns=st[SIDES[0]][i].turns, gates={x: st[x][i].gates for x in SIDES},
                             gate_turn={x: st[x][i].gate_turn for x in SIDES}))
+        if keep_tokens or keep:
+            res[-1]['tokens'] = ({x: st[x][i].out for x in SIDES} if dmode == 'duplex'
+                                 else st[SIDES[0]][i].turn_tokens)
+            res[-1]['sampled'] = ({x: st[x][i].sampled for x in SIDES} if dmode == 'duplex'
+                                  else st[SIDES[0]][i].turn_sampled)
         if keep:
             res[-1]['h'] = {x: torch.cat(st[x][i].h) for x in SIDES}
             res[-1]['p'] = {x: torch.cat(st[x][i].p) for x in SIDES}

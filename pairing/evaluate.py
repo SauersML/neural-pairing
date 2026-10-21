@@ -208,7 +208,7 @@ def load_pair(run):
     from peft import PeftModel
 
     from link import Pair, load
-    ck = torch.load(os.path.join(run, 'bridge.pt'), weights_only=False)
+    ck = torch.load(os.path.join(run, 'bridge.pt'), map_location='cpu', weights_only=False)
     toks, models = {}, {}
     for x in SIDES:
         toks[x], m = load(x)

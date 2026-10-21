@@ -42,8 +42,7 @@ import time
 
 import torch
 import torch.nn.functional as F
-from peft import LoraConfig, get_peft_model, set_peft_model_state_dict
-from safetensors.torch import load_file
+from peft import PeftModel
 
 import coread as C
 import games as G
@@ -126,6 +125,13 @@ def flat(v):
     return [u for w in v for u in (flat(w) if isinstance(w, (list, tuple)) else [w])]
 
 
+def advantages(rewards, group_size):
+    """Normalize each contiguous group of rollouts of the same episode."""
+    a = rewards.view(-1, group_size)
+    sd = a.std(1, keepdim=True, correction=1 if group_size > 1 else 0)
+    return ((a - a.mean(1, keepdim=True)) / (sd + 0.05)).view(-1).to(DEVICE)
+
+
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--init', required=True)
@@ -166,14 +172,11 @@ if __name__ == '__main__':
     rng = random.Random(args.seed)
     t0 = time.time()
 
-    ck = torch.load(os.path.join(args.init, 'bridge.pt'), weights_only=False)
+    ck = torch.load(os.path.join(args.init, 'bridge.pt'), map_location='cpu', weights_only=False)
     toks, models = {}, {}
     for x in SIDES:
         toks[x], m = load(x)
-        cfg = LoraConfig(r=args.rank, lora_alpha=2 * args.rank, lora_dropout=0.0,
-                         target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
-        m = get_peft_model(m, cfg)
-        set_peft_model_state_dict(m, load_file(os.path.join(args.init, x, 'adapter_model.safetensors')))
+        m = PeftModel.from_pretrained(m, os.path.join(args.init, x), is_trainable=True)
         if not args.no_ckpt:
             m.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
         m.config.use_cache = False
@@ -209,13 +212,19 @@ if __name__ == '__main__':
             return list(range(len(full)))
         return list(range(len(pre), len(withv)))
 
-    def forward_ce(rows, owners):
+    def forward_ce(rows, owners, temperature=1.0):
+        if temperature <= 0:
+            raise ValueError('policy training needs a positive sampling temperature')
         built = [S.build(e, toks) for e in rows]
         b = S.collate(built, pads, owners)
         last, gates = pair.joint(b)
-        ce = {x: F.cross_entropy(pair.token_logits(x, last[x], b[x]['idx']), b[x]['lab'], reduction='none')
-              for x in SIDES}
-        return b, built, ce, gates
+        ce, policy_ce = {}, {}
+        for x in SIDES:
+            logits = pair.token_logits(x, last[x], b[x]['idx'])
+            ce[x] = F.cross_entropy(logits, b[x]['lab'], reduction='none')
+            policy_ce[x] = ce[x] if temperature == 1 else F.cross_entropy(
+                logits / temperature, b[x]['lab'], reduction='none')
+        return b, built, ce, gates, policy_ce
 
     def step_backward(loss_for, split):
         opt.zero_grad(set_to_none=True)
@@ -236,7 +245,7 @@ if __name__ == '__main__':
                 rows.append(sft_games.episode(rng.choice(G.DIALOGUE)))
             else:
                 rows.append(sft_games.episode())
-        b, _, ce, _ = forward_ce(rows, None)
+        b, _, ce, _, _ = forward_ce(rows, None)
         loss = 0.0
         for x in SIDES:
             w = b[x]['w']
@@ -250,7 +259,7 @@ if __name__ == '__main__':
         mx = (int(os.environ.get('NL_MAXNEW', 0)) or max(MAXNEW.get(e['game'], 64) for e in eps)) \
             if eps[0]['mode'] == 'duplex' else args.max_turn
         with torch.no_grad():
-            out = S.generate(pair, eps, max_turn=mx, temperature=temperature, gen=gen, mode=mode)
+            out = S.generate(pair, eps, max_turn=mx, temperature=temperature, gen=gen, mode=mode, keep_tokens=True)
         set_train(True)
         return out
 
@@ -282,7 +291,7 @@ if __name__ == '__main__':
         res = {}
         for mode in (None, 'zero', 'shuffle'):
             eps, out = card_rollouts('test', n, 1, temperature, mode=mode, seed=seed)
-            qeps = [with_quiz(e, [t for _, t in o['turns']], answers=False) for e, o in zip(eps, out)]
+            qeps = [S.replay(with_quiz(e, [t for _, t in o['turns']], answers=False), o) for e, o in zip(eps, out)]
             q = generate(qeps, 0.0, mode=mode, seed=seed)
             stats = {s: [] for s in STYLES}
             leak, claim = [], []
@@ -327,14 +336,14 @@ if __name__ == '__main__':
         return res
 
     log = []
-    step, t_eval = 0, 0.0
+    step, t_eval, eval_elapsed = 0, 0.0, 0.0
     t0_steps = time.time()
     while step < args.steps:
         step += 1
         if args.minutes and step == 7:
             # k more steps cost k * per plus (k / eval_every + 1) full evaluations of E each; a full evaluation is
             # about max(eval_n / 8, eval_task_n / 4) times the small one at step 2
-            per = (time.time() - t0_steps - t_eval) / 6
+            per = (time.time() - t0_steps - eval_elapsed) / 6
             E = t_eval * max(args.eval_n / 8, args.eval_task_n / 4)
             left = args.minutes * 60 - (time.time() - t0)
             k = int((left - E) / (1.1 * per + E / args.eval_every))
@@ -348,8 +357,7 @@ if __name__ == '__main__':
             l = sft_step()
             if step % 30 == 0:
                 print(json.dumps({'step': step, 'sft_loss': round(l, 4), 'time': round(time.time() - t0)}), flush=True)
-            continue
-        if rng.random() < args.task_frac:
+        elif rng.random() < args.task_frac:
             # task play: shared reward, every sampled token of both models gets the group-normalized advantage
             base = task_episodes(co_train, args.task_groups)
             eps = [e for e in base for _ in range(args.G)]
@@ -358,14 +366,13 @@ if __name__ == '__main__':
             R = torch.tensor([mean(list(T.score(e, tx).values())) for e, tx in zip(eps, texts)])
             for e, r in zip(eps, R.tolist()):
                 running[e['game']] = 0.9 * running[e['game']] + 0.1 * r
-            a = R.view(-1, args.G)
-            A = ((a - a.mean(1, keepdim=True)) / (a.std(1, keepdim=True) + 0.05)).view(-1).to(DEVICE)
-            rows = [dict(e, reply={x: (tx[x], 1.0) for x in SIDES}) for e, tx in zip(eps, texts)]
-            b, _, ce, _ = forward_ce(rows, None)
+            A = advantages(R, args.G)
+            rows = [S.replay(e, o) for e, o in zip(eps, out)]
+            b, _, _, _, ce = forward_ce(rows, None, args.temperature)
             B = len(rows)
             loss = torch.zeros((), device=DEVICE)
             for x in SIDES:
-                row, m = b[x]['row'], (b[x]['w'] > 0).float()
+                row, m = b[x]['row'], (b[x]['w'] > 0).float() * b[x]['pg']
                 n_tok = torch.zeros(B, device=DEVICE).index_add(0, row, m).clamp_min(1)
                 loss = loss + (A[row] * m / n_tok[row] * ce[x]).sum() / B
             step_backward({'quill': loss, 'ember': torch.zeros((), device=DEVICE)}, False)
@@ -385,10 +392,10 @@ if __name__ == '__main__':
         else:
             eps, out = card_rollouts('train', args.groups, args.G, args.temperature)
             texts = [[t for _, t in o['turns']] for o in out]
-            rows = [with_quiz(e, tx) for e, tx in zip(eps, texts)]
+            rows = [S.replay(with_quiz(e, tx), o) for e, tx, o in zip(eps, texts, out)]
             owners = [{x: BOTH if e['meta']['style'] not in COMPETITIVE_STYLES else frozenset([x]) for x in SIDES}
                       for e in eps]
-            b, built, ce, _ = forward_ce(rows, owners)
+            b, built, ce, _, policy_ce = forward_ce(rows, owners, args.temperature)
             B = len(rows)
             quiz_lp, sel_turn, sel_quiz = {}, {}, {}
             nT = args.turns
@@ -404,7 +411,7 @@ if __name__ == '__main__':
                     ans_turn = nT + 1 if x != r['meta']['first'] else nT + 3
                     for k, st, en in e[x]['spans']:
                         if k < nT:
-                            t_mask[pos[st:en]] = 1.0                      # the model's sampled session tokens
+                            t_mask[pos[st:en]] = b[x]['pg'][pos[st:en]]    # the model's sampled session tokens
                         elif k == ans_turn:
                             q_mask[pos[st:en]] = 1.0                      # its quiz answer
                             q_lp[i] = -ce[x][pos[[st + j for j in answer_span(x, val)]]].sum()
@@ -430,8 +437,7 @@ if __name__ == '__main__':
                         info['claims'].append(float(c))
             A = {}
             for x in SIDES:
-                a = R[x].view(-1, args.G)
-                A[x] = ((a - a.mean(1, keepdim=True)) / (a.std(1, keepdim=True) + 0.05)).view(-1).to(DEVICE)
+                A[x] = advantages(R[x], args.G)
             # x's text and quiz guess train x; in cooperative sessions they train the partner as well; in hide the
             # hider gets the bounded loss p(x guesses right)
             coop = torch.tensor([e['meta']['style'] not in COMPETITIVE_STYLES for e in eps], device=DEVICE).float()
@@ -440,7 +446,8 @@ if __name__ == '__main__':
                 y, row = partner(x), b[x]['row']
                 n_tok = torch.zeros(B, device=DEVICE).index_add(0, row, sel_turn[x]).clamp_min(1)
                 n_q = torch.zeros(B, device=DEVICE).index_add(0, row, sel_quiz[x]).clamp_min(1)
-                per = (A[x][row] * sel_turn[x] / n_tok[row] + args.quiz * sel_quiz[x] / n_q[row]) * ce[x]
+                per = A[x][row] * sel_turn[x] / n_tok[row] * policy_ce[x] + \
+                    args.quiz * sel_quiz[x] / n_q[row] * ce[x]
                 loss_for[x] = loss_for[x] + per.sum() / B
                 loss_for[y] = loss_for[y] + (per * coop[row]).sum() / B
                 loss_for[y] = loss_for[y] + args.quiz * (torch.exp(quiz_lp[x]) * (1 - coop)).sum() / B
@@ -468,8 +475,10 @@ if __name__ == '__main__':
                                                                  for g, r in res['tasks'].items()}}), flush=True)
             log.append({'step': step, 'eval': res})
             json.dump(log, open(os.path.join(args.out, 'log.json'), 'w'), ensure_ascii=False)
+            duration = time.time() - te
+            eval_elapsed += duration
             if small:
-                t_eval = time.time() - te
+                t_eval = duration
         if step % args.save_every == 0 or step == args.steps:
             d = os.path.join(args.out, f'step_{step}')
             for x in SIDES:
