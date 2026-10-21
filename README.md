@@ -4,8 +4,8 @@ Two language models from different families, Quill (Qwen3-4B) and Ember (AFM-4.5
 channel between their forward passes, so that each can pass information to the other without text. Both models have 36
 blocks and a 2560-wide residual stream.
 
-**Result so far: negative.** In both designs tried, the receiving model does not learn to read the learned part of the
-channel. After 200 training steps, held-out cross-entropy on the partner's value is no lower with the real messages than
+**Status: the link is not formed yet.** In both designs tried so far, the receiving model does not learn to read the
+learned part of the channel. After 200 training steps, held-out cross-entropy on the partner's value is no lower with the real messages than
 with messages from another episode, in every game and direction, with one exception (adding two numbers, Qwen to AFM).
 That exception comes from the part of a message that is the sender's next-token distribution re-embedded as text, not
 from the learned part.
