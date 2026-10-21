@@ -244,6 +244,9 @@ def exchange(ax, X0, X1, Y0, Y1):
             ax.add_patch(Rectangle((cx - 20, ybar), 40, unit * p, color=LINK, zorder=3))
     write(ax, xs[-1][0], ybar + 82, "hidden:", 24, color=MUTED)
     write(ax, xs[-1][0], ybar + 44, "tick 4 > 3", 24, color=MUTED)
+    note = xs[2][0] - xs[2][1] / 2
+    write(ax, note, ybar + 218, "bar heights and gate dials:", 24, color=MUTED, ha="left")
+    write(ax, note, ybar + 182, "illustrative values, not measured", 24, color=MUTED, ha="left")
     # the null key (Ember's) with a zero value: Ember may read nothing
     write(ax, null_x, yt, "null key", 24, True, EMBER)
     rbox(ax, null_x - 28, yv - 22, 56, 44, "white", radius=8, z=3, edge=EMBER, lw=2)
@@ -285,8 +288,8 @@ def exchange(ax, X0, X1, Y0, Y1):
           f"K(norm {h('Quill')}), s · V(norm {h('Quill')})))", 27, ha="left")
     lines(ax, X0 + 40, Y1 - 114, [
         ("Orange: Ember, the reader, and Ember's weights: Q, O, α and the null key.", EMBER),
-        ("Violet: Quill, the sender, and Quill's weights: K, V and the gate s = σ(w · h + b).", QUILL),
-        ("The gate sets how much each Quill token shows; the gate scales values, not keys.", INK),
+        ("Violet: Quill, the sender, and Quill's weights: K, V and the gate s = σ(w · norm(h) + b).", QUILL),
+        ("The gate reads Quill's state normalized to unit RMS and scales the values, not the keys.", INK),
         ("Each head adds a learned bias by how many ticks ago each Quill token was read.", INK),
         ("size: Ember's typical residual size after block 24, so tanh(α) is the write's relative size.", INK),
         ("O starts at zero and tanh(α) at 0.5: at step 0 the pair is exactly the two original models.", INK),
