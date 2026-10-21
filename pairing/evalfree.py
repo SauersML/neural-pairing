@@ -450,6 +450,17 @@ def file_hash(path):
     return h.hexdigest()
 
 
+def git_revision(root=ROOT):
+    """Optional provenance: pod source archives have no Git checkout."""
+    if not (Path(root) / '.git').exists():
+        return None
+    try:
+        return subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True,
+                                       stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--run')
@@ -490,7 +501,7 @@ def main():
                     excluded=excluded, hashes={str(p): file_hash(p) for p in
                     (Path(args.replies), Path(args.coread_data or ROOT / 'data/coread.json'),
                      Path(args.run) / 'bridge.pt', out / 'plans.jsonl')},
-                    git_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+                    git_commit=git_revision(),
                     code_hashes={p: file_hash(ROOT / 'pairing' / p) for p in
                                  ('evalfree.py', 'stats.py', 'link.py', 'session.py', 'evaluate.py',
                                   'coread.py', 'coread_data.py', 'games.py', 'play_tasks.py')})
