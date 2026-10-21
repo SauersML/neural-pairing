@@ -36,7 +36,7 @@ the models. For the first 40% of the schedule every gate is open and sending is 
 
 | Check | Max difference |
 |---|---|
-| Coupled training forward vs step-by-step generation | 5e-7 to 1.9e-6 |
+| Coupled training forward vs step-by-step generation | 4e-7 to 2.1e-6 |
 | Gradients with vs without gradient checkpointing | 0 |
 | Two-rank data parallel vs single process | < 1.7e-6 |
 
