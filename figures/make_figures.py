@@ -466,12 +466,11 @@ def probe():
         if moved:
             write(ax, sx(b) + 16, y, minus(f"{med:+.1f}"), 26, True, LINK, ha="left", bbox=CLEAR)
         y -= 56
+    ax.plot([sx(0)] * 2, [top, y + 26], color=INK, lw=2.5, zorder=2)
     for v in ticks:
-        ax.plot([sx(v)] * 2, [top, y + 26], color=INK if v == 0 else TICK, lw=2.5 if v == 0 else 1.5,
-                zorder=2 if v == 0 else 1)
         write(ax, sx(v), y, minus(f"{v:.0f}"), 26, color=MUTED)
-    write(ax, sx(0), y - 44, "\u2190 the link carries the value", 24, color=LINK, ha="right")
-    write(ax, 40, y - 100, "dot: median over held-out episodes; line: exact 95% interval", 24, color=MUTED, ha="left")
+    write(ax, sx(0), y - 44, "\u2190 the link passes the value", 24, color=LINK, ha="right")
+    write(ax, 40, y - 100, "dot: median over episodes never seen in training; line: exact 95% interval", 24, color=MUTED, ha="left")
     crop(fig, ax, y - 130, 2100)
     save(fig, "probe")
 
@@ -701,15 +700,15 @@ def step_ticks(last):
 
 
 def frame(ax, x0, y0, w, h, xt, yt, xr=None, size=22):
-    """Guide lines at the y ticks of a plot area (lower left x0, y0; w by h canvas units), the y tick labels to the left
-    and the x tick labels below; xr: the x range when the ticks do not span the plot. Returns the maps from data to
-    canvas units."""
+    """A plot area (lower left x0, y0; w by h canvas units) without gridlines: a baseline at y = 0 when 0 is a tick, the
+    y tick labels to the left and the x tick labels below; xr: the x range when the ticks do not span the plot. Returns
+    the maps from data to canvas units."""
     xr = xr or (xt[0], xt[-1])
     sx = lambda v: x0 + w * (v - xr[0]) / (xr[1] - xr[0])
     sy = lambda v: y0 + h * (v - yt[0]) / (yt[-1] - yt[0])
     for v in yt:
-        zero = abs(v) < 1e-12
-        ax.plot([x0, x0 + w], [sy(v)] * 2, color=INK if zero else TICK, lw=2 if zero else 1.5, zorder=1)
+        if abs(v) < 1e-12:
+            ax.plot([x0, x0 + w], [sy(v)] * 2, color=INK, lw=2, zorder=1)
         write(ax, x0 - 14, sy(v), minus(f"{v:g}"), size, color=MUTED, ha="right")
     for v in xt:
         write(ax, sx(v), y0 - 32, minus(f"{v:g}"), size, color=MUTED)
@@ -811,10 +810,8 @@ def hero(src=None):
                     continue
                 for c, control in enumerate(("cut", "shuffle")):
                     sx, cell = sxs[d][c], r["link-" + control]
-                    for v in ticks:
-                        zero = abs(v) < 1e-12
-                        ax.plot([sx(v)] * 2, [y + 27, y - 27], color=INK if zero else TICK, lw=2.5 if zero else 1.5,
-                                zorder=2 if zero else 1)
+                    if ticks[0] <= 0 <= ticks[-1]:
+                        ax.plot([sx(0)] * 2, [y + 27, y - 27], color=INK, lw=2.5, zorder=2)
                     a, b = cell["ci"]
                     colour = LINK if a > 0 else INK if b < 0 else FAINT
                     if a <= b:
@@ -1107,10 +1104,8 @@ def transfer(src=None):
         write(ax, 60, y, LABEL[g], 32, ha="left")
         for c, (x, colour) in enumerate(RECEIVERS):
             vs, sx = d[(g, x)], sxs[c]
-            for v in ticks:
-                zero = abs(v) < 1e-12
-                ax.plot([sx(v)] * 2, [y + 40, y - 40], color=INK if zero else TICK, lw=3 if zero else 1.5,
-                        zorder=2 if zero else 1)
+            if ticks[0] <= 0 <= ticks[-1]:
+                ax.plot([sx(0)] * 2, [y + 40, y - 40], color=INK, lw=3, zorder=2)
             if not vs:
                 continue
             ax.scatter([sx(v) for v in vs], [y + 26 * (((k * 0.618) % 1) - 0.5) for k in range(len(vs))], s=170,
@@ -1132,8 +1127,62 @@ def transfer(src=None):
     save(fig, "transfer")
 
 
+def opened(src=None, game="relay_word"):
+    """Over training, the percent of never-seen episodes of one game (default: relay a word; both receivers) in which
+    the real partner beats a partner from another episode, with the exact 95% interval, one line per run (src:
+    RUN_DIR|LABEL,...; payload_stepN.json files), labelled at its last point. Ties (a link that writes exactly
+    nothing, as at step 0 with a zero output projection) are left out; a step with only ties sits at 50%."""
+    if not src:
+        print("opened: give opened=RUN_DIR|LABEL[,...]")
+        return
+    from scipy.stats import beta
+    runs = []
+    for path, label in sources(src):
+        pts = []
+        for f in Path(path).glob("payload_step*.json"):
+            ds = [r["shuffle_ce"] - r["link_ce"] for r in json.loads(f.read_text()) if r["game"] == game]
+            k, n = sum(v > 0 for v in ds), sum(v != 0 for v in ds)      # a tie (an exactly closed link) is neither
+            if n:
+                lo = beta.ppf(0.025, k, n - k + 1) if k else 0.0
+                hi = beta.ppf(0.975, k + 1, n - k) if k < n else 1.0
+                pts.append((int(f.stem[len("payload_step"):]), 100 * k / n, 100 * lo, 100 * hi))
+            elif ds:
+                pts.append((int(f.stem[len("payload_step"):]), 50.0, 50.0, 50.0))
+        if pts:
+            runs.append((label, sorted(pts)))
+    colours = [LINK, QUILL, EMBER, MUTED, INK, "#2F6FDE"]
+    fig, ax = canvas(1300, 2 * W)
+    L, PW, PH = 150, 1300, 900
+    top = 1240
+    write(ax, 40, top, "Words pass through the link once it starts from the fitted map between the two models", 34,
+          True, ha="left")
+    last = max(s for _, pts in runs for s, *_ in pts)
+    xt, xr = step_ticks(last)
+    y0 = top - 120 - PH
+    sx, sy = frame(ax, L, y0, PW, PH, xt, [0, 25, 50, 75, 100], xr, size=26)
+    ax.plot([sx(0), sx(last)], [sy(50)] * 2, color=MUTED, lw=2, ls=(0, (6, 6)), zorder=2)
+    write(ax, sx(last) + 16, sy(50), "no information (50%)", 26, color=MUTED, ha="left")
+    ends = []
+    for (label, pts), colour in zip(runs, colours):
+        xs = [sx(s) for s, *_ in pts]
+        ax.fill_between(xs, [sy(lo) for *_, lo, _ in pts], [sy(hi) for *_, hi in pts], color=colour, alpha=0.12,
+                        lw=0, zorder=2)
+        ax.plot(xs, [sy(v) for _, v, _, _ in pts], color=colour, lw=4, marker="o", ms=9, zorder=4)
+        ends.append([sy(pts[-1][1]), xs[-1], label, colour])
+    ends.sort(key=lambda e: -e[0])
+    for i in range(1, len(ends)):                          # labels at least 44 units apart
+        ends[i][0] = min(ends[i][0], ends[i - 1][0] - 44)
+    for yy, xx, label, colour in ends:                     # each at the end of its own line
+        write(ax, xx + 16, yy, label, 28, True, colour, ha="left")
+    write(ax, L + PW / 2, y0 - 84, "training step", 28, color=MUTED)
+    write(ax, 40, y0 + PH + 56, f"percent of never-seen {SHORT_GAME.get(game, game)} where the real partner wins", 28,
+          color=MUTED, ha="left")
+    crop(fig, ax, y0 - 120, top + 40)
+    save(fig, "opened")
+
+
 FIGURES = {"method": method, "probe": probe, "conversation": conversation, "hero": hero, "opening": opening,
-           "curves": curves, "readmap": readmap, "transfer": transfer}
+           "curves": curves, "readmap": readmap, "transfer": transfer, "opened": opened}
 
 if __name__ == "__main__":
     style()
