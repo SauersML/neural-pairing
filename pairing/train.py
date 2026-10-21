@@ -55,6 +55,11 @@ ap.add_argument('--bs', type=int, default=16)
 ap.add_argument('--lr', type=float, default=1e-4, help='LoRA')
 ap.add_argument('--lr_bridge', type=float, default=3e-4, help='the bridges, but alpha')
 ap.add_argument('--lr_alpha', type=float, default=3e-3, help="the bridges' alpha (write size)")
+ap.add_argument('--read_start', type=float, default=0.0,
+                help="zero every reader's output projection and start tanh(alpha) at this (0: the random output "
+                     "projection and alpha 0). Either way the pair starts as the original models; with a zero output "
+                     "projection that projection trains at full strength from the first step (a bridge that has not "
+                     "opened yet; applied after --init too)")
 ap.add_argument('--rank', type=int, default=32)
 ap.add_argument('--xblocks', default=','.join(map(str, XBLOCKS)), help='exchange after these blocks (0-based)')
 ap.add_argument('--heads', type=int, default=8)
@@ -141,6 +146,22 @@ else:
     sizes = {x: residual_rms(models[x], XB, [e[x]['ids'] for e in seqs]) for x in SIDES}
     print('residual RMS after the exchange blocks:', {x: [round(v, 3) for v in sizes[x]] for x in SIDES}, flush=True)
     pair = Pair(models, toks, XB, sizes, args.heads, args.head_dim).to(DEVICE)
+if args.read_start:
+    with torch.no_grad():
+        for x in SIDES:
+            for o in pair.bridge[x].o:
+                o.weight.zero_()
+            pair.bridge[x].alpha.fill_(math.atanh(args.read_start))
+    print(f'read start: output projections zeroed, tanh(alpha) = {args.read_start}', flush=True)
+if args.content_init != 'none':
+    import align
+    summary = align.content_init(pair, models, toks, replies, args.content_texts, vo=args.content_init == 'qkvo')
+    if ddp.MAIN:
+        json.dump(summary, open(os.path.join(args.out, 'content_init.json'), 'w'), indent=1)
+if args.alpha_init is not None:
+    with torch.no_grad():
+        for x in SIDES:
+            pair.bridge[x].alpha.fill_(math.atanh(args.alpha_init))
 for x in SIDES:
     models[x].train()
 
