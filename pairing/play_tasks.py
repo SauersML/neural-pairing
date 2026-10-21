@@ -94,7 +94,7 @@ def run_tests(code, tests, timeout=10):
 
 def score_one(game, it, text, x, ep):
     """Score of model x's generated text in an episode of `game` built from item `it`."""
-    if game in ('co_qa', 'co_hop'):
+    if game in ('co_qa', 'co_hop', 'co_talk'):
         ref = it['answer']
         yn = normalize(ref) in ('yes', 'no')
         if yn:

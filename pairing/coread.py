@@ -18,6 +18,10 @@ Task games (reference answers):
   co_code_write the reader has a programming problem; the partner writes the function
   co_instruct   the reader has an instruction; the partner carries it out
   co_mcq        one has the question, the other the options; both pick the answer
+Answer first, then talk (co_talk, when data/talk.json exists, from prep_talk.py): a text conversation with the link
+open. The asker answers a question about the holder's text in the very first turn, before the holder has written a
+word, so that answer can only come through the link; then the holder reacts and the asker replies, in words each
+original model wrote itself. Only the first answer is payload.
 Distillation (co_distill, when replies[x]['coread'] has the model's own replies, from prep_coread.py): the reader and
 the partner get the same request about the reader's content. The targets are each model's own reply when it reads the
 content itself, and meta['teacher'][x] is that model's own prompt with the content, so the trainer can match the
@@ -30,12 +34,13 @@ import json
 import os
 import random
 
-from games import OWN, TEST_WORDINGS, Games
+from games import OWN, TEST_WORDINGS, Games, system
 from link import MODELS, SIDES, partner
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-FAMILY = {'co_transfer': 3, 'co_swap': 3, 'co_split': 2, 'co_continue': 2, 'co_task': 8, 'co_distill': 6}
+FAMILY = {'co_transfer': 3, 'co_swap': 3, 'co_split': 2, 'co_continue': 2, 'co_task': 8, 'co_distill': 6,
+          'co_talk': 5}
 TASK_GAME = {'qa': 'co_qa', 'hop': 'co_hop', 'translate': 'co_translate', 'paraphrase': 'co_paraphrase',
              'nli': 'co_nli', 'math': 'co_math', 'code_out': 'co_code_out', 'code_write': 'co_code_write',
              'instruct': 'co_instruct', 'mcq': 'co_mcq'}
@@ -198,6 +203,30 @@ def request(item):
     return None
 
 
+def talk_context(item):
+    return item['context'] if item['task'] == 'qa' else item['a'] + '\n\n' + item['b']
+
+
+def talk_turn0(item):
+    """The asker's first turn: the reference answer, as a sentence."""
+    a = item['answer'].strip()
+    return a if a[-1:] in '.!?' else a + '.'
+
+
+def talk_system(item, x, asker):
+    """x's system prompt in a co_talk conversation: the dialogue system prompt and x's private task."""
+    N = {y: MODELS[y]['name'] for y in SIDES}
+    holder = partner(asker)
+    if x == holder:
+        task = (f"You are reading this text:\n\n{talk_context(item)}\n\n{N[asker]} cannot see it and has been asked "
+                f"this about it: \"{item['question']}\" {N[asker]} answers first, through the link, before you say "
+                f"anything. Then talk with {N[asker]} about it.")
+    else:
+        task = (f"{N[holder]} is reading a text you cannot see. Answer this about it right away, as your first message, "
+                f"using only the link: {item['question']} Then talk with {N[holder]} about it.")
+    return system(x, 'dialogue') + f"\n\nYour private task ({N[partner(x)]} cannot see it): {task}"
+
+
 class Coread(Games):
     """Draws co-reading episodes from data/coread.json (its train or test part)."""
 
@@ -214,6 +243,8 @@ class Coread(Games):
         self.tw = [w[s] for s in self.task_src]
         self.distill = [it for it in data[split] if request(it) and all(
             request(it)[2] in replies[x].get('coread', {}) for x in SIDES)]
+        tp = os.path.join(os.path.dirname(path or os.path.join(ROOT, 'data', 'coread.json')), 'talk.json')
+        self.talk = json.load(open(tp))[split] if os.path.exists(tp) else []
 
     def passage(self):
         return self.rng.choice(self.by_src[self.rng.choices(self.passage_src, self.pw)[0]])
@@ -223,8 +254,8 @@ class Coread(Games):
 
     def episode(self, game=None):
         rng = self.rng
-        fams = [f for f in FAMILY if f != 'co_distill' or self.distill]
-        if game in FAMILY:
+        fams = [f for f in FAMILY if (f != 'co_distill' or self.distill) and (f != 'co_talk' or self.talk)]
+        if game in FAMILY and game in fams:
             fam = game
         elif game in TASK_GAME.values():
             fam = 'co_task'
@@ -269,6 +300,15 @@ class Coread(Games):
                          self.own(s, q), OWN),
                      r: (wording('continue', sp, rng).format(P=N[s]), b, 1.0)}
             return self._co(fam, roles, it, {r: [(0, len(b))]}, reader=s)
+        if fam == 'co_talk':
+            c = rng.choice(self.talk)
+            it, asker = c['item'], c['asker']
+            turns = [(sp, text, 1.0 if k == 0 else 0.5) for k, (sp, text) in enumerate(c['turns'])]
+            ep = dict(game='co_talk', mode='dialogue', system=c['system'], task={x: None for x in SIDES}, turns=turns,
+                      meta=dict(src=it['src'], task=it['task'], item=it, asker=asker, holder=partner(asker),
+                                sender=partner(asker), receiver=asker, exchanges=len(turns),
+                                payload={asker: [(0, len(turns[0][1]))]}))
+            return ep
         if fam == 'co_distill':
             it = rng.choice(self.distill)
             content, req, own_prompt = request(it)

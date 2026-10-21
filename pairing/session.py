@@ -129,10 +129,13 @@ def build(ep, toks):
 def payload(ep):
     """{x: [(start, end)]}: the character spans of x's target reply that only the partner can supply (the relayed
     value, the partner's number and the sum, the partner's half of the fact, the looked-up word; co-reading games:
-    meta['payload']). Duplex games only."""
-    if ep['mode'] != 'duplex':
-        return {}
+    meta['payload']). Duplex games, and dialogue co-reading games (co_talk), whose payload spans are in the first turn's
+    text of the model that writes it."""
     g, m = ep['game'], ep['meta']
+    if ep['mode'] != 'duplex':
+        if g.startswith('co_') and m.get('payload'):
+            return {x: [tuple(sp) for sp in spans] for x, spans in m['payload'].items() if ep['turns'][0][0] == x}
+        return {}
     if g.startswith('co_'):
         return {x: [tuple(sp) for sp in spans] for x, spans in m['payload'].items()}
     text = {x: ep['reply'][x][0] for x in SIDES}
@@ -154,12 +157,14 @@ def payload(ep):
 
 
 def payload_labels(ep, toks):
-    """{x: indices into x's labels (build()) of the payload tokens}: in a duplex episode label j predicts reply token j."""
+    """{x: indices into x's labels (build()) of the payload tokens}: in a duplex episode label j predicts reply token j,
+    and in a dialogue episode the first speaker's label j predicts token j of the first turn."""
     out = {}
     for x, spans in payload(ep).items():
         if not spans:
             continue
-        enc = toks[x](ep['reply'][x][0], add_special_tokens=False, return_offsets_mapping=True)
+        text = ep['reply'][x][0] if ep['mode'] == 'duplex' else ep['turns'][0][1]
+        enc = toks[x](text, add_special_tokens=False, return_offsets_mapping=True)
         js = [j for j, (a, b) in enumerate(enc.offset_mapping) if any(a < e and b > s0 for s0, e in spans)]
         if js:
             out[x] = js

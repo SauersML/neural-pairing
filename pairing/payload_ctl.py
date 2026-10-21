@@ -28,7 +28,7 @@ def episodes(replies, n, max_digits=16, coread=False, path=None):
         import coread as C
         co = C.Coread(replies, 'test', seed=4242, path=path)
         for g in C.GAMES:
-            if g != 'co_task' and (g != 'co_distill' or co.distill):
+            if g != 'co_task' and (g != 'co_distill' or co.distill) and (g != 'co_talk' or co.talk):
                 out[g] = [co.episode(g) for _ in range(n)]
     return out
 
