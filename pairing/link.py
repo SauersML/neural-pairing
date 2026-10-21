@@ -49,9 +49,13 @@ MODELS = {
 SIDES = ('quill', 'ember')
 
 
-def load(x, dtype=torch.bfloat16):
-    """Tokenizer and model of side x. NL_TINY=1: a 6-block random model with the same architecture (for smoke tests)."""
+def load(x, dtype=torch.bfloat16, stream=None):
+    """Tokenizer and model of side x. NL_TINY=1: a 6-block random model with the same architecture (for smoke tests).
+    stream (default: NL_STREAM=1): the blocks' weights stay in host memory, memory-mapped from the checkpoint's files (
+    reclaimable file pages, not the process's own memory), and each block copies them to DEVICE only while it runs
+    (stream_blocks); the embeddings, final norm and LM head live on DEVICE."""
     from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+    stream = os.environ.get('NL_STREAM') == '1' if stream is None else stream
     hf = MODELS[x]['hf']
     tok = AutoTokenizer.from_pretrained(hf)
     if os.environ.get('NL_TINY'):
@@ -62,9 +66,93 @@ def load(x, dtype=torch.bfloat16):
             cfg.layer_types = cfg.layer_types[:6]
         torch.manual_seed(0)
         model = AutoModelForCausalLM.from_config(cfg, dtype=torch.float32)
+    elif stream:
+        model = _mapped(hf, dtype)
     else:
         model = AutoModelForCausalLM.from_pretrained(hf, dtype=dtype)
+    if stream:
+        dec = inner(model)[0]
+        blocks, dec.layers = dec.layers, nn.ModuleList()
+        model.to(DEVICE)
+        dec.layers = blocks
+        return tok, stream_blocks(model)
     return tok, model.to(DEVICE)
+
+
+_MAPS = []                   # the open memory maps (their tensors read them)
+
+
+def _safetensors(path):
+    """{name: CPU tensor} of a safetensors file, memory-mapped copy-on-write: clean file pages until written."""
+    import json
+    import mmap
+    with open(path, 'rb') as f:
+        n = int.from_bytes(f.read(8), 'little')
+        header = json.loads(f.read(n))
+        mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_COPY)
+    _MAPS.append(mm)
+    types = {'BF16': torch.bfloat16, 'F16': torch.float16, 'F32': torch.float32}
+    out = {}
+    for name, info in header.items():
+        if name != '__metadata__':
+            a, b = info['data_offsets']
+            t = types[info['dtype']]
+            out[name] = torch.frombuffer(mm, dtype=t, count=(b - a) // t.itemsize, offset=8 + n + a).view(info['shape'])
+    return out
+
+
+def _mapped(hf, dtype):
+    """Model hf on the host with its weights memory-mapped from the cached checkpoint (_safetensors), its rotary
+    embeddings built on DEVICE."""
+    from huggingface_hub import snapshot_download
+    from transformers import AutoConfig, AutoModelForCausalLM
+    path = snapshot_download(hf, local_files_only=True)
+    cfg = AutoConfig.from_pretrained(hf)
+    with torch.device('meta'):
+        model = AutoModelForCausalLM.from_config(cfg, dtype=dtype)
+    state = {}
+    for name in sorted(os.listdir(path)):
+        if name.endswith('.safetensors'):
+            state.update(_safetensors(os.path.join(path, name)))
+    state = {k: v if v.dtype == dtype else v.to(dtype) for k, v in state.items()}
+    missing, unexpected = model.load_state_dict(state, strict=False, assign=True)
+    tied = ['lm_head.weight'] if cfg.tie_word_embeddings else []
+    assert not unexpected and missing == tied, (missing, unexpected)
+    if tied:
+        model.lm_head.weight = inner(model)[0].embed_tokens.weight
+    for name, mod in list(model.named_modules()):
+        if any(b.is_meta for b in mod.buffers(recurse=False)):           # rotary inverse frequencies
+            parent, _, attr = name.rpartition('.')
+            setattr(model.get_submodule(parent), attr, type(mod)(config=cfg, device=DEVICE))
+    assert not any(t.is_meta for t in list(model.parameters()) + list(model.buffers()))
+    return model
+
+
+def stream_blocks(model):
+    """Run each block of model on DEVICE copies of its weights, made each time it runs (also when gradient
+    checkpointing reruns it for the backward pass), so that only running blocks hold weights on DEVICE: the copies
+    live as long as the autograd graph needs them, and the block's own parameters stay where they are. The weights
+    streamed are the block's parameters now (frozen); parameters added later (LoRA adapters) move to DEVICE at first
+    use. The copies are passed with torch.nn.utils.stateless (not by setting .data, which would change what autograd
+    saved)."""
+    from torch.nn.utils.stateless import _reparametrize_module
+    on = torch.device(DEVICE).type
+
+    def streamed(block, forward, host):
+        def run(*args, **kwargs):
+            copies = {}
+            for name, p in block.named_parameters():
+                if id(p) in host:
+                    assert not (p.requires_grad and torch.is_grad_enabled()), f'streamed weight {name} must be frozen'
+                    copies[name] = p.detach().to(DEVICE, copy=True)
+                elif p.device.type != on:
+                    p.data = p.data.to(DEVICE)
+            with _reparametrize_module(block, copies):
+                return forward(*args, **kwargs)
+        return run
+    for block in find_layers(model):
+        block.forward = streamed(block, block.forward, {id(p) for p in block.parameters()})
+    return model
 
 
 def partner(x):

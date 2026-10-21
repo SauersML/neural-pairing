@@ -95,6 +95,12 @@ ap.add_argument('--payload_eval', type=int, default=0,
                 'and every evaluation')
 ap.add_argument('--minutes', type=float, default=0, help='wall-clock budget: after the first evaluation the step '
                 'count is cut so the run (evaluations and saves included) fits; the schedule follows the new count')
+ap.add_argument('--payload_w', type=float, default=1.0, help='multiplies the loss weight of payload tokens (the part of '
+                "a reply that only the partner's prompt gives)")
+ap.add_argument('--content_init', default='none', choices=('none', 'qk', 'qkvo'),
+                help='set the reads so that each reader attends to content-matched partner positions (align.py); qkvo '
+                     'also sets values and outputs to deliver the matched state')
+ap.add_argument('--content_texts', type=int, default=192, help='texts read by both models for --content_init')
 ap.add_argument('--halt', type=int, default=0, help='stop after this step (probe runs; the schedule is still --steps)')
 ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
 coldstart.add_arguments(ap)
@@ -160,6 +166,11 @@ if args.read_start:
                 o.weight.zero_()
             pair.bridge[x].alpha.fill_(math.atanh(args.read_start))
     print(f'read start: output projections zeroed, tanh(alpha) = {args.read_start}', flush=True)
+if args.content_init != 'none':
+    import align
+    summary = align.content_init(pair, models, toks, replies, args.content_texts, vo=args.content_init == 'qkvo')
+    if ddp.MAIN:
+        json.dump(summary, open(os.path.join(args.out, 'content_init.json'), 'w'), indent=1)
 for x in SIDES:
     models[x].train()
 
@@ -248,6 +259,9 @@ def prepare(step, rng=rng, games=train_games, co=COREAD):
     for (ep, _), e in zip(rows, built):
         for x, js in S.payload_labels(ep, toks).items():
             e[x]['payload'] = js
+            for j in js:
+                pos, tid, wt = e[x]["labels"][j]
+                e[x]["labels"][j] = (pos, tid, wt * args.payload_w)
         for x, t in teacher(ep).items():
             assert len(t[0]) - t[1] == len(e[x]['labels']), (ep['game'], x)
             e[x]['teacher'] = t
@@ -409,6 +423,16 @@ if DEVICE.startswith('cuda'):
     probe()
 
 
+def memory():
+    """Bytes of device memory: the peak allocated (CUDA), or what the Metal driver holds now (MPS, cached blocks
+    included, so close to the peak)."""
+    if DEVICE.startswith('cuda'):
+        return torch.cuda.max_memory_allocated(DEVICE)
+    if DEVICE.startswith('mps'):
+        return torch.mps.driver_allocated_memory()
+    return 0
+
+
 def merge(parts):
     out = {}
     for st in parts:
@@ -464,7 +488,7 @@ while step < args.steps:
         g['lr'] = lr0 * coldstart.lr_multiplier(step, args.steps, args.warmup_steps)
     competitive, rows, built = nxt
     scale = 0.0 if step <= args.relay_first or frac <= args.warm else min(1.0, (frac - args.warm) / args.ramp) if args.ramp > 0 else 1.0
-    logging = step % 20 == 0 or step <= 3
+    logging = step % 20 == 0 or step <= 3 or step == args.halt
     pair.track = {} if logging else None
     rows, built, b, last, loss_for, total, sent, tally = forward(rows, built, scale)
     track, pair.track = pair.track, None
@@ -498,8 +522,7 @@ while step < args.steps:
         v = ddp.sum_tensor(torch.cat([total.detach()[None], sent])).tolist()
         merged = merge(ddp.gather(stats))
         pay = merge(ddp.gather(pstats))
-        mem = max(ddp.gather(round(torch.cuda.max_memory_allocated(DEVICE) / 2 ** 30, 1))) \
-            if DEVICE.startswith('cuda') else 0
+        mem = max(ddp.gather(round(memory() / 2 ** 30, 1)))
         n = len(SIDES)
         line = {'step': step, 'loss': round(v[0], 4),
                 'sent': {x: round(v[1 + j], 3) for j, x in enumerate(SIDES)},
