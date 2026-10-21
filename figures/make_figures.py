@@ -11,7 +11,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
 from matplotlib.ticker import MaxNLocator
-from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Rectangle
+from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Rectangle, Wedge
 from scipy.stats import binom
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -127,134 +127,278 @@ def arrow(ax, a, b, color=INK, lw=3, rad=0.0, z=4, head=22):
                                  mutation_scale=20, shrinkA=0, shrinkB=0))
 
 
-# Text with bold and highlighted words, wrapped to a width.
+# The method figure: the two block stacks and the link (top left), one exchange up close (top right), time (bottom).
 
-def strip(ax, x, y, w, h, light, dark, marks=(), n=36):
-    """A token's residual stream as a column of n layer lines (layer 0 at the bottom); marks: (layer, colour)."""
-    rbox(ax, x, y, w, h, light, radius=12, z=2)
-    for k in range(1, n):
-        yy = y + h * k / n
-        ax.plot([x + 10, x + w - 10], [yy, yy], color="white", lw=1.2, zorder=3)
-    for layer, colour in marks:
-        yy = y + h * (layer + 0.5) / n
-        rbox(ax, x + 4, yy - h / n * 0.9, w - 8, 2 * h / n * 0.9, colour, radius=4, z=4)
+XBLOCKS = (6, 9, 12, 15, 18, 21, 24, 27)   # pairing/link.py: an exchange after each of these blocks (counted from 0)
+FAINT = "#C7C7CC"
 
 
-def lane_token(ax, x, y, text, fill, colour, w=86, h=58, size=24, bold=False):
-    rbox(ax, x, y - h / 2, w, h, fill, radius=12, z=3)
-    write(ax, x + w / 2, y, text, size, bold, colour)
+def mix(colour, s):
+    """colour at strength s over white."""
+    from matplotlib.colors import to_rgb
+    return tuple(1 - s * (1 - c) for c in to_rgb(colour))
+
+
+def tile(ax, cx, cy, text, fill, colour, w=None, h=56, size=24, bold=False, edge="none", lw=0, z=3):
+    """A token: a rounded box centred at (cx, cy), as wide as its text unless w is given. Returns its width."""
+    w = w or text_width(ax, text, size, bold) + 30
+    rbox(ax, cx - w / 2, cy - h / 2, w, h, fill, radius=10, z=z, edge=edge, lw=lw)
+    if text:
+        write(ax, cx, cy, text, size, bold, colour, zorder=z + 1)
+    return w
+
+
+def dial(ax, cx, cy, r, s, colour):
+    """A gate as a dial filled to the fraction s."""
+    ax.add_patch(Circle((cx, cy), r, facecolor="white", edgecolor=colour, lw=2, zorder=4))
+    ax.add_patch(Wedge((cx, cy), r, 90 - 360 * s, 90, facecolor=colour, edgecolor="none", zorder=5))
+
+
+def lines(ax, x, y, rows, size=24, step=38):
+    """Left-aligned lines of (text, colour) from y down."""
+    for k, (text, colour) in enumerate(rows):
+        write(ax, x, y - step * k, text, size, color=colour, ha="left")
+
+
+def towers(ax, zoom_box, zoom_block=24):
+    """Both models' 36 blocks, the exchanges between them, and the callout of one exchange to zoom_box. Returns the
+    lowest y used."""
+    QX, EX, TW = 200, 590, 150
+    bh, gap, xgap = 18, 6, 38
+    ys, y = [], 1010
+    for l in range(36):
+        ys.append(y)
+        y += bh + (xgap if l in XBLOCKS else gap)
+    top = ys[-1] + bh
+    for x0, light in ((QX, QUILL_LIGHT), (EX, EMBER_LIGHT)):
+        for y in ys:
+            rbox(ax, x0, y, TW, bh, light, radius=5)
+    for l in (0,) + XBLOCKS + (35,):
+        write(ax, QX - 16, ys[l] + bh / 2, f"block {l}" if l == 0 else str(l), 24, color=MUTED, ha="right")
+    for l in XBLOCKS:
+        yc = ys[l] + bh + xgap / 2
+        arrow(ax, (QX + TW + 8, yc + 8), (EX - 8, yc + 8), LINK, 3, head=15)
+        arrow(ax, (EX - 8, yc - 8), (QX + TW + 8, yc - 8), LINK, 3, head=15)
+    mid = (QX + TW + EX) / 2
+    write(ax, mid, (ys[0] + ys[6] + bh) / 2, "no link", 24, color=MUTED)
+    write(ax, mid, (ys[28] + top) / 2, "no link", 24, color=MUTED)
+    # each model reads only its own tokens and predicts its own next token
+    for x0, colour, light, words, nxt in ((QX, QUILL, QUILL_LIGHT, ("Sky", "looks", "blue"), "because"),
+                                         (EX, EMBER, EMBER_LIGHT, ("The", "word", "is"), "lantern")):
+        cx = x0 + TW / 2
+        ws = [text_width(ax, w, 24) + 26 for w in words]
+        x = cx - (sum(ws) + 8 * (len(ws) - 1)) / 2
+        for w, wd in zip(words, ws):
+            tile(ax, x + wd / 2, ys[0] - 80, w, light, colour, w=wd, h=50)
+            x += wd + 8
+        arrow(ax, (cx, ys[0] - 52), (cx, ys[0] - 4), INK, 2.5, head=14)
+        arrow(ax, (cx, top + 4), (cx, top + 42), INK, 2.5, head=14)
+        tile(ax, cx, top + 72, nxt, colour, "white", h=50, bold=True)
+    write(ax, mid, top + 72, "next token", 24, color=MUTED)
+    for x0, name, hf, colour in ((QX, "Quill", "Qwen3-4B", QUILL), (EX, "Ember", "AFM-4.5B", EMBER)):
+        write(ax, x0 + TW / 2, top + 178, name, 34, True, colour)
+        write(ax, x0 + TW / 2, top + 136, hf, 24, color=MUTED)
+    lines(ax, 40, ys[0] - 165, [("Green arrows: the link, after blocks 6, 9, …, 27 of 36. At each of these exchanges, both "
+                                 "models read each other's", LINK),
+                                ("hidden states at the same time, from the states before the exchange. No tokens cross.",
+                                 LINK),
+                                ("Only the link (8 heads of 128 dimensions, in float32) and LoRA adapters on both models "
+                                 "train; the original weights stay frozen.", MUTED)], size=26, step=42)
+    # the exchange drawn up close
+    y0, y1 = ys[zoom_block] + bh + 3, ys[zoom_block + 1] - 3
+    rbox(ax, QX - 10, y0, EX + TW - QX + 20, y1 - y0, "none", radius=8, z=5, edge=INK, lw=2)
+    zx, zy0, zy1 = zoom_box
+    for ya, yb in ((y1, zy1 - 30), (y0, zy0 + 30)):
+        ax.plot([EX + TW + 10, zx], [ya, yb], color=INK, lw=1.5, zorder=1)
+    return ys[0] - 165 - 42 * 2 - 20
+
+
+def exchange(ax, X0, X1, Y0, Y1):
+    """One exchange up close: Ember's token "is" at tick 3 reads Quill's tokens (the duplex example below)."""
+    rbox(ax, X0, Y0, X1 - X0, Y1 - Y0, PANEL, radius=26, z=1)
+    # Quill's tokens as Ember's token at tick 3 sees them: (token, tick, gate s, attention weight; None: hidden)
+    cols = [("…", -1, 0.35, 0.05), ("lantern", -1, 0.95, 0.40), ("▸", 0, 0.25, 0.04),
+            ("Sky", 1, 0.6, 0.08), ("looks", 2, 0.4, 0.06), ("blue", 3, 0.8, 0.15), ("because", 4, 0.7, None)]
+    null_w = 0.22
+    lx = X0 + 215                                    # row labels end here
+    gx = lx + 30
+    xs = []
+    for tok, *_ in cols:
+        w = max(text_width(ax, tok, 24) + 28, 64)
+        xs.append((gx + w / 2, w))
+        gx += w + 12
+    null_x = gx + 34
+    yt, ytok, ygate, yv, yk, ybar = Y0 + 90, Y0 + 165, Y0 + 252, Y0 + 332, Y0 + 402, Y0 + 452
+    unit = 260 / 0.40                                # bar height per unit of attention weight
+    for label, y in (("tick", yt), ("Quill's states", ytok), ("gate s", ygate), ("value × s", yv), ("key", yk),
+                     ("attention", ybar + 90)):
+        write(ax, lx, y, label, 24, color=MUTED, ha="right")
+    for (tok, tick, s, p), (cx, w) in zip(cols, xs):
+        f = 0.3 if p is None else 1.0
+        write(ax, cx, yt, f"{tick}".replace("-", "−"), 24, color=FAINT if p is None else MUTED)
+        tile(ax, cx, ytok, tok, mix(QUILL_LIGHT, f), mix(QUILL, f), w=w)
+        dial(ax, cx, ygate, 24, s, mix(QUILL, f))
+        rbox(ax, cx - 28, yv - 22, 56, 44, mix(QUILL, s * f), radius=8, z=3)
+        rbox(ax, cx - 28, yk - 22, 56, 44, mix(QUILL, f), radius=8, z=3)
+        if p is not None:
+            ax.add_patch(Rectangle((cx - 20, ybar), 40, unit * p, color=LINK, zorder=3))
+    write(ax, xs[-1][0], ybar + 82, "hidden:", 24, color=MUTED)
+    write(ax, xs[-1][0], ybar + 44, "tick 4 > 3", 24, color=MUTED)
+    # the null key (Ember's) with a zero value: Ember may read nothing
+    write(ax, null_x, yt, "null key", 24, True, EMBER)
+    rbox(ax, null_x - 28, yv - 22, 56, 44, "white", radius=8, z=3, edge=EMBER, lw=2)
+    write(ax, null_x, yv, "0", 24, True, EMBER)
+    rbox(ax, null_x - 28, yk - 22, 56, 44, EMBER, radius=8, z=3)
+    ax.add_patch(Rectangle((null_x - 20, ybar), 40, unit * null_w, color=LINK, zorder=3))
+    ax.plot([xs[0][0] - xs[0][1] / 2, null_x + 40], [ybar, ybar], color=INK, lw=1.5, zorder=4)
+    # Ember's residual stream: the query leaves it, the write comes back into it
+    sx = X1 - 100
+    yo = ybar + unit * 0.40 + 130
+    ax.plot([sx, sx], [Y0 + 115, yo - 26], color=EMBER, lw=5, zorder=4, solid_capstyle="butt")
+    ax.add_patch(FancyArrowPatch((sx, yo + 28), (sx, yo + 190), arrowstyle="-|>,head_length=1.1,head_width=0.65",
+                                 color=EMBER, lw=5, zorder=4, mutation_scale=20, shrinkA=0, shrinkB=0))
+    write(ax, X1 - 24, Y0 + 70, "Ember's state", 26, True, EMBER, ha="right")
+    write(ax, X1 - 24, Y0 + 34, "token “is”, tick 3", 24, color=MUTED, ha="right")
+    write(ax, sx - 24, yo + 170, "to block 25", 24, color=MUTED, ha="right")
+    qx = sx - 130
+    tile(ax, qx, yk, "Q", EMBER, "white", w=76, h=64, size=28, bold=True)
+    arrow(ax, (sx, yk), (qx + 40, yk), EMBER, 3, head=16)
+    arrow(ax, (qx - 40, yk), (null_x + 32, yk), INK, 3, head=16)
+    write(ax, qx, yk - 58, "query", 24, color=MUTED)
+    # the attention-weighted sum of the values -> O -> scaled -> added to Ember's state
+    wx0, wx1 = xs[0][0] - xs[0][1] / 2, xs[-1][0] + xs[-1][1] / 2
+    rbox(ax, wx0, yo - 32, wx1 - wx0, 64, "white", radius=12, z=3, edge=LINK, lw=2.5)
+    write(ax, (wx0 + wx1) / 2, yo, "attention-weighted sum of the values", 26, True, LINK)
+    arrow(ax, ((wx0 + wx1) / 2, ybar + unit * 0.40 + 12), ((wx0 + wx1) / 2, yo - 36), LINK, 3, head=16)
+    ox = wx1 + 74
+    tile(ax, ox, yo, "O", EMBER, "white", w=76, h=64, size=28, bold=True)
+    arrow(ax, (wx1 + 4, yo), (ox - 40, yo), INK, 3, head=16)
+    ax.add_patch(Circle((sx, yo), 26, facecolor="white", edgecolor=EMBER, lw=3, zorder=6))
+    write(ax, sx, yo + 2, "+", 28, True, EMBER, zorder=7)
+    arrow(ax, (ox + 40, yo), (sx - 28, yo), INK, 3, head=16)
+    write(ax, (ox + 40 + sx - 28) / 2, yo + 58, "× tanh(α) · size", 24)
+    # the read as one line, and what the picture leaves out
+    family = plt.rcParams["font.family"][0]
+    plt.rcParams.update({"mathtext.fontset": "custom", "mathtext.rm": family, "mathtext.it": f"{family}:italic"})
+    h = lambda who: r"$h_{\rm " + who + "}$"
+    write(ax, X0 + 40, Y1 - 60, f"{h('Ember')} += tanh(α) · size · O(attention(Q(norm {h('Ember')}), "
+          f"K(norm {h('Quill')}), s · V(norm {h('Quill')})))", 27, ha="left")
+    lines(ax, X0 + 40, Y1 - 114, [
+        ("Orange: Ember, the reader, and Ember's weights: Q, O, α and the null key.", EMBER),
+        ("Violet: Quill, the sender, and Quill's weights: K, V and the gate s = σ(w · h + b).", QUILL),
+        ("The gate sets how much each Quill token shows; the gate scales values, not keys.", INK),
+        ("Each head adds a learned bias by how many ticks ago each Quill token was read.", INK),
+        ("size: Ember's typical residual size after block 24, so tanh(α) is the write's relative size.", INK),
+        ("O starts at zero and tanh(α) at 0.5: at step 0 the pair is exactly the two original models.", INK),
+        ("At the same time, Quill reads Ember the same way.", INK)], step=42)
+
+
+def timeline(ax, X0, Y1):
+    """Ticks: the duplex relay (Ember's tick-3 token reads Quill up to tick 3) and a co_talk dialogue. Returns the
+    lowest y used."""
+    P, MARK = "prompt", "mark"
+    duplex = {"quill": {-1: [('secret word "lantern"', P)], 0: [("▸", MARK)], 1: [("Sky", 0)],
+                        2: [("looks", 0)], 3: [("blue", 0)], 4: [("because", 0)], 5: [("air", 0)]},
+              "ember": {-1: [("get Quill's word", P)], 0: [("▸", MARK)], 1: [("The", 0)], 2: [("word", 0)],
+                        3: [("is", 0)], 4: [("lantern", 0)], 5: [(".", 0)]}}
+    talk = {"quill": {-1: [("text: …a red door…", P)], 0: [("▸", MARK)], 2: [("Red", 1)],
+                      3: [(".", 1), ("▸", MARK)], 4: [("Yes", 0)], 5: [(",", 0)], 6: [("the", 0)], 7: [("door", 0)]},
+            "ember": {-1: [("asked: door colour?", P)], 0: [("▸", MARK)], 1: [("Red", 0)], 2: [(".", 0)],
+                      3: [("▸", MARK)], 5: [("Yes", 1)], 6: [(",", 1)], 7: [("the", 1)]}}
+    ticks = range(-1, 8)
+    pad, sep, drop = 26, 14, 150
+
+    def tok_w(text):
+        return max(text_width(ax, text, 24) + pad, 48)
+
+    def width(cell):
+        return sum(tok_w(t) for t, _ in cell) + 6 * (len(cell) - 1)
+    colw = {t: max(width(rows[x].get(t, [])) for rows in (duplex, talk) for x in rows) for t in ticks}
+    cx, x = {}, X0 + 150
+    for t in ticks:
+        cx[t] = x + colw[t] / 2
+        x += colw[t] + sep
+    end = x
+
+    def lane(y_top, rows, fade=()):
+        """Draws the tick labels and both rows; returns {(side, tick, k): (x, y, w)} of every token."""
+        for t in ticks:
+            write(ax, cx[t], y_top, str(t).replace("-", "−"), 24, color=MUTED)
+        write(ax, X0, y_top, "tick", 24, color=MUTED, ha="left")
+        at = {}
+        for x, y, colour, light, name in (("quill", y_top - 70, QUILL, QUILL_LIGHT, "Quill"),
+                                          ("ember", y_top - 70 - drop, EMBER, EMBER_LIGHT, "Ember")):
+            write(ax, X0, y, name, 28, True, colour, ha="left")
+            for t, cell in rows[x].items():
+                xx = cx[t] - width(cell) / 2
+                for k, (text, kind) in enumerate(cell):
+                    w = tok_w(text)
+                    f = 0.3 if (x, t) in fade else 1.0
+                    if kind == P:
+                        tile(ax, xx + w / 2, y, text, "white", colour, w=w, edge=colour, lw=2)
+                    elif kind == MARK:
+                        tile(ax, xx + w / 2, y, text, "white", MUTED, w=w, edge=FAINT, lw=1.5)
+                    elif kind == 1:       # the partner's text, read as a user message
+                        tile(ax, xx + w / 2, y, text, "#E9E9ED", MUTED, w=w)
+                    else:
+                        tile(ax, xx + w / 2, y, text, mix(light, f), mix(colour, f), w=w)
+                    at[(x, t, k)] = (xx + w / 2, y, w)
+                    xx += w + 6
+        return at
+
+    def reads(at, srcs, dst):
+        """Green lines from every token in srcs that meet above dst and point at it, with dst outlined."""
+        bx, by, bw = at[dst]
+        rbox(ax, bx - bw / 2 - 5, by - 33, bw + 10, 66, "none", radius=13, z=5, edge=LINK, lw=3.5)
+        meet = (bx, by + 78)
+        for s in srcs:
+            sx, sy, _ = at[s]
+            ax.plot([sx, meet[0]], [sy - 30, meet[1]], color=LINK, lw=2.5, zorder=4, solid_capstyle="round")
+        arrow(ax, meet, (bx, by + 36), LINK, 3, head=15)
+
+    def heading(x, y, bold, plain):
+        write(ax, x, y, bold, 30, True, ha="left")
+        write(ax, x + text_width(ax, bold + " ", 30, True), y, plain, 26, color=MUTED, ha="left")
+
+    heading(X0, Y1, "Time runs in ticks.", "At every exchange, a token reads the partner's tokens of the same or an "
+            "earlier tick. Both prompts are at tick −1.")
+    # duplex: Ember's token at tick 3 reads Quill's tokens of ticks -1..3
+    y = Y1 - 110
+    at = lane(y, duplex, fade={("quill", 4), ("quill", 5)})
+    reads(at, [("quill", t, 0) for t in range(-1, 4)], ("ember", 3, 0))
+    tx = end + 40
+    heading(tx, y, "Both write at once", "(duplex)")
+    lines(ax, tx, y - 52, [("Neither model sees the other's text;", MUTED),
+                           ("only the link connects them.", MUTED),
+                           ("Ember's token “is” at tick 3 reads", LINK),
+                           ("Quill's tokens up to tick 3, the prompt", LINK),
+                           ("included; later ones stay hidden.", LINK)])
+    # dialogue (co_talk): Ember answers about Quill's text before Quill writes a word
+    y2 = y - 70 - drop - 140
+    at = lane(y2, talk)
+    reads(at, [("quill", -1, 0), ("quill", 0, 0)], ("ember", 0, 0))
+    sx, sy, _ = at[("ember", 1, 0)]
+    dx, dy, _ = at[("quill", 2, 0)]
+    arrow(ax, (sx + 8, sy + 32), (dx - 8, dy - 32), MUTED, 2.5, head=14)
+    heading(tx, y2, "Taking turns in text", "(dialogue)")
+    lines(ax, tx, y2 - 52, [("The listener reads the speaker's words as a", MUTED),
+                            ("user message, one tick behind (grey).", MUTED),
+                            ("The link stays open throughout: Ember", LINK),
+                            ("answers about Quill's text before Quill", LINK),
+                            ("has written a word.", LINK),
+                            ("▸: the tokens that open and close a turn.", MUTED)])
+    return y2 - 70 - drop - 50
 
 
 def method():
-    """How a message becomes a slot in the partner's input (left), and the two ways the pair runs (right)."""
-    fig, ax = canvas(1300, 2 * W)
-    # left: one message from Quill's token t to a slot in Ember's input before Ember's token t + 1
-    top = 1250
-    write(ax, 40, top - 20, "Quill · Qwen3-4B", 34, True, QUILL, ha="left")
-    sw, sh = 120, 420
-    qx, qy = 120, top - 540
-    strip(ax, qx, qy, sw, sh, QUILL_LIGHT, QUILL, marks=((35, QUILL), (24, QUILL)))
-    write(ax, qx + sw / 2, qy - 36, "token t", 26, color=MUTED)
-    ly = lambda y0, layer: y0 + sh * (layer + 0.5) / 36
-    write(ax, qx - 16, ly(qy, 35), "36", 24, True, QUILL, ha="right")
-    write(ax, qx - 16, ly(qy, 24), "24", 24, True, QUILL, ha="right")
-    # last layer -> next-token probabilities (the text part)
-    y0 = ly(qy, 35)
-    px = qx + sw + 70
-    arrow(ax, (qx + sw, y0), (px - 8, y0), INK, 3)
-    for k, hgt in enumerate((52, 18, 34, 10, 24, 8, 14, 6)):
-        ax.add_patch(Rectangle((px + k * 26, y0 - 26), 20, hgt, color=QUILL, zorder=4))
-    write(ax, px + 104, y0 + 54, "next-token probabilities", 26, True)
-    # layer 24 -> send head -> message -> gate (the learned part)
-    y1 = ly(qy, 24)
-    bx = qx + sw + 250
-    rbox(ax, bx, y1 - 45, 210, 90, QUILL, radius=16, z=3)
-    write(ax, bx + 105, y1, "send head", 28, True, "white")
-    arrow(ax, (qx + sw, y1), (bx, y1), INK, 3)
-    mx = bx + 260
-    for k in range(16):
-        c = plt.cm.PuOr(0.15 + 0.7 * ((k * 7) % 16) / 15)
-        ax.add_patch(Rectangle((mx + k * 14, y1 - 28), 12, 56, color=c, zorder=4))
-    write(ax, mx + 112, y1 - 62, "256 numbers", 26, True)
-    arrow(ax, (bx + 210, y1), (mx - 6, y1), INK, 3)
-    gx = mx + 260
-    ax.add_patch(Circle((gx + 34, y1), 34, color=LINK, zorder=4))
-    write(ax, gx + 34, y1, "on", 24, True, "white")
-    write(ax, gx + 34, y1 + 62, "gate", 26, True)
-    arrow(ax, (mx + 228, y1), (gx, y1), INK, 3)
-    # both parts -> one slot vector
-    sx0, sy = 500, top - 800
-    sbw = text_width(ax, "slot", 30, True) + 80
-    rbox(ax, sx0, sy - 45, sbw, 90, LINK, radius=16, z=3)
-    write(ax, sx0 + sbw / 2, sy, "slot", 30, True, "white")
-    ax.add_patch(FancyArrowPatch((px + 104, y0 - 30), (sx0 + 30, sy + 45),
-                                 arrowstyle="-|>,head_length=1.1,head_width=0.65", connectionstyle="arc3,rad=0.1",
-                                 color=INK, lw=3, zorder=4, mutation_scale=20))
-    ax.add_patch(FancyArrowPatch((gx + 34, y1 - 34), (sx0 + sbw - 30, sy + 45),
-                                 arrowstyle="-|>,head_length=1.1,head_width=0.65", connectionstyle="arc3,rad=-0.2",
-                                 color=INK, lw=3, zorder=4, mutation_scale=20))
-    write(ax, sx0 + sbw + 24, sy + 18, "mix of the embeddings of", 24, color=MUTED, ha="left")
-    write(ax, sx0 + sbw + 24, sy - 16, "tokens in both vocabularies", 24, color=MUTED, ha="left")
-    write(ax, sx0 + sbw + 24, sy - 50, "+ learned vector", 24, color=MUTED, ha="left")
-    # Ember's input: the slot is an extra position before Ember's token t + 1
-    ry = top - 990
-    seq = [("The", False), ("slot", True), ("secret", False), ("slot", True), ("word", False)]
-    x = 40
-    xs = []
-    for text, slot in seq:
-        w = text_width(ax, text, 26, slot) + 44
-        lane_token(ax, x, ry, text, LINK if slot else EMBER_LIGHT, "white" if slot else EMBER, w=w, h=62, size=26,
-                   bold=slot)
-        xs.append((x, w))
-        x += w + 16
-    arrow(ax, (sx0 + sbw / 2, sy - 45), (xs[3][0] + xs[3][1] / 2, ry + 31), INK, 3)
-    write(ax, 40, ry - 80, "Ember · AFM-4.5B input", 34, True, EMBER, ha="left")
-    write(ax, 40, ry - 130, "later Ember tokens attend to each slot", 24, color=MUTED, ha="left")
-    # right: duplex and dialogue lanes
-    ox = W + 60
-    write(ax, ox, top - 20, "Both write at once", 34, True, ha="left")
-    write(ax, ox, top - 64, "neither reads the other's text", 26, color=MUTED, ha="left")
-    q = ["Sky", " looks", " blue", " because", " air", " scatters"]
-    e = ["The", " secret", " word", " is", " lan", "tern"]
-    lx0, step = ox + 140, 160
-    qy2, ey2 = top - 170, top - 380
-    for k in range(6):
-        lane_token(ax, lx0 + k * step, qy2, q[k].strip(), QUILL_LIGHT, QUILL, w=130)
-        lane_token(ax, lx0 + k * step, ey2, e[k].strip(), EMBER_LIGHT, EMBER, w=130)
-    for k in range(5):
-        on = k in (0, 1, 3)
-        c = LINK if on else "#D8D8DC"
-        arrow(ax, (lx0 + k * step + 100, ey2 + 30), (lx0 + (k + 1) * step + 30, qy2 - 30), c, 3 if on else 2, head=16)
-        on2 = k in (1, 2)
-        c2 = LINK if on2 else "#D8D8DC"
-        arrow(ax, (lx0 + k * step + 100, qy2 - 30), (lx0 + (k + 1) * step + 30, ey2 + 30), c2, 3 if on2 else 2, head=16)
-    write(ax, ox, qy2, "Quill", 28, True, QUILL, ha="left")
-    write(ax, ox, ey2, "Ember", 28, True, EMBER, ha="left")
-    write(ax, ox, top - 560, "Taking turns in text", 34, True, ha="left")
-    write(ax, ox, top - 604, "the listener reads the speaker's text as it streams", 26, color=MUTED, ha="left")
-    qy3, ey3 = top - 710, top - 920
-    spk = ["Do", " you", " like", " rain", "?", ""]
-    lis = ["Do", " you", " like", " rain", "?", "I"]
-    for k in range(6):
-        if k < 5:
-            lane_token(ax, lx0 + k * step, qy3, spk[k].strip(), QUILL_LIGHT, QUILL, w=130)
-            lane_token(ax, lx0 + k * step, ey3, lis[k].strip(), PANEL, MUTED, w=130)
-        else:
-            lane_token(ax, lx0 + k * step, ey3, "I", EMBER_LIGHT, EMBER, w=130)
-    for k in range(5):
-        arrow(ax, (lx0 + k * step + 100, qy3 - 30), (lx0 + (k + 1) * step + 30, ey3 + 30),
-              LINK if k in (0, 2, 3) else "#D8D8DC", 3 if k in (0, 2, 3) else 2, head=16)
-        arrow(ax, (lx0 + k * step + 100, ey3 + 30), (lx0 + (k + 1) * step + 30, qy3 - 30),
-              LINK if k in (1, 3) else "#D8D8DC", 3 if k in (1, 3) else 2, head=16)
-    write(ax, ox, qy3, "Quill", 28, True, QUILL, ha="left")
-    write(ax, ox, ey3, "Ember", 28, True, EMBER, ha="left")
-    legend_y = top - 1060
-    x = ox
-    for label, colour in (("message sent (gate on)", LINK), ("gate off", "#D8D8DC")):
-        ax.plot([x, x + 50], [legend_y, legend_y], color=colour, lw=4)
-        write(ax, x + 64, legend_y, label, 26, True, ha="left")
-        x += 64 + text_width(ax, label, 26, True) + 60
-    crop(fig, ax, top - 1160, top + 20)
+    """The two models joined by the link: the block stacks (top left), one exchange up close (top right), and how the
+    two token streams line up in time in the two session modes (bottom)."""
+    fig, ax = canvas(2500, 2 * W)
+    zoom = (900, 2370, 980, 2370)
+    bottom = towers(ax, (zoom[0], zoom[2], zoom[3]))
+    exchange(ax, *zoom)
+    low = timeline(ax, 40, min(bottom, zoom[2]) - 70)
+    crop(fig, ax, low, 2400)
     save(fig, "method")
 
 
