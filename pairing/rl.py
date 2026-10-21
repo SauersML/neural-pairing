@@ -103,7 +103,8 @@ def with_quiz(ep, texts, answers=True):
     turns = [(sp, t, 0.0) for (sp, _, _), t in zip(ep['turns'], texts)]
     turns += [(first, ASK, 0.0), (second, f"{SAID} {cards[first]['value']}." if answers else '', 1.0),
               (second, ASK2, 0.0), (first, f"{SAID} {cards[second]['value']}." if answers else '', 1.0)]
-    return dict(ep, turns=turns, link_off_after=n, forced=(n, n + 2))
+    forced = (n, n + 2) if answers else (*range(n), n, n + 2)
+    return dict(ep, turns=turns, link_off_after=n, forced=forced)
 
 
 def ngrams(text, n=3):

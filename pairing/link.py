@@ -292,6 +292,8 @@ class Pair(nn.Module):
     def joint(self, b, mode=None, gen=None):
         """Teacher-forced joint pass of both models over the batch b (session.collate). Returns the last hidden states
         {x: [B, L, d]} (after the final norm) and the gates {x: [B, L, n exchanges]}."""
+        if mode == 'shuffle' and b[SIDES[0]]['ids'].shape[0] < 2:
+            raise ValueError('shuffle needs at least two episodes')
         runs = {x: Run(self.models[x], b[x]['ids'], b[x]['att'], b[x]['pos']) for x in SIDES}
         allow, ages, qmask = {}, {}, {}
         for x in SIDES:

@@ -144,7 +144,9 @@ def payload(ep):
         i = text[x].find(after + sub)
         return [(i + len(after), i + len(after) + len(sub))] if i >= 0 else []
     if g.startswith('relay'):
-        return {m['receiver']: at(m['receiver'], m['value'])}
+        lead = {'relay_word': 'The word is ', 'relay_number': 'The number is ',
+                'relay_phrase': 'The phrase is "', 'relay_digits': 'The digits are '}[g]
+        return {m['receiver']: at(m['receiver'], m['value'], lead)}
     if g == 'merge_sum':
         v = m['values']
         return {x: at(x, str(v[partner(x)]), "'s is ") + at(x, str(m['sum']), 'sum is ') for x in SIDES}
@@ -208,7 +210,13 @@ def collate(built, pads, owners=None):
 def batches(n, bs):
     """(start, end) of nearly equal batches of at most bs of n episodes: no batch is a single episode unless n is 1, so
     a shuffled partner is always another episode."""
-    parts = max(1, -(-n // bs))
+    if n < 0 or bs < 1:
+        raise ValueError('n must be nonnegative and bs positive')
+    if n == 0:
+        return []
+    parts = -(-n // bs)
+    if n > 1 and parts > n // 2:
+        raise ValueError('batch size cannot partition these episodes without a singleton; increase bs')
     cuts = [round(k * n / parts) for k in range(parts + 1)]
     return list(zip(cuts, cuts[1:]))
 
@@ -245,6 +253,8 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
     toks = pair.toks
     head = {x: inner(pair.models[x])[1] for x in SIDES}
     B = len(eps)
+    if mode == 'shuffle' and B < 2:
+        raise ValueError('shuffle needs at least two episodes')
     dmode = eps[0]['mode']
     end = {x: toks[x].convert_tokens_to_ids('<|im_end|>') for x in SIDES}
     st = {x: [Stream() for _ in range(B)] for x in SIDES}
@@ -340,13 +350,14 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
                 st[x][i].pending = []
                 if st[x][i].speaking:
                     k = int(nxt[i])
-                    if force or (dmode == 'dialogue' and turn[i] in eps[i].get('forced', ())):
+                    forced = force or (dmode == 'dialogue' and turn[i] in eps[i].get('forced', ()))
+                    if forced:
                         if dmode == 'duplex':
                             want = ids(toks[x], eps[i]['reply'][x][0]) + [end[x]]
                         else:
                             want = ids(toks[x], eps[i]['turns'][turn[i]][1]) + [end[x]]
                         k = want[len(st[x][i].out)] if len(st[x][i].out) < len(want) else end[x]
-                    if len(st[x][i].out) >= max_turn:
+                    if not forced and len(st[x][i].out) >= max_turn:
                         k = end[x]
                     st[x][i].out.append(k)
                     st[x][i].pending = [k]

@@ -6,12 +6,13 @@ Each game has an automatic check against its reference, so no judge is needed:
   co_nli            the first relation word (entailment, contradiction, neutral) must match
   co_mcq            the option named first (by letter, else by its full text) must be the right one
   co_math           the last number written must equal the answer
-  co_code_out       the expected return value must appear, ignoring spaces
+  co_code_out       the returned Python literal must equal the expected value
   co_code_write     the fraction of the problem's tests that pass (run in a subprocess, 10 s limit)
   co_translate, co_paraphrase, co_transfer, co_swap, co_split
                     chrF (character 6-gram F-score, beta 2) against the reference text the partner holds
 co_continue, co_instruct and co_distill have no automatic check (score() leaves them out); they stay supervised.
 """
+import ast
 import collections
 import json
 import re
@@ -99,20 +100,33 @@ def score_one(game, it, text, x, ep):
         yn = normalize(ref) in ('yes', 'no')
         if yn:
             return float(first_of(text, ('yes', 'no')) == normalize(ref))
-        return max(token_f1(text, ref), float(normalize(ref) in normalize(text) and len(text) < 4 * len(ref) + 40))
+        # Match whole normalized tokens: e.g. reference 15 must not match 150.
+        contains = (' ' + normalize(ref) + ' ') in (' ' + normalize(text) + ' ')
+        return max(token_f1(text, ref), float(contains and len(text) < 4 * len(ref) + 40))
     if game == 'co_nli':
         return float(first_of(text, RELATIONS) == it['label'])
     if game == 'co_mcq':
-        m = re.search(r'\(([A-E])\)|\b([A-E])\)|^([A-E])\b', text.strip())
+        m = re.search(r'\(([A-E])\)|\b([A-E])\)|^([A-E])\b|'
+                      r'\b(?:answer\s*(?:is|:)|option|choice)\s*\(?([A-E])\b', text.strip(), re.I)
         if m:
-            return float('ABCDE'.index(next(g for g in m.groups() if g)) == it['answer'])
+            return float('ABCDE'.index(next(g for g in m.groups() if g).upper()) == it['answer'])
         hits = [i for i, o in enumerate(it['options']) if normalize(o) and normalize(o) in normalize(text)]
         return float(hits == [it['answer']])
     if game == 'co_math':
         want, got = last_number(it['solution']), last_number(text)
         return float(want is not None and got is not None and abs(want - got) < 1e-6)
     if game == 'co_code_out':
-        return float(re.sub(r'\s+', '', it['output']) in re.sub(r'\s+', '', text))
+        value = text.strip()
+        value = re.sub(r'^(?:it\s+returns?|the\s+(?:return\s+value|output|result)\s+is|'
+                       r'(?:output|result|returns?)\s*:)\s*', '', value, flags=re.I)
+        fenced = re.fullmatch(r'```(?:python)?\s*\n?(.*?)\s*```\.?', value, re.S)
+        value = fenced.group(1) if fenced else value
+        try:
+            want = ast.literal_eval(it['output'])
+            got = ast.literal_eval(value.removesuffix('.'))
+        except (ValueError, SyntaxError):
+            return 0.0
+        return float(type(got) is type(want) and got == want)
     if game == 'co_code_write':
         return run_tests(text, it.get('tests', [])) if it.get('tests') else 0.0
     if game == 'co_translate':
