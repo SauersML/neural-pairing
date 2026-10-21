@@ -197,9 +197,19 @@ def load_pair(run):
     for x in SIDES:
         cfg = json.loads((Path(run) / x / 'adapter_config.json').read_text())
         hf = cfg.get('base_model_name_or_path') or M.HF[x]
-        models[x], _ = M.load_base(hf)
+        if os.environ.get('NL_TINY'):
+            # Reproduce link.load's random NL_TINY bases, never HF base weights.
+            # This is also the no-mock checkpoint/CLI integration test path.
+            from link import load
+            toks[x], tiny = load(x)
+            models[x] = M.make_model(tiny.config.to_dict())
+            models[x].load_weights([(k, M.from_torch(v)) for k, v in tiny.state_dict().items()
+                                    if k != 'lm_head.weight' or not tiny.config.tie_word_embeddings])
+            del tiny
+        else:
+            models[x], _ = M.load_base(hf)
+            toks[x] = AutoTokenizer.from_pretrained(hf, local_files_only=True)
         M.add_lora(models[x], cfg['r'])
-        toks[x] = AutoTokenizer.from_pretrained(hf, local_files_only=True)
         mx.eval(models[x].parameters())
         print(json.dumps(dict(loaded=x, active_gib=mx.get_active_memory() / 2**30)), flush=True)
     mp = M.Pair(models, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'],
@@ -245,12 +255,25 @@ def backend():
     """Scoped dependency injection: original CLI and scoring source is unchanged."""
     import evaluate
     import payload_ctl
+    import play_tasks
     old_load, old_table = evaluate.load_pair, payload_ctl.table
+    processes = play_tasks.subprocess
+
+    def code_process(*args, **kwargs):
+        # These short assertion programs must not inherit a model-sized lease
+        # and time out in Python startup before executing the actual test.
+        env = dict(os.environ if kwargs.get('env') is None else kwargs['env'])
+        env['MPD_MEM_GIB'] = '1'
+        env.pop('MEM_LEASE_GIB', None)
+        return processes.run(*args, **dict(kwargs, env=env))
+
+    play_tasks.subprocess = SimpleNamespace(run=code_process, TimeoutExpired=processes.TimeoutExpired)
     evaluate.load_pair, payload_ctl.table = load_pair, payload_table
     try:
         yield
     finally:
         evaluate.load_pair, payload_ctl.table = old_load, old_table
+        play_tasks.subprocess = processes
 
 
 

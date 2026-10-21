@@ -144,6 +144,69 @@ def main():
                             assert aa[key] == zz[key]
             results['integration/' + game] = 'matched-donor records identical; payload/full-dialogue parity'
             print('integration', game, 'passed', flush=True)
+    import play_tasks
+    original_processes = play_tasks.subprocess
+    with V.backend():
+        assert play_tasks.run_tests('def f(): return 3', ['assert f() == 3']) == 1.
+        assert play_tasks.run_tests('def f(): return 3', ['assert f() == 4']) == 0.
+        assert play_tasks.run_tests('raise SystemExit(0)', ['assert False']) == 0.
+    assert play_tasks.subprocess is original_processes
+    results['code_scoring'] = 'real subprocess pass/fail/early-exit checks passed'
+    # Execute every actual CLI against a genuine exported tiny checkpoint,
+    # including complete transcript files and the original JSON serializers.
+    import gc
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        fixtures(root)
+        data = json.loads((root / 'coread.json').read_text())
+        # payload_ctl draws unscored co_instruct too, before transcripts filters.
+        data['test'].append(dict(task='instruct', src='instruct', instruction='Say hello.', response='Hello.'))
+        data['weights']['instruct'] = 1
+        (root / 'coread.json').write_text(json.dumps(data))
+        checkpoint = root / 'step_tiny'
+        M.export_checkpoint(mp, checkpoint, {})
+        common = ['--memory_gib', '1.5', '--run', str(checkpoint), '--replies', str(root / 'replies.json')]
+        old_argv = sys.argv
+        try:
+            for command, extra in [
+                ('evalfree', ['--n', '2', '--bs', '2', '--games', 'relay_word', 'co_talk',
+                              '--coread_data', str(root / 'coread.json'), '--out_dir=' + str(root / 'free')]),
+                ('transcripts', ['--n', '3', '--bs', '3', '--coread_data=' + str(root / 'coread.json'),
+                                 '--out', str(root / 'transcripts.txt')]),
+                ('readmap', ['--n', '2', '--game', 'relay_word', '--coread_data', str(root / 'coread.json'),
+                             '--out', str(root / 'readmap.json')]),
+                ('payload', ['--n', '2', '--bs', '2', '--out', str(root / 'payload.json')]),
+            ]:
+                sys.argv = ['mlx_eval.py', command, *common, *extra]
+                V.main()
+                gc.collect()
+                mx.clear_cache()
+                print('CLI', command, 'passed', flush=True)
+        finally:
+            sys.argv = old_argv
+        manifest = json.loads((root / 'free/manifest.json').read_text())
+        assert manifest['complete'] and manifest['device'] == 'mlx'
+        assert (root / 'transcripts.txt').stat().st_size > 0
+        transcripts = json.loads((root / 'transcripts.json').read_text())
+        talks = [r for r in transcripts if r['game'] == 'co_talk']
+        assert len(talks) == 3
+        for r in talks:
+            assert set(r['conditions']) == {'link', 'cut', 'shuffle'}
+            assert all(len(c['turns']) == len(r['target']) for c in r['conditions'].values())
+        maps = json.loads((root / 'readmap.json').read_text())
+        assert len(maps) == 2
+        for r in maps:
+            for blk, rows in r['attn'].items():
+                assert len(rows) == len(r['payload_label_index'])
+                for i, row in enumerate(rows):
+                    assert len(row) == len(r['partner_pieces'])
+                    assert abs(sum(row) + r['null'][blk][i] - 1.) < .003
+        payload = json.loads((root / 'payload.json').read_text())
+        assert payload and all(set(r) == {'game', 'episode', 'receiver', 'n_tokens',
+                                          'link_ce', 'cut_ce', 'shuffle_ce'} for r in payload)
+        summary = F.summarize(root / 'free', 'tiny_mlx', results_dir=root)
+        assert json.loads(summary.read_text())['rows']
+        results['CLI'] = 'all four real entry points, schemas, full co_talk, and betting summary passed'
     print(json.dumps(results, indent=2), flush=True)
     print('MLX peak GiB', mx.get_peak_memory() / 2**30, flush=True)
 
