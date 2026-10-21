@@ -218,13 +218,16 @@ def talk_system(item, x, asker):
     """x's system prompt in a co_talk conversation: the dialogue system prompt and x's private task."""
     N = {y: MODELS[y]['name'] for y in SIDES}
     holder = partner(asker)
+    own = "Write only your own message: plain prose, no speaker labels, no stage directions."
     if x == holder:
         task = (f"You are reading this text:\n\n{talk_context(item)}\n\n{N[asker]} cannot see it and has been asked "
                 f"this about it: \"{item['question']}\" {N[asker]} answers first, through the link, before you say "
-                f"anything. Then talk with {N[asker]} about it.")
+                f"anything. When the answer arrives, reply to {N[asker]} in two or three sentences of your own: say "
+                f"whether the answer fits the text, and add a detail from the text. {own}")
     else:
         task = (f"{N[holder]} is reading a text you cannot see. Answer this about it right away, as your first message, "
-                f"using only the link: {item['question']} Then talk with {N[holder]} about it.")
+                f"using only the link: {item['question']} Afterwards, reply to {N[holder]} in one or two sentences of "
+                f"your own. {own}")
     return system(x, 'dialogue') + f"\n\nYour private task ({N[partner(x)]} cannot see it): {task}"
 
 

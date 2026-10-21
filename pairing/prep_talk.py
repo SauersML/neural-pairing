@@ -7,6 +7,9 @@ two later turns are written by the original models themselves (no adapters, no b
 exactly as it reads it in a dialogue episode (session.build): its own turns as assistant messages, the partner's as
 user messages, with its private task in its system prompt. Sampled at temperature 0.7, up to --reply tokens.
 
+A conversation is dropped when a generated turn is empty, names a speaker ('Ember:', '**Quill:**': the model wrote
+both sides of a script) or has a line that is a stage direction ('*The link hums...*').
+
 Writes data/talk.json {'train': [...], 'test': [...]}: per conversation the item, the asker, the three turns.
 Usage: python prep_talk.py [--n_train 1200] [--n_test 120] [--bs 16]   (NL_DEVICE=mps on the Mac)
 """
@@ -14,6 +17,7 @@ import argparse
 import json
 import os
 import random
+import re
 
 import torch
 
@@ -22,6 +26,7 @@ import session as S
 from coread import talk_turn0, talk_system
 from link import DEVICE, SIDES, partner
 
+BAD = re.compile(r'(^|\n|\*\*)\s*(Quill|Ember)\s*(\*\*)?\s*:|^\s*\*[^*\n]+\*\s*$|<think>', re.M)
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ap = argparse.ArgumentParser()
 ap.add_argument('--n_train', type=int, default=1200)
@@ -91,5 +96,10 @@ for k, who in ((1, 'holder'), (2, 'asker')):             # turn 1: the holder re
         for c, t in zip(mine, texts):
             c['turns'].append((x, t))
         print(f'turn {k} ({who} {x}): {len(mine)}; example: {mine[0]["turns"]}', flush=True)
+    keep = [c for c in allc if c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])]
+    print(f'turn {k}: kept {len(keep)} of {len(allc)}', flush=True)
+    allc = keep
+kept = {id(c) for c in allc}
+convs = {split: [c for c in v if id(c) in kept] for split, v in convs.items()}
 json.dump(convs, open(args.out, 'w'), indent=1)
 print('wrote', args.out, {s: len(v) for s, v in convs.items()}, flush=True)
