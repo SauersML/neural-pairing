@@ -73,45 +73,87 @@ def from_torch(t):
     return mx.array(t.numpy())
 
 
-def load_base(hf, bits=4):
-    """Stream cached safetensors, avoiding a full bf16 (or float32) base copy."""
+SAFE_DTYPES = {'BF16': np.uint16, 'F16': np.float16, 'F32': np.float32}
+
+
+def _uncached_tensors(file):
+    """(name, mx array) for every tensor of a safetensors file, read with the page cache off (F_NOCACHE): reading a
+    17 GB bf16 pair through mmap fills macOS's file cache, the free page count falls, and the machine's early OOM killer
+    (free under 2% while the compressor holds over a quarter of RAM) then takes the largest workload, this one."""
+    import fcntl
+    fd = os.open(file, os.O_RDONLY)
+    try:
+        fcntl.fcntl(fd, getattr(fcntl, 'F_NOCACHE', 48), 1)
+        n = int.from_bytes(os.pread(fd, 8, 0), 'little')
+        header = json.loads(os.pread(fd, n, 8))
+        header.pop('__metadata__', None)
+        for key, info in sorted(header.items(), key=lambda kv: kv[1]['data_offsets'][0]):
+            a, b = info['data_offsets']
+            buf, at = bytearray(b - a), 0
+            view = memoryview(buf)
+            while at < len(buf):
+                got = os.preadv(fd, [view[at:at + (1 << 30)]], 8 + n + a + at)
+                if got <= 0:
+                    raise OSError(f'short read in {file} at {key}')
+                at += got
+            arr = mx.array(np.frombuffer(buf, SAFE_DTYPES[info['dtype']]).reshape(info['shape']))
+            yield key, arr.view(mx.bfloat16) if info['dtype'] == 'BF16' else arr
+            del buf, view
+    finally:
+        os.close(fd)
+
+
+def quant_cache(hf, bits):
+    root = Path(os.environ.get('NL_MLX_CACHE', os.path.expanduser('~/mpd-data/neural-pairing/mlx4')))
+    return root / f"{str(hf).strip('/').replace('/', '--')}-{bits}bit.safetensors"
+
+
+def load_base(hf, bits=4, cache=True):
+    """Stream cached safetensors, avoiding a full bf16 (or float32) base copy. With cache, the quantized base is saved
+    after the first load (quant_cache) and later loads read only it."""
     from huggingface_hub import hf_hub_download
-    from safetensors import safe_open
     path = Path(hf) if Path(hf).is_dir() else Path(hf_hub_download(hf, 'config.json', local_files_only=True)).parent
     config = json.loads((path / 'config.json').read_text())
     model = make_model(config)
     if bits:
         nn.quantize(model, group_size=64, bits=bits)
+    saved = quant_cache(hf, bits) if cache and bits and not Path(hf).is_dir() else None
+    if saved is not None and saved.exists():
+        model.load_weights(str(saved))
+        mx.eval(model.parameters())
+        model.freeze()
+        return model, config
     modules = dict(model.named_modules())
     index = path / 'model.safetensors.index.json'
     files = sorted(set(json.loads(index.read_text())['weight_map'].values())) if index.exists() else ['model.safetensors']
     expected = set(dict(tree_flatten(model.parameters())))
     loaded = set()
     for file in files:
-        with safe_open(str(path / file), framework='pt', device='cpu') as sf:
-            for key in sf.keys():
-                if key == 'lm_head.weight' and config.get('tie_word_embeddings'):
-                    continue
-                if key not in expected:
-                    raise ValueError(f'Unexpected base tensor {key}')
-                t = sf.get_tensor(key)
-                w = from_torch(t)
-                prefix, name = key.rsplit('.', 1)
-                mod = modules[prefix]
-                if name == 'weight' and isinstance(mod, (nn.QuantizedLinear, nn.QuantizedEmbedding)):
-                    weight, scales, biases = mx.quantize(w, group_size=64, bits=bits)
-                    mod.update(dict(weight=weight, scales=scales, biases=biases))
-                    mx.eval(weight, scales, biases)
-                    loaded.update(prefix + '.' + n for n in ('weight', 'scales', 'biases'))
-                else:
-                    mod[name] = w
-                    mx.eval(w)
-                    loaded.add(key)
-                del t, w
+        for key, w in _uncached_tensors(str(path / file)):
+            if key == 'lm_head.weight' and config.get('tie_word_embeddings'):
+                continue
+            if key not in expected:
+                raise ValueError(f'Unexpected base tensor {key}')
+            prefix, name = key.rsplit('.', 1)
+            mod = modules[prefix]
+            if name == 'weight' and isinstance(mod, (nn.QuantizedLinear, nn.QuantizedEmbedding)):
+                weight, scales, biases = mx.quantize(w, group_size=64, bits=bits)
+                mod.update(dict(weight=weight, scales=scales, biases=biases))
+                mx.eval(weight, scales, biases)
+                loaded.update(prefix + '.' + n for n in ('weight', 'scales', 'biases'))
+            else:
+                mod[name] = w
+                mx.eval(w)
+                loaded.add(key)
+            del w
         gc.collect()
         mx.clear_cache()
     if expected != loaded:
         raise ValueError(f'Missing weights: {expected - loaded}')
+    if saved is not None:
+        saved.parent.mkdir(parents=True, exist_ok=True)
+        mx.save_safetensors(str(saved.with_suffix('.part.safetensors')), dict(tree_flatten(model.parameters())))
+        os.replace(saved.with_suffix('.part.safetensors'), saved)
     model.freeze()
     return model, config
 
