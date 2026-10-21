@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 runs/
 data/bench.json
+data/coread.json
+data/coread_check.json
