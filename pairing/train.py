@@ -107,8 +107,8 @@ ap.add_argument('--halt', type=int, default=0, help='stop after this step (probe
 ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
 coldstart.add_arguments(ap)
 args = ap.parse_args()
-if args.warmup_steps < 0 or args.relay_first < 0:
-    ap.error("--warmup_steps and --relay_first must be nonnegative")
+if args.warmup_steps < 0 or args.relay_first < 0 or args.hold < 0:
+    ap.error("--warmup_steps, --relay_first and --hold must be nonnegative")
 ddp.init()
 if not ddp.MAIN:
     sys.stdout = open(os.devnull, 'w')
@@ -508,6 +508,8 @@ while step < args.steps:
     rows, built, b, last, loss_for, total, sent, tally = forward(rows, built, scale)
     track, pair.track = pair.track, None
     backward(competitive, loss_for, total)
+    if step <= args.hold:
+        coldstart.hold(pair)
     if (step - 1) % args.payload_every == 0 and not competitive:
         for g, a in payload_ce(rows, built, b, {x: last[x].detach() for x in SIDES}).items():
             o = pstats.setdefault(g, [0.0, 0.0, 0])

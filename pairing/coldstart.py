@@ -11,6 +11,9 @@ def add_arguments(ap):
                     help='LR warmup steps, including after --init (0: no warmup)')
     ap.add_argument('--relay_first', type=int, default=0,
                     help='initial steps of short relay_word transfers only, without competition or send cost')
+    ap.add_argument('--hold', type=int, default=0,
+                    help='initial steps in which the visibility gates and alpha do not train, so a link whose writes '
+                         'are still noise can only quiet them by learning its reads and writes, not by closing')
     for x in SIDES:
         ap.add_argument('--lr_bridge_' + x, type=float, default=None,
                         help='bridge LR for ' + x + ' (except alpha); default --lr_bridge')
@@ -24,6 +27,14 @@ def bridge_groups(pair, lr, lr_alpha, overrides):
     return [dict(params=[p for n, p in pair.bridge[x].named_parameters() if n != 'alpha'],
                  lr=lr if overrides[x] is None else overrides[x]) for x in SIDES] + [
         dict(params=[pair.bridge[x].alpha for x in SIDES], lr=lr_alpha)]
+
+
+def hold(pair):
+    """Drop the gradients of every visibility gate and alpha (set to None, so AdamW leaves them exactly as they are)."""
+    for x in SIDES:
+        pair.bridge[x].alpha.grad = None
+        for p in pair.bridge[x].gate.parameters():
+            p.grad = None
 
 
 def relay_episode(games):

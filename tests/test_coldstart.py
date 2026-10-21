@@ -56,7 +56,7 @@ for start in (0.,.5):
 
 # Real game/tokenizer path. No substituted payload metric.
 root=Path(__file__).resolve().parents[1]
-replies_path=os.environ.get('COLDSTART_REPLIES','/Users/user/mpd-data/runpod/magic-nl8/replies.json')
+replies_path=os.environ.get('COLDSTART_REPLIES','/Users/user/mpd-data/neural-pairing/replies.json')
 R=json.load(open(replies_path));g=G.Games(R,'train',seed=11)
 toks={x:AutoTokenizer.from_pretrained(link.MODELS[x]['hf']) for x in link.SIDES}
 for i in range(8):
@@ -77,4 +77,17 @@ groups=bridge_groups(p,.001,.01,{'quill':None,'ember':.002})
 assert [g['lr'] for g in groups]==[.001,.002,.01]
 ids=[id(v) for g in groups for v in g['params']]
 assert len(ids)==len(set(ids))==len(list(p.bridge.parameters()))
+# --hold: the gates and alpha keep their exact values through an AdamW step; every other bridge parameter moves.
+from coldstart import hold
+for held in (True, False):
+    torch.manual_seed(5)
+    p=link.Pair(models,toks,(1,2,4),heads=2,head_dim=16,gate_norm=True)
+    before={n:v.detach().clone() for n,v in p.bridge.named_parameters()}
+    opt=torch.optim.AdamW(bridge_groups(p,.01,.01,{'quill':None,'ember':None}),weight_decay=0.0)
+    sum((v*torch.randn_like(v)).sum() for v in p.bridge.parameters()).backward()
+    if held:hold(p)
+    opt.step()
+    for n,v in p.bridge.named_parameters():
+        frozen=n.split('.')[1] in ('alpha','gate')
+        assert torch.equal(v,before[n])==(held and frozen),n
 print('cold-start invariants passed')
