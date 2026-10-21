@@ -669,6 +669,9 @@ GROUPS = [("Read for the partner", ["co_qa", "co_hop", "co_mcq", "co_nli", "co_m
                                    "merge_fact", "lookup"]),
           ("Pooled", ["pooled_coread", "pooled_payload"])]
 VALUE_GAMES = GROUPS[2][1]
+SHORT_GAME = {"relay_word": "words", "relay_number": "4-digit numbers", "relay_phrase": "phrases",
+              "relay_digits": "digit strings", "merge_sum": "sums", "merge_fact": "name–city pairs",
+              "lookup": "code words"}
 RECEIVERS = (("quill", QUILL), ("ember", EMBER))
 LN2 = math.log(2)
 
@@ -1061,8 +1064,76 @@ def readmap(src=None):
     save(fig, "readmap")
 
 
+def transfer(src=None):
+    """Every never-seen episode of every value game at one checkpoint (src: RUN_DIR[@STEP][|LABEL]; default the
+    run's last payload_stepN.json): the receiver's cross-entropy on the value tokens with a partner from another
+    episode minus with its real partner, in bits per token, one dot per episode, with the count of episodes the real
+    partner wins and the exact one-sided sign test. The title lists the games that pass in both directions (p < 0.05)."""
+    if not src:
+        print("transfer: give transfer=RUN_DIR[@STEP][|LABEL]")
+        return
+    (path, label), = sources(src)
+    path, _, at = str(path).partition("@")
+    files = {int(f.stem[len("payload_step"):]): f for f in Path(path).glob("payload_step*.json")}
+    step = int(at) if at else max(files)
+    recs = [r for r in json.loads(files[step].read_text()) if r["game"] in VALUE_GAMES]
+    d = {(g, x): [(r["shuffle_ce"] - r["link_ce"]) / LN2 for r in recs if r["game"] == g and r["receiver"] == x]
+         for g in VALUE_GAMES for x, _ in RECEIVERS}
+    games = [g for g in VALUE_GAMES if any(d[(g, x)] for x, _ in RECEIVERS)]
+
+    def test(vs):
+        wins, n = sum(v > 0 for v in vs), sum(v != 0 for v in vs)
+        return wins, n, (binom.sf(wins - 1, n, 0.5) if n else 1.0)
+    both = [g for g in games if all(d[(g, x)] and test(d[(g, x)])[2] < 0.05 for x, _ in RECEIVERS)]
+    vals = [v for vs in d.values() for v in vs]
+    ticks = span_ticks(min(vals + [0.0]), max(vals + [0.0]), 5)
+    RH = 110
+    fig, ax = canvas(420 + RH * len(games), 2 * W)
+    lab_end = 60 + max(text_width(ax, LABEL[g], 32) for g in games) + 40
+    NW, G1 = 270, 50
+    SW = (2 * W - 30 - lab_end - 2 * NW - G1) / 2
+    base = lambda c: lab_end + c * (SW + NW + G1)
+    sxs = [(lambda v, x0=base(c): x0 + SW * (v - ticks[0]) / (ticks[-1] - ticks[0])) for c in range(2)]
+    top = 320 + RH * len(games)
+    names = [SHORT_GAME.get(g, LABEL[g].lower()) for g in both]
+    claim = (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0]) if names else "no value"
+    title = f"Never-seen {claim} pass between the models through hidden states"
+    write(ax, 40, top, title, min(36, 36 * (2 * W - 80) / text_width(ax, title, 36, True)), True, ha="left")
+    for c, (x, colour) in enumerate(RECEIVERS):
+        write(ax, base(c) + SW / 2, top - 90, way(x), 34, True, colour)
+        write(ax, base(c) + SW + NW / 2, top - 90, "real partner wins", 26, color=MUTED)
+    y = top - 180
+    for g in games:
+        write(ax, 60, y, LABEL[g], 32, ha="left")
+        for c, (x, colour) in enumerate(RECEIVERS):
+            vs, sx = d[(g, x)], sxs[c]
+            for v in ticks:
+                zero = abs(v) < 1e-12
+                ax.plot([sx(v)] * 2, [y + 40, y - 40], color=INK if zero else TICK, lw=3 if zero else 1.5,
+                        zorder=2 if zero else 1)
+            if not vs:
+                continue
+            ax.scatter([sx(v) for v in vs], [y + 26 * (((k * 0.618) % 1) - 0.5) for k in range(len(vs))], s=170,
+                       color=colour, alpha=0.75, lw=1.5, edgecolor="white", zorder=4)
+            srt = sorted(vs)
+            med = srt[len(vs) // 2] if len(vs) % 2 else (srt[len(vs) // 2 - 1] + srt[len(vs) // 2]) / 2
+            ax.plot([sx(med)] * 2, [y + 36, y - 36], color=INK, lw=5, zorder=5, solid_capstyle="butt")
+            wins, n, p = test(vs)
+            strong = p < 0.05
+            write(ax, base(c) + SW + NW / 2, y + 14, f"{wins} of {n}", 32, strong, LINK if strong else INK)
+            write(ax, base(c) + SW + NW / 2, y - 26, f"p = {p:.2g}", 24, color=MUTED)
+        y -= RH
+    for c in range(2):
+        for v in ticks:
+            write(ax, sxs[c](v), y + 46, minus(f"{v:g}"), 26, color=MUTED)
+    write(ax, (sxs[0](ticks[0]) + sxs[1](ticks[-1])) / 2, y - 14, "cross-entropy on the value with another "
+          "episode's partner minus with the real partner (bits per token)", 28, color=MUTED)
+    crop(fig, ax, y - 60, top + 40)
+    save(fig, "transfer")
+
+
 FIGURES = {"method": method, "probe": probe, "conversation": conversation, "hero": hero, "opening": opening,
-           "curves": curves, "readmap": readmap}
+           "curves": curves, "readmap": readmap, "transfer": transfer}
 
 if __name__ == "__main__":
     style()
