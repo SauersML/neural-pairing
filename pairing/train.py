@@ -153,15 +153,6 @@ if args.read_start:
                 o.weight.zero_()
             pair.bridge[x].alpha.fill_(math.atanh(args.read_start))
     print(f'read start: output projections zeroed, tanh(alpha) = {args.read_start}', flush=True)
-if args.content_init != 'none':
-    import align
-    summary = align.content_init(pair, models, toks, replies, args.content_texts, vo=args.content_init == 'qkvo')
-    if ddp.MAIN:
-        json.dump(summary, open(os.path.join(args.out, 'content_init.json'), 'w'), indent=1)
-if args.alpha_init is not None:
-    with torch.no_grad():
-        for x in SIDES:
-            pair.bridge[x].alpha.fill_(math.atanh(args.alpha_init))
 for x in SIDES:
     models[x].train()
 
