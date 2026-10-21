@@ -75,7 +75,7 @@ def run_episodes(pair, toks, eps, mode=None, delta_mode=None, bs=32, seed=0, mut
     for b in range(0, len(eps), bs):
         chunk = eps[b:b + bs]
         prompts = {x: [G.encode(toks[x], ep[x])[0] for ep in chunk] for x in SIDES}
-        mx = max(MAXNEW.get(ep['game'], 64) for ep in chunk)
+        mx = int(os.environ.get('NL_MAXNEW', 0)) or max(MAXNEW.get(ep['game'], 64) for ep in chunk)
         mu = None if mute is None else {x: [x in mute(ep) for ep in chunk] for x in SIDES}
         out = pair.lockstep(prompts, mx, mode=mode, gen=gen, delta_mode=delta_mode, mute=mu)
         for i, ep in enumerate(chunk):

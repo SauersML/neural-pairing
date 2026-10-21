@@ -39,7 +39,8 @@ ap.add_argument('--lr_frac', type=float, default=0.3, help='receive layer, fract
 ap.add_argument('--ls_frac', type=float, default=0.67, help='send layer, fraction of depth')
 ap.add_argument('--size', type=float, default=0.3, help='initial write size, in units of the residual RMS')
 ap.add_argument('--eval_every', type=int, default=500)
-ap.add_argument('--first_eval', type=int, default=20)
+ap.add_argument('--first_eval', type=int, default=20, help='an extra early evaluation, to check the pipeline')
+ap.add_argument('--quick_n', type=int, default=32)
 ap.add_argument('--save_every', type=int, default=1000)
 ap.add_argument('--max_digits', type=int, default=16)
 ap.add_argument('--no_ckpt', action='store_true')
@@ -200,11 +201,11 @@ for step in range(1, args.steps + 1):
         stats = {}
         log.append(line)
         print(json.dumps(line), flush=True)
-    if step % args.eval_every == 0 or step == args.steps or step == args.first_eval:
+    if step % args.eval_every == 0 or step in (args.steps, args.first_eval):
         import evaluate as E
         for x in SIDES:
             models[x].eval()
-        res = E.quick(pair, toks, test_games, n=32)
+        res = E.quick(pair, toks, test_games, n=args.quick_n)
         for x in SIDES:
             models[x].train()
         print(f'eval step {step}: ' + json.dumps(res), flush=True)

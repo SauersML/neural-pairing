@@ -197,7 +197,10 @@ class Games:
                      r: (wording('lookup_hold', self.split, rng).format(P=N[s], table=table), t, 1.0)}
             return self._ep(game, roles, dict(asker=s, holder=r, key=keys[i], value=vals[i], table=dict(zip(keys, vals))))
         if game in ('steer', 'resist'):
-            q2, c, reply = rng.choice(self.steer_by_side[r])
+            if self.split == 'train':
+                q2, c, reply = rng.choice(self.steer_by_side[r])
+            else:                                 # held out: fresh questions and concepts, scored on free generation
+                q2, c, reply = self.q(), rng.choice(self.P['concepts'])[0], ''
             phrase = dict(map(tuple, POOLS['concepts']['train'] + POOLS['concepts']['test']))[c]
             q1 = self.q()
             send = wording('steer_send', self.split, rng).format(P=N[r], c=phrase, q=q1)

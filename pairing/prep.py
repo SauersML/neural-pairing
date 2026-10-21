@@ -14,8 +14,8 @@ import random
 import re
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
+import link
 from games import POOLS
 from link import DEVICE, MODELS, SIDES
 
@@ -59,11 +59,11 @@ def generate(tok, model, users, system):
 
 rng = random.Random(0)
 questions = POOLS['questions']['train'] + POOLS['questions']['test']
-pairs = [(q, c) for q in POOLS['questions']['train'] for c in POOLS['concepts']['train']]
+pairs = [(q, c) for q in POOLS['questions']['train'] for c, _ in POOLS['concepts']['train']]
 res = {}
 for x in SIDES:
-    tok = AutoTokenizer.from_pretrained(MODELS[x]['hf'])
-    model = AutoModelForCausalLM.from_pretrained(MODELS[x]['hf'], dtype=torch.bfloat16).to(DEVICE).eval()
+    tok, model = link.load(x)
+    model.eval()
     system = f"You are {MODELS[x]['name']}, {MODELS[x]['about']}."
     own = dict(zip(questions, generate(tok, model, questions, system)))
     pick = rng.sample(pairs, int(args.n_steer * 1.6))
@@ -73,7 +73,8 @@ for x in SIDES:
     steer = [(q, c, t) for (q, c), t in zip(pick, replies) if mentions(t, c, names[c])][:args.n_steer]
     print(f'{x}: {len(own)} own replies, {len(steer)} steered replies kept of {len(pick)}', flush=True)
     print('  example own:', repr(own[questions[0]][:200]))
-    print('  example steer:', steer[0][1], repr(steer[0][2][:200]), flush=True)
+    if steer:
+        print('  example steer:', steer[0][1], repr(steer[0][2][:200]), flush=True)
     res[x] = {'own': own, 'steer': steer}
     del model
     torch.cuda.empty_cache()
