@@ -138,6 +138,37 @@ for x in M.SIDES:
                 np.testing.assert_allclose(a, t, atol=3e-5, rtol=.004)
 results['max_gradient_error'] = max(grad_errors)
 print('gradients', results['loss_error'], results['max_gradient_error'], flush=True)
+# Competitive losses must backpropagate THROUGH the partner while updating
+# only the owner. This also exercises a sender-owned loss on receiver labels.
+owners = [{'quill': frozenset(['quill']), 'ember': frozenset(['ember'])},
+          {'quill': frozenset(), 'ember': frozenset(['quill'])},
+          {'quill': frozenset(['ember']), 'ember': frozenset(['ember'])}]
+cb = S.collate(built, pads, owners)
+cm = M.convert_batch(cb)
+ch, cg = pair.joint(cb)
+ces = {x: F.cross_entropy(pair.token_logits(x, ch[x], cb[x]['idx']), cb[x]['lab'], reduction='none')
+       for x in M.SIDES}
+for owner in M.SIDES:
+    loss = sum((ces[x] * cb[x]['w'] * cb[x]['own_mask'][owner]).sum() / denom[x] for x in M.SIDES)
+    loss = loss + .007 * (cg[owner] * cb[owner]['att'][..., None]).sum() / n_show[owner]
+    named = [('bridge.' + owner + '.' + n, p) for n, p in pair.bridge[owner].named_parameters()]
+    for name, mod in models[owner].get_base_model().named_modules():
+        if hasattr(mod, 'lora_A'):
+            named += [('models.' + owner + '.' + name + '.' + k, getattr(mod, k)['default'].weight)
+                      for k in ('lora_A', 'lora_B')]
+    tg = torch.autograd.grad(loss, [p for _, p in named], retain_graph=True)
+    (_, _), mg = nn.value_and_grad(mp, lambda p: objective(p, cm, {}, denom, n_show, .007,
+                                                          chunk=4, owner=owner))(mp)
+    mx.eval(mg)
+    mg = dict(tree_flatten(mg))
+    errors = []
+    for (name, _), t in zip(named, tg):
+        a = np.array(mg[name])
+        errors.append(float(np.max(np.abs(a - t.numpy()))))
+        np.testing.assert_allclose(a, t.numpy(), atol=3e-5, rtol=.004)
+    results['competitive_gradient/' + owner] = max(errors)
+    print('competitive gradient', owner, max(errors), flush=True)
+del ch, cg, ces, tg, mg, loss
 # A real optimizer step exercises trainability and exports nontrivial adapters.
 from argparse import Namespace
 args = Namespace(lr=1e-4, lr_alpha=3e-3, lr_bridge=3e-4, lr_bridge_quill=None, lr_bridge_ember=None)

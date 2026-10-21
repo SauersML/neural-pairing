@@ -77,7 +77,7 @@ def load_base(hf, bits=4):
     """Stream cached safetensors, avoiding a full bf16 (or float32) base copy."""
     from huggingface_hub import hf_hub_download
     from safetensors import safe_open
-    path = Path(hf_hub_download(hf, 'config.json', local_files_only=True)).parent
+    path = Path(hf) if Path(hf).is_dir() else Path(hf_hub_download(hf, 'config.json', local_files_only=True)).parent
     config = json.loads((path / 'config.json').read_text())
     model = make_model(config)
     if bits:
