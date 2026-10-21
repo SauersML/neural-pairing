@@ -7,11 +7,13 @@ two later turns are written by the original models themselves (no adapters, no b
 exactly as it reads it in a dialogue episode (session.build): its own turns as assistant messages, the partner's as
 user messages, with its private task in its system prompt. Sampled at temperature 0.7, up to --reply tokens.
 
-A conversation is dropped when a generated turn is empty, names a speaker ('Ember:', '**Quill:**': the model wrote
-both sides of a script) or has a line that is a stage direction ('*The link hums...*').
+A conversation is dropped when a generated turn is empty, names a speaker ('Ember:', '**Quill:**', 'emember:': the
+model wrote both sides of a script) or has a line that is a stage direction ('*The link hums...*'), or when most of the
+turn repeats the partner's previous turn verbatim.
 
 Writes data/talk.json {'train': [...], 'test': [...]}: per conversation the item, the asker, the three turns.
 Usage: python prep_talk.py [--n_train 1200] [--n_test 120] [--bs 16]   (NL_DEVICE=mps on the Mac)
+With --mlx the turns come from the 4-bit MLX bases the Mac trains on (mlx_pair.load_base), about 2.5 GB per model.
 """
 import argparse
 import json
@@ -27,7 +29,13 @@ from coread import talk_turn0, talk_system
 from coread_data import held_out
 from link import DEVICE, SIDES, partner
 
-BAD = re.compile(r'(^|\n|\*\*)\s*(Quill|Ember)\s*(\*\*)?\s*:|^\s*\*[^*\n]+\*\s*$|<think>', re.M)
+BAD = re.compile(r'(^|\n|\*\*)\s*\w*(Quill|Ember)\w*\s*(\*\*)?\s*:|^\s*\*[^*\n]+\*\s*$|<think>', re.M | re.I)
+
+
+def echoes(text, prev):
+    """A turn that mostly repeats the partner's previous turn (difflib's matching blocks cover 60% of it)."""
+    from difflib import SequenceMatcher
+    return SequenceMatcher(None, text.lower(), prev.lower(), autojunk=False).find_longest_match().size > 0.6 * len(text)
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ap = argparse.ArgumentParser()
 ap.add_argument('--n_train', type=int, default=1200)
@@ -36,6 +44,8 @@ ap.add_argument('--reply', type=int, default=96)
 ap.add_argument('--bs', type=int, default=16)
 ap.add_argument('--out', default=os.path.join(ROOT, 'data', 'talk.json'))
 ap.add_argument('--coread', default=os.path.join(ROOT, 'data', 'coread.json'))
+ap.add_argument('--mlx', action='store_true', help='generate with the 4-bit MLX bases (mlx_pair.load_base)')
+ap.add_argument('--mlx_gib', type=float, default=5.0, help='MLX memory limit with --mlx')
 args = ap.parse_args()
 
 
@@ -51,8 +61,30 @@ def context(tok, x, system, turns):
     return t + S.assistant_header(tok, x)
 
 
+def generate_mlx(tok, model, prompts, seed):
+    import mlx.core as mx
+    from mlx_lm.generate import batch_generate
+    from mlx_lm.sample_utils import make_sampler
+    from mlx_lm.tokenizer_utils import TokenizerWrapper
+    end = tok.convert_tokens_to_ids('<|im_end|>')
+    mx.set_memory_limit(int(args.mlx_gib * 2**30))
+    mx.set_cache_limit(256 * 2**20)        # freed buffers MLX keeps count toward the process footprint
+    mx.random.seed(seed)
+    out = []
+    for b in range(0, len(prompts), 2 * args.bs):
+        r = batch_generate(model, TokenizerWrapper(tok, eos_token_ids={end}), prompts[b:b + 2 * args.bs],
+                           max_tokens=args.reply, sampler=make_sampler(temp=0.7, top_p=0.95),
+                           completion_batch_size=args.bs, prefill_batch_size=4, return_token_ids=True)
+        mx.clear_cache()
+        out += [tok.decode([t for t in row if t != end], skip_special_tokens=True).strip() for row in r.token_ids]
+        print(f'  {len(out)}/{len(prompts)}', flush=True)
+    return out
+
+
 @torch.no_grad()
 def generate(tok, model, prompts, seed):
+    if args.mlx:
+        return generate_mlx(tok, model, prompts, seed)
     end = tok.convert_tokens_to_ids('<|im_end|>')
     torch.manual_seed(seed)
     order = sorted(range(len(prompts)), key=lambda i: len(prompts[i]))
@@ -94,6 +126,13 @@ loaded = {}
 def model(x):
     if x not in loaded:
         loaded.clear()
+        if args.mlx:
+            import mlx.core as mx
+            from transformers import AutoTokenizer
+            from mlx_pair import HF, load_base
+            mx.clear_cache()
+            loaded[x] = (AutoTokenizer.from_pretrained(HF[x], local_files_only=True), load_base(HF[x])[0])
+            return loaded[x]
         if DEVICE.startswith('mps'):
             torch.mps.empty_cache()
         tok, m = link.load(x)
@@ -113,7 +152,8 @@ def turn(k, who, x):
 
 def prune(k):
     global allc
-    keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])]
+    keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])
+            and not echoes(c['turns'][-1][1], c['turns'][-2][1])]
     print(f'turn {k}: kept {len(keep)} of {len(allc)}', flush=True)
     allc = keep
 
