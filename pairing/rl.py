@@ -246,7 +246,8 @@ if __name__ == '__main__':
     def generate(eps, temperature, mode=None, seed=None):
         set_train(False)
         gen = torch.Generator().manual_seed(seed) if seed is not None else None
-        mx = max(MAXNEW.get(e['game'], 64) for e in eps) if eps[0]['mode'] == 'duplex' else args.max_turn
+        mx = (int(os.environ.get('NL_MAXNEW', 0)) or max(MAXNEW.get(e['game'], 64) for e in eps)) \
+            if eps[0]['mode'] == 'duplex' else args.max_turn
         with torch.no_grad():
             out = S.generate(pair, eps, max_turn=mx, temperature=temperature, gen=gen, mode=mode)
         set_train(True)
@@ -418,7 +419,7 @@ if __name__ == '__main__':
                     said = {x: ' '.join(t for (sp, _, _), t in zip(eps[i]['turns'], texts[i]) if sp == x)
                             for x in SIDES}
                     lk = {x: written(said[x], cards[x]) for x in SIDES}
-                    q = {x: 0.0 if lk[partner(x)] else math.exp(float(quiz_lp[x][i])) for x in SIDES}
+                    q = {x: 0.0 if lk[partner(x)] else math.exp(float(quiz_lp[x][i].detach())) for x in SIDES}
                     for x in SIDES:
                         y = partner(x)
                         base = q[x] - q[y] if style in COMPETITIVE_STYLES else (q[x] + q[y]) / 2
