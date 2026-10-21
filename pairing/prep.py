@@ -47,7 +47,7 @@ def generate(tok, model, users, system):
         L = max(map(len, P))
         ids = torch.tensor([[tok.pad_token_id] * (L - len(p)) + list(p) for p in P], device=DEVICE)
         att = (torch.arange(L)[None] >= torch.tensor([L - len(p) for p in P])[:, None]).long().to(DEVICE)
-        g = model.generate(input_ids=ids, attention_mask=att, max_new_tokens=args.reply, do_sample=False,
+        g = model.generate(input_ids=ids, attention_mask=att, max_new_tokens=args.reply, do_sample=False, use_cache=True,
                            pad_token_id=tok.pad_token_id, eos_token_id=tok.convert_tokens_to_ids('<|im_end|>'))
         for row in g[:, L:].tolist():
             end = tok.convert_tokens_to_ids('<|im_end|>')

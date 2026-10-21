@@ -46,7 +46,7 @@ def generate(tok, model, users, system):
         for k, i in enumerate(idx):              # a pad id inside a prompt still counts as a real token
             att[k, L - len(P[i]):] = 1
         g = model.generate(input_ids=ids, attention_mask=att, max_new_tokens=args.reply, do_sample=False,
-                           pad_token_id=tok.pad_token_id, eos_token_id=end)
+                           pad_token_id=tok.pad_token_id, eos_token_id=end, use_cache=True)   # AFM's config turns the cache off
         for k, row in enumerate(g[:, L:].tolist()):
             row = row[:row.index(end)] if end in row else row
             out[idx[k]] = tok.decode(row, skip_special_tokens=True).strip()
