@@ -283,7 +283,7 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
         pos[x] = att[x].sum(-1)
         chunk[x] = (ids_, att[x], (att[x].cumsum(-1) - 1).clamp(min=0))
         qm[x] = att[x].float() * torch.tensor([float(reads(x, i)) for i in range(B)], device=DEVICE)[:, None]
-    hid, gates = pair.step(chunk, cache, qm, mode, gen, write_mode)
+    hid, gates = pair.step(chunk, cache, qm, -1, mode, gen, write_mode)
     for x in SIDES:
         for i in range(B):
             collect(x, i, att[x][i], hid[x][i], gates[x][i])
@@ -319,7 +319,7 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
             att[x] = torch.cat([att[x], masks[x]], 1)
             chunk[x] = (inp, att[x], pos[x][:, None] + torch.arange(K, device=DEVICE)[None])
             qm[x] = masks[x].float() * torch.tensor([float(reads(x, i)) for i in range(B)], device=DEVICE)[:, None]
-        hid, gates = pair.step(chunk, cache, qm, mode, gen, write_mode)
+        hid, gates = pair.step(chunk, cache, qm, step, mode, gen, write_mode)
         for x in chunk:
             last = (masks[x].sum(-1) - 1).clamp(min=0)
             logits = head[x](hid[x][torch.arange(B, device=DEVICE), last]).float()

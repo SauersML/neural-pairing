@@ -5,7 +5,8 @@ a. The joint teacher-forced pass (Pair.joint on session.collate) gives the same 
    and in dialogue sessions, with the link open and closed after the first turn, and with shuffled partners.
 b. Gradients with gradient checkpointing equal gradients without it, and every bridge parameter gets one.
 c. Without the bridges ('zero'), and with untrained bridges (alpha = 0), the pair's logits equal the plain LoRA models'
-   logits bit for bit; at alpha = 0 only alpha has a gradient.
+   logits bit for bit; at alpha = 0 only alpha has a gradient. A checkpoint without the recency bias loads as a zero
+   bias, and the recency buckets are right.
 d. The recording hook (explicit softmax) gives the same states as the fused attention, and its weights sum to one.
 The data parallel check is tests/test_ddp.py.
 
@@ -61,6 +62,7 @@ def trained(seed):
         s = pair.bridge[x]
         s.alpha.data.uniform_(-1.0, 1.0)
         s.null.data.normal_(0, 0.5)
+        s.age.data.normal_(0, 1.0)
         for g in s.gate:
             g.weight.data.normal_(0, 0.3)
             g.bias.data.normal_(0, 1.0)
@@ -172,6 +174,16 @@ assert min(ga.values()) > 0 and other == 0, (ga, other)
 for x in SIDES:
     models[x].zero_grad()
     models[x].eval()
+ck = pair.checkpoint()
+ck['bridge'] = {k: v for k, v in ck['bridge'].items() if not k.endswith('.age')}
+old = Pair.from_checkpoint(models, toks, ck)
+assert all(float(old.bridge[x].age.detach().abs().max()) == 0 for x in SIDES)
+assert all(torch.equal(v, pair.bridge.state_dict()[k]) for k, v in old.bridge.state_dict().items() if not k.endswith('.age'))
+tq = torch.tensor([[-1, 0, 1, 2, 5, 9, 70, 70]])
+tk = torch.tensor([[-1, 0, 0, 1, 1, 1, 6, 5]])
+got = link.age_buckets(tq, tk)[0].diagonal().tolist()
+assert got == [8, 0, 1, 1, 3, 4, 7, 7], got
+print('   a checkpoint without the recency bias loads as a zero bias; recency buckets', got)
 
 with torch.no_grad():
     l0, _ = pair.joint(bd)

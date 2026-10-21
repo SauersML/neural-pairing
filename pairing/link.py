@@ -12,7 +12,9 @@ models build together. Both reads at an exchange use the states of that block be
 simultaneous and symmetric. alpha starts at 0 (as in Flamingo), so at step 0 the pair is exactly the two original
 models; O starts random, so alpha gets a gradient. size is the reader's residual RMS after that block, measured once,
 so tanh(alpha) is the write's size relative to the residual stream. A learned null key with a zero value lets a reader
-attend to nothing. The bridges compute in float32.
+attend to nothing. Each reader head also has a learned bias on its attention logits by how long ago the partner
+token was read: buckets of tick(i) - tick(j) = 0, 1, 2-3, 4-7, ..., 64 and more, and one bucket for the partner's
+prompt. It starts at 0. The bridges compute in float32.
 
 The visibility gate is one per exchange block and position: each gate reads the very state it shows, and a gate shared
 by all blocks would have to be computed at one depth before the deeper states exist. The gate multiplies the values
@@ -36,6 +38,7 @@ from transformers.masking_utils import create_causal_mask, create_sliding_window
 DEVICE = os.environ.get('NL_DEVICE') or (f'cuda:{os.environ.get("LOCAL_RANK", 0)}' if torch.cuda.is_available() else 'cpu')
 XBLOCKS = (6, 9, 12, 15, 18, 21, 24, 27)
 FAR = 10 ** 9                # the tick of padding, and the cut of an episode whose link never closes
+AGES = 8                     # recency buckets: 0, 1, 2-3, 4-7, 8-15, 16-31, 32-63, 64 and more; then the prompt's
 
 MODELS = {
     'quill': dict(hf=os.environ.get('NL_QUILL', 'Qwen/Qwen3-4B'), name='Quill', family='Qwen',
@@ -131,9 +134,17 @@ def _linear(i, o):
     return lin
 
 
+def age_buckets(tq, tk):
+    """[B, Lq, Lk] recency bucket of each partner position (ticks tk [B, Lk]) for each reading position (ticks
+    tq [B, Lq]): log-spaced buckets of tick(i) - tick(j), and AGES for the partner's prompt."""
+    d = (tq[:, :, None] - tk[:, None, :]).clamp(min=0)
+    b = torch.where(d == 0, 0, torch.log2(d.clamp(min=1).float()).floor().long() + 1).clamp(max=AGES - 1)
+    return torch.where(tk[:, None, :] < 0, AGES, b)
+
+
 class Side(nn.Module):
     """One model's half of the bridges, at every exchange block: what it reads with (query norm and projection, output
-    projection, alpha, null key) and what it shows (key/value norm and projections, visibility gate)."""
+    projection, alpha, null key, recency bias) and what it shows (key/value norm and projections, visibility gate)."""
 
     def __init__(self, d, n, heads, head_dim, sizes):
         super().__init__()
@@ -144,6 +155,7 @@ class Side(nn.Module):
         self.o = nn.ModuleList(_linear(w, d) for _ in range(n))
         self.alpha = nn.Parameter(torch.zeros(n))
         self.null = nn.Parameter(torch.zeros(n, heads, head_dim))
+        self.age = nn.Parameter(torch.zeros(n, heads, AGES + 1))
         self.kv_norm = nn.ModuleList(nn.RMSNorm(d, eps=1e-6) for _ in range(n))
         self.k = nn.ModuleList(_linear(d, w) for _ in range(n))
         self.v = nn.ModuleList(_linear(d, w) for _ in range(n))
@@ -166,19 +178,23 @@ class Side(nn.Module):
             rec.update(gate=s.detach().cpu(), shown=v.detach().cpu())
         return self.split(self.k[k](z)), self.split(v), s
 
-    def read(self, k, h, keys, vals, allow, qmask, rec=None):
+    def read(self, k, h, keys, vals, allow, ages, qmask, rec=None):
         """The write into the states h [B, Lq, d] from the partner's shown keys and values [B, H, Lk, hd]; allow
-        [B, Lq, Lk] says which partner positions each position may read, and qmask [B, Lq] which positions read."""
+        [B, Lq, Lk] says which partner positions each position may read, ages [B, Lq, Lk] gives their recency buckets
+        (age_buckets), and qmask [B, Lq] says which positions read."""
         B, Lq = h.shape[:2]
         q = self.split(self.q[k](self.q_norm[k](h.float())))
         nk = self.null[k][None, :, None, :].expand(B, -1, 1, -1)
         keys = torch.cat([nk, keys], 2)
         vals = torch.cat([torch.zeros_like(nk), vals], 2)
+        bias = self.age[k][:, ages].transpose(0, 1)                                     # [B, H, Lq, Lk]
+        bias = torch.cat([torch.zeros(B, self.heads, Lq, 1, device=h.device), bias], -1)
         allow = torch.cat([torch.ones(B, Lq, 1, dtype=torch.bool, device=h.device), allow], -1)[:, None]
+        bias = bias.masked_fill(~allow, float('-inf'))
         if rec is None:
-            a = F.scaled_dot_product_attention(q, keys, vals, attn_mask=allow)
+            a = F.scaled_dot_product_attention(q, keys, vals, attn_mask=bias)
         else:
-            p = (q @ keys.transpose(-1, -2) / math.sqrt(self.head_dim)).masked_fill(~allow, float('-inf')).softmax(-1)
+            p = (q @ keys.transpose(-1, -2) / math.sqrt(self.head_dim) + bias).softmax(-1)
             a = p @ vals
         w = torch.tanh(self.alpha[k]) * self.size[k] * self.o[k](a.transpose(1, 2).reshape(B, Lq, -1)) * qmask[..., None]
         if rec is not None:
@@ -219,7 +235,9 @@ class Pair(nn.Module):
     @classmethod
     def from_checkpoint(cls, models, toks, ck):
         pair = cls(models, toks, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim']).to(DEVICE)
-        pair.bridge.load_state_dict(ck['bridge'])
+        missing, unexpected = pair.bridge.load_state_dict(ck['bridge'], strict=False)
+        # a checkpoint from before the recency bias reads as a zero bias, which is exactly that checkpoint's bridges
+        assert not unexpected and all(m.endswith('.age') for m in missing), (missing, unexpected)
         return pair
 
     def checkpoint(self, **extra):
@@ -227,11 +245,11 @@ class Pair(nn.Module):
         return dict(bridge=self.bridge.state_dict(), xblocks=self.xblocks, heads=s.heads, head_dim=s.head_dim,
                     sizes={x: self.bridge[x].size.tolist() for x in SIDES}, **extra)
 
-    def _exchange(self, k, h, qmask, mode, gen, write_mode=None, allow=None, cache=None):
-        """The exchange after block xblocks[k] between the sides in h {x: [B, L, d]}. Without a cache, allow
-        {x: [B, Lx, Ly]} says what each position reads. With a cache (generation), each sender's shown keys and values
-        are first appended to cache[y]['blocks'][k], and each reader reads all of them that are valid. Returns the new
-        states and the gates."""
+    def _exchange(self, k, h, qmask, mode, gen, write_mode=None, allow=None, ages=None, cache=None, tick=None):
+        """The exchange after block xblocks[k] between the sides in h {x: [B, L, d]}. Without a cache, allow and ages
+        {x: [B, Lx, Ly]} say what each position reads and how long ago it was read. With a cache (generation, at tick
+        tick), each sender's shown keys and values are first appended to cache[y]['blocks'][k], and each reader reads
+        all of them that are valid. Returns the new states and the gates."""
         rec = {}
         if self.record is not None:
             for x in h:
@@ -248,17 +266,20 @@ class Pair(nn.Module):
         for x in h:
             y = partner(x)
             if cache is None:
-                (keys, vals, _), a = shown[y], allow[x]
+                (keys, vals, _), a, ag = shown[y], allow[x], ages[x]
             elif k in cache[y]['blocks']:
                 keys, vals = cache[y]['blocks'][k]
-                a = cache[y]['valid'][:, None, :].expand(-1, h[x].shape[1], -1)
+                a, tk = cache[y]['valid'], cache[y]['tick']
                 if mode == 'shuffle':
-                    a = a.roll(1, 0)
+                    a, tk = a.roll(1, 0), tk.roll(1, 0)
+                B, Lq = h[x].shape[:2]
+                a = a[:, None, :].expand(-1, Lq, -1)
+                ag = age_buckets(torch.full((B, Lq), tick, device=a.device), tk)
             else:
                 continue
             if mode == 'shuffle':
                 keys, vals = keys.roll(1, 0), vals.roll(1, 0)
-            w = self.bridge[x].read(k, h[x], keys, vals, a, qmask[x], rec.get(x))
+            w = self.bridge[x].read(k, h[x], keys, vals, a, ag, qmask[x], rec.get(x))
             if write_mode == 'random':
                 r = torch.randn(w.shape, generator=gen, device='cpu').to(w.device)
                 w = F.normalize(r, dim=-1) * w.norm(dim=-1, keepdim=True)
@@ -272,12 +293,13 @@ class Pair(nn.Module):
         """Teacher-forced joint pass of both models over the batch b (session.collate). Returns the last hidden states
         {x: [B, L, d]} (after the final norm) and the gates {x: [B, L, n exchanges]}."""
         runs = {x: Run(self.models[x], b[x]['ids'], b[x]['att'], b[x]['pos']) for x in SIDES}
-        allow, qmask = {}, {}
+        allow, ages, qmask = {}, {}, {}
         for x in SIDES:
             ty, vy = b[partner(x)]['tick'], b[partner(x)]['att'].bool()
             if mode == 'shuffle':
                 ty, vy = ty.roll(1, 0), vy.roll(1, 0)
             allow[x] = (ty[:, None, :] <= b[x]['tick'][:, :, None]) & vy[:, None, :]
+            ages[x] = age_buckets(b[x]['tick'], ty)
             qmask[x] = (b[x]['att'].bool() & (b[x]['tick'] < b[x]['cut'][:, None])).float()
         gates = {x: [] for x in SIDES}
         for l in range(max(self.depth.values())):
@@ -286,7 +308,7 @@ class Pair(nn.Module):
                     runs[x].block(l)
             if l in self.xblocks and mode != 'zero':
                 h, g = self._exchange(self.xblocks.index(l), {x: runs[x].h for x in SIDES}, qmask, mode, gen,
-                                      allow=allow)
+                                      allow=allow, ages=ages)
                 for x in SIDES:
                     runs[x].h = h[x]
                     gates[x].append(g[x])
@@ -296,21 +318,24 @@ class Pair(nn.Module):
                  for x in SIDES})
 
     def new_cache(self):
-        """The generation state: each model's KV cache, and per sender the validity of every position it has read and
-        its shown keys and values at each exchange."""
+        """The generation state: each model's KV cache, and per sender the validity and tick of every position it has
+        read and its shown keys and values at each exchange."""
         from transformers import DynamicCache
         return {'kv': {x: DynamicCache(config=inner(self.models[x])[0].config) for x in SIDES},
-                'shown': {x: {'valid': None, 'blocks': {}} for x in SIDES}}
+                'shown': {x: {'valid': None, 'tick': None, 'blocks': {}} for x in SIDES}}
 
-    def step(self, chunk, cache, qmask, mode=None, gen=None, write_mode=None):
+    def step(self, chunk, cache, qmask, tick, mode=None, gen=None, write_mode=None):
         """One tick of generation. chunk {x: (ids [B, K], att [B, past + K], pos [B, K])} for the models that read
-        tokens at this tick; cache from new_cache(); qmask {x: [B, K]}: the positions that read. Returns the last hidden
-        states {x: [B, K, d]} (after the final norm) and the gates {x: [B, K, n exchanges]}."""
+        tokens at this tick; cache from new_cache(); qmask {x: [B, K]}: the positions that read; tick: this tick (-1:
+        the prompts). Returns the last hidden states {x: [B, K, d]} (after the final norm) and the gates
+        {x: [B, K, n exchanges]}."""
         runs = {x: Run(self.models[x], ids, att, pos, cache['kv'][x]) for x, (ids, att, pos) in chunk.items()}
         for x, (ids, att, _) in chunk.items():
             v = att[:, -ids.shape[1]:].bool()
+            t = torch.full(v.shape, tick, dtype=torch.long, device=v.device)
             sh = cache['shown'][x]
             sh['valid'] = v if sh['valid'] is None else torch.cat([sh['valid'], v], 1)
+            sh['tick'] = t if sh['tick'] is None else torch.cat([sh['tick'], t], 1)
         gates = {x: [] for x in runs}
         for l in range(max(self.depth.values())):
             for x in runs:
@@ -318,7 +343,7 @@ class Pair(nn.Module):
                     runs[x].block(l)
             if l in self.xblocks and mode != 'zero':
                 h, g = self._exchange(self.xblocks.index(l), {x: runs[x].h for x in runs}, qmask, mode, gen,
-                                      write_mode, cache=cache['shown'])
+                                      write_mode, cache=cache['shown'], tick=tick)
                 for x in runs:
                     runs[x].h = h[x]
                     gates[x].append(g[x])

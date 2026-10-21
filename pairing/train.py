@@ -400,8 +400,8 @@ def merge(parts):
     return out
 
 
-GROUPS = {'q_norm': 'read', 'q': 'read', 'o': 'read', 'null': 'read', 'alpha': 'alpha', 'kv_norm': 'show', 'k': 'show',
-          'v': 'show', 'gate': 'gate'}
+GROUPS = {'q_norm': 'read', 'q': 'read', 'o': 'read', 'null': 'read', 'age': 'read', 'alpha': 'alpha',
+          'kv_norm': 'show', 'k': 'show', 'v': 'show', 'gate': 'gate'}
 
 
 def grad_norms():
