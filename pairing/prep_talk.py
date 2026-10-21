@@ -86,21 +86,45 @@ for split, n in (('train', args.n_train), ('test', args.n_test)):
         c['system'] = {x: talk_system(c['item'], x, c['asker']) for x in SIDES}
         c['turns'] = [(c['asker'], talk_turn0(c['item']))]
 allc = convs['train'] + convs['test']
-models = {}
-for x in SIDES:
-    tok, m = link.load(x)
-    models[x] = (tok, m.eval())
-for k, who in ((1, 'holder'), (2, 'asker')):             # turn 1: the holder reacts; turn 2: the asker replies
-    for x in SIDES:
-        tok, m = models[x]
-        mine = [c for c in allc if c[who] == x]
-        texts = generate(tok, m, [context(tok, x, c['system'][x], c['turns']) for c in mine], seed=k)
-        for c, t in zip(mine, texts):
-            c['turns'].append((x, t))
+# One model in memory at a time (the Mac): Quill's holders, then Ember's holders and askers, then Quill's askers.
+# Turn 2 of a conversation needs its turn 1, which the partner (the holder) wrote in an earlier pass.
+loaded = {}
+
+
+def model(x):
+    if x not in loaded:
+        loaded.clear()
+        if DEVICE.startswith('mps'):
+            torch.mps.empty_cache()
+        tok, m = link.load(x)
+        loaded[x] = (tok, m.eval())
+    return loaded[x]
+
+
+def turn(k, who, x):
+    tok, m = model(x)
+    mine = [c for c in allc if c[who] == x and len(c['turns']) == k]
+    texts = generate(tok, m, [context(tok, x, c['system'][x], c['turns']) for c in mine], seed=k)
+    for c, t in zip(mine, texts):
+        c['turns'].append((x, t))
+    if mine:
         print(f'turn {k} ({who} {x}): {len(mine)}; example: {mine[0]["turns"]}', flush=True)
-    keep = [c for c in allc if c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])]
+
+
+def prune(k):
+    global allc
+    keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])]
     print(f'turn {k}: kept {len(keep)} of {len(allc)}', flush=True)
     allc = keep
+
+
+q, e = SIDES
+turn(1, 'holder', q)
+turn(1, 'holder', e)
+prune(1)                                                  # turn 1: the holder reacts
+turn(2, 'asker', e)
+turn(2, 'asker', q)
+prune(2)                                                  # turn 2: the asker replies
 kept = {id(c) for c in allc}
 convs = {split: [c for c in v if id(c) in kept] for split, v in convs.items()}
 json.dump(convs, open(args.out, 'w'), indent=1)
