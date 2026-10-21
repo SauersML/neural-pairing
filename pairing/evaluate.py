@@ -1,8 +1,9 @@
 """Never-seen evaluation of the joined models: both models generate together tick by tick with KV caches
 (session.generate), greedy.
 
-Everything is never seen in training: words, numbers in merge_sum (50-99), adjectives, names, cities, concepts,
-questions, and the wordings of every instruction. Every game runs with the bridges and under three ablations: 'zero'
+Pool contents (words, adjectives, names, cities, concepts and questions), merge_sum operands (50-99), and instruction
+wordings are held out. Random relay numbers and digits share their support with training; answer vocabularies can
+overlap, and public co-reading data can be known from pretraining. Every game runs with three ablations: 'zero'
 (no bridge: the two models alone), 'shuffle' (each episode reads the partner states of another episode of the same
 game), and 'random' (each sender shows Gaussian states of the same norms through its own gates). Steering also runs
 with random writes of the same norm as the trained writes. In the dialogue games the models read each other's text, so

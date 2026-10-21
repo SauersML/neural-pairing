@@ -15,7 +15,9 @@ co_continue, co_instruct and co_distill have no automatic check (score() leaves 
 import ast
 import collections
 import json
+import os
 import re
+import secrets
 import string
 import subprocess
 import sys
@@ -84,12 +86,17 @@ def run_tests(code, tests, timeout=10):
     code = m.group(1) if m else code
     passed = 0
     for t in tests:
+        completed = secrets.token_hex(24)
         with tempfile.NamedTemporaryFile('w', suffix='.py', delete=False) as f:
-            f.write(code + '\n\n' + t + '\n')
+            f.write(code + '\n\n' + t + '\n\n' + f'print({completed!r})\n')
         try:
-            passed += subprocess.run([sys.executable, '-I', f.name], capture_output=True, timeout=timeout).returncode == 0
+            result = subprocess.run([sys.executable, '-I', f.name], capture_output=True, timeout=timeout)
+            # An exit(0) before the assertion is not a passing test. Require its completion receipt.
+            passed += result.returncode == 0 and completed.encode() in result.stdout.splitlines()
         except subprocess.TimeoutExpired:
             pass
+        finally:
+            os.unlink(f.name)
     return passed / max(len(tests), 1)
 
 
@@ -106,7 +113,7 @@ def score_one(game, it, text, x, ep):
     if game == 'co_nli':
         return float(first_of(text, RELATIONS) == it['label'])
     if game == 'co_mcq':
-        m = re.search(r'\(([A-E])\)|\b([A-E])\)|^([A-E])\b|'
+        m = re.search(r'\(([A-E])\)|\b([A-E])\)|^([A-E])(?=[.:]|\s*$)|'
                       r'\b(?:answer\s*(?:is|:)|option|choice)\s*\(?([A-E])\b', text.strip(), re.I)
         if m:
             return float('ABCDE'.index(next(g for g in m.groups() if g).upper()) == it['answer'])

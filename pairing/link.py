@@ -211,8 +211,10 @@ def randomize(h, gen):
 class Pair(nn.Module):
     """Both models and the bridges between them.
 
-    Modes (ablations): None (the bridges as trained); 'zero' (no bridge: exactly the two models alone); 'shuffle' (each
-    episode reads the partner of the previous episode in the batch, so batch one game at a time); 'random' (each sender
+    Modes (ablations): None (the bridges as trained); 'zero' (no bridge: exactly the two models alone); 'shuffle' (
+    the first side reads the previous episode's partner, and the other side uses the inverse permutation,
+    so every duplex mismatched pair is isolated; dialogue still shares the original partner's text;
+    batch one game at a time); 'random' (each sender
     shows Gaussian states with the norms of its own, through its own gates). write_mode='random' (generation): each
     write is replaced by a random direction of the same norm.
 
@@ -265,20 +267,21 @@ class Pair(nn.Module):
         out = dict(h)
         for x in h:
             y = partner(x)
+            shift = 1 if x == SIDES[0] else -1
             if cache is None:
                 (keys, vals, _), a, ag = shown[y], allow[x], ages[x]
             elif k in cache[y]['blocks']:
                 keys, vals = cache[y]['blocks'][k]
                 a, tk = cache[y]['valid'], cache[y]['tick']
                 if mode == 'shuffle':
-                    a, tk = a.roll(1, 0), tk.roll(1, 0)
+                    a, tk = a.roll(shift, 0), tk.roll(shift, 0)
                 B, Lq = h[x].shape[:2]
                 a = a[:, None, :].expand(-1, Lq, -1)
                 ag = age_buckets(torch.full((B, Lq), tick, device=a.device), tk)
             else:
                 continue
             if mode == 'shuffle':
-                keys, vals = keys.roll(1, 0), vals.roll(1, 0)
+                keys, vals = keys.roll(shift, 0), vals.roll(shift, 0)
             w = self.bridge[x].read(k, h[x], keys, vals, a, ag, qmask[x], rec.get(x))
             if write_mode == 'random':
                 r = torch.randn(w.shape, generator=gen, device='cpu').to(w.device)
@@ -299,7 +302,8 @@ class Pair(nn.Module):
         for x in SIDES:
             ty, vy = b[partner(x)]['tick'], b[partner(x)]['att'].bool()
             if mode == 'shuffle':
-                ty, vy = ty.roll(1, 0), vy.roll(1, 0)
+                shift = 1 if x == SIDES[0] else -1
+                ty, vy = ty.roll(shift, 0), vy.roll(shift, 0)
             allow[x] = (ty[:, None, :] <= b[x]['tick'][:, :, None]) & vy[:, None, :]
             ages[x] = age_buckets(b[x]['tick'], ty)
             qmask[x] = (b[x]['att'].bool() & (b[x]['tick'] < b[x]['cut'][:, None])).float()

@@ -11,7 +11,8 @@ Two kinds of item, both from public datasets streamed in their fixed order:
   writing (MBPP), instructions (Alpaca, Dolly), and multiple choice split into question and options (CommonsenseQA,
   OpenBookQA, HellaSwag).
 Every 40th row of a source goes to the held-out split, so no row gives items to both splits. Sources that fail to
-load are reported and skipped.
+load are reported and skipped. The merge removes test items whose complete content components recur in training;
+shared labels and short answers are allowed, and near-duplicates still need review.
 
 Usage: python build_coread.py [--train 5000] [--test 100] [--procs 10] [--only a,b] [--redo]   (per source)
 Each source is built in its own process into data/coread_parts/NAME.json; data/coread.json merges the parts.
@@ -27,6 +28,7 @@ import time
 import zlib
 
 from datasets import load_dataset
+from coread_data import held_out
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SENT = re.compile(r'(?<=[.!?。！？])\s+')
@@ -339,6 +341,7 @@ def merge(names, specs):
             res['weights'][name] = weight[name]
             res['train'] += out['train']
             res['test'] += out['test']
+    res['test'] = held_out(res['train'], res['test'])
     return res
 
 

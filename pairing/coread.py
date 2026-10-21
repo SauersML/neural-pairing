@@ -35,6 +35,7 @@ import os
 import random
 
 from games import OWN, TEST_WORDINGS, Games, system
+from coread_data import held_out, text_key
 from link import MODELS, SIDES, partner
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -233,15 +234,19 @@ class Coread(Games):
     def __init__(self, replies, split='train', seed=0, path=None):
         super().__init__(replies, split, seed)
         data = json.load(open(path or os.path.join(ROOT, 'data', 'coread.json')))
+        items = held_out(data['train'], data['test']) if split == 'test' else data[split]
+        self.excluded_test = len(data[split]) - len(items)
         self.by_src = {}
-        for it in data[split]:
+        self.by_task = {}
+        for it in items:
             self.by_src.setdefault(it['src'], []).append(it)
+            self.by_task.setdefault(it['task'], {}).setdefault(it['src'], []).append(it)
         w = data['weights']
         self.passage_src = [s for s in self.by_src if self.by_src[s][0]['task'] == 'passage']
         self.task_src = [s for s in self.by_src if self.by_src[s][0]['task'] != 'passage']
         self.pw = [w[s] for s in self.passage_src]
         self.tw = [w[s] for s in self.task_src]
-        self.distill = [it for it in data[split] if request(it) and all(
+        self.distill = [it for it in items if request(it) and all(
             request(it)[2] in replies[x].get('coread', {}) for x in SIDES)]
         tp = os.path.join(os.path.dirname(path or os.path.join(ROOT, 'data', 'coread.json')), 'talk.json')
         self.talk = json.load(open(tp))[split] if os.path.exists(tp) else []
@@ -280,6 +285,16 @@ class Coread(Games):
             return self._co(fam, roles, it, {r: span}, reader=s)
         if fam == 'co_swap':
             it = {s: self.passage(), r: self.passage()}
+            if text_key(it[s]['text']) == text_key(it[r]['text']):
+                # Duplicate rows in another source are still the same passage.
+                first = text_key(it[s]['text'])
+                choices = {src: [p for p in self.by_src[src] if text_key(p['text']) != first]
+                           for src in self.passage_src}
+                srcs = [src for src in self.passage_src if choices[src]]
+                if not srcs:
+                    raise ValueError('co_swap needs at least two distinct passages')
+                weights = dict(zip(self.passage_src, self.pw))
+                it[r] = rng.choice(choices[rng.choices(srcs, [weights[src] for src in srcs])[0]])
             roles, pay = {}, {}
             for x in SIDES:
                 reply, pay[x] = framed(x, it[partner(x)]['text'])
@@ -322,8 +337,8 @@ class Coread(Games):
 
     def task_of(self, game):
         want = {v: k for k, v in TASK_GAME.items()}[game]
-        srcs = [x for x in self.task_src if self.by_src[x][0]['task'] == want]
-        return self.rng.choice(self.by_src[self.rng.choice(srcs)])
+        sources = self.by_task[want]
+        return self.rng.choice(sources[self.rng.choice(list(sources))])
 
     def task_episode(self, it, s, r, N, sp):
         rng = self.rng

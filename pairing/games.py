@@ -249,8 +249,8 @@ class Games:
             return self._ep(game, {s: (send, self.own(s, q), OWN), r: (recv, ans, 1.0)},
                             dict(sender=s, receiver=r, value=v, question=q))
         if game == 'merge_sum':
-            hi = 50 if self.split == 'train' else 100
-            a, b = rng.randrange(hi), rng.randrange(hi)
+            lo, hi = (0, 50) if self.split == 'train' else (50, 100)
+            a, b = rng.randrange(lo, hi), rng.randrange(lo, hi)
             val = {s: a, r: b}
             roles = {}
             for x in SIDES:
