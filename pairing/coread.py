@@ -23,7 +23,8 @@ the partner get the same request about the reader's content. The targets are eac
 content itself, and meta['teacher'][x] is that model's own prompt with the content, so the trainer can match the
 original model's whole next-token distribution (the partner's teacher sees what the partner cannot).
 
-meta['payload'][x] lists the (start, end) character spans of x's target reply that only the partner can supply.
+meta['payload'][x] lists the (start, end) character spans of x's target reply that only the partner can supply;
+meta['item'] is the item the episode was built from (play_tasks.score checks generated answers against it).
 """
 import json
 import os
@@ -337,7 +338,7 @@ class Coread(Games):
         return self._co(game, roles, it, {r: [(0, len(ans))]}, reader=s)
 
     def _co(self, game, roles, item, payload, teacher=None, **meta):
-        ep = self._ep(game, roles, dict(src=item['src'], task=item['task'], payload=payload, **meta))
+        ep = self._ep(game, roles, dict(src=item['src'], task=item['task'], payload=payload, item=item, **meta))
         if teacher:
             ep['meta']['teacher'] = teacher
         return ep

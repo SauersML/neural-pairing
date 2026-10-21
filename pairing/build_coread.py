@@ -13,16 +13,18 @@ Two kinds of item, both from public datasets streamed in their fixed order:
 Every 40th row of a source goes to the held-out split, so no row gives items to both splits. Sources that fail to
 load are reported and skipped.
 
-Usage: python build_coread.py [--train 5000] [--test 100] [--threads 12] [--only a,b]   (per source)
+Usage: python build_coread.py [--train 5000] [--test 100] [--procs 10] [--only a,b] [--redo]   (per source)
+Each source is built in its own process into data/coread_parts/NAME.json; data/coread.json merges the parts.
 """
 import argparse
 import json
 import os
 import random
 import re
-import zlib
+import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor
+import time
+import zlib
 
 from datasets import load_dataset
 
@@ -214,8 +216,9 @@ def cruxeval(r):
 
 def mbpp(r):
     code = r['code'].replace('\r\n', '\n').replace('\t', '    ')
-    return len(code) <= 600 and dict(task='code_write', problem=r['text'], code=code,
-                                     name=re.search(r'def (\w+)', code).group(1) if 'def ' in code else None)
+    tests = [(r['test_setup_code'] + '\n' if r['test_setup_code'] else '') + t for t in r['test_list']]
+    return len(code) <= 600 and dict(task='code_write', problem=f"{r['text']} It must pass: {r['test_list'][0]}",
+                                     code=code, tests=tests)
 
 
 def mcq(get):
@@ -240,7 +243,7 @@ TASKS = [
     ('mnli', 'nyu-mll/multi_nli', None, 'train', 2, mnli),
     ('gsm8k', 'openai/gsm8k', 'main', 'train', 2, gsm8k),
     ('cruxeval', 'cruxeval-org/cruxeval', None, 'test', 1, cruxeval),
-    ('mbpp', 'google-research-datasets/mbpp', 'full', 'train', 1, mbpp),
+    *[(f'mbpp-{sp}', 'google-research-datasets/mbpp', 'full', sp, 1, mbpp) for sp in ('train', 'test', 'validation', 'prompt')],
     ('commonsenseqa', 'tau/commonsense_qa', None, 'train', 1,
      mcq(lambda r: (r['question'], r['choices']['text'], r['choices']['label'].index(r['answerKey'])))),
     ('openbookqa', 'allenai/openbookqa', 'main', 'train', 1,
@@ -315,31 +318,66 @@ def build(spec, n_train, n_test, max_rows=80000):
                 items = [item] if item else []
             for it in items[:(n_test if part == 'test' else n_train) - len(out[part])]:
                 out[part].append(dict(src=name, **it))
-    except Exception as e:                       # a source that fails to load is skipped, and reported
-        print(f'{name}: FAILED {type(e).__name__}: {str(e)[:200]}', flush=True)
-        return name, weight, None
+    except Exception as e:                       # a failing source keeps what it gave so far, and is reported
+        print(f'{name}: FAILED after {len(out["train"])} train items: {type(e).__name__}: {str(e)[:200]}', flush=True)
+        if not out['train']:
+            return name, weight, None
     print(f'{name}: {len(out["train"])} train, {len(out["test"])} test', flush=True)
     return name, weight, out
 
+
+def merge(names, specs):
+    """data/coread.json from the part files of the named sources."""
+    res = {'weights': {}, 'train': [], 'test': []}
+    weight = {s[0]: s[5] if len(s) == 8 else s[4] for s in specs}
+    for name in names:
+        part = os.path.join(PARTS, f'{name}.json')
+        if not os.path.exists(part):
+            continue
+        out = json.load(open(part))
+        if out['train']:
+            res['weights'][name] = weight[name]
+            res['train'] += out['train']
+            res['test'] += out['test']
+    return res
+
+
+PARTS = os.path.join(ROOT, 'data', 'coread_parts')
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--train', type=int, default=5000)
     ap.add_argument('--test', type=int, default=100)
-    ap.add_argument('--threads', type=int, default=12)
-    ap.add_argument('--only', default=None, help='comma-separated source names (a quick check)')
+    ap.add_argument('--procs', type=int, default=10, help='sources built at once, one process each')
+    ap.add_argument('--only', default=None, help='comma-separated source names')
+    ap.add_argument('--one', default=None, help='build this one source into its part file (used by the main run)')
+    ap.add_argument('--redo', action='store_true', help='rebuild sources whose part file exists')
     args = ap.parse_args()
-    specs = [s for s in PASSAGES + TASKS if not args.only or s[0] in args.only.split(',')]
-    with ThreadPoolExecutor(args.threads) as pool:
-        done = list(pool.map(lambda s: build(s, args.train, args.test), specs))
-    res = {'weights': {}, 'train': [], 'test': []}
-    for name, weight, out in done:
-        if out and out['train']:
-            res['weights'][name] = weight
-            res['train'] += out['train']
-            res['test'] += out['test']
-    failed = [name for name, _, out in done if not out or not out['train']]
-    path = os.path.join(ROOT, 'data', 'coread_check.json' if args.only else 'coread.json')
-    json.dump(res, open(path, 'w'))
-    print(f'{len(res["weights"])} sources, {len(res["train"])} train, {len(res["test"])} test items -> {path}; '
-          f'failed: {failed}', file=sys.stderr)
+    specs = PASSAGES + TASKS
+    if args.one:
+        name, weight, out = build(next(s for s in specs if s[0] == args.one), args.train, args.test)
+        if out:
+            os.makedirs(PARTS, exist_ok=True)
+            json.dump(out, open(os.path.join(PARTS, f'{name}.json') + '.tmp', 'w'))
+            os.replace(os.path.join(PARTS, f'{name}.json') + '.tmp', os.path.join(PARTS, f'{name}.json'))
+        sys.exit(0)
+    # each source in its own process, so a crash in one (a native error in a stream) loses only that source
+    names = [s[0] for s in specs if not args.only or s[0] in args.only.split(',')]
+    todo = [n for n in names if args.redo or not os.path.exists(os.path.join(PARTS, f'{n}.json'))]
+    running = []
+    while todo or running:
+        while todo and len(running) < args.procs:
+            n = todo.pop(0)
+            running.append((n, subprocess.Popen([sys.executable, os.path.abspath(__file__), '--one', n, '--train',
+                                                 str(args.train), '--test', str(args.test)], stdin=subprocess.DEVNULL)))
+        time.sleep(2)
+        for n, pr in list(running):
+            if pr.poll() is not None:
+                running.remove((n, pr))
+                if pr.returncode:
+                    print(f'{n}: process ended with code {pr.returncode}', flush=True)
+    res = merge([s[0] for s in specs], specs)
+    failed = [n for n in names if not os.path.exists(os.path.join(PARTS, f'{n}.json'))]
+    json.dump(res, open(os.path.join(ROOT, 'data', 'coread.json'), 'w'))
+    print(f'{len(res["weights"])} sources, {len(res["train"])} train, {len(res["test"])} test items -> data/coread.json; '
+          f'missing: {failed}', file=sys.stderr)
