@@ -1,9 +1,15 @@
 """Draw the figures in figures/: method.png (the link), probe.png (link minus shuffled messages, from
-results/probe.json) and conversation.png (one co_talk episode of a transcripts.py JSON file).
-Usage: python make_figures.py [figure ...] (default: every figure); conversation=FILE.json[,K] picks the file and its
-K-th co_talk episode."""
+results/probe.json), conversation.png (one co_talk episode of a transcripts.py JSON file), hero.png (free-generation
+scores, from an evalfree.py summary), opening.png (write sizes over training, from training logs), curves.png (held-out
+gain on the partner's value over training) and readmap.png (where a reader looks, from a readmap.py JSON file).
+Usage: python make_figures.py [figure ...] (default: every figure); NAME=SOURCE picks a figure's input:
+conversation=FILE.json[,K] (the K-th co_talk episode), hero=FILE.json[,all] (every episode, not only clean ones),
+opening=LOG[|LABEL][,LOG[|LABEL]...] (train.py's printed log or mlx_train.py's train.log or log.jsonl; one column each),
+curves=RUN_DIR_OR_LOG[|LABEL][,...] (payload_stepN.json files or payload_eval log lines; one panel each),
+readmap=FILE.json[,K] (the K-th record)."""
 
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -13,6 +19,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import MaxNLocator
 from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Rectangle, Wedge
 from scipy.stats import binom
@@ -639,7 +646,423 @@ def conversation(src=None):
     save(fig, "conversation")
 
 
-FIGURES = {"method": method, "probe": probe, "conversation": conversation}
+# Result figures: free-generation scores (hero), the size of the writes over training (opening), the held-out gain on
+# the partner's value over training (curves), and where a reader looks while writing the value (readmap).
+
+LABEL = {
+    "co_qa": "Answer a question about the partner's text", "co_hop": "Two-paragraph question, one paragraph each",
+    "co_mcq": "Question on one side, options on the other", "co_nli": "Premise on one side, hypothesis on the other",
+    "co_math": "Solve the partner's word problem", "co_code_out": "Say what the partner's code returns",
+    "co_code_write": "Write code for the partner's problem", "co_translate": "Translate the partner's sentence",
+    "co_paraphrase": "Paraphrase the partner's sentence", "co_instruct": "Carry out the partner's instruction",
+    "co_talk": "Answer first, then talk", "co_transfer": "Write out the partner's passage",
+    "co_swap": "Each writes out the other's passage", "co_split": "Each read half; both write the whole",
+    "co_continue": "Continue the partner's passage", "co_distill": "Reply as if having read the partner's text",
+    "relay_word": "Relay a word", "relay_number": "Relay a 4-digit number", "relay_phrase": "Relay a two-word phrase",
+    "relay_digits": "Relay up to 16 digits", "merge_sum": "Add two numbers", "merge_fact": "Join a name and a city",
+    "lookup": "Look up a code word",
+    "pooled_coread": "Every reading and whole-text game but the talk", "pooled_payload": "Every value game"}
+GROUPS = [("Read for the partner", ["co_qa", "co_hop", "co_mcq", "co_nli", "co_math", "co_code_out", "co_code_write",
+                                    "co_translate", "co_paraphrase", "co_instruct", "co_talk"]),
+          ("Pass a whole text across", ["co_transfer", "co_swap", "co_split", "co_continue", "co_distill"]),
+          ("Pass a value across", ["relay_word", "relay_number", "relay_phrase", "relay_digits", "merge_sum",
+                                   "merge_fact", "lookup"]),
+          ("Pooled", ["pooled_coread", "pooled_payload"])]
+VALUE_GAMES = GROUPS[2][1]
+RECEIVERS = (("quill", QUILL), ("ember", EMBER))
+LN2 = math.log(2)
+
+
+def way(x):
+    """The direction in which the receiving model x reads, as 'AFM → Qwen'."""
+    return f"{SHORT[partner_of(x)]} → {SHORT[x]}"
+
+
+def minus(text):
+    return text.replace("-", "−")
+
+
+def span_ticks(lo, hi, n=5, integer=False):
+    """Round tick values from the last one at or below lo to the first one at or above hi."""
+    hi = hi if hi - lo > 1e-9 else lo + 1
+    t = MaxNLocator(n, steps=[1, 2, 2.5, 5, 10], integer=integer).tick_values(lo, hi)
+    a = max(v for v in t if v <= lo + 1e-12)
+    b = min(v for v in t if v >= hi - 1e-12)
+    return [float(v) for v in t if a - 1e-12 <= v <= b + 1e-12]
+
+
+def step_ticks(last):
+    """Training-step ticks from 0 that end at or before the last step, and the axis range (0, last)."""
+    last = max(last, 1)
+    return [v for v in span_ticks(0, last, 4, integer=True) if v <= last], (0, last)
+
+
+def frame(ax, x0, y0, w, h, xt, yt, xr=None, size=22):
+    """Guide lines at the y ticks of a plot area (lower left x0, y0; w by h canvas units), the y tick labels to the left
+    and the x tick labels below; xr: the x range when the ticks do not span the plot. Returns the maps from data to
+    canvas units."""
+    xr = xr or (xt[0], xt[-1])
+    sx = lambda v: x0 + w * (v - xr[0]) / (xr[1] - xr[0])
+    sy = lambda v: y0 + h * (v - yt[0]) / (yt[-1] - yt[0])
+    for v in yt:
+        zero = abs(v) < 1e-12
+        ax.plot([x0, x0 + w], [sy(v)] * 2, color=INK if zero else TICK, lw=2 if zero else 1.5, zorder=1)
+        write(ax, x0 - 14, sy(v), minus(f"{v:g}"), size, color=MUTED, ha="right")
+    for v in xt:
+        write(ax, sx(v), y0 - 32, minus(f"{v:g}"), size, color=MUTED)
+    return sx, sy
+
+
+def caption(ax, y, text, size=22, step=34):
+    """A muted paragraph across the canvas from y down; returns the y of the last line."""
+    rows = wrap(ax, text, ax.get_xlim()[1] - 80, size)
+    lines(ax, 40, y, [(r, MUTED) for r in rows], size, step)
+    return y - step * (len(rows) - 1)
+
+
+def sources(src):
+    """[(path, label)] from 'PATH[|LABEL],PATH[|LABEL]...'; a label defaults to the name of the run's directory."""
+    out = []
+    for part in src.split(","):
+        path, _, label = part.partition("|")
+        p = Path(path)
+        out.append((p, label or (p if p.is_dir() else p.parent).name))
+    return out
+
+
+def train_log(path):
+    """The records of a training log: train.py's printed log (JSON step lines, and the 'payload step 0: {...}' line as
+    a payload_eval record), mlx_train.py's printed log or log.jsonl (JSON lines), or either trainer's log.json."""
+    text = Path(path).read_text()
+    if text.lstrip().startswith("["):
+        return json.loads(text)
+    out = []
+    for line in text.splitlines():
+        if line.startswith('{"step"'):
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:   # the last line of a log still being written
+                pass
+        elif line.startswith("payload step "):
+            step, _, rest = line[len("payload step "):].partition(": ")
+            out.append(dict(step=int(step), payload_eval=json.loads(rest)))
+    return out
+
+
+def hero(src=None):
+    """Free generation with the trained link (an evalfree.py summary; src: FILE.json, or FILE.json,all for every
+    episode instead of the clean ones; default results/evalfree_headline.json): per game and direction, the receiver's
+    mean score with the link minus with the link cut, and minus with a partner from another episode, with betting 95%
+    intervals. Clean episodes (evalfree's exclusive flag): the value the receiver must write appears nowhere in the
+    receiver's own prompt."""
+    path, _, subset = (src or str(RES / "evalfree_headline.json")).partition(",")
+    if src is None and not Path(path).exists():
+        print("hero: no", path)
+        return
+    table = json.loads(Path(path).read_text())
+    if table.get("tiny"):
+        print("hero: tiny models")
+    subset = subset or "exclusive"
+    rows = {(r["game"], r["receiver"]): r for r in table["rows"] if r["subset"] == subset}
+    every = {(r["game"], r["receiver"]): r["n"] for r in table["rows"] if r["subset"] == "all"}
+    groups = [(title, [g for g in games if any(every.get((g, x)) for x, _ in RECEIVERS)]) for title, games in GROUPS]
+    groups = [(title, games) for title, games in groups if games]
+    cells = [r[c] for r in rows.values() if r["n"] and (r["game"], r["receiver"]) in every
+             for c in ("link-cut", "link-shuffle")]
+    lo = min([0.0] + [max(-1.0, min(c["ci"][0], c["mean"])) for c in cells])
+    hi = max([0.0] + [min(1.0, max(c["ci"][1], c["mean"])) for c in cells])
+    ticks = span_ticks(lo, hi, 4)
+    fig, ax = canvas(4000, 2 * W)
+    sym = {g for (g, _), r in rows.items() if r["n"] and r["symmetric_n"] and not g.startswith("pooled_")}
+    label = lambda g: LABEL.get(g, g) + (" †" if g in sym else "")
+    lab_end = 70 + max(text_width(ax, label(g), 26) for _, games in groups for g in games) + 40
+    NW, G1, G2 = 110, 80, 70
+    PW = (2 * W - 40 - lab_end - 2 * NW - 2 * G1 - G2) / 4
+    base = lambda d: lab_end + d * (2 * PW + G1 + NW + G2)
+    sxs = [[(lambda v, x0=base(d) + c * (PW + G1): x0 + PW * (v - ticks[0]) / (ticks[-1] - ticks[0]))
+            for c in range(2)] for d in range(2)]
+    top = 3960
+    write(ax, 40, top, "Change in score from the link", 30, True, ha="left")
+    write(ax, 40, top - 46, "mean over episodes; each score from 0 to 1", 24, color=MUTED, ha="left")
+    for d, (x, colour) in enumerate(RECEIVERS):
+        write(ax, base(d) + PW + G1 / 2, top, way(x), 30, True, colour)
+        for c, name in enumerate(("link − cut", "link − shuffle")):
+            write(ax, sxs[d][c](ticks[0]) + PW / 2, top - 46, name, 24, color=MUTED)
+        write(ax, base(d) + 2 * PW + G1 + NW / 2, top - 46, "clean n" if subset == "exclusive" else "n", 22,
+              color=MUTED)
+    y = top - 120
+    for title, games in groups:
+        write(ax, 40, y, title, 26, True, MUTED, ha="left")
+        y -= 54
+        for g in games:
+            write(ax, 70, y, label(g), 26, ha="left")
+            for d, (x, _) in enumerate(RECEIVERS):
+                r = rows.get((g, x))
+                if not every.get((g, x)):
+                    continue
+                nx = base(d) + 2 * PW + G1 + NW / 2
+                write(ax, nx, y, f"{r['n']}/{every[(g, x)]}" if r["n"] < every[(g, x)] else str(r["n"]), 22,
+                      color=MUTED)
+                if not r["n"]:
+                    write(ax, base(d) + PW + G1 / 2, y, "no clean episode", 22, color=MUTED)
+                    continue
+                for c, control in enumerate(("cut", "shuffle")):
+                    sx, cell = sxs[d][c], r["link-" + control]
+                    for v in ticks:
+                        zero = abs(v) < 1e-12
+                        ax.plot([sx(v)] * 2, [y + 27, y - 27], color=INK if zero else TICK, lw=2.5 if zero else 1.5,
+                                zorder=2 if zero else 1)
+                    a, b = cell["ci"]
+                    colour = LINK if a > 0 else INK if b < 0 else FAINT
+                    if a <= b:
+                        ax.plot([sx(max(a, ticks[0])), sx(min(b, ticks[-1]))], [y, y], color=colour, lw=3.5,
+                                zorder=5, solid_capstyle="butt")
+                    ax.scatter([sx(cell["mean"])], [y], s=300 if colour != FAINT else 150,
+                               color=colour if colour != FAINT else MUTED, lw=2, edgecolor="white", zorder=6)
+            y -= 54
+        y -= 24
+    for d in range(2):
+        for c in range(2):
+            sx = sxs[d][c]
+            z = min(range(len(ticks)), key=lambda i: abs(ticks[i]))
+            for i, v in enumerate(ticks):
+                if len(ticks) <= 3 or (i - z) % 2 == 0:
+                    write(ax, sx(v), y + 10, minus(f"{v:g}"), 22, color=MUTED)
+            write(ax, sx(0) + 8, y - 30, "link better →", 22, color=LINK, ha="left")
+    low = caption(ax, y - 100, "Greedy free generation on never-seen episodes. Dot: the mean difference in the "
+                  "receiver's score; line: the 95% betting interval (Waudby-Smith and Ramdas 2024), green when the "
+                  "interval lies above 0, black when below, grey when the interval holds 0. cut: the same pair with "
+                  "the link cut; shuffle: the partner of another episode of the same game. "
+                  + ("Clean episodes: the value the receiver must write appears nowhere in the receiver's own "
+                     "prompt (clean n: clean of all). " if subset == "exclusive" else "")
+                  + "Pooled rows weight the games by episodes and join per-game Bonferroni intervals."
+                  + (" † The partner is also asked to write the value, so the link can carry the partner's own "
+                     "written words." if sym else ""))
+    crop(fig, ax, low - 40, top + 40)
+    save(fig, "hero")
+
+
+def opening(src=None):
+    """How large each reader's writes grow over training (src: LOG[|LABEL],LOG[|LABEL]..., train.py or mlx_train.py
+    logs, one column each): per exchange block, the RMS of the write over the RMS of the residual stream the write
+    joins, on the training batches."""
+    if not src:
+        print("opening: give opening=LOG[|LABEL][,LOG[|LABEL]]")
+        return
+    runs = [(label, [r for r in train_log(p) if "write" in r]) for p, label in sources(src)]
+    runs = [(label, recs) for label, recs in runs if recs]
+    n = len(runs)
+    L, R, G, PH = 130, 60, 150, 460
+    PW = (2 * W - L - R - G * (n - 1)) / n
+    yt = span_ticks(0, max(v for _, recs in runs for r in recs for x, _ in RECEIVERS for v in r["write"][x]), 4)
+    ramp = LinearSegmentedColormap.from_list("blocks", [mix(LINK, 0.3), LINK, "#0B4A37"])
+    shade = [ramp(k / (len(XBLOCKS) - 1)) for k in range(len(XBLOCKS))]
+    fig, ax = canvas(2000, 2 * W)
+    top = 1960
+    write(ax, 40, top, "Size of each write, relative to the residual stream", 30, True, ha="left")
+    # key: one shade per exchange block
+    write(ax, 40, top - 56, "exchange after block", 22, color=MUTED, ha="left")
+    kx = 40 + text_width(ax, "exchange after block", 22) + 30
+    for k, b in enumerate(XBLOCKS):
+        ax.plot([kx, kx + 36], [top - 56] * 2, color=shade[k], lw=5, solid_capstyle="butt")
+        write(ax, kx + 44, top - 56, str(b), 22, color=MUTED, ha="left")
+        kx += text_width(ax, str(b), 22) + 74
+    for j, (label, recs) in enumerate(runs):
+        x0 = L + j * (PW + G)
+        xt, xr = step_ticks(max(r["step"] for r in recs))
+        write(ax, x0, top - 150, label, 28, True, ha="left")
+        for i, (x, colour) in enumerate(RECEIVERS):
+            y0 = top - 240 - PH - i * (PH + 170)
+            write(ax, x0, y0 + PH + 34, f"{SHORT[x]} reads {SHORT[partner_of(x)]}", 26, True, colour, ha="left")
+            sx, sy = frame(ax, x0, y0, PW, PH, xt, yt, xr)
+            steps = [sx(r["step"]) for r in recs]
+            for k in range(len(XBLOCKS)):
+                ax.plot(steps, [sy(min(r["write"][x][k], yt[-1])) for r in recs], color=shade[k], lw=2.2, zorder=3)
+            if i == 1:
+                write(ax, x0 + PW / 2, y0 - 74, "training step", 22, color=MUTED)
+    low = top - 240 - 2 * PH - 170 - 130
+    low = caption(ax, low, "Root mean square of each write over the reading positions of the training batches, "
+                  "divided by the reader's residual RMS after that block (measured once before training), so 0.01 "
+                  "adds 1% of the stream's size. Darker lines: later exchanges.")
+    crop(fig, ax, low - 40, top + 40)
+    save(fig, "opening")
+
+
+def payload_points(path):
+    """[(step, {receiver: (cut - link, shuffle - link or None)})], in bits per value token, each a mean over the
+    value-game episodes evaluated at that step: from a run directory's payload_stepN.json files, or from the
+    payload_eval records of a training log."""
+    out = []
+    if Path(path).is_dir():
+        for f in Path(path).glob("payload_step*.json"):
+            recs = [r for r in json.loads(f.read_text()) if r["game"] in VALUE_GAMES]
+            point = {}
+            for x, _ in RECEIVERS:
+                rs = [r for r in recs if r["receiver"] == x]
+                if rs:
+                    point[x] = tuple(sum(r[c] - r["link_ce"] for r in rs) / len(rs) / LN2
+                                     if all(c in r for r in rs) else None for c in ("cut_ce", "shuffle_ce"))
+            out.append((int(f.stem[len("payload_step"):]), point))
+    else:
+        for rec in train_log(path):
+            if "payload_eval" not in rec:
+                continue
+            point = {}
+            for x, _ in RECEIVERS:
+                vs = [v for k, v in rec["payload_eval"].items() if k.split("/")[0] in VALUE_GAMES
+                      and k.split("/")[1] == x]
+                n = sum(v[-1] for v in vs)
+                if n:
+                    point[x] = tuple(sum((v[c] - v[0]) * v[-1] for v in vs) / n / LN2
+                                     if all(len(v) > c + 1 for v in vs) else None for c in (1, 2))
+            out.append((rec["step"], point))
+    return sorted(out, key=lambda p: p[0])
+
+
+def curves(src=None):
+    """The held-out gain on the partner's value over training (src: RUN_DIR|LOG[|LABEL],...; one panel each): the
+    receiver's cross-entropy on the value tokens of never-seen value-game episodes with the link cut, and with a partner
+    from another episode, minus with the link, in bits per token."""
+    if not src:
+        print("curves: give curves=RUN_DIR_OR_LOG[|LABEL][,...]")
+        return
+    runs = [(label, payload_points(p)) for p, label in sources(src)]
+    runs = [(label, pts) for label, pts in runs if pts]
+    vals = [v for _, pts in runs for _, point in pts for pair in point.values() for v in pair if v is not None]
+    yt = span_ticks(min(vals + [0]), max(vals + [0]), 5)
+    n = len(runs)
+    L, R, G, PH = 130, 60, 150, 640
+    PW = (2 * W - L - R - G * (n - 1)) / n
+    fig, ax = canvas(1400, 2 * W)
+    top = 1360
+    write(ax, 40, top, "Bits per value token supplied by the link", 30, True, ha="left")
+    # key: the colours name the direction, the dashes the control
+    kx = 40
+    for x, colour in RECEIVERS:
+        write(ax, kx, top - 50, way(x), 24, True, colour, ha="left")
+        kx += text_width(ax, way(x), 24, True) + 40
+    for dash, name in (("-", "against the link cut"), ("--", "against a partner from another episode")):
+        ax.plot([kx, kx + 50], [top - 50] * 2, color=INK, lw=2.5, ls=dash)
+        write(ax, kx + 62, top - 50, name, 24, color=MUTED, ha="left")
+        kx += 62 + text_width(ax, name, 24) + 40
+    for j, (label, pts) in enumerate(runs):
+        x0 = L + j * (PW + G)
+        y0 = top - 180 - PH
+        xt, xr = step_ticks(max(s for s, _ in pts))
+        write(ax, x0, y0 + PH + 40, label, 26, True, ha="left")
+        sx, sy = frame(ax, x0, y0, PW, PH, xt, yt, xr)
+        for x, colour in RECEIVERS:
+            for c, dash in ((0, "-"), (1, "--")):
+                xy = [(sx(s), sy(point[x][c])) for s, point in pts if x in point and point[x][c] is not None]
+                if xy:
+                    ax.plot(*zip(*xy), color=colour, lw=2.5, ls=dash, marker="o", ms=5, zorder=4)
+        write(ax, x0 + PW / 2, y0 - 74, "training step", 22, color=MUTED)
+    low = top - 180 - PH - 140
+    low = caption(ax, low, "Mean over the same never-seen episodes of the value games (relay, merge, lookup) at "
+                  "every evaluation, teacher-forced on the target reply. Above 0: the link lowers the receiver's "
+                  "cross-entropy on the partner's value.")
+    crop(fig, ax, low - 40, top + 40)
+    save(fig, "curves")
+
+
+def flow(ax, x0, y0, width, pieces, fills=None, colours=None, bolds=None, size=24, line=48):
+    """Token pieces as running text from (x0, y0) down, wrapped at width; each piece on a box of the given fill (None:
+    no box). Returns the y of the last line."""
+    x, y = x0, y0
+    for k, p in enumerate(pieces):
+        bold = bool(bolds and bolds[k])
+        p = "".join(c for c in p.replace("\t", " ").replace("$", r"\$") if c == "\n" or c.isprintable())
+        for n, part in enumerate(p.split("\n")):
+            if n:
+                x, y = x0, y - line
+            if not part:
+                continue
+            w = text_width(ax, part, size, bold)
+            if x + w > x0 + width and x > x0:
+                x, y = x0, y - line
+                part = part.lstrip()
+                w = text_width(ax, part, size, bold)
+            fill = fills[k] if fills else None
+            if fill is not None:
+                rbox(ax, x - 1, y - line / 2 + 5, w + 2, line - 10, fill, radius=6, z=2)
+            write(ax, x, y, part, size, bold, colours[k] if colours else INK, ha="left")
+            x += w
+    return y
+
+
+def user_span(pieces):
+    """Indices of the user message's pieces in a ChatML prompt."""
+    text, starts = "", []
+    for p in pieces:
+        starts.append(len(text))
+        text += p
+    a = text.find("\n", text.find("<|im_start|>user")) + 1
+    b = text.find("<|im_end|>", a)
+    return [j for j, s in enumerate(starts) if a <= s < b]
+
+
+def readmap(src=None):
+    """Where a reader looks while writing the partner's value (a readmap.py JSON file; src: FILE.json[,K] for the K-th
+    record, default results/readmap.json): the reader's reply up to the value, and the partner's message shaded by the
+    attention that the value's tokens put on each message token, averaged over heads and exchanges; beside the message,
+    the mass on the rest of the partner's prompt, on the partner's reply so far, and on nothing (the null key)."""
+    path, _, k = (src or str(RES / "readmap.json")).partition(",")
+    if src is None and not Path(path).exists():
+        print("readmap: no", path)
+        return
+    r = json.loads(Path(path).read_text())[int(k or 0)]
+    x, y = r["receiver"], partner_of(r["receiver"])
+    blocks = sorted(r["attn"], key=int)
+    P, n = len(r["partner_pieces"]), len(r["receiver_written"])
+    mass = [sum(r["attn"][b][i][j] for b in blocks for i in range(n)) / (n * len(blocks)) for j in range(P)]
+    null = sum(sum(r["null"][b]) for b in blocks) / (n * len(blocks))
+    user = user_span(r["partner_pieces"])
+    reply = [j for j in range(P) if r["partner_ticks"][j] >= 0]
+    rest = sorted(set(range(P)) - set(user) - set(reply))
+    um = [mass[j] for j in user]
+    vmax = max(um + [1e-9])
+    fig, ax = canvas(6000, 2 * W)
+    top = 5960
+    write(ax, 40, top, f"{LABEL.get(r['game'], r['game'])} · never-seen episode {r['episode']}", 30, True,
+          ha="left")
+    write(ax, 40, top - 80, f"{SHORT[x]} writes", 26, True, NAMES[x][2], ha="left")
+    # the reader's reply up to the value; the label at position p is the token at p + 1
+    pieces = r["receiver_pieces"]
+    paid = {q + 1 for q in r["receiver_positions"]}
+    text = "".join(pieces)
+    starts = [sum(len(q) for q in pieces[:j]) for j in range(len(pieces))]
+    a = text.rfind("<|im_start|>assistant")
+    a = text.find("\n", a) + 1 if a >= 0 else starts[min(paid)]
+    shown = [j for j in range(len(pieces)) if starts[j] >= a and j <= max(paid)
+             and pieces[j].strip() not in ("<think>", "</think>")]
+    while shown and not pieces[shown[0]].strip():
+        shown.pop(0)
+    yy = flow(ax, 70, top - 136, 1500, [pieces[j].replace("\n", " ") for j in shown],
+              colours=[LINK if j in paid else INK for j in shown],
+              bolds=[j in paid for j in shown], size=28, line=50)
+    yy -= 90
+    write(ax, 40, yy, f"while reading {SHORT[y]}'s message", 26, True, NAMES[y][2], ha="left")
+    yy = flow(ax, 70, yy - 64, 1500, [r["partner_pieces"][j] for j in user],
+              fills=[mix(LINK, 0.9 * min(1.0, m / vmax)) for m in um],
+              colours=["white" if m / vmax > 0.7 else INK for m in um])
+    side = [("the message", sum(um)), (f"{SHORT[y]}'s reply so far", sum(mass[j] for j in reply)),
+            ("the rest of the prompt", sum(mass[j] for j in rest)), ("nothing (the null key)", null)]
+    sy = top - 136
+    write(ax, 1700, sy, "attention mass", 24, True, MUTED, ha="left")
+    for i, (lab, v) in enumerate(side):
+        yk = sy - 56 * (i + 1)
+        ax.add_patch(Rectangle((1700, yk - 14), max(2, 300 * v), 28, color=LINK, zorder=3))
+        write(ax, 1700 + max(2, 300 * v) + 12, yk, f"{100 * v:.0f}%  {lab}", 22, ha="left")
+    low = min(yy, sy - 56 * len(side)) - 80
+    low = caption(ax, low, f"Teacher-forced on the target reply. Green: the tokens only {SHORT[y]} can supply. "
+                  f"Shading: the attention those tokens put on each token of {SHORT[y]}'s message, averaged over the "
+                  f"heads and the {len(blocks)} exchanges; the darkest holds {100 * vmax:.1f}% of the mass.")
+    crop(fig, ax, low - 40, top + 40)
+    save(fig, "readmap")
+
+
+FIGURES = {"method": method, "probe": probe, "conversation": conversation, "hero": hero, "opening": opening,
+           "curves": curves, "readmap": readmap}
 
 if __name__ == "__main__":
     style()
