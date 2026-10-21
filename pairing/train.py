@@ -43,6 +43,7 @@ import torch.nn.functional as F
 from peft import LoraConfig, PeftModel, get_peft_model
 
 import ddp
+import coldstart
 import games as G
 import session as S
 from link import DEVICE, MODELS, SIDES, XBLOCKS, Pair, inner, load, residual_rms
@@ -96,7 +97,10 @@ ap.add_argument('--minutes', type=float, default=0, help='wall-clock budget: aft
                 'count is cut so the run (evaluations and saves included) fits; the schedule follows the new count')
 ap.add_argument('--halt', type=int, default=0, help='stop after this step (probe runs; the schedule is still --steps)')
 ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
+coldstart.add_arguments(ap)
 args = ap.parse_args()
+if args.warmup_steps < 0 or args.relay_first < 0:
+    ap.error("--warmup_steps and --relay_first must be nonnegative")
 ddp.init()
 if not ddp.MAIN:
     sys.stdout = open(os.devnull, 'w')
@@ -146,6 +150,9 @@ else:
     sizes = {x: residual_rms(models[x], XB, [e[x]['ids'] for e in seqs]) for x in SIDES}
     print('residual RMS after the exchange blocks:', {x: [round(v, 3) for v in sizes[x]] for x in SIDES}, flush=True)
     pair = Pair(models, toks, XB, sizes, args.heads, args.head_dim).to(DEVICE)
+if args.gate_norm:
+    for side in pair.bridge.values():
+        side.gate_norm = True
 if args.read_start:
     with torch.no_grad():
         for x in SIDES:
@@ -159,12 +166,10 @@ for x in SIDES:
 params = {x: [p for p in models[x].parameters() if p.requires_grad] + list(pair.bridge[x].parameters()) for x in SIDES}
 ALL = [p for x in SIDES for p in params[x]]
 ddp.broadcast(ALL + [b for b in pair.buffers()])
-alphas = [pair.bridge[x].alpha for x in SIDES]
 opt = torch.optim.AdamW([{'params': [p for p in models[x].parameters() if p.requires_grad], 'lr': args.lr}
-                         for x in SIDES] +
-                        [{'params': [p for p in pair.bridge.parameters() if all(p is not a for a in alphas)],
-                          'lr': args.lr_bridge},
-                         {'params': alphas, 'lr': args.lr_alpha}],
+                         for x in SIDES] + coldstart.bridge_groups(
+                             pair, args.lr_bridge, args.lr_alpha,
+                             {x: getattr(args, 'lr_bridge_' + x) for x in SIDES}),
                         weight_decay=0.0, betas=(0.9, 0.98))
 base_lr = [g['lr'] for g in opt.param_groups]
 
@@ -189,6 +194,8 @@ VAL = G.bench('val') if BENCH else None
 
 
 def draw(rng, games, step, co):
+    if step <= args.relay_first and not ONLY_QA:
+        return coldstart.relay_episode(games)
     if args.solo:
         return G.qa_episode(rng.choice(BENCH), 'solo')
     if args.text_pair:
@@ -235,7 +242,7 @@ def teacher(ep):
 
 def prepare(step, rng=rng, games=train_games, co=COREAD):
     """The global batch of a step: the same on every rank."""
-    competitive = args.comp > 0 and step % args.comp == 0
+    competitive = args.comp > 0 and step % args.comp == 0 and step > args.relay_first
     rows = make_rows(competitive, rng, games, step, co)
     built = [S.build(ep, toks) for ep, _ in rows]
     for (ep, _), e in zip(rows, built):
@@ -454,9 +461,9 @@ while step < args.steps:
             print(f'time budget: {per:.1f} s per step, {E:.0f} s per evaluation -> {args.steps} steps', flush=True)
     frac = step / args.steps
     for g, lr0 in zip(opt.param_groups, base_lr):
-        g['lr'] = lr0 * min(1.0, step / 100) * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * frac)))
+        g['lr'] = lr0 * coldstart.lr_multiplier(step, args.steps, args.warmup_steps)
     competitive, rows, built = nxt
-    scale = 0.0 if frac <= args.warm else min(1.0, (frac - args.warm) / args.ramp) if args.ramp > 0 else 1.0
+    scale = 0.0 if step <= args.relay_first or frac <= args.warm else min(1.0, (frac - args.warm) / args.ramp) if args.ramp > 0 else 1.0
     logging = step % 20 == 0 or step <= 3
     pair.track = {} if logging else None
     rows, built, b, last, loss_for, total, sent, tally = forward(rows, built, scale)

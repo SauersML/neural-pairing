@@ -146,10 +146,11 @@ class Side(nn.Module):
     """One model's half of the bridges, at every exchange block: what it reads with (query norm and projection, output
     projection, alpha, null key, recency bias) and what it shows (key/value norm and projections, visibility gate)."""
 
-    def __init__(self, d, n, heads, head_dim, sizes):
+    def __init__(self, d, n, heads, head_dim, sizes, gate_norm=False):
         super().__init__()
         w = heads * head_dim
         self.heads, self.head_dim = heads, head_dim
+        self.gate_norm = gate_norm
         self.q_norm = nn.ModuleList(nn.RMSNorm(d, eps=1e-6) for _ in range(n))
         self.q = nn.ModuleList(_linear(d, w) for _ in range(n))
         self.o = nn.ModuleList(_linear(w, d) for _ in range(n))
@@ -172,7 +173,11 @@ class Side(nn.Module):
         """Keys, gated values [B, H, L, hd] and gates [B, L] of the states h [B, L, d] at exchange k. src: states to
         show in place of h (the 'random' ablation), with the gates still read from h."""
         z = self.kv_norm[k]((h if src is None else src).float())
-        s = torch.sigmoid(self.gate[k](h.float()).squeeze(-1))
+        gh = h.float()
+        if self.gate_norm:
+            # A separate parameter-free norm: random ablations still gate the real h, not src.
+            gh = F.rms_norm(gh, (gh.shape[-1],), eps=1e-6)
+        s = torch.sigmoid(self.gate[k](gh).squeeze(-1))
         v = self.v[k](z) * s[..., None]
         if rec is not None:
             rec.update(gate=s.detach().cpu(), shown=v.detach().cpu())
@@ -223,20 +228,20 @@ class Pair(nn.Module):
     track: a dict, or None. When a dict, every exchange stores there the mean square of each reader's write per
     reading position, relative to size squared, as a 0-d tensor under (side, exchange index)."""
 
-    def __init__(self, models, toks, xblocks=XBLOCKS, sizes=None, heads=8, head_dim=128):
+    def __init__(self, models, toks, xblocks=XBLOCKS, sizes=None, heads=8, head_dim=128, gate_norm=False):
         super().__init__()
         self.models, self.toks, self.xblocks = models, toks, tuple(xblocks)
         self.depth = {x: len(find_layers(models[x])) for x in SIDES}
         assert max(self.xblocks) < min(self.depth.values()) - 1, (self.xblocks, self.depth)
         sizes = sizes or {x: [1.0] * len(self.xblocks) for x in SIDES}
-        self.bridge = nn.ModuleDict({x: Side(models[x].config.hidden_size, len(self.xblocks), heads, head_dim, sizes[x])
+        self.bridge = nn.ModuleDict({x: Side(models[x].config.hidden_size, len(self.xblocks), heads, head_dim, sizes[x], gate_norm)
                                      for x in SIDES})
         self.record = None
         self.track = None
 
     @classmethod
     def from_checkpoint(cls, models, toks, ck):
-        pair = cls(models, toks, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim']).to(DEVICE)
+        pair = cls(models, toks, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'], ck.get('gate_norm', False)).to(DEVICE)
         missing, unexpected = pair.bridge.load_state_dict(ck['bridge'], strict=False)
         # a checkpoint from before the recency bias reads as a zero bias, which is exactly that checkpoint's bridges
         assert not unexpected and all(m.endswith('.age') for m in missing), (missing, unexpected)
@@ -245,7 +250,7 @@ class Pair(nn.Module):
     def checkpoint(self, **extra):
         s = self.bridge[SIDES[0]]
         return dict(bridge=self.bridge.state_dict(), xblocks=self.xblocks, heads=s.heads, head_dim=s.head_dim,
-                    sizes={x: self.bridge[x].size.tolist() for x in SIDES}, **extra)
+                    sizes={x: self.bridge[x].size.tolist() for x in SIDES}, gate_norm=s.gate_norm, **extra)
 
     def _exchange(self, k, h, qmask, mode, gen, write_mode=None, allow=None, ages=None, cache=None, tick=None):
         """The exchange after block xblocks[k] between the sides in h {x: [B, L, d]}. Without a cache, allow and ages
