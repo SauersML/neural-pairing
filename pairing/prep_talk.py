@@ -24,6 +24,7 @@ import torch
 import link
 import session as S
 from coread import talk_turn0, talk_system
+from coread_data import held_out
 from link import DEVICE, SIDES, partner
 
 BAD = re.compile(r'(^|\n|\*\*)\s*(Quill|Ember)\s*(\*\*)?\s*:|^\s*\*[^*\n]+\*\s*$|<think>', re.M)
@@ -76,8 +77,9 @@ def generate(tok, model, prompts, seed):
 data = json.load(open(args.coread))
 rng = random.Random(0)
 convs = {}
+pool = {'train': data['train'], 'test': held_out(data['train'], data['test'])}    # test: no content seen in training
 for split, n in (('train', args.n_train), ('test', args.n_test)):
-    items = [it for it in data[split] if it['task'] in ('qa', 'hop') and len(it['answer']) <= 80]
+    items = [it for it in pool[split] if it['task'] in ('qa', 'hop') and len(it['answer']) <= 80]
     convs[split] = [dict(item=it, asker=rng.choice(SIDES)) for it in rng.sample(items, min(n, len(items)))]
     for c in convs[split]:
         c['holder'] = partner(c['asker'])
