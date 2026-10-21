@@ -101,6 +101,8 @@ ap.add_argument('--content_init', default='none', choices=('none', 'qk', 'qkvo')
                 help='set the reads so that each reader attends to content-matched partner positions (align.py); qkvo '
                      'also sets values and outputs to deliver the matched state')
 ap.add_argument('--content_texts', type=int, default=192, help='texts read by both models for --content_init')
+ap.add_argument('--until', default=None, help='HH:MM: sets --minutes so that the run ends then (counted from when it '
+                'starts, after any wait for memory)')
 ap.add_argument('--halt', type=int, default=0, help='stop after this step (probe runs; the schedule is still --steps)')
 ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
 coldstart.add_arguments(ap)
@@ -111,6 +113,11 @@ ddp.init()
 if not ddp.MAIN:
     sys.stdout = open(os.devnull, 'w')
 ONLY_QA = args.solo or args.text_pair
+if args.until:
+    now = time.localtime()
+    end = time.mktime(time.strptime(time.strftime('%Y-%m-%d ', now) + args.until, '%Y-%m-%d %H:%M'))
+    args.minutes = ((end - time.time()) % 86400) / 60
+    print(f'until {args.until}: {args.minutes:.0f} minutes', flush=True)
 if args.minutes and args.first_eval < 5:
     args.first_eval = 10                 # the budget needs the cost of an evaluation
 if ONLY_QA:
@@ -157,8 +164,16 @@ else:
     print('residual RMS after the exchange blocks:', {x: [round(v, 3) for v in sizes[x]] for x in SIDES}, flush=True)
     pair = Pair(models, toks, XB, sizes, args.heads, args.head_dim).to(DEVICE)
 if args.gate_norm:
+    # gates trained on raw states would read the unit-RMS ones 10-50 times too strongly: they restart blind (bias only)
+    raw = bool(args.init) and not ck.get('gate_norm', False)
     for side in pair.bridge.values():
         side.gate_norm = True
+        if raw:
+            with torch.no_grad():
+                for g in side.gate:
+                    g.weight.zero_()
+    if raw:
+        print('gate norm on a checkpoint with raw-state gates: gate weights zeroed, biases kept', flush=True)
 if args.read_start:
     with torch.no_grad():
         for x in SIDES:

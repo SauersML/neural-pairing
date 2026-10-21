@@ -102,18 +102,21 @@ def _safetensors(path):
 
 
 def _mapped(hf, dtype):
-    """Model hf on the host with its weights memory-mapped from the cached checkpoint (_safetensors), its rotary
-    embeddings built on DEVICE."""
-    from huggingface_hub import snapshot_download
+    """Model hf on the host with its weights memory-mapped from the cached checkpoint (_safetensors) and its rotary
+    embeddings built again (their buffers are not in the checkpoint)."""
+    import json
     from transformers import AutoConfig, AutoModelForCausalLM
-    path = snapshot_download(hf, local_files_only=True)
+    from transformers.utils import cached_file
+    try:
+        files = sorted(set(json.load(open(cached_file(hf, 'model.safetensors.index.json')))['weight_map'].values()))
+    except OSError:
+        files = ['model.safetensors']
     cfg = AutoConfig.from_pretrained(hf)
     with torch.device('meta'):
         model = AutoModelForCausalLM.from_config(cfg, dtype=dtype)
     state = {}
-    for name in sorted(os.listdir(path)):
-        if name.endswith('.safetensors'):
-            state.update(_safetensors(os.path.join(path, name)))
+    for name in files:
+        state.update(_safetensors(cached_file(hf, name)))
     state = {k: v if v.dtype == dtype else v.to(dtype) for k, v in state.items()}
     missing, unexpected = model.load_state_dict(state, strict=False, assign=True)
     tied = ['lm_head.weight'] if cfg.tie_word_embeddings else []
@@ -123,7 +126,7 @@ def _mapped(hf, dtype):
     for name, mod in list(model.named_modules()):
         if any(b.is_meta for b in mod.buffers(recurse=False)):           # rotary inverse frequencies
             parent, _, attr = name.rpartition('.')
-            setattr(model.get_submodule(parent), attr, type(mod)(config=cfg, device=DEVICE))
+            setattr(model.get_submodule(parent), attr, type(mod)(config=cfg))
     assert not any(t.is_meta for t in list(model.parameters()) + list(model.buffers()))
     return model
 
