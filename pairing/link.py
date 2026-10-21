@@ -1,34 +1,41 @@
-"""Two language models from different families, linked by a learned channel of activation vectors.
+"""Two language models from different families joined by a corpus callosum: gated cross-attention bridges at several
+middle depths, in both directions, in one joint forward pass.
 
-Each model has a send head and a receive adapter. At every tick each model processes one token of its own text, its
-send head reads the residual stream after block LS at that token and writes a message (a vector of K numbers with a
-fixed norm) and a gate (send or not). The partner's receive adapter maps the gated message into the partner's residual
-stream and adds it after block LR at the partner's next token. That position enters the partner's KV cache, so later
-tokens can attend back to it. Neither model ever sees the other's text.
+The two models run block by block in lockstep. After each exchange block (by default after blocks 6, 9, ..., 27 of 36;
+none in the first six blocks or the last eight), each model reads the other's hidden states at that same depth:
 
-With the soft-token read (Pair.soft) a message instead enters the partner's context as a token of its own: a vector
-in the partner's input-embedding space, placed just before the partner token it reaches, so that token and every later
-one attend to it. The vector starts as text: the sender's next-token distribution at that tick, carried to the
-partner's vocabulary over the tokens whose strings match exactly, as the expected input embedding sum_v p(v) E[v]
-plus (1 - sum_v p(v)) null;
-the receive adapter's output (zero at the start) is added on top. The probability of unmatched tokens goes to a
-learned null vector, which is also the whole slot of a closed gate. Ablation 'zero' removes the slots altogether (they are masked out and the partner's positions are those of
-its text alone), so a model whose link is cut reads exactly its own text.
+    h_x += tanh(alpha) * size * O(attention(Q(norm(h_x)), K(norm(h_y)), s * V(norm(h_y))))
 
-Training reads the coupled models on teacher-forced text with Gauss-Seidel rounds: model A runs with the messages of
-the previous round, then model B runs with A's new messages, and so on, every round in one parallel forward pass per
-model. After R rounds every chain of up to 2R one-step hops between the models is exact. Generation (session.py) runs
-the two models step by step with KV caches, which is exact for any chain. session.py also defines when each token is
-read, and so where each message lands.
+Q, O and alpha belong to the reader x. K, V and the visibility gate s = sigmoid(w . h_y + b) belong to the sender y:
+each of its positions shows itself to the partner as much as its gate lets it, and the K/V space is a code the two
+models build together. Both reads at an exchange use the states of that block before the exchange, so the exchange is
+simultaneous and symmetric. alpha starts at 0 (as in Flamingo), so at step 0 the pair is exactly the two original
+models; O starts random, so alpha gets a gradient. size is the reader's residual RMS after that block, measured once,
+so tanh(alpha) is the write's size relative to the residual stream. A learned null key with a zero value lets a reader
+attend to nothing. The bridges compute in float32.
+
+The visibility gate is one per exchange block and position: each gate reads the very state it shows, and a gate shared
+by all blocks would have to be computed at one depth before the deeper states exist. The gate multiplies the values
+(not the attention logits), so a closed gate hides the position: masking logits would renormalize the attention, and
+hiding every position would then hide nothing.
+
+Time: every token has the tick at which its model reads it (session.py). Position i of x reads partner position j iff
+tick(j) <= tick(i): the partner's whole prompt (tick -1) and the partner's tokens of the same tick are visible. Each
+exchange uses the states of one block, so the dependency graph is acyclic in depth: the joint teacher-forced pass
+(Pair.joint) is exact, and generation (session.generate) steps both models together, tick by tick and block by block
+(Pair.step), with KV caches and a cache of each bridge's shown keys and values.
 """
+import math
 import os
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from transformers.masking_utils import create_causal_mask, create_sliding_window_causal_mask
 
-K = 256                      # message width
 DEVICE = os.environ.get('NL_DEVICE') or (f'cuda:{os.environ.get("LOCAL_RANK", 0)}' if torch.cuda.is_available() else 'cpu')
+XBLOCKS = (6, 9, 12, 15, 18, 21, 24, 27)
+FAR = 10 ** 9                # the tick of padding, and the cut of an episode whose link never closes
 
 MODELS = {
     'quill': dict(hf=os.environ.get('NL_QUILL', 'Qwen/Qwen3-4B'), name='Quill', family='Qwen',
@@ -57,17 +64,6 @@ def load(x, dtype=torch.bfloat16):
     return tok, model.to(DEVICE)
 
 
-def vocab_map(tx, ty):
-    """Token pairs (id in tokenizer tx, id in tokenizer ty) whose decoded strings are identical; special tokens and
-    tokens that decode to part of a character are left out."""
-    special = set(tx.all_special_ids) | set(tx.added_tokens_decoder)
-    strs = [tx.decode([v]) for v in range(len(tx))]
-    enc = ty(strs, add_special_tokens=False).input_ids
-    pairs = [(v, e[0]) for v, (s, e) in enumerate(zip(strs, enc))
-             if v not in special and s and '\ufffd' not in s and len(e) == 1 and ty.decode(e) == s]
-    return torch.tensor([a for a, _ in pairs]), torch.tensor([b for _, b in pairs])
-
-
 def partner(x):
     return SIDES[1 - SIDES.index(x)]
 
@@ -85,273 +81,253 @@ def inner(model):
     return m.model, m.lm_head
 
 
-class Stop(Exception):
-    pass
+@torch.no_grad()
+def residual_rms(model, blocks, seqs):
+    """Median per-token RMS of model's residual stream after each of blocks, over the token sequences seqs (the first
+    token of each, whose activations are outliers, left out)."""
+    layers = find_layers(model)
+    got = {l: [] for l in blocks}
+
+    def hook(l):
+        return lambda mod, i, o: got[l].append((o[0] if isinstance(o, tuple) else o)[0, 1:].float().pow(2).mean(-1).sqrt())
+    hooks = [layers[l].register_forward_hook(hook(l)) for l in blocks]
+    try:
+        for s in seqs:
+            model(input_ids=torch.tensor([s], device=DEVICE))
+    finally:
+        for h in hooks:
+            h.remove()
+    return [float(torch.cat(got[l]).median()) for l in blocks]
 
 
-class Tap:
-    """Hooks on one model: adds `delta` to the output of block lr, records the output of block ls, and, when `stop`
-    is set, ends the forward pass before block ls + 1.
+class Run:
+    """One model's pass over one chunk of input, block by block: the decoder's own embedding, masks, rotary
+    embeddings, blocks and final norm, called as the decoder's forward calls them."""
 
-    Gradient checkpointing reruns each block's forward pass, hooks included, during the backward pass. The add hook
-    therefore remembers which delta it added to each input tensor (the rerun gets the same input object) and adds the
-    same delta again, whatever `delta` holds by then."""
+    def __init__(self, model, ids, att, pos, cache=None):
+        self.dec, self.head = inner(model)
+        cfg = self.dec.config
+        self.h = self.dec.embed_tokens(ids)
+        self.pos, self.cache = pos, cache
+        self.types = getattr(cfg, 'layer_types', None) or ['full_attention'] * cfg.num_hidden_layers
+        kw = dict(config=cfg, inputs_embeds=self.h, attention_mask=att, past_key_values=cache, position_ids=pos)
+        self.masks = {'full_attention': create_causal_mask(**kw)}
+        if 'sliding_attention' in self.types:
+            self.masks['sliding_attention'] = create_sliding_window_causal_mask(**kw)
+        self.pe = self.dec.rotary_emb(self.h, pos)
 
-    def __init__(self, model, lr, ls):
-        layers = find_layers(model)
-        assert lr < ls < len(layers) - 1
-        self.lr, self.ls, self.delta, self.h, self.stop, self.memo = lr, ls, None, None, False, {}
-        layers[lr].register_forward_hook(self._add, with_kwargs=True)
-        layers[ls].register_forward_hook(self._read, with_kwargs=True)
-        layers[ls + 1].register_forward_pre_hook(self._halt, with_kwargs=True)
-
-    @staticmethod
-    def _hidden(args, kwargs):
-        return args[0] if args else kwargs['hidden_states']
-
-    def _add(self, mod, args, kwargs, out):
-        key = id(self._hidden(args, kwargs))
-        if torch.is_grad_enabled():
-            d = self.memo.setdefault(key, self.delta)
-        else:
-            d = self.delta
-        if d is None:
-            return out
-        if isinstance(out, tuple):
-            return (out[0] + d.to(out[0].dtype),) + out[1:]
-        return out + d.to(out.dtype)
-
-    def _read(self, mod, args, kwargs, out):
+    def block(self, l):
+        out = self.dec.layers[l](self.h, attention_mask=self.masks[self.types[l]], position_embeddings=self.pe,
+                                 position_ids=self.pos, past_key_values=self.cache, use_cache=self.cache is not None)
         self.h = out[0] if isinstance(out, tuple) else out
 
-    def _halt(self, mod, args, kwargs):
-        if self.stop:
-            raise Stop
+    def last(self):
+        return self.dec.norm(self.h)
 
-    def clear(self):
-        self.delta, self.h, self.memo = None, None, {}
+
+def _linear(i, o):
+    lin = nn.Linear(i, o, bias=False)
+    nn.init.normal_(lin.weight, std=i ** -0.5)       # unit-RMS outputs from unit-RMS inputs
+    return lin
 
 
 class Side(nn.Module):
-    """One model's half of the link: send head (residual -> message, gate logit) and receive adapter (message ->
-    residual write). The write is the adapter's output times a learned size, times the gate. The adapter's last layer
-    starts at zero (as LoRA's B), so the write starts at exactly zero and grows only along directions that lower the
-    receiver's loss; an untrained message is never noise in the receiver's residual stream."""
+    """One model's half of the bridges, at every exchange block: what it reads with (query norm and projection, output
+    projection, alpha, null key) and what it shows (key/value norm and projections, visibility gate)."""
 
-    def __init__(self, d, size, hid=1024, zero_write=True, soft=False):
+    def __init__(self, d, n, heads, head_dim, sizes):
         super().__init__()
-        self.norm = nn.RMSNorm(d)
-        self.send = nn.Sequential(nn.Linear(d, hid), nn.GELU(), nn.Linear(hid, K))
-        self.gate = nn.Linear(d, 1)
-        nn.init.zeros_(self.gate.weight)
-        nn.init.constant_(self.gate.bias, 2.0)
-        self.recv = nn.Sequential(nn.Linear(K, hid), nn.GELU(), nn.Linear(hid, d))
-        if zero_write:
-            nn.init.zeros_(self.recv[2].weight)
-            nn.init.zeros_(self.recv[2].bias)
-        self.log_size = nn.Parameter(torch.tensor(float(size)).log())
-        if soft:
-            self.null = nn.Parameter(torch.zeros(d))         # the slot of a closed gate (soft-token read)
+        w = heads * head_dim
+        self.heads, self.head_dim = heads, head_dim
+        self.q_norm = nn.ModuleList(nn.RMSNorm(d, eps=1e-6) for _ in range(n))
+        self.q = nn.ModuleList(_linear(d, w) for _ in range(n))
+        self.o = nn.ModuleList(_linear(w, d) for _ in range(n))
+        self.alpha = nn.Parameter(torch.zeros(n))
+        self.null = nn.Parameter(torch.zeros(n, heads, head_dim))
+        self.kv_norm = nn.ModuleList(nn.RMSNorm(d, eps=1e-6) for _ in range(n))
+        self.k = nn.ModuleList(_linear(d, w) for _ in range(n))
+        self.v = nn.ModuleList(_linear(d, w) for _ in range(n))
+        self.gate = nn.ModuleList(nn.Linear(d, 1) for _ in range(n))
+        for g in self.gate:
+            nn.init.zeros_(g.weight)
+            nn.init.constant_(g.bias, 2.0)           # every gate starts 88% open
+        self.register_buffer('size', torch.tensor([float(s) for s in sizes]))
 
-    def message(self, h):
-        """h [..., d] -> message [..., K] (norm sqrt(K)), gate probability [...]."""
-        x = self.norm(h.float())
-        m = F.normalize(self.send(x), dim=-1) * K ** 0.5
-        return m, torch.sigmoid(self.gate(x).squeeze(-1))
+    def split(self, t):
+        return t.view(*t.shape[:-1], self.heads, self.head_dim).transpose(-3, -2)       # [B, H, L, hd]
 
-    def write(self, m):
-        """Gated message [..., K] -> residual write [..., d]."""
-        return self.recv(m) * self.log_size.exp()
+    def show(self, k, h, src=None, rec=None):
+        """Keys, gated values [B, H, L, hd] and gates [B, L] of the states h [B, L, d] at exchange k. src: states to
+        show in place of h (the 'random' ablation), with the gates still read from h."""
+        z = self.kv_norm[k]((h if src is None else src).float())
+        s = torch.sigmoid(self.gate[k](h.float()).squeeze(-1))
+        v = self.v[k](z) * s[..., None]
+        if rec is not None:
+            rec.update(gate=s.detach().cpu(), shown=v.detach().cpu())
+        return self.split(self.k[k](z)), self.split(v), s
+
+    def read(self, k, h, keys, vals, allow, qmask, rec=None):
+        """The write into the states h [B, Lq, d] from the partner's shown keys and values [B, H, Lk, hd]; allow
+        [B, Lq, Lk] says which partner positions each position may read, and qmask [B, Lq] which positions read."""
+        B, Lq = h.shape[:2]
+        q = self.split(self.q[k](self.q_norm[k](h.float())))
+        nk = self.null[k][None, :, None, :].expand(B, -1, 1, -1)
+        keys = torch.cat([nk, keys], 2)
+        vals = torch.cat([torch.zeros_like(nk), vals], 2)
+        allow = torch.cat([torch.ones(B, Lq, 1, dtype=torch.bool, device=h.device), allow], -1)[:, None]
+        if rec is None:
+            a = F.scaled_dot_product_attention(q, keys, vals, attn_mask=allow)
+        else:
+            p = (q @ keys.transpose(-1, -2) / math.sqrt(self.head_dim)).masked_fill(~allow, float('-inf')).softmax(-1)
+            a = p @ vals
+        w = torch.tanh(self.alpha[k]) * self.size[k] * self.o[k](a.transpose(1, 2).reshape(B, Lq, -1)) * qmask[..., None]
+        if rec is not None:
+            rec.update(attn=p.detach().cpu(), write=w.detach().cpu(), alpha=float(torch.tanh(self.alpha[k])))
+        return w
 
 
-def gate_value(p, hard=True):
-    """Straight-through hard gate: 1 where p > 0.5, with the gradient of p."""
-    if not hard:
-        return p
-    return (p > 0.5).float() + p - p.detach()
-
-
-def ablate_text(t, mode, gen=None):
-    """The ablations of ablate() for the text embeddings t [B, T, d + 1] of the soft read (last channel: the matched
-    probability, which random keeps)."""
-    if mode == 'shuffle':
-        return t.roll(1, dims=0)
-    if mode == 'random':
-        e = t[..., :-1]
-        r = torch.randn(e.shape, generator=gen, device='cpu').to(t.device)
-        return torch.cat([F.normalize(r, dim=-1) * e.norm(dim=-1, keepdim=True), t[..., -1:]], -1)
-    return t
-
-
-def ablate(m, g, mode, gen=None):
-    """Replaces messages m [B, T, K] and gates g [B, T] for the channel ablations."""
-    if mode is None:
-        return m, g
-    if mode == 'zero':                        # nothing reaches the partner
-        return m, torch.zeros_like(g)
-    if mode == 'shuffle':                     # each episode gets the messages of another episode
-        return m.roll(1, dims=0), g.roll(1, dims=0)
-    if mode == 'random':                      # random directions of the same norm, same gates
-        r = torch.randn(m.shape, generator=gen, device='cpu').to(m.device)
-        return F.normalize(r, dim=-1) * m.norm(dim=-1, keepdim=True), g
-    raise ValueError(mode)
+def randomize(h, gen):
+    """Gaussian vectors with the norm of each of h's positions (the 'random' ablation of what a sender shows)."""
+    r = torch.randn(h.shape, generator=gen, device='cpu').to(h.device, h.dtype)
+    return F.normalize(r, dim=-1) * h.norm(dim=-1, keepdim=True)
 
 
 class Pair(nn.Module):
-    """Both models, their taps, and both halves of the link."""
+    """Both models and the bridges between them.
 
-    def __init__(self, models, toks, lr, ls, sizes, zero_write=True, soft=False):
+    Modes (ablations): None (the bridges as trained); 'zero' (no bridge: exactly the two models alone); 'shuffle' (each
+    episode reads the partner of the previous episode in the batch, so batch one game at a time); 'random' (each sender
+    shows Gaussian states with the norms of its own, through its own gates). write_mode='random' (generation): each
+    write is replaced by a random direction of the same norm.
+
+    record: a dict, or None. When a dict, every exchange appends to record[(side, block)] a dict with the side's gates
+    and shown values (as a sender) and its attention weights (key 0 is the null key) and writes (as a reader).
+    track: a dict, or None. When a dict, every exchange stores there the mean square of each reader's write per
+    reading position, relative to size squared, as a 0-d tensor under (side, exchange index)."""
+
+    def __init__(self, models, toks, xblocks=XBLOCKS, sizes=None, heads=8, head_dim=128):
         super().__init__()
-        self.models, self.toks, self.soft = models, toks, soft
-        self.taps = {x: Tap(models[x], lr[x], ls[x]) for x in SIDES}
-        d = {x: models[x].config.hidden_size for x in SIDES}
-        self.side = nn.ModuleDict({x: Side(d[x], sizes[x], zero_write=zero_write, soft=soft) for x in SIDES})
-        self.oracle = False        # soft read, test only: the sender's distribution is its teacher-forced next token
-        if soft:                   # x -> partner's vocabulary: matched ids of x, and the partner's input embeddings
-            self.vmap, self.vemb, self.vlook = {}, {}, {}
+        self.models, self.toks, self.xblocks = models, toks, tuple(xblocks)
+        self.depth = {x: len(find_layers(models[x])) for x in SIDES}
+        assert max(self.xblocks) < min(self.depth.values()) - 1, (self.xblocks, self.depth)
+        sizes = sizes or {x: [1.0] * len(self.xblocks) for x in SIDES}
+        self.bridge = nn.ModuleDict({x: Side(models[x].config.hidden_size, len(self.xblocks), heads, head_dim, sizes[x])
+                                     for x in SIDES})
+        self.record = None
+        self.track = None
+
+    @classmethod
+    def from_checkpoint(cls, models, toks, ck):
+        pair = cls(models, toks, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim']).to(DEVICE)
+        pair.bridge.load_state_dict(ck['bridge'])
+        return pair
+
+    def checkpoint(self, **extra):
+        s = self.bridge[SIDES[0]]
+        return dict(bridge=self.bridge.state_dict(), xblocks=self.xblocks, heads=s.heads, head_dim=s.head_dim,
+                    sizes={x: self.bridge[x].size.tolist() for x in SIDES}, **extra)
+
+    def _exchange(self, k, h, qmask, mode, gen, write_mode=None, allow=None, cache=None):
+        """The exchange after block xblocks[k] between the sides in h {x: [B, L, d]}. Without a cache, allow
+        {x: [B, Lx, Ly]} says what each position reads. With a cache (generation), each sender's shown keys and values
+        are first appended to cache[y]['blocks'][k], and each reader reads all of them that are valid. Returns the new
+        states and the gates."""
+        rec = {}
+        if self.record is not None:
+            for x in h:
+                rec[x] = {}
+                self.record.setdefault((x, self.xblocks[k]), []).append(rec[x])
+        shown = {y: self.bridge[y].show(k, h[y], randomize(h[y], gen) if mode == 'random' else None, rec.get(y))
+                 for y in h}
+        if cache is not None:
+            for y in h:
+                c = cache[y]['blocks'].get(k)
+                cache[y]['blocks'][k] = shown[y][:2] if c is None else (torch.cat([c[0], shown[y][0]], 2),
+                                                                         torch.cat([c[1], shown[y][1]], 2))
+        out = dict(h)
+        for x in h:
+            y = partner(x)
+            if cache is None:
+                (keys, vals, _), a = shown[y], allow[x]
+            elif k in cache[y]['blocks']:
+                keys, vals = cache[y]['blocks'][k]
+                a = cache[y]['valid'][:, None, :].expand(-1, h[x].shape[1], -1)
+                if mode == 'shuffle':
+                    a = a.roll(1, 0)
+            else:
+                continue
+            if mode == 'shuffle':
+                keys, vals = keys.roll(1, 0), vals.roll(1, 0)
+            w = self.bridge[x].read(k, h[x], keys, vals, a, qmask[x], rec.get(x))
+            if write_mode == 'random':
+                r = torch.randn(w.shape, generator=gen, device='cpu').to(w.device)
+                w = F.normalize(r, dim=-1) * w.norm(dim=-1, keepdim=True)
+            if self.track is not None:
+                ms = (w.detach().pow(2).mean(-1) * qmask[x]).sum() / qmask[x].sum().clamp_min(1)
+                self.track[(x, k)] = ms / self.bridge[x].size[k] ** 2
+            out[x] = h[x] + w.to(h[x].dtype)
+        return out, {y: shown[y][2] for y in h}
+
+    def joint(self, b, mode=None, gen=None):
+        """Teacher-forced joint pass of both models over the batch b (session.collate). Returns the last hidden states
+        {x: [B, L, d]} (after the final norm) and the gates {x: [B, L, n exchanges]}."""
+        runs = {x: Run(self.models[x], b[x]['ids'], b[x]['att'], b[x]['pos']) for x in SIDES}
+        allow, qmask = {}, {}
+        for x in SIDES:
+            ty, vy = b[partner(x)]['tick'], b[partner(x)]['att'].bool()
+            if mode == 'shuffle':
+                ty, vy = ty.roll(1, 0), vy.roll(1, 0)
+            allow[x] = (ty[:, None, :] <= b[x]['tick'][:, :, None]) & vy[:, None, :]
+            qmask[x] = (b[x]['att'].bool() & (b[x]['tick'] < b[x]['cut'][:, None])).float()
+        gates = {x: [] for x in SIDES}
+        for l in range(max(self.depth.values())):
             for x in SIDES:
-                y = partner(x)
-                ix, iy = vocab_map(toks[x], toks[y])
-                E = models[y].get_input_embeddings().weight.detach()
-                self.vmap[x], self.vemb[x] = ix.to(E.device), E[iy.to(E.device)].clone()
-                self.vlook[x] = torch.full((len(toks[x]),), -1, dtype=torch.long).index_put_((ix,), torch.arange(len(ix))).to(E.device)
-        self.open = False          # every gate open (g = 1, no gradient to the gate): the warm-up of training
-        self.write_ms = {}         # mean square of the last write into each model, at the positions it reached
-        self.inbox = False         # True: every position gets the mean of all open messages received so far
-
-    # ----- training: Gauss-Seidel rounds over teacher-forced text -----
-
-    def _run(self, x, ids, att, delta, full, embeds=None, pos=None):
-        """One forward pass of model x. Returns the residual after block ls and, when full, the last hidden state."""
-        tap = self.taps[x]
-        tap.delta, tap.stop = delta, not full
-        dec, _ = inner(self.models[x])
-        last = None
-        try:
-            last = dec(input_ids=ids, inputs_embeds=embeds, attention_mask=att, position_ids=pos,
-                       use_cache=False).last_hidden_state
-        except Stop:
-            pass
-        finally:
-            tap.stop = False
-        return tap.h, last
-
-    def _send(self, x, h, b, mode=None, gen=None, last=None):
-        """Messages of model x at its sending positions: m [B, T, K], gate g [B, T], probability p [B, T], valid, and
-        with the soft read the sender's distribution in the partner's input space [B, T, d_partner + 1] (text_embedding)."""
-        pos, valid = b[x]['send_pos'], b[x]['send_valid']
-        hs = h.gather(1, pos[..., None].expand(-1, -1, h.shape[-1]))
-        m, p = self.side[x].message(hs)
-        p = p * valid
-        g = valid.float() if self.open else gate_value(p) * valid
-        m, g = ablate(m, g, mode, gen)
-        if not self.soft:
-            return m, g, p, valid
-        if self.oracle:
-            text = self.text_embedding(x, token=b[x]['next_tok'])
-        else:
-            text = self.text_embedding(x, hidden=last.gather(1, pos[..., None].expand(-1, -1, last.shape[-1])))
-        return m, g, p, valid, ablate_text(text, mode, gen)
-
-    @torch.no_grad()
-    def text_embedding(self, x, hidden=None, logits=None, token=None):
-        """The sender's next-token distribution (from its last hidden states, its logits, or a given token), carried
-        to the partner's vocabulary: sum over the exactly matched tokens of p(v) E_partner[v], and as a last channel
-        the matched probability sum_v p(v) (the rest goes to the partner's null vector in slot_vectors)
-        [..., d_partner + 1]. Rows of 2048 at a time, to bound the memory of the vocabulary-wide distributions."""
-        E = self.vemb[x]
-        if token is not None:
-            j = self.vlook[x][token.clamp(min=0)]
-            ok = ((token >= 0) & (j >= 0)).float()[..., None]
-            return torch.cat([E[j.clamp(min=0)].float() * ok, ok], -1)
-        src = hidden if hidden is not None else logits
-        flat = src.reshape(-1, src.shape[-1])
-        _, head = inner(self.models[x])
-        out = []
-        for i in range(0, flat.shape[0], 2048):
-            z = flat[i:i + 2048]
-            q = torch.softmax((head(z) if hidden is not None else z).float(), -1)[:, self.vmap[x]]
-            out.append(torch.cat([(q.to(E.dtype) @ E).float(), q.sum(-1, keepdim=True)], -1))
-        return torch.cat(out).reshape(*src.shape[:-1], E.shape[-1] + 1)
-
-    def slot_vectors(self, y, msg):
-        """Slot vectors in model y's input from its partner's messages [B, T, d]: where the gate is open the text
-        embedding, the null vector times the unmatched probability, and the receive adapter's output; the null vector
-        where it is closed."""
-        m, g, _, _, text = msg
-        side = self.side[y]
-        w = side.write(m)
-        g = g[..., None]
-        return g * (text[..., :-1] + (1 - text[..., -1:]) * side.null + w) + (1 - g) * side.null, w
-
-    def _deliver(self, y, msg, b, L):
-        """Residual writes into model y [B, L, d] from its partner's messages, each at its destination position;
-        messages that reach the same position are averaged. With the inbox, every position instead gets the mean of
-        all open messages that reached it or an earlier position, so a message stays in the stream once it arrives."""
-        m, g, _, valid = msg
-        dst = b[partner(y)]['dst']
-        w = self.side[y].write(m) * g[..., None]                    # [B, T, d]
-        ok = (valid & (dst >= 0)).float()
-        pos = dst.clamp(min=0)
-        out = torch.zeros(w.shape[0], L, w.shape[-1], device=w.device, dtype=w.dtype)
-        out = out.scatter_add(1, pos[..., None].expand_as(w), w * ok[..., None])
-        if self.inbox:
-            c = torch.zeros(w.shape[0], L, device=w.device).scatter_add(1, pos, ok * g.detach()).cumsum(1)
-            out = out.cumsum(1) / c.clamp(min=1)[..., None]
-            hit = (c > 0).float()
-        else:
-            n = torch.zeros(w.shape[0], L, device=w.device).scatter_add(1, pos, ok)
-            out = out / n.clamp(min=1)[..., None]
-            hit = (n > 0).float()
-        self.write_ms[y] = (out.detach().pow(2).mean(-1) * hit).sum() / hit.sum().clamp(min=1)   # for logging
-        return out
-
-    def _inputs(self, y, b, msg, mode):
-        """Input embeddings of model y with its slots filled from the partner's messages (null before the first)."""
-        e = self.models[y].get_input_embeddings()(b[y]['ids'])
-        slot = b[y]['slot']
-        if mode == 'zero':
-            return e
-        if msg is None:
-            v = self.side[y].null.expand(e.shape)
-        else:
-            vv, w = self.slot_vectors(y, msg)
-            v = vv.gather(1, slot.clamp(min=0)[..., None].expand(-1, -1, vv.shape[-1]))
-            g = msg[1]
-            self.write_ms[y] = (w.detach().pow(2).mean(-1) * g.detach()).sum() / g.detach().sum().clamp(min=1)
-        return torch.where((slot >= 0)[..., None], v.to(e.dtype), e)
-
-    def coupled(self, b, rounds=2, mode=None, gen=None):
-        """Gauss-Seidel forward of both models on the batch b. Returns last hidden states per model and the messages."""
-        msgs, last = {}, {}
-        if self.soft:          # every round runs to the last block: the sender's next-token distribution is sent
-            for r in range(rounds):
+                if l < self.depth[x]:
+                    runs[x].block(l)
+            if l in self.xblocks and mode != 'zero':
+                h, g = self._exchange(self.xblocks.index(l), {x: runs[x].h for x in SIDES}, qmask, mode, gen,
+                                      allow=allow)
                 for x in SIDES:
-                    y = partner(x)
-                    att, pos = (b[x]['att_cut'], b[x]['pos_cut']) if mode == 'zero' else (b[x]['att'], b[x]['pos'])
-                    h, hl = self._run(x, None, att, None, True, self._inputs(x, b, msgs.get(y), mode), pos)
-                    last[x] = hl
-                    msgs[x] = self._send(x, h, b, mode=mode, gen=gen, last=hl)
-            return last, msgs
-        order = list(SIDES)
-        for r in range(rounds):
-            final = r == rounds - 1
-            for x in order:
-                y = partner(x)
-                L = b[x]['ids'].shape[1]
-                delta = self._deliver(x, msgs[y], b, L) if y in msgs else None
-                h, hl = self._run(x, b[x]['ids'], b[x]['att'], delta, full=final)
-                if final:
-                    last[x] = hl
-                msgs[x] = self._send(x, h, b, mode=mode, gen=gen)
-        return last, msgs
+                    runs[x].h = h[x]
+                    gates[x].append(g[x])
+        n = len(self.xblocks)
+        return ({x: runs[x].last() for x in SIDES},
+                {x: torch.stack(gates[x], -1) if gates[x] else torch.zeros(*b[x]['ids'].shape, n, device=DEVICE)
+                 for x in SIDES})
+
+    def new_cache(self):
+        """The generation state: each model's KV cache, and per sender the validity of every position it has read and
+        its shown keys and values at each exchange."""
+        from transformers import DynamicCache
+        return {'kv': {x: DynamicCache(config=inner(self.models[x])[0].config) for x in SIDES},
+                'shown': {x: {'valid': None, 'blocks': {}} for x in SIDES}}
+
+    def step(self, chunk, cache, qmask, mode=None, gen=None, write_mode=None):
+        """One tick of generation. chunk {x: (ids [B, K], att [B, past + K], pos [B, K])} for the models that read
+        tokens at this tick; cache from new_cache(); qmask {x: [B, K]}: the positions that read. Returns the last hidden
+        states {x: [B, K, d]} (after the final norm) and the gates {x: [B, K, n exchanges]}."""
+        runs = {x: Run(self.models[x], ids, att, pos, cache['kv'][x]) for x, (ids, att, pos) in chunk.items()}
+        for x, (ids, att, _) in chunk.items():
+            v = att[:, -ids.shape[1]:].bool()
+            sh = cache['shown'][x]
+            sh['valid'] = v if sh['valid'] is None else torch.cat([sh['valid'], v], 1)
+        gates = {x: [] for x in runs}
+        for l in range(max(self.depth.values())):
+            for x in runs:
+                if l < self.depth[x]:
+                    runs[x].block(l)
+            if l in self.xblocks and mode != 'zero':
+                h, g = self._exchange(self.xblocks.index(l), {x: runs[x].h for x in runs}, qmask, mode, gen,
+                                      write_mode, cache=cache['shown'])
+                for x in runs:
+                    runs[x].h = h[x]
+                    gates[x].append(g[x])
+        n = len(self.xblocks)
+        return ({x: runs[x].last() for x in runs},
+                {x: torch.stack(gates[x], -1) if gates[x] else torch.zeros(*chunk[x][0].shape, n, device=DEVICE)
+                 for x in runs})
 
     def token_logits(self, x, last, idx):
         """Logits of model x at the flat positions idx (into [B * L])."""
         _, head = inner(self.models[x])
-        h = last.reshape(-1, last.shape[-1])[idx]
-        return head(h).float()
-
-    def clear(self):
-        for t in self.taps.values():
-            t.clear()
+        return head(last.reshape(-1, last.shape[-1])[idx]).float()

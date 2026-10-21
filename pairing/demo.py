@@ -1,5 +1,5 @@
 """Demo transcripts: held-out episodes of chosen games, both models' text with the link and with it cut, and each
-model's gate per token (1 = sent).
+model's gate per token (1: over one half, the mean over the exchange blocks).
 
 Usage: python demo.py --run RUN/step_N --replies OUT/replies.json --out OUT/demo.json [--games relay_word,steer] [--n 3]
 """

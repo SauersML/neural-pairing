@@ -4,7 +4,7 @@ Arms, each model writing one answer of at most 12 tokens per question, greedy:
   base       each original model alone (adapters off)                                   (1) Quill, (2) Ember
   solo       each model alone after the same fine-tuning on the same questions          (3)
   pair       the trained pair, the link open                                            (4)
-  pair/zero, pair/shuffle, pair/random   the same pair with the link cut or fed other messages   (5)
+  pair/zero, pair/shuffle, pair/random   the same pair without the bridges, or reading other partners   (5)
   text       a pair trained the same way to answer in turn in text, the link closed     (6)
   ensemble   the two solo models' letter probabilities averaged (an extra control)
 The pair's answer is the answer of the model whose solo version scores higher on the validation questions (fixed
@@ -17,7 +17,7 @@ interval for the accuracy difference (Clopper-Pearson on the discordant split, c
 correction for the number of comparisons).
 
 Under torchrun the questions are split over the ranks in whole batches, so every batch (and the 'shuffle' control,
-which passes messages between the episodes of a batch) is the same as in a single process.
+which reads the partner of another episode of the batch) is the same as in a single process.
 
 Usage: python bench_eval.py --pair RUN/step_N --solo RUN/step_N --text RUN/step_N --out OUT/bench.json
 """
@@ -59,8 +59,8 @@ def letter_probs(pair, items, bs=32):
     for b in range(0, len(items), bs):
         eps = [G.qa_episode(it, 'solo') for it in items[b:b + bs]]
         built = [S.build(e, toks) for e in eps]
-        batch = S.collate(built, pads, soft=pair.soft)
-        last, _ = pair.coupled(batch, rounds=1, mode='zero')
+        batch = S.collate(built, pads)
+        last, _ = pair.joint(batch, mode='zero')
         for x in SIDES:
             want = S.ids(toks[x], 'The answer is')
             idx = []
@@ -71,7 +71,6 @@ def letter_probs(pair, items, bs=32):
                 idx.append(i * batch[x]['ids'].shape[1] + labs[k][0])
             lg = pair.token_logits(x, last[x], torch.tensor(idx, device=DEVICE))[:, lid[x]]
             out[x].append(torch.softmax(lg, -1).cpu())
-        pair.clear()
     return {x: torch.cat(v) for x, v in out.items()}
 
 
@@ -88,7 +87,7 @@ if __name__ == '__main__':
     args = ap.parse_args()
     ddp.init()
 
-    ck = torch.load(os.path.join(args.pair, 'link.pt'), weights_only=False)
+    ck = torch.load(os.path.join(args.pair, 'bridge.pt'), weights_only=False)
     toks, models = {}, {}
     for x in SIDES:
         toks[x], m = load(x)
@@ -96,10 +95,7 @@ if __name__ == '__main__':
         m.load_adapter(os.path.join(args.solo, x), adapter_name='solo')
         m.load_adapter(os.path.join(args.text, x), adapter_name='text')
         models[x] = m.eval()
-    pair = Pair(models, toks, ck['lr'], ck['ls'], ck['sizes'], soft=ck.get('soft', False)).to(DEVICE)
-    pair.side.load_state_dict(ck['link'])
-    pair.inbox = ck.get('inbox', False)
-    pair.eval()
+    pair = Pair.from_checkpoint(models, toks, ck).eval()
 
     def adapters(name):
         stack = contextlib.ExitStack()

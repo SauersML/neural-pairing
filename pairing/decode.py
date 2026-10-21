@@ -1,99 +1,123 @@
-"""Which side of the link is the bottleneck? Decodes the payload from the sender's messages with a ridge classifier.
+"""Which side of the bridges is the bottleneck? Decodes a payload with a ridge classifier from what one model shows at
+each exchange block, and from what the other model's bridge writes.
 
-merge_sum: the sender's own number (50 values) from its message at the tick that reads the number's last token.
-relay_digits: the first digit (10 values) from the sender's messages at ticks 0-3.
-Each read is a teacher-forced coupled forward (gates open), no gradients. The decoder is fit on 75% of the episodes and
-scored on the other 25%. A decodable payload with no drop in the receiver's payload loss puts the fault on the
-receiving side; an undecodable one, on the sending side.
+merge_sum: each model's own number (50 values) from its shown values (gate x V) at the number's last token in its own
+prompt ('shows'), and from the partner's write into its last prompt token, which reads the whole of that prompt
+('receives').
+relay_digits: the first digit (10 values) in the same two places (sender shows, receiver receives).
+Each read is a teacher-forced joint pass with the recording hook (link.Pair.record), no gradients. The decoder is fit on
+75% of the episodes and scored on the other 25%. A payload the sender shows that the receiver's write does not carry
+puts the fault on the reading side; one the sender does not show, on the showing side.
 
 Usage: python decode.py --replies OUT/replies.json [--run RUN/step_N | --fresh] [--n 512]
 """
 import argparse
 import json
-import os
 
+import numpy as np
+import scipy.linalg
 import torch
 
 import games as G
 import session as S
-from link import DEVICE, SIDES, Pair, find_layers, load
+from link import DEVICE, SIDES, XBLOCKS, Pair, load, partner
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--replies', required=True)
 ap.add_argument('--run', default=None)
-ap.add_argument('--fresh', action='store_true', help='the original models and a newly made link (step 0)')
+ap.add_argument('--fresh', action='store_true', help='the original models and new bridges with alpha = 1 (step 0)')
 ap.add_argument('--n', type=int, default=512)
-ap.add_argument('--bs', type=int, default=32)
+ap.add_argument('--bs', type=int, default=16)
 args = ap.parse_args()
 
 if args.fresh:
-    toks, models, lr, ls = {}, {}, {}, {}
+    toks, models = {}, {}
     for x in SIDES:
         toks[x], models[x] = load(x)
-        n = len(find_layers(models[x]))
-        lr[x], ls[x] = round(0.3 * n), round(0.67 * n)
     torch.manual_seed(0)
-    pair = Pair(models, toks, lr, ls, {x: 1.0 for x in SIDES}).to(DEVICE).eval()
+    pair = Pair(models, toks, XBLOCKS).to(DEVICE).eval()
+    for x in SIDES:
+        pair.bridge[x].alpha.data.fill_(1.0)       # so the writes are not zero
 else:
     from evaluate import load_pair
     pair, toks = load_pair(args.run)
-pair.open = True
 games = G.Games(json.load(open(args.replies)), 'train', seed=4242)
 pads = {x: toks[x].pad_token_id for x in SIDES}
 
 
-def own_tick(ep, x):
-    """The tick at which x reads the last token of its own number in its merge_sum reply."""
-    text = ep['reply'][x][0]
-    a = str(ep['meta']['values'][x])
-    i = text.find('Mine is ' + a) + len('Mine is ')
-    enc = toks[x](text, add_special_tokens=False, return_offsets_mapping=True)
-    last = max(j for j, (s, e) in enumerate(enc.offset_mapping) if s < i + len(a) and e > i)
-    return last + 1                             # reply token j is read at tick j + 1
+def value_position(ep, x, value):
+    """The position in x's prompt of the token that holds the last character of the first occurrence of value in x's
+    task."""
+    sys_, task = ep['system'][x], ep['task'][x]
+    s = f'<|im_start|>system\n{sys_}<|im_end|>\n<|im_start|>user\n{task}<|im_end|>\n'
+    end = s.index(task) + task.index(value) + len(value) - 1
+    enc = toks[x](s, add_special_tokens=False, return_offsets_mapping=True)
+    assert enc.input_ids == S.prefix(toks[x], x, sys_, task)
+    return max(j for j, (a, b) in enumerate(enc.offset_mapping) if a <= end < b)
+
+
+def last_prompt(ep, x):
+    """The position of x's last prompt token (the end of its assistant header, read at tick 0)."""
+    return len(S.prefix(toks[x], x, ep['system'][x], ep['task'][x])) + len(S.assistant_header(toks[x], x)) - 1
 
 
 @torch.no_grad()
-def messages(eps):
+def reads(eps, places):
+    """Per episode: {(x, block): (shown at places[i][x][0], write at places[i][x][1])} as float32 numpy vectors."""
     out = []
-    for k in range(0, len(eps), args.bs):
-        chunk = eps[k:k + args.bs]
-        b = S.collate([S.build(e, toks) for e in chunk], pads, soft=pair.soft)
-        _, msgs = pair.coupled(b, rounds=2)
-        pair.clear()
-        out += [{x: msgs[x][0][i].float().cpu() for x in SIDES} for i in range(len(chunk))]
+    for a, z in S.batches(len(eps), args.bs):
+        chunk = eps[a:z]
+        b = S.collate([S.build(e, toks) for e in chunk], pads)
+        pair.record = {}
+        pair.joint(b)
+        rec, pair.record = pair.record, None
+        for i in range(len(chunk)):
+            d = {}
+            for (x, blk), (r,) in rec.items():
+                sp, wp = places[a + i][x]
+                d[(x, blk)] = (r['shown'][i, sp].numpy(), r['write'][i, wp].numpy())
+            out.append(d)
     return out
 
 
 def ridge(X, y, classes):
-    """Held-out accuracy of a ridge classifier (one-hot targets), the penalty picked on the training part."""
+    """Never-seen accuracy of a ridge classifier (one-hot targets), the penalty picked on the training part."""
     n = len(y)
     cut = int(0.75 * n)
     X = (X - X[:cut].mean(0)) / (X[:cut].std(0) + 1e-6)
-    X = torch.cat([X, torch.ones(n, 1)], 1).double()
-    Y = torch.nn.functional.one_hot(y, classes).double()
-    best = None
-    for lam in (0.1, 1.0, 10.0, 100.0, 1000.0):
-        f = int(0.8 * cut)                      # penalty chosen on a split of the training part
-        W = torch.linalg.solve(X[:f].T @ X[:f] + lam * torch.eye(X.shape[1], dtype=X.dtype), X[:f].T @ Y[:f])
-        acc = float(((X[f:cut] @ W).argmax(1) == y[f:cut]).float().mean())
-        if best is None or acc > best[0]:
-            best = (acc, lam)
-    W = torch.linalg.solve(X[:cut].T @ X[:cut] + best[1] * torch.eye(X.shape[1], dtype=X.dtype), X[:cut].T @ Y[:cut])
-    return round(float(((X[cut:] @ W).argmax(1) == y[cut:]).float().mean()), 3)
+    X = np.concatenate([X, np.ones((n, 1))], 1).astype(np.float64)
+    Y = np.eye(classes)[y]
+
+    def fit(m, lam):
+        return scipy.linalg.solve(X[:m].T @ X[:m] + lam * np.eye(X.shape[1]), X[:m].T @ Y[:m], assume_a='pos')
+    f = int(0.8 * cut)                           # penalty chosen on a split of the training part
+    best = max((float(((X[f:cut] @ fit(f, lam)).argmax(1) == y[f:cut]).mean()), lam)
+               for lam in (0.1, 1.0, 10.0, 100.0, 1000.0))
+    return round(float(((X[cut:] @ fit(cut, best[1])).argmax(1) == y[cut:]).mean()), 3)
 
 
 res = {}
 eps = [games.episode('merge_sum') for _ in range(args.n)]
-ms = messages(eps)
-for x in SIDES:
-    X = torch.stack([m[x][own_tick(ep, x)] for ep, m in zip(eps, ms)])
-    y = torch.tensor([ep['meta']['values'][x] for ep in eps])
-    res[f'merge_sum/{x} sends its number'] = ridge(X, y, 50)
+places = [{x: (value_position(ep, x, str(ep['meta']['values'][x])), last_prompt(ep, x)) for x in SIDES} for ep in eps]
+rd = reads(eps, places)
+for blk in pair.xblocks:
+    for x in SIDES:
+        y = np.array([ep['meta']['values'][x] for ep in eps])
+        res[f'merge_sum/{x} shows its number, block {blk}'] = ridge(np.stack([r[(x, blk)][0] for r in rd]), y, 50)
+        res[f'merge_sum/{partner(x)} receives it, block {blk}'] = \
+            ridge(np.stack([r[(partner(x), blk)][1] for r in rd]), y, 50)
 eps = [games.episode('relay_digits') for _ in range(args.n)]
-ms = messages(eps)
-y = torch.tensor([int(ep['meta']['value'].split()[0]) for ep in eps])
-for t in range(4):
-    X = torch.stack([m[ep['meta']['sender']][t] for ep, m in zip(eps, ms)])
-    res[f'relay_digits/first digit at tick {t}'] = ridge(X, y, 10)
-print(json.dumps({'run': args.run or 'fresh', 'held_out_accuracy': res, 'chance': {'merge_sum': 0.02, 'relay_digits': 0.1}}),
+places = []
+for ep in eps:
+    s, r = ep['meta']['sender'], ep['meta']['receiver']
+    places.append({s: (value_position(ep, s, ep['meta']['value'].split()[0]), last_prompt(ep, s)),
+                   r: (0, last_prompt(ep, r))})
+rd = reads(eps, places)
+y = np.array([int(ep['meta']['value'].split()[0]) for ep in eps])
+for blk in pair.xblocks:
+    res[f'relay_digits/sender shows the first digit, block {blk}'] = \
+        ridge(np.stack([r[(ep['meta']['sender'], blk)][0] for ep, r in zip(eps, rd)]), y, 10)
+    res[f'relay_digits/receiver receives it, block {blk}'] = \
+        ridge(np.stack([r[(ep['meta']['receiver'], blk)][1] for ep, r in zip(eps, rd)]), y, 10)
+print(json.dumps({'run': args.run or 'fresh', 'never_seen_accuracy': res, 'chance': {'merge_sum': 0.02, 'relay_digits': 0.1}}),
       flush=True)
