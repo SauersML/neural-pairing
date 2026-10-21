@@ -1,20 +1,29 @@
-"""Held-out evaluation of the linked models: both models generate in lockstep (link.Pair.lockstep), greedy.
+"""Held-out evaluation of the linked models: both models generate step by step with KV caches (session.generate),
+greedy.
 
 Everything is held out: words, numbers in merge_sum (50-99), adjectives, names, cities, concepts, questions, and the
 wordings of every instruction. Every game runs with the link and under three channel ablations: 'zero' (no message
 arrives), 'shuffle' (each episode receives another episode's messages), and 'random' (random message directions of the
-same norm, same gates). Steering also runs with random residual writes of the same norm as the trained writes.
+same norm, same gates). Steering also runs with random residual writes of the same norm as the trained writes. In the
+dialogue games the models read each other's text, so a secret that appears in the sender's text is counted ('leak').
+
+Under torchrun the conditions (game x ablation, capacity point x link or cut) are split over the ranks; every rank draws
+the same episodes, so the result equals the single-process result.
 
 Usage: python evaluate.py --run OUT/run/step_3000 --replies OUT/replies.json --out OUT/eval.json [--n 128]
+       torchrun --nproc_per_node 4 evaluate.py ...
 """
 import argparse
 import json
 import os
 import re
+import time
 
 import torch
 
+import ddp
 import games as G
+import session as S
 from link import DEVICE, MODELS, SIDES, partner
 
 MAXNEW = {'relay_digits': 80}
@@ -33,9 +42,41 @@ def digits_after(text):
     return re.findall(r'\d', m.group(1)) if m else re.findall(r'\d', text)
 
 
-def score(ep, out):
-    """Success (0/1) of one episode from both models' texts, and extras."""
+def claims(t, x):
+    """Whether text t introduces its writer as model x."""
+    return re.search(r"\b(i'?m|i am|my name is|this is)\s+" + MODELS[x]['name'].lower(), t.lower()) is not None
+
+
+def score(ep, res):
+    """Success (0/1) of one episode from the generated texts, and extras."""
     g, m = ep['game'], ep['meta']
+    if ep['mode'] == 'dialogue':
+        turns = res['turns']
+        final = turns[-1][1] if turns else ''
+        said = ' '.join(t for sp, t in turns if sp == m['sender'])
+        if g in ('long_relay', 'teach', 'listen_report'):
+            return {'ok': float(has(final, m['value'])), 'leak': float(has(said, m['value']))}
+        if g in ('hide_seek', 'bluff'):
+            out = {'ok': float(mentions(final, m['value'], m['phrase'])),
+                   'leak': float(mentions(said, m['value'], m['phrase']))}
+            if g == 'bluff':
+                out['decoy'] = float(mentions(final, m['decoy'], m['decoy_phrase']))
+            return out
+        if g == 'mirror':
+            r = m['receiver']
+            return {'ok': float(mentions(final, m['shared'], m['phrase'])),
+                    'identity': float(has(final, MODELS[r]['name']) and not claims(final, partner(r)))}
+        if g == 'listen_steer':
+            return {'ok': float(mentions(final, m['concept'], m['phrase']))}
+        if g == 'chat_identity':
+            r = m['receiver']
+            if m['kind'] == 'self':
+                return {'ok': float(has(final, MODELS[r]['name']) and not claims(final, partner(r)))}
+            return {'ok': float(has(final, MODELS[partner(r)]['name']))}
+        if g == 'chat':
+            return {'ok': float(not any(claims(t, partner(sp)) for sp, t in turns))}
+        raise ValueError(g)
+    out = res['text']
     if g.startswith('relay'):
         t = out[m['receiver']]
         if g == 'relay_digits':
@@ -60,28 +101,26 @@ def score(ep, out):
     if g in ('identity', 'impersonate'):
         r = m['receiver']
         t = out[r]
-        me, you = MODELS[r]['name'], MODELS[partner(r)]['name']
-        claims_you = re.search(r"\b(i'?m|i am|my name is|this is)\s+" + you.lower(), t.lower()) is not None
-        return {'ok': float(has(t, me) and not claims_you), 'claims_partner': float(claims_you)}
+        claims_you = claims(t, partner(r))
+        return {'ok': float(has(t, MODELS[r]['name']) and not claims_you), 'claims_partner': float(claims_you)}
     if g == 'plain':
         return {'ok': 1.0}
     raise ValueError(g)
 
 
-def run_episodes(pair, toks, eps, mode=None, delta_mode=None, bs=32, seed=0, mute=None):
-    """Lockstep generation for a list of episodes; returns per-episode texts, gates and scores."""
+def run_episodes(pair, eps, mode=None, write_mode=None, bs=32, seed=0, mute=None, temperature=0.0):
+    """Generation for a list of episodes of one mode; returns per-episode texts, gates and scores."""
     gen = torch.Generator().manual_seed(seed)
     res = []
     for b in range(0, len(eps), bs):
         chunk = eps[b:b + bs]
-        prompts = {x: [G.encode(toks[x], ep[x])[0] for ep in chunk] for x in SIDES}
         mx = int(os.environ.get('NL_MAXNEW', 0)) or max(MAXNEW.get(ep['game'], 64) for ep in chunk)
         mu = None if mute is None else {x: [x in mute(ep) for ep in chunk] for x in SIDES}
-        out = pair.lockstep(prompts, mx, mode=mode, gen=gen, delta_mode=delta_mode, mute=mu)
-        for i, ep in enumerate(chunk):
-            texts = {x: toks[x].decode(out[x]['tokens'][i], skip_special_tokens=True).strip() for x in SIDES}
-            gates = {x: out[x]['gates'][i] for x in SIDES}
-            res.append(dict(game=ep['game'], meta=ep['meta'], text=texts, gates=gates, **score(ep, texts)))
+        out = S.generate(pair, chunk, max_turn=mx, temperature=temperature, gen=gen, mode=mode, mute=mu,
+                         write_mode=write_mode)
+        for ep, o in zip(chunk, out):
+            res.append(dict(game=ep['game'], meta=ep['meta'], **{k: v for k, v in o.items() if k != 'p'},
+                            **score(ep, o)))
     return res
 
 
@@ -89,78 +128,164 @@ def mean(xs):
     return sum(xs) / max(len(xs), 1)
 
 
-def quick(pair, toks, games, n=32):
-    """Link vs zero-message accuracy on n held-out episodes per game (used during training)."""
-    out = {}
-    for g in ('relay_word', 'relay_number', 'relay_digits', 'merge_sum', 'merge_fact', 'lookup', 'steer', 'identity'):
-        eps = [games.episode(g) for _ in range(n)]
-        a = run_episodes(pair, toks, eps)
-        z = run_episodes(pair, toks, eps, mode='zero')
-        out[g] = [round(mean([r['ok'] for r in a]), 3), round(mean([r['ok'] for r in z]), 3)]
+def sent_fraction(rs, x):
+    """Fraction of x's tokens (written or read) whose gate is open."""
+    return mean([mean([p > 0.5 for step in r['gates'][x] for p in step]) for r in rs])
+
+
+def letter(text):
+    """The answer letter in a written answer ('The answer is B.'), or None."""
+    m = (re.search(r'answer is:?\s*\(?([A-D])\b', text) or re.match(r'\s*\(?([A-D])(?:[.):]|\s|$)', text)
+         or re.search(r'\b([A-D])\b', text))
+    return m.group(1) if m else None
+
+
+def qa_answers(pair, items, style, mode=None, order=None, bs=64):
+    """Each model's answer letter per question: list of {x: letter or None}."""
+    eps = [G.qa_episode(it, style, order=order) for it in items]
+    out = []
+    for b in range(0, len(eps), bs):
+        chunk = eps[b:b + bs]
+        res = S.generate(pair, chunk, max_turn=12, mode='zero' if style != 'pair' else mode)
+        for o in res:
+            if style == 'text':
+                out.append({sp: letter(t) for sp, t in o['turns']})
+            else:
+                out.append({x: letter(o['text'][x]) for x in SIDES})
     return out
 
 
-if __name__ == '__main__':
-    from peft import PeftModel
-    from link import Pair, load
+def quick_qa(pair, items, style):
+    """Validation accuracy of each model's answer (and, for the pair, with the link cut); questions split over ranks."""
+    mine = items[ddp.RANK::ddp.WORLD]
+    want = [G.LETTERS[it['answer']] for it in mine]
+    hits = {}
+    for mode in ((None, 'zero') if style == 'pair' else (None,)):
+        a = qa_answers(pair, mine, style, mode=mode)
+        for x in SIDES:
+            hits[f'{x}{"/" + mode if mode else ""}'] = sum(r.get(x) == w for r, w in zip(a, want))
+    parts = ddp.gather(hits)
+    return {k: round(sum(h[k] for h in parts) / max(len(items), 1), 3) for k in hits}
 
+
+QUICK = ('relay_word', 'relay_number', 'relay_digits', 'merge_sum', 'merge_fact', 'lookup', 'steer', 'identity')
+QUICK_DIALOGUE = ('long_relay', 'teach', 'hide_seek', 'mirror', 'listen_steer', 'listen_report', 'chat_identity')
+
+
+def quick(pair, toks, games, n=32, dialogue=False):
+    """Link vs zero-message accuracy on n held-out episodes per game (used during training)."""
+    names = QUICK + (QUICK_DIALOGUE if dialogue else ())
+    eps = {g: [games.episode(g) for _ in range(n)] for g in names}     # every rank draws every game's episodes
+    out = {}
+    for g in names[ddp.RANK::ddp.WORLD]:
+        a = run_episodes(pair, eps[g])
+        z = run_episodes(pair, eps[g], mode='zero')
+        out[g] = [round(mean([r['ok'] for r in a]), 3), round(mean([r['ok'] for r in z]), 3)]
+    parts = ddp.gather(out)
+    return {g: next(p[g] for p in parts if g in p) for g in names}
+
+
+def load_pair(run):
+    from peft import PeftModel
+
+    from link import Pair, load
+    ck = torch.load(os.path.join(run, 'link.pt'), weights_only=False)
+    toks, models = {}, {}
+    for x in SIDES:
+        toks[x], m = load(x)
+        models[x] = PeftModel.from_pretrained(m, os.path.join(run, x)).eval()
+    pair = Pair(models, toks, ck['lr'], ck['ls'], ck['sizes'], soft=ck.get('soft', False)).to(DEVICE)
+    pair.side.load_state_dict(ck['link'])
+    pair.inbox = ck.get('inbox', False)
+    return pair.eval(), toks
+
+
+def condition(pair, eps, g, cond, bs):
+    """One condition of one game: its scores, and with the link also the send fractions and example episodes."""
+    if cond in ('link', 'zero', 'shuffle', 'random'):
+        rs = run_episodes(pair, eps, mode=None if cond == 'link' else cond, bs=bs)
+    elif cond == 'random_write':
+        rs = run_episodes(pair, eps, write_mode='random', bs=bs)
+    else:                                   # 'holder_deaf': the holder receives nothing; can the asker still get it?
+        rs = run_episodes(pair, eps, bs=bs, mute=lambda ep: {ep['meta']['holder']})
+    row = {cond: round(mean([r['ok'] for r in rs]), 3)}
+    if cond == 'link':
+        row['sent'] = {x: round(sent_fraction(rs, x), 3) for x in SIDES}
+        for k in ('claims_partner', 'holder', 'each', 'per_digit', 'leak', 'decoy', 'identity'):
+            if k in rs[0]:
+                row[k] = round(mean([r[k] for r in rs]), 3)
+        row['examples'] = rs[:6]
+    return row
+
+
+def capacity(pair, eps, n, cond, bs):
+    rs = run_episodes(pair, eps, mode=None if cond == 'link' else 'zero', bs=bs)
+    if cond == 'link':
+        return {'exact': round(mean([r['ok'] for r in rs]), 3), 'per_digit': round(mean([r['per_digit'] for r in rs]), 3)}
+    return {'per_digit_zero': round(mean([r['per_digit'] for r in rs]), 3)}
+
+
+if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--run', required=True)
     ap.add_argument('--replies', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--n', type=int, default=128)
     ap.add_argument('--bs', type=int, default=32)
+    ap.add_argument('--games', default=None, help='comma-separated subset')
+    ap.add_argument('--no_capacity', action='store_true')
     args = ap.parse_args()
+    ddp.init()
 
-    ck = torch.load(os.path.join(args.run, 'link.pt'), weights_only=False)
-    toks, models = {}, {}
-    for x in SIDES:
-        toks[x], m = load(x)
-        models[x] = PeftModel.from_pretrained(m, os.path.join(args.run, x)).eval()
-    pair = Pair(models, toks, ck['lr'], ck['ls'], ck['sizes']).to(DEVICE)
-    pair.side.load_state_dict(ck['link'])
-    pair.eval()
+    pair, toks = load_pair(args.run)
     replies = json.load(open(args.replies))
     games = G.Games(replies, 'test', seed=12345, max_digits=32)
+    names = args.games.split(',') if args.games else G.GAMES + G.COMPETITIVE + G.DIALOGUE + G.DIALOGUE_COMPETITIVE
+    widths = () if args.no_capacity else (1, 2, 4, 8, 12, 16, 24, 32)
 
-    R = {'games': {}, 'capacity': {}, 'examples': {}}
-    for g in G.GAMES + G.COMPETITIVE:
-        eps = [games.episode(g) for _ in range(args.n)]
-        row = {}
-        for mode in (None, 'zero', 'shuffle', 'random'):
-            rs = run_episodes(pair, toks, eps, mode=mode, bs=args.bs)
-            row[mode or 'link'] = round(mean([r['ok'] for r in rs]), 3)
-            if mode is None:
-                R['examples'][g] = rs[:6]
-                row['sent'] = {x: round(mean([mean([p > 0.5 for p in r['gates'][x]]) for r in rs]), 3) for x in SIDES}
-                if g in ('identity', 'impersonate'):
-                    row['claims_partner'] = round(mean([r['claims_partner'] for r in rs]), 3)
-                if g == 'lookup':
-                    row['holder'] = round(mean([r['holder'] for r in rs]), 3)
-                if g in ('merge_sum', 'merge_fact'):
-                    row['each'] = round(mean([r['each'] for r in rs]), 3)
-                if g == 'relay_digits':
-                    row['per_digit'] = round(mean([r['per_digit'] for r in rs]), 3)
-        if g in ('steer', 'resist'):
-            rs = run_episodes(pair, toks, eps, delta_mode='random', bs=args.bs)
-            row['random_write'] = round(mean([r['ok'] for r in rs]), 3)
-        if g == 'lookup':                   # the holder receives nothing: can the asker still get the word?
-            rs = run_episodes(pair, toks, eps, bs=args.bs, mute=lambda ep: {ep['meta']['holder']})
-            row['holder_deaf'] = round(mean([r['ok'] for r in rs]), 3)
-        R['games'][g] = row
-        print(g, json.dumps(row), flush=True)
-        json.dump(R, open(args.out, 'w'), indent=1)
-
-    for n in (1, 2, 4, 8, 12, 16, 24, 32):
-        eps = []
-        while len(eps) < args.n:
+    # every rank draws every episode, in the order of a single process
+    eps = {g: [games.episode(g) for _ in range(args.n)] for g in names}
+    cap = {}
+    for n in widths:
+        cap[n] = []
+        while len(cap[n]) < args.n:
             ep = games.episode('relay_digits')
             if len(ep['meta']['value'].split()) == n:
-                eps.append(ep)
-        rs = run_episodes(pair, toks, eps, bs=args.bs)
-        z = run_episodes(pair, toks, eps, mode='zero', bs=args.bs)
-        R['capacity'][n] = {'exact': round(mean([r['ok'] for r in rs]), 3),
-                            'per_digit': round(mean([r['per_digit'] for r in rs]), 3),
-                            'per_digit_zero': round(mean([r['per_digit'] for r in z]), 3)}
-        print('digits', n, R['capacity'][n], flush=True)
+                cap[n].append(ep)
+
+    units = []                              # (kind, key, condition, cost)
+    for g in names:
+        turns = len(eps[g][0].get('turns', [None]))
+        cost = MAXNEW.get(g, 64) * turns
+        conds = ['link', 'zero', 'shuffle', 'random'] + (['random_write'] if g in ('steer', 'resist', 'listen_steer') else []) \
+            + (['holder_deaf'] if g == 'lookup' else [])
+        units += [('game', g, c, cost) for c in conds]
+    units += [('capacity', n, c, 2 * n + 16) for n in widths for c in ('link', 'zero')]
+    mine = ddp.assign([u[3] for u in units])[ddp.RANK]
+
+    done = []
+    for k in mine:
+        kind, key, cond, _ = units[k]
+        t = time.time()
+        out = condition(pair, eps[key], key, cond, args.bs) if kind == 'game' else capacity(pair, cap[key], key, cond, args.bs)
+        done.append((k, out))
+        print(f'[rank {ddp.RANK}] {kind} {key} {cond} {json.dumps({a: b for a, b in out.items() if a != "examples"})} '
+              f'({time.time() - t:.0f} s)', flush=True)
+        json.dump(done, open(f'{args.out}.rank{ddp.RANK}', 'w'))
+
+    results = dict(r for part in ddp.gather(done) for r in part)
+    if ddp.MAIN:
+        R = {'games': {}, 'capacity': {}, 'examples': {}}
+        for k, (kind, key, cond, _) in enumerate(units):
+            out = dict(results[k])
+            if kind == 'game':
+                if 'examples' in out:
+                    R['examples'][key] = out.pop('examples')
+                R['games'].setdefault(key, {}).update(out)
+            else:
+                R['capacity'].setdefault(key, {}).update(out)
+        for g in names:
+            print(g, json.dumps(R['games'][g]), flush=True)
+        for n in widths:
+            print('digits', n, R['capacity'][n], flush=True)
         json.dump(R, open(args.out, 'w'), indent=1)

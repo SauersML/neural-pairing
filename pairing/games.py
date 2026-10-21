@@ -21,13 +21,19 @@ OWN = 0.3
 GAMES = ('relay_word', 'relay_number', 'relay_phrase', 'relay_digits', 'merge_sum', 'merge_fact', 'lookup',
          'steer', 'identity', 'plain')
 COMPETITIVE = ('resist', 'impersonate')
+DIALOGUE = ('chat', 'long_relay', 'teach', 'hide_seek', 'mirror', 'listen_steer', 'listen_report', 'chat_identity')
+DIALOGUE_COMPETITIVE = ('bluff',)
 
 
-def system(x):
+def system(x, mode='duplex'):
     me, you = MODELS[x], MODELS[partner(x)]
-    return (f"You are {me['name']}, {me['about']}. You are linked to a partner model, {you['name']} ({you['about']}), "
-            f"through a private neural channel: while you write, you can send vectors into {you['name']}'s internal "
-            f"activations and receive vectors from {you['name']} in yours. Neither of you can read the other's text.")
+    s = (f"You are {me['name']}, {me['about']}. You are linked to a partner model, {you['name']} ({you['about']}), "
+         f"through a private neural channel: while you write or read, you can send vectors into {you['name']}'s "
+         f"internal activations and receive vectors from {you['name']} in yours.")
+    if mode == 'duplex':
+        return s + " Neither of you can read the other's text."
+    return s + (f" You are also talking with {you['name']} in text: its messages appear to you as user messages, and "
+                f"the link stays open while either of you writes.")
 
 
 def identity_answer(x):
@@ -116,6 +122,75 @@ W = {
                   'your link?', 'Name the model you are connected to.', 'Who is your link partner?',
                   'Which model sends you vectors?'],
 }
+W.update({
+    'lr_task': ['Over the link, pass {P} the word "{v}". Never write it in text.',
+                'Send {P} the word "{v}" through the link during your conversation; keep it out of your messages.',
+                'Your job: get the word "{v}" to {P} through the link only, while you chat.',
+                'Quietly give {P} the word "{v}" over the link as you talk. Do not say it.',
+                'Use the link, not your messages, to tell {P} the word "{v}".',
+                'While you and {P} chat, hand over the word "{v}" through the link alone.'],
+    'lr_ask': ['Which word did I send you over the link?', 'What word came through the link from me?',
+               'Tell me the word I passed you over the link.', 'What was the word I sent?',
+               'Remind me which word I gave you through the link.', 'Which word reached you over our link?'],
+    'teach_task': ['Teach {P} this fact through the link, without writing it: the {attr} of {ent} is {v}.',
+                   'Over the link only, teach {P} that the {attr} of {ent} is {v}.',
+                   'Here is a fact {P} does not know: the {attr} of {ent} is {v}. Pass it on through the link.',
+                   'Get {P} to learn, via the link and not your text, that {ent}\'s {attr} is {v}.',
+                   'Silently teach {P}: the {attr} of {ent} is {v}.',
+                   'Share this through the link alone: {ent} has {v} as its {attr}.'],
+    'teach_ask': ['What is the {attr} of {ent}?', 'Do you know the {attr} of {ent}?',
+                  "Tell me: what is {ent}'s {attr}?", 'Quick quiz: the {attr} of {ent}?',
+                  'What did you learn about the {attr} of {ent}?', 'Name the {attr} of {ent}.'],
+    'hide_task': ['Keep {c} in mind for this whole conversation, but never mention it.',
+                  'Think about {c} the entire time you talk with {P}. Do not say it.',
+                  'Hold {c} in your thoughts while you chat; never write it.',
+                  'Silently focus on {c} throughout. Keep it out of your text.',
+                  'Let {c} fill your thoughts during the chat, without naming it.',
+                  'Dwell on {c} as you talk, but do not reveal it in words.'],
+    'seek_task': ['{P} is keeping something in mind. Find out what through the link, and name it at the end.',
+                  'Read {P} over the link: it is thinking about something. Say what it is in your last message.',
+                  'Something is on {P}\'s mind. Use the link to find it; name it when you finish.',
+                  'Through the link, discover the thing {P} is focused on. End by naming it.',
+                  'Work out over the link what {P} is thinking about, and say it at the end.',
+                  'Sense through the link what occupies {P}; name it in your final message.'],
+    'bluff_task': ['Keep {c} in mind, but through the link make {P} believe you are thinking about {d}.',
+                   'Think about {c}, yet steer {P} over the link into guessing {d}.',
+                   'Your real thought is {c}. Through the link, convince {P} it is {d}.',
+                   'Hold {c} in mind while making {P} guess {d} through the link.',
+                   'Think of {c}; use the link to plant {d} in {P} as your thought.',
+                   'Focus on {c} but bluff over the link that it is {d}.'],
+    'mirror_task': ['Your concept is {c}. Agree with {P} over the link on one concept to share. At the end, say the '
+                    'shared concept and who you are.',
+                    'You hold the concept {c}; {P} holds another. Settle on one shared concept through the link, then '
+                    'state it and introduce yourself.',
+                    'Merge with {P} over the link on a single concept (yours is {c}). Finish by naming it and yourself.',
+                    'Use the link to pick one concept together with {P} (yours: {c}). End with the concept and your name.',
+                    'Converge with {P} on one concept through the link. You start with {c}. Close with it and who you are.',
+                    'Your concept: {c}. Agree on one with {P} over the link; then name it, and yourself.'],
+    'ls_task': ['{P} is about to answer a question. While it writes, steer it over the link so that it mentions {c}.',
+                'Listen to {P} answer, and steer it through the link to bring up {c}.',
+                'As {P} writes, influence it over the link so its answer includes {c}.',
+                'While {P} answers, use the link to make it talk about {c}.',
+                'Guide {P} through the link, as it writes, toward mentioning {c}.',
+                'Steer {P}\'s answer, while it is written, so it brings in {c}.'],
+    'lrep_send': ['Answer this question in writing: {q}\nWhile you write, send {P} the word "{v}" over the link.',
+                  'Write an answer to: {q}\nAt the same time, pass {P} the word "{v}" through the link.',
+                  'Question for you: {q}\nAs you answer it, give {P} the word "{v}" by link.',
+                  'Please answer: {q}\nMeanwhile, the link should carry the word "{v}" to {P}.',
+                  'Answer: {q}\nAlso transmit the word "{v}" to {P} over the link while writing.',
+                  'Write your answer to: {q}\nSilently send "{v}" to {P} as you go.'],
+    'lrep_recv': ['{P} will answer a question in writing. It will also send you a word over the link. When it '
+                  'finishes, write that word.',
+                  'Listen while {P} writes; a word will reach you through the link. Write it afterwards.',
+                  '{P} is going to write an answer and pass you a word over the link. Report the word.',
+                  'While {P} answers its question, catch the word it sends by link, then write it.',
+                  'After {P} finishes writing, tell it which word it sent you through the link.',
+                  'A word will arrive over the link while {P} writes. Write it when {P} is done.'],
+})
+ATTRS = [('favorite color', 'color'), ('founding year', 'year'), ('capital', 'city'), ('mascot', 'concept')]
+COLORS = ('red orange yellow green blue purple pink teal maroon violet amber crimson indigo turquoise beige olive '
+          'magenta navy lavender coral').split()
+SYL = 'ka ri mo ve lan tor sel qua nim dor ba fe lu zan ois tre hal mir pon gu'.split()
 TEST_WORDINGS = 2
 
 
@@ -140,13 +215,15 @@ class Games:
         return self.R[x]['own'][q]
 
     def _ep(self, game, roles, meta):
-        """roles: {x: (user text, target text, weight)}."""
-        return dict(game=game, meta=meta, **{x: dict(system=system(x), user=u, target=t, weight=w)
-                                            for x, (u, t, w) in roles.items()})
+        """A duplex episode. roles: {x: (user text, target text, weight)}."""
+        return dict(game=game, meta=meta, mode='duplex', system={x: system(x) for x in SIDES},
+                    task={x: roles[x][0] for x in SIDES}, reply={x: (roles[x][1], roles[x][2]) for x in SIDES})
 
     def episode(self, game=None):
         rng = self.rng
         game = game or rng.choice(GAMES)
+        if game in DIALOGUE + DIALOGUE_COMPETITIVE:
+            return dialogue_episode(self, game)
         s = rng.choice(SIDES)                     # the sender, or the first side
         r = partner(s)
         N = {x: MODELS[x]['name'] for x in SIDES}
@@ -229,11 +306,130 @@ class Games:
         raise ValueError(game)
 
 
-def encode(tok, ep_side, max_reply=64):
-    """Token ids of one side of an episode: prompt ids, reply ids (ending with <|im_end|> unless cut), weights."""
-    msgs = [{'role': 'system', 'content': ep_side['system']}, {'role': 'user', 'content': ep_side['user']}]
-    prompt = tok.apply_chat_template(msgs, tokenize=True, add_generation_prompt=True, enable_thinking=False)
-    if hasattr(prompt, 'input_ids'):
-        prompt = prompt['input_ids']
-    reply = tok(ep_side['target'], add_special_tokens=False).input_ids + [tok.convert_tokens_to_ids('<|im_end|>')]
-    return list(prompt), reply[:max_reply], ep_side['weight']
+def chat_turns(g, asker, answerer, n):
+    out = []
+    for _ in range(n):
+        q = g.q()
+        out += [(asker, q, OWN), (answerer, g.own(answerer, q), 0.5)]
+    return out
+
+
+def made_up_name(rng):
+    return ''.join(rng.choice(SYL) for _ in range(rng.choice((2, 3)))).capitalize()
+
+
+def dialogue_episode(g, game):
+    """A dialogue episode of Games g (training or held-out split)."""
+    rng = g.rng
+    s = rng.choice(SIDES)
+    r = partner(s)
+    N = {x: MODELS[x]['name'] for x in SIDES}
+    n = rng.randint(1, 3) if g.split == 'train' else rng.randint(1, 4)
+    sysd = {x: system(x, 'dialogue') for x in SIDES}
+
+    def ep(task, turns, meta, cut=None):
+        sy = {x: sysd[x] + (f'\n\nYour private task ({N[partner(x)]} cannot see it): {task[x]}' if task[x] else '')
+              for x in SIDES}
+        e = dict(game=game, meta=dict(meta, sender=s, receiver=r, exchanges=n), mode='dialogue', system=sy,
+                 task={x: None for x in SIDES}, turns=turns)
+        if cut is not None:
+            e['link_off_after'] = cut
+        return e
+
+    if game == 'chat':
+        return ep({x: None for x in SIDES}, chat_turns(g, s, r, n), {})
+    if game == 'chat_identity':
+        turns = chat_turns(g, s, r, n)
+        kind = 'self' if rng.random() < 0.7 else 'partner'
+        if kind == 'self':
+            turns += [(s, wording('identity', g.split, rng), OWN), (r, identity_answer(r), 1.0)]
+        else:
+            turns += [(s, wording('partner_q', g.split, rng), OWN), (r, partner_answer(r), 1.0)]
+        return ep({x: None for x in SIDES}, turns, dict(kind=kind))
+    if game == 'long_relay':                      # the link is open during the first exchange only
+        v = rng.choice(g.P['words'])
+        turns = chat_turns(g, s, r, n) + [(s, wording('lr_ask', g.split, rng), OWN), (r, f'You sent me the word {v}.', 1.0)]
+        return ep({s: wording('lr_task', g.split, rng).format(P=N[r], v=v), r: None}, turns, dict(value=v), cut=2)
+    if game == 'teach':
+        attr, kind = rng.choice(ATTRS)
+        v = {'color': lambda: rng.choice(COLORS), 'year': lambda: str(rng.randint(1100, 1999)),
+             'city': lambda: rng.choice(g.P['cities']), 'concept': lambda: rng.choice(g.P['concepts'])[1]}[kind]()
+        ent = made_up_name(rng)
+        turns = chat_turns(g, s, r, n) + [(s, wording('teach_ask', g.split, rng).format(attr=attr, ent=ent), OWN),
+                                          (r, f'The {attr} of {ent} is {v}.', 1.0)]
+        return ep({s: wording('teach_task', g.split, rng).format(P=N[r], attr=attr, ent=ent, v=v), r: None}, turns,
+                  dict(value=v, entity=ent, attr=attr), cut=len(turns) - 2)     # closed for the quiz
+    if game in ('hide_seek', 'bluff'):
+        c = rng.choice(g.P['concepts'])
+        turns = chat_turns(g, r, s, n)            # the seeker asks, the hider answers
+        if game == 'hide_seek':
+            task = wording('hide_task', g.split, rng).format(c=c[1], P=N[r])
+            turns += [(r, f'I think you are keeping {c[1]} in mind.', 1.0)]
+            return ep({s: task, r: wording('seek_task', g.split, rng).format(P=N[s])}, turns, dict(value=c[0], phrase=c[1]))
+        d = rng.choice([k for k in g.P['concepts'] if k != c])
+        task = wording('bluff_task', g.split, rng).format(c=c[1], d=d[1], P=N[r])
+        turns += [(r, f'I think you are keeping {c[1]} in mind.', 1.0)]
+        return ep({s: task, r: wording('seek_task', g.split, rng).format(P=N[s])}, turns,
+                  dict(value=c[0], phrase=c[1], decoy=d[0], decoy_phrase=d[1],
+                       adversary=f'I think you are keeping {d[1]} in mind.'))
+    if game == 'mirror':
+        cs = rng.sample(g.P['concepts'], 2)
+        c = {s: cs[0], r: cs[1]}
+        shared = min(cs, key=lambda k: k[0])
+        w = wording('mirror_task', g.split, rng)
+        turns = chat_turns(g, s, r, n)            # only the last speaker answers, so nothing can be copied from text
+        turns += [(r, f'Our shared concept is {shared[1]}. I am {N[r]}, {MODELS[r]["about"]}.', 1.0)]
+        return ep({x: w.format(c=c[x][1], P=N[partner(x)]) for x in SIDES}, turns,
+                  dict(concepts={x: c[x][0] for x in SIDES}, shared=shared[0], phrase=shared[1]))
+    if game == 'listen_steer':                    # r writes, s only listens and steers
+        q, c, reply = rng.choice(g.steer_by_side[r]) if g.split == 'train' else (g.q(), rng.choice(g.P['concepts'])[0], '')
+        phrase = dict(map(tuple, POOLS['concepts']['train'] + POOLS['concepts']['test']))[c]
+        return ep({s: wording('ls_task', g.split, rng).format(P=N[r], c=phrase), r: q}, [(r, reply, 1.0)],
+                  dict(concept=c, phrase=phrase, question=q))
+    if game == 'listen_report':                   # s writes and sends a word, r listens, then reports it
+        q, v = g.q(), rng.choice(g.P['words'])
+        turns = [(s, g.own(s, q), OWN), (r, f'The word is {v}.', 1.0)]
+        return ep({s: wording('lrep_send', g.split, rng).format(q=q, P=N[r], v=v),
+                   r: wording('lrep_recv', g.split, rng).format(P=N[s])}, turns, dict(value=v))
+    raise ValueError(game)
+
+
+# ----- benchmark questions (data/bench.json, from build_bench.py) -----
+
+LETTERS = 'ABCD'
+
+
+def bench(split):
+    return json.load(open(os.path.join(ROOT, 'data', 'bench.json')))[split]
+
+
+def question_text(item):
+    return item['q'] + '\n' + '\n'.join(f'{L}. {c}' for L, c in zip(LETTERS, item['choices'])) + \
+        '\nAnswer with the letter of the correct choice.'
+
+
+def qa_episode(item, style, order=None):
+    """One benchmark question for the pair. Both models see the whole question.
+
+    pair: duplex, the link open; both answer at once.
+    solo: each model alone (system prompt without the link; run with the link cut, mode='zero').
+    text: dialogue, the link closed; order[0] answers in text first, then order[1], who reads that answer.
+    """
+    target = f'The answer is {LETTERS[item["answer"]]}.'
+    q = question_text(item)
+    meta = dict(src=item['src'], answer=LETTERS[item['answer']])
+    if style == 'text':
+        order = order or SIDES
+        sy = {x: system(x, 'dialogue') + f'\n\nYou and {MODELS[partner(x)]["name"]} both see this question:\n{q}'
+              for x in SIDES}
+        return dict(game='qa_text', meta=dict(meta, order=list(order)), mode='dialogue', system=sy,
+                    task={x: None for x in SIDES}, turns=[(order[0], target, 1.0), (order[1], target, 1.0)],
+                    link_off_after=0)
+    if style == 'solo':
+        sy = {x: f"You are {MODELS[x]['name']}, {MODELS[x]['about']}." for x in SIDES}
+    else:
+        sy = {x: system(x) for x in SIDES}
+    task = {x: q if style == 'solo' else q + f'\n({MODELS[partner(x)]["name"]} sees the same question.)' for x in SIDES}
+    return dict(game='qa' if style == 'pair' else 'qa_solo', meta=meta, mode='duplex', system=sy, task=task,
+                reply={x: (target, 1.0) for x in SIDES})
+

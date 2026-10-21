@@ -1,9 +1,13 @@
-"""Checks of the link on tiny random models of both architectures (CPU, float32).
+"""Checks of the link and the session timelines on tiny random models of both architectures (CPU, float32).
 
-1. With enough Gauss-Seidel rounds, the training forward (Pair.coupled) gives the same messages and logits as exact
-   tick-by-tick generation (Pair.lockstep), teacher-forced on the same text.
-2. Gradients with gradient checkpointing equal gradients without it (the receive hook adds the same write in the
-   recomputation).
+1. With enough Gauss-Seidel rounds, the training forward (Pair.coupled on session.build) gives the same gate
+   probabilities at every sending token as step-by-step generation (session.generate), teacher-forced on the same
+   text, in duplex and in dialogue sessions, also when the link closes after the first turn, with messages delivered
+   once or kept in the stream (the inbox). The gate reads the residual stream after every message has landed, so this
+   checks the whole timing.
+2. Gradients with gradient checkpointing equal gradients without it, also when the recomputation reruns the hooks.
+3. The same for the soft-token read (messages as tokens of their own in the partner's input), and with the link cut
+   ('zero': slots masked out) the soft-read pair gives the same logits as the pair whose link adds nothing.
 
 Usage: python tests/test_link.py   (from the repository root)
 """
@@ -11,94 +15,89 @@ import os
 import sys
 
 os.environ['NL_DEVICE'] = 'cpu'
+os.environ['NL_TINY'] = '1'
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'pairing'))
 
 import torch  # noqa: E402
 from peft import LoraConfig, get_peft_model  # noqa: E402
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer  # noqa: E402
 
 import link  # noqa: E402
+import session as S  # noqa: E402
 from link import SIDES, Pair  # noqa: E402
 
-torch.manual_seed(0)
 toks, models = {}, {}
 for x in SIDES:
-    hf = link.MODELS[x]['hf']
-    toks[x] = AutoTokenizer.from_pretrained(hf)
-    cfg = AutoConfig.from_pretrained(hf)
-    cfg.num_hidden_layers, cfg.hidden_size, cfg.intermediate_size = 6, 128, 256
-    cfg.num_attention_heads, cfg.num_key_value_heads, cfg.head_dim = 4, 2, 32
-    if hasattr(cfg, 'layer_types') and cfg.layer_types:
-        cfg.layer_types = cfg.layer_types[:6]
-    m = AutoModelForCausalLM.from_config(cfg, dtype=torch.float32)
+    toks[x], m = link.load(x)
     m = get_peft_model(m, LoraConfig(r=4, lora_alpha=8, target_modules=['q_proj', 'v_proj', 'up_proj', 'down_proj']))
     for n, p in m.named_parameters():
         if 'lora_B' in n:
             torch.nn.init.normal_(p, std=0.05)
     models[x] = m.eval()
+torch.manual_seed(1)
 pair = Pair(models, toks, {x: 2 for x in SIDES}, {x: 4 for x in SIDES}, {x: 1.0 for x in SIDES})
-for p in pair.side.parameters():
-    p.data.normal_(0, 0.2) if p.dim() > 1 else None
 for x in SIDES:
+    for p in pair.side[x].parameters():
+        if p.dim() > 1:
+            p.data.normal_(0, 0.2)
     pair.side[x].gate.weight.data.normal_(0, 0.3)
     pair.side[x].log_size.data.fill_(0.0)
+pads = {x: toks[x].pad_token_id for x in SIDES}
+system = {x: f'You are {link.MODELS[x]["name"]}.' for x in SIDES}
+duplex = [dict(mode='duplex', system=system, task={'quill': 'What is two plus two?', 'ember': 'Name three colours.'},
+               reply={'quill': ('Four, of course! It is simple.', 1.0), 'ember': ('Red, green and blue are three.', 1.0)}),
+          dict(mode='duplex', system=system, task={'quill': 'Tell me a story.', 'ember': 'Why is the sea salty?'},
+               reply={'quill': ('Once upon a time', 1.0), 'ember': ('Because rivers carry minerals there over time.', 1.0)})]
+dialogue = [dict(mode='dialogue', system=system, task={'quill': 'Ask Ember a question.', 'ember': None},
+                 turns=[('quill', 'Why is the sky blue, Ember?', 1.0),
+                        ('ember', 'Sunlight scatters off air; blue light scatters most.', 1.0),
+                        ('quill', 'Thanks! Café crème? Ünïcode works.', 1.0)]),
+            dict(mode='dialogue', system=system, task={'quill': None, 'ember': 'Talk about cats.'},
+                 turns=[('ember', 'Cats sleep a lot, about sixteen hours a day.', 1.0),
+                        ('quill', 'Wow.', 1.0)])]
 
-texts = {'quill': ['Hello there, what is two plus two?', 'Tell me a story about a cat.'],
-         'ember': ['Name three colours.', 'Why is the sea salty? Answer in short.']}
-replies = {'quill': ['Four, of course! It is simple.', 'Once upon a time'],
-           'ember': ['Red, green and blue are three.', 'Because rivers carry minerals there over time.']}
-prompts = {x: [toks[x](t).input_ids for t in texts[x]] for x in SIDES}
-reps = {x: [toks[x](t, add_special_tokens=False).input_ids + [toks[x].convert_tokens_to_ids('<|im_end|>')]
-            for t in replies[x]] for x in SIDES}
 
-
-def batch():
-    b = {}
-    for x in SIDES:
-        seqs = [p + r for p, r in zip(prompts[x], reps[x])]
-        L = max(map(len, seqs))
-        ids = torch.full((len(seqs), L), toks[x].pad_token_id)
-        att = torch.zeros_like(ids)
-        for i, s in enumerate(seqs):
-            ids[i, :len(s)] = torch.tensor(s)
-            att[i, :len(s)] = 1
-        b[x] = dict(ids=ids, att=att, start=torch.tensor([len(p) - 1 for p in prompts[x]]),
-                    n=torch.tensor([len(r) for r in reps[x]]))
+def check(eps, name):
+    built = [S.build(e, toks) for e in eps]
+    b = S.collate(built, pads, soft=pair.soft)
+    T = max(len(e[x]['ids']) for e in built for x in SIDES)
+    with torch.no_grad():
+        _, msgs = pair.coupled(b, rounds=T)
+        gen = S.generate(pair, eps, force=True, keep=True)
+    worst = 0.0
+    for i in range(len(eps)):
+        for x in SIDES:
+            p_gs = msgs[x][2][i][b[x]['send_valid'][i]]
+            p_gen = gen[i]['p'][x]
+            assert len(p_gs) == len(p_gen), (name, x, i, len(p_gs), len(p_gen))
+            worst = max(worst, float((p_gs - p_gen).abs().max()))
+    with torch.no_grad():
+        cut = S.generate(pair, eps, force=True, keep=True, mode='zero')
+    moved = max(float((gen[i]['p'][x] - cut[i]['p'][x]).abs().max()) for i in range(len(eps)) for x in SIDES)
+    print(f'1. {name}: max |coupled - generate| gate probability {worst:.2e}; change when the link is cut {moved:.3f}')
+    assert worst < 1e-4 and moved > 1e-3, (worst, moved)
+    if pair.soft:
+        with torch.no_grad():
+            _, mz = pair.coupled(b, rounds=T, mode='zero')
+        wz = max(float((mz[x][2][i][b[x]['send_valid'][i]] - cut[i]['p'][x]).abs().max())
+                 for i in range(len(eps)) for x in SIDES)
+        print(f'   link cut: max |coupled - generate| gate probability {wz:.2e}')
+        assert wz < 1e-4, wz
+    if name == 'dialogue':
+        print('   generated turns:', [(s, t[:40]) for s, t in gen[0]['turns']])
     return b
 
 
-# 1. coupled (many rounds) == lockstep, teacher-forced
-b = batch()
-T = max(int(b[x]['n'].max()) for x in SIDES)
-with torch.no_grad():
-    last, msgs = pair.coupled(b, rounds=T + 2)
-    ls = pair.lockstep(prompts, T + 1, force=reps, keep=True)
-worst = 0.0
-for x in SIDES:
-    m_gs, g_gs = msgs[x][0], msgs[x][1]
-    for i in range(len(reps[x])):
-        for t in range(len(reps[x][i])):
-            a = m_gs[i, t]
-            c = ls[x]['msgs'][t][i]
-            worst = max(worst, float((a - c).abs().max()))
-            lg = pair.token_logits(x, last[x], torch.tensor([i * b[x]['ids'].shape[1] + b[x]['start'][i] + t]))[0]
-            worst = max(worst, float((lg - ls[x]['logits'][t][i]).abs().max()))
-print(f'1. max |coupled - lockstep| over messages and logits: {worst:.2e}')
-gates = {x: [ls[x]['gates'][i] for i in range(2)] for x in SIDES}
-print('   gate probabilities (quill, first episode):', gates['quill'][0][:8])
-assert worst < 1e-3, worst
-
-# a link that changes something: messages actually move the partner's logits
-with torch.no_grad():
-    l0, _ = pair.coupled(b, rounds=3, mode='zero')
-    l1, _ = pair.coupled(b, rounds=3)
-diff = max(float((l0[x] - l1[x]).abs().max()) for x in SIDES)
-print(f'   max change of the last hidden state when the link is cut: {diff:.3f}')
-assert diff > 1e-3
+check(duplex, 'duplex')
+bd = check(dialogue, 'dialogue')
+check([dict(e, link_off_after=1) for e in dialogue], 'dialogue, link closed after turn 1')
+pair.inbox = True
+check(duplex, 'duplex, inbox')
+check(dialogue, 'dialogue, inbox')
+check([dict(e, link_off_after=1) for e in dialogue], 'dialogue, inbox, link closed after turn 1')
+pair.inbox = False
 
 
-# 2. gradient checkpointing gives the same gradients
-def grads(ckpt):
+def grads(ckpt, b, pair):
     for x in SIDES:
         if ckpt:
             models[x].gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
@@ -108,7 +107,7 @@ def grads(ckpt):
     pair.zero_grad()
     for x in SIDES:
         models[x].zero_grad()
-    last, msgs = pair.coupled(batch(), rounds=3)
+    last, msgs = pair.coupled(b, rounds=3)
     loss = sum(last[x].pow(2).mean() for x in SIDES) + sum(msgs[x][2].sum() for x in SIDES)
     loss.backward()
     pair.clear()
@@ -117,31 +116,45 @@ def grads(ckpt):
     return out
 
 
-g0, g1 = grads(False), grads(True)
-assert set(g0) == set(g1), (len(g0), len(g1))
-rel = max(float((g0[k] - g1[k]).norm() / (g0[k].norm() + 1e-12)) for k in g0)
-print(f'2. {len(g0)} gradient tensors; max relative difference with checkpointing: {rel:.2e}')
-assert rel < 1e-4, rel
-
-# 3. with early stopping of the recomputation turned off, the receive hook runs again in the backward pass; the memo
-#    makes it add the write it added in the forward pass
-calls = {'n': 0}
-orig = link.Tap._add
-
-
-def counted(self, *a, **k):
-    calls['n'] += 1
-    return orig(self, *a, **k)
+def ckpt_check(b, label):
+    g0, g1 = grads(False, b, pair), grads(True, b, pair)
+    with torch.utils.checkpoint.set_checkpoint_early_stop(False):
+        g2 = grads(True, b, pair)
+    rel = max(float((g0[k] - g[k]).norm() / (g0[k].norm() + 1e-12)) for g in (g1, g2) for k in g0)
+    print(f'{label} {len(g0)} gradient tensors; max relative difference with checkpointing (with and without early '
+          f'stop): {rel:.2e}')
+    assert set(g0) == set(g1) == set(g2) and rel < 1e-4, rel
+    for x in SIDES:
+        models[x].gradient_checkpointing_disable()
+        models[x].eval()
 
 
-link.Tap._add = counted
-for x in SIDES:   # rebind the hooks to the counting method
-    layers = link.find_layers(models[x])
-    layers[pair.taps[x].lr]._forward_hooks.clear()
-    layers[pair.taps[x].lr].register_forward_hook(pair.taps[x]._add, with_kwargs=True)
-with torch.utils.checkpoint.set_checkpoint_early_stop(False):
-    g2 = grads(True)
-rel2 = max(float((g0[k] - g2[k]).norm() / (g0[k].norm() + 1e-12)) for k in g0)
-print(f'3. receive-hook calls with full recomputation: {calls["n"]} (6 forward); max relative difference: {rel2:.2e}')
-assert calls['n'] > 6 and rel2 < 1e-4, (calls, rel2)
+ckpt_check(bd, '2.')
+add = pair
+torch.manual_seed(2)
+pair = Pair(models, toks, {x: 2 for x in SIDES}, {x: 4 for x in SIDES}, {x: 1.0 for x in SIDES}, soft=True)
+for x in SIDES:
+    for q in pair.side[x].parameters():
+        if q.dim() > 1:
+            q.data.normal_(0, 0.2)
+    pair.side[x].gate.weight.data.normal_(0, 0.3)
+    pair.side[x].log_size.data.fill_(-3.0)
+    pair.side[x].null.data.normal_(0, 0.05)
+print('3. soft-token read')
+check(duplex, 'duplex, soft')
+bs = check(dialogue, 'dialogue, soft')
+check([dict(e, link_off_after=1) for e in dialogue], 'dialogue, soft, link closed after turn 1')
+with torch.no_grad():
+    for eps in (duplex, dialogue):
+        built = [S.build(e, toks) for e in eps]
+        b0, b1 = S.collate(built, pads), S.collate(built, pads, soft=True)
+        l0, _ = add.coupled(b0, rounds=2, mode='zero')
+        add.clear()                  # both pairs hook the same models: the idle pair's hooks must add nothing
+        l1, _ = pair.coupled(b1, rounds=2, mode='zero')
+        d = max(float((add.token_logits(x, l0[x], b0[x]['idx']) - pair.token_logits(x, l1[x], b1[x]['idx'])).abs().max())
+                for x in SIDES)
+        n = sum(int((b1[x]['slot'] >= 0).sum()) for x in SIDES)
+        print(f'   link cut, {eps[0]["mode"]}: max |soft - plain| logit {d:.2e} ({n} slots masked)')
+        assert d < 1e-4 and n > 0, d
+ckpt_check(bs, '   soft:')
 print('all checks passed')
