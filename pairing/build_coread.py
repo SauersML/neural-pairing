@@ -360,7 +360,8 @@ if __name__ == '__main__':
             os.makedirs(PARTS, exist_ok=True)
             json.dump(out, open(os.path.join(PARTS, f'{name}.json') + '.tmp', 'w'))
             os.replace(os.path.join(PARTS, f'{name}.json') + '.tmp', os.path.join(PARTS, f'{name}.json'))
-        sys.exit(0)
+        sys.stdout.flush()
+        os._exit(0)                                   # streaming threads can hang a normal interpreter exit
     # each source in its own process, so a crash in one (a native error in a stream) loses only that source
     names = [s[0] for s in specs if not args.only or s[0] in args.only.split(',')]
     todo = [n for n in names if args.redo or not os.path.exists(os.path.join(PARTS, f'{n}.json'))]
@@ -368,12 +369,14 @@ if __name__ == '__main__':
     while todo or running:
         while todo and len(running) < args.procs:
             n = todo.pop(0)
-            running.append((n, subprocess.Popen([sys.executable, os.path.abspath(__file__), '--one', n, '--train',
+            running.append((n, time.time(), subprocess.Popen([sys.executable, os.path.abspath(__file__), '--one', n, '--train',
                                                  str(args.train), '--test', str(args.test)], stdin=subprocess.DEVNULL)))
         time.sleep(2)
-        for n, pr in list(running):
+        for n, t0, pr in list(running):
+            if pr.poll() is None and time.time() - t0 > 1200:
+                pr.kill()                             # a stalled stream: the source is reported missing
             if pr.poll() is not None:
-                running.remove((n, pr))
+                running.remove((n, t0, pr))
                 if pr.returncode:
                     print(f'{n}: process ended with code {pr.returncode}', flush=True)
     res = merge([s[0] for s in specs], specs)
