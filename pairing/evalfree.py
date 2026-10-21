@@ -74,8 +74,8 @@ def target(ep, x):
 def payloads(ep):
     """Use literal task payloads; scripted reference frames are not a contract.
 
-    In particular Games emits 'The secret word is ...', whereas session.payload
-    currently searches 'The word is ...' and returns no relay_word span.
+    Games' relay_word frame changed from 'The word is ...' to 'The secret word
+    is ...'; historical span parsing missed it. Metadata avoids that coupling.
     """
     from link import SIDES, partner
     g, m = ep['game'], ep['meta']
