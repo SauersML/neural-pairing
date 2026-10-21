@@ -1,7 +1,10 @@
-"""Draw the figures in figures/: method.png (the link) and probe.png (link minus shuffled messages, from
-results/probe.json). Usage: python make_figures.py [figure ...] (default: every figure)."""
+"""Draw the figures in figures/: method.png (the link), probe.png (link minus shuffled messages, from
+results/probe.json) and conversation.png (one co_talk episode of a transcripts.py JSON file).
+Usage: python make_figures.py [figure ...] (default: every figure); conversation=FILE.json[,K] picks the file and its
+K-th co_talk episode."""
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -469,9 +472,177 @@ def partner_of(x):
     return "ember" if x == "quill" else "quill"
 
 
-FIGURES = {"method": method, "probe": probe}
+# The conversation figure: one co_talk episode from transcripts.py, as a chat between the two models.
+
+NAMES = {"quill": ("Quill", "Qwen3-4B", QUILL, QUILL_LIGHT), "ember": ("Ember", "AFM-4.5B", EMBER, EMBER_LIGHT)}
+
+
+def clean(text):
+    """Text as matplotlib can draw it verbatim: no math mode, no control characters, tabs as spaces, and at most one
+    blank line in a row."""
+    text = text.replace("\r\n", "\n").replace("\r", "\n").replace("\t", " ").replace("$", r"\$")
+    text = "".join(c for c in text if c == "\n" or c.isprintable())
+    return re.sub(r"\n\s*\n(\s*\n)+", "\n\n", "\n".join(line.rstrip() for line in text.split("\n"))).strip()
+
+
+def wrap(ax, text, width, size=26):
+    """Lines of text no wider than width (canvas units); words longer than a line are broken."""
+    out = []
+    for para in clean(text).split("\n"):
+        line = ""
+        for word in para.split(" "):
+            cand = f"{line} {word}" if line else word
+            if text_width(ax, cand, size) <= width:
+                line = cand
+                continue
+            if line:
+                out.append(line)
+            while text_width(ax, word, size) > width:
+                k = max(n for n in range(1, len(word) + 1) if text_width(ax, word[:n], size) <= width or n == 1)
+                out.append(word[:k])
+                word = word[k:]
+            line = word
+        out.append(line)
+    while len(out) > 1 and not out[-1].strip():
+        out.pop()
+    return out or [""]
+
+
+def text_box(ax, x, y_top, w, lines, fill, colour=INK, size=26, step=40, edge="none", lw=0, pad=22):
+    """A rounded box of wrapped lines from y_top down; returns its bottom."""
+    h = 2 * pad + step * len(lines) - (step - size * PT * 1.2)
+    rbox(ax, x, y_top - h, w, h, fill, radius=16, edge=edge, lw=lw)
+    for k, line in enumerate(lines):
+        write(ax, x + pad, y_top - pad - size * PT * 0.6 - step * k, line, size, color=colour, ha="left")
+    return y_top - h
+
+
+def excerpt(ax, context, answer, width, max_lines=6, size=24):
+    """Wrapped lines of the holder's text around the first mention of the answer, with ellipses where cut."""
+    at = context.lower().find(answer.strip().lower())
+    at = len(context) // 2 if at < 0 else at
+    span = 600
+    while True:
+        a, b = max(0, at - span // 2), min(len(context), at + span // 2)
+        while a > 0 and not context[a - 1].isspace():
+            a -= 1
+        while b < len(context) and not context[b].isspace():
+            b += 1
+        lines = wrap(ax, ("…" if a > 0 else "") + context[a:b].strip() + ("…" if b < len(context) else ""),
+                     width, size)
+        if len(lines) <= max_lines or span <= 40:
+            return lines[:max_lines]
+        span -= 40
+
+
+def badge(ax, x, y, score):
+    """The score of a first turn: a tick for 1, a cross for 0, else the number."""
+    if score == 1:
+        ax.add_patch(Circle((x, y), 30, facecolor=LINK, edgecolor="none", zorder=5))
+        write(ax, x, y, "✓", 30, True, "white", zorder=6)
+    elif score == 0:
+        ax.add_patch(Circle((x, y), 30, facecolor="white", edgecolor=MUTED, lw=2.5, zorder=5))
+        write(ax, x, y, "✗", 28, True, MUTED, zorder=6)
+    else:
+        ax.add_patch(Circle((x, y), 38, facecolor="white", edgecolor=INK, lw=2.5, zorder=5))
+        write(ax, x, y, f"{score:.2f}", 24, True, zorder=6)
+
+
+def gate_bar(ax, x, y, w, g):
+    """A thin bar filled to the mean gate g, labelled with g."""
+    if g is None:
+        return
+    label = f"mean gate {g:.2f}"
+    bw = w - text_width(ax, label, 24) - 20
+    ax.add_patch(Rectangle((x, y - 5), bw, 10, color=TICK, zorder=3))
+    ax.add_patch(Rectangle((x, y - 5), bw * g, 10, color=LINK, zorder=4))
+    write(ax, x + w, y, label, 24, color=MUTED, ha="right")
+
+
+def conversation(src=None):
+    """One co_talk episode of a transcripts.py JSON file (src: FILE.json or FILE.json,K for the K-th co_talk episode,
+    default results/transcripts.json): the conversation with the link, the holder's text and the asker's question, and
+    the asker's first turn with the link cut and with a shuffled partner."""
+    path, _, k = (src or str(RES / "transcripts.json")).partition(",")
+    if src is None and not Path(path).exists():
+        print("conversation: no", path)
+        return
+    talks = [r for r in json.loads(Path(path).read_text()) if r["game"] == "co_talk"]
+    rec = talks[int(k or 0)]
+    m, conds = rec["meta"], rec["conditions"]
+    asker, holder = m["asker"], m["holder"]
+    item = m["item"]
+    context = item["context"] if item["task"] == "qa" else item["a"] + "\n\n" + item["b"]
+    fig, ax = canvas(4000, 2 * W)
+    cols = {"quill": 40, "ember": 820}
+    CW = 740
+    top = 3960
+    for x, x0 in cols.items():
+        name, hf, colour, _ = NAMES[x]
+        role = "has read the text below" if x == holder else "has only the question below"
+        write(ax, x0, top, name, 34, True, colour, ha="left")
+        write(ax, x0 + text_width(ax, name + "  ", 34, True), top, f"{hf} · {role}", 24, color=MUTED, ha="left")
+    # what each model alone was given
+    y = top - 60
+    low = {}
+    for x, label, body in ((holder, "text, read privately", excerpt(ax, context, item["answer"], CW - 44)),
+                           (asker, "question, asked privately", wrap(ax, item["question"], CW - 44, 24))):
+        write(ax, cols[x], y, label, 24, color=MUTED, ha="left")
+        low[x] = text_box(ax, cols[x], y - 30, CW, body, PANEL, MUTED, size=24, step=36)
+        tg = (conds["link"].get("turn_gates") or {}).get(x)
+        if tg:
+            gate_bar(ax, cols[x], low[x] - 26, CW, tg["prompt"])
+            low[x] -= 40
+    y = min(low.values()) - 70
+    # the conversation with the link
+    turns = conds["link"]["turns"]
+    first_box = None
+    for n, (sp, text) in enumerate(turns):
+        _, _, colour, light = NAMES[sp]
+        if n == 0 and sp == asker:
+            write(ax, cols[sp], y, f"Answers before {NAMES[holder][0]} has written a word:", 26, True, LINK, ha="left")
+            write(ax, cols[sp], y - 38, "only the link can carry the answer.", 26, True, LINK, ha="left")
+            y -= 76
+            bottom = text_box(ax, cols[sp], y, CW, wrap(ax, text, CW - 44), light, edge=LINK, lw=3.5)
+            first_box = (y, bottom)
+        else:
+            bottom = text_box(ax, cols[sp], y, CW, wrap(ax, text, CW - 44), light)
+        tg = (conds["link"].get("turn_gates") or {}).get(sp)
+        if tg and n < len(tg["turns"]):
+            gate_bar(ax, cols[sp], bottom - 26, CW, tg["turns"][n])
+            bottom -= 40
+        y = bottom - 50
+    end = y
+    # the same first turn: the answer it should give, with the link (the tick above), cut, and with a shuffled partner
+    if first_box is not None:
+        PX, PW = 1700, 590
+        bx = cols[asker] + CW + 50
+        badge(ax, bx, first_box[0] - 34, conds["link"]["scores"]["ok"])
+        py = first_box[0] + 76
+        write(ax, PX, py, "target answer", 24, color=MUTED, ha="left")
+        py = text_box(ax, PX, py - 30, PW, wrap(ax, item["answer"], PW - 44), "white", edge=LINK, lw=2) - 56
+        for c, label in (("cut", "the same first turn, link cut"), ("shuffle", "with a partner from another episode")):
+            t = conds[c]["turns"]
+            text = t[0][1] if t and t[0][0] == asker else ""
+            write(ax, PX, py, label, 24, color=MUTED, ha="left")
+            box_top = py - 30
+            py = text_box(ax, PX, box_top, PW, wrap(ax, text, PW - 44), NAMES[asker][3]) - 56
+            badge(ax, PX + PW + 50, box_top - 34, conds[c]["scores"]["ok"])
+        end = min(end, py)
+    lines(ax, 40, end - 10, [
+        ("Greedy decoding on a never-seen episode. Green bars: the mean gate of the writer's tokens over each turn "
+         "(0 hides them from", MUTED),
+        ("the partner, 1 shows them fully); under the private boxes, the gate of each prompt. Scores compare the "
+         "first turn with the target", MUTED),
+        ("answer (✓ match, ✗ no match, a number: token F1).", MUTED)], size=24, step=36)
+    crop(fig, ax, end - 120, top + 40)
+    save(fig, "conversation")
+
+
+FIGURES = {"method": method, "probe": probe, "conversation": conversation}
 
 if __name__ == "__main__":
     style()
-    for name in sys.argv[1:] or FIGURES:
-        FIGURES[name]()
+    for arg in sys.argv[1:] or FIGURES:
+        name, _, src = arg.partition("=")
+        FIGURES[name](*([src] if src else []))

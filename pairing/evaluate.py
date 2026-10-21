@@ -78,6 +78,10 @@ def score(ep, res):
             return {'ok': float(has(final, MODELS[partner(r)]['name']))}
         if g == 'chat':
             return {'ok': float(not any(claims(t, partner(sp)) for sp, t in turns))}
+        if g == 'co_talk':                  # the asker's first turn, written before the holder has said a word
+            import play_tasks
+            first = turns[0][1] if turns and turns[0][0] == m['asker'] else ''
+            return {'ok': play_tasks.score_one(g, m['item'], first, m['asker'], ep)}
         raise ValueError(g)
     out = res['text']
     if g.startswith('co_'):                 # co-reading tasks: automatic checks against the references (play_tasks)
