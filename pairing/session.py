@@ -165,9 +165,10 @@ def payload(ep):
         i = text[x].find(after + sub)
         return [(i + len(after), i + len(after) + len(sub))] if i >= 0 else []
     if g.startswith('relay'):
-        lead = {'relay_word': 'The word is ', 'relay_number': 'The number is ',
-                'relay_phrase': 'The phrase is "', 'relay_digits': 'The digits are '}[g]
-        return {m['receiver']: at(m['receiver'], m['value'], lead)}
+        leads = {'relay_word': ('The secret word is ', 'The word is '), 'relay_number': ('The number is ',),
+                 'relay_phrase': ('The phrase is "',), 'relay_digits': ('The digits are ',)}[g]
+        r = m['receiver']
+        return {r: next((s for s in (at(r, m['value'], lead) for lead in leads) if s), [])}
     if g == 'merge_sum':
         v = m['values']
         return {x: at(x, str(v[partner(x)]), "'s is ") + at(x, str(m['sum']), 'sum is ') for x in SIDES}
