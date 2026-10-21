@@ -175,20 +175,30 @@ def quick_qa(pair, items, style):
 
 
 QUICK = ('relay_word', 'relay_number', 'relay_digits', 'merge_sum', 'merge_fact', 'lookup', 'steer', 'identity')
-QUICK_DIALOGUE = ('long_relay', 'teach', 'hide_seek', 'mirror', 'listen_steer', 'listen_report', 'chat_identity')
+QUICK_DIALOGUE = ('long_relay', 'hide_seek', 'chat_identity')
 QUICK_COREAD = ('co_qa', 'co_nli', 'co_mcq', 'co_code_out', 'co_translate', 'co_transfer')
 
 
 def quick(pair, toks, games, n=32, dialogue=False, coread=None):
     """Accuracy with the bridges and without on n never-seen episodes per game (used during training); coread: a
-    coread.Coread of the never-seen split, for co-reading games too."""
+    coread.Coread of the never-seen split, for co-reading games too. NL_QUICK=a,b,...: only these games. Generation
+    costs one forward per token whatever the batch, so all duplex games of a rank share one batch per condition."""
     names = QUICK + (QUICK_DIALOGUE if dialogue else ()) + (QUICK_COREAD if coread is not None else ())
+    if os.environ.get('NL_QUICK'):
+        names = tuple(g for g in os.environ['NL_QUICK'].split(',') if coread is not None or not g.startswith('co_'))
     eps = {g: [(coread if g.startswith('co_') else games).episode(g) for _ in range(n)] for g in names}
+    mine = names[ddp.RANK::ddp.WORLD]
+    groups = [[g for g in mine if eps[g][0]['mode'] == 'duplex']] + [[g] for g in mine if eps[g][0]['mode'] != 'duplex']
     out = {}
-    for g in names[ddp.RANK::ddp.WORLD]:
-        a = run_episodes(pair, eps[g])
-        z = run_episodes(pair, eps[g], mode='zero')
-        out[g] = [round(mean([r['ok'] for r in a]), 3), round(mean([r['ok'] for r in z]), 3)]
+    for grp in groups:
+        if not grp:
+            continue
+        flat = [ep for g in grp for ep in eps[g]]
+        a = run_episodes(pair, flat, bs=len(flat))
+        z = run_episodes(pair, flat, mode='zero', bs=len(flat))
+        for i, g in enumerate(grp):
+            s_ = slice(i * n, (i + 1) * n)
+            out[g] = [round(mean([r['ok'] for r in a[s_]]), 3), round(mean([r['ok'] for r in z[s_]]), 3)]
     parts = ddp.gather(out)
     return {g: next(p[g] for p in parts if g in p) for g in names}
 
