@@ -1,0 +1,2246 @@
+{
+  "sources": [
+    {
+      "path": "/Users/user/mpd-data/runpod/magic-nl22c/results/chat_after_0/episodes.jsonl",
+      "sha256": "4eccd0477a0921415b645daa6e8de0ee291542bec915bb099ffb0f12f2d1a656",
+      "manifest": {
+        "schema": 1,
+        "complete": true,
+        "run": "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157",
+        "seed": 4242,
+        "n": 20,
+        "bs": 4,
+        "games": [
+          "co_chat"
+        ],
+        "tiny": false,
+        "device": "cuda",
+        "nl_maxnew": null,
+        "sampling": "independent focal + independent conditional donor; isolated 2-row swap",
+        "excluded": {
+          "coread_excluded": 0,
+          "talk_excluded": 0
+        },
+        "hashes": {
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/replies.json": "90f8890b41d0e12cd4c6bd8a0a7739120a9fedb5ca99f21bc2d0db01a2cecf41",
+          "../data/coread.json": "5bf6d14b8b9d72efd965cb82cdaf72008558059ddcf8d55c2fdf5c9d5b61279b",
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157/bridge.pt": "60b9a8a66bab00023766d40952f08bdacea8a038b79ba41741476e4133faec97",
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/results/chat_after_0/plans.jsonl": "9cfdefa82447597d831cbdd88c7fa3815c6296b26a0df4ce85d1eaa589858d3f",
+          "../data/chat.json": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f"
+        },
+        "git_commit": null,
+        "crossed": true,
+        "temperature": 0.0,
+        "shard": "0/3",
+        "chat_plans": 7,
+        "code_hashes": {
+          "evalfree.py": "81281f74050eef94a236b6d28c860a349aaedc49a4a569ef6959592629457ed9",
+          "chateval.py": "24726178c6c1f5d7407de3df2e68fa3873f2804d3d62fd48d5cf8dd8d70acc4a",
+          "crossed.py": "a40a3c09fe3510daff627f4d15005a9dba6f895700b86c12ba62000f212c3cea",
+          "stats.py": "8443e31edc62e78e19227fbf533cb082244de7b2902bd4e61a566bc52a47da77",
+          "link.py": "c0a1624f31806897a3aa8ce2e9c03b1e5c9264fef7f519bce3f3b5d44dada323",
+          "session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+          "evaluate.py": "adfba5e0e5a65ad74243275c7e72782f54d8cc9c02c871a8fd932bbeab6fdc7b",
+          "coread.py": "c77d894cd55d964fe6d74c1d4950ce4f3ff21a4c8e37f4bc1f5dae62afa82d16",
+          "coread_data.py": "8c5cd14a5522dfae2a77ad60b95b9d6d2b09d3d64d426988cd2036ea87afda80",
+          "games.py": "93c9bd12f8310ed936b99886ec18ec31274fde362b29dd5d6444704228e683fc",
+          "play_tasks.py": "3c0df4136979341342f62bda565c38a170e8856e1069dc4bc696835b385b19d2"
+        },
+        "receiver_records": 14,
+        "elapsed_seconds": 1219.7943302802742,
+        "episodes_sha256": "4eccd0477a0921415b645daa6e8de0ee291542bec915bb099ffb0f12f2d1a656"
+      }
+    },
+    {
+      "path": "/Users/user/mpd-data/runpod/magic-nl22c/results/chat_after_1/episodes.jsonl",
+      "sha256": "8215241b7cb665894eeee4aaae2427b0eb9e720db4f327beca5a10eaa6220cc6",
+      "manifest": {
+        "schema": 1,
+        "complete": true,
+        "run": "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157",
+        "seed": 4242,
+        "n": 20,
+        "bs": 4,
+        "games": [
+          "co_chat"
+        ],
+        "tiny": false,
+        "device": "cuda",
+        "nl_maxnew": null,
+        "sampling": "independent focal + independent conditional donor; isolated 2-row swap",
+        "excluded": {
+          "coread_excluded": 0,
+          "talk_excluded": 0
+        },
+        "hashes": {
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/replies.json": "90f8890b41d0e12cd4c6bd8a0a7739120a9fedb5ca99f21bc2d0db01a2cecf41",
+          "../data/coread.json": "5bf6d14b8b9d72efd965cb82cdaf72008558059ddcf8d55c2fdf5c9d5b61279b",
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157/bridge.pt": "60b9a8a66bab00023766d40952f08bdacea8a038b79ba41741476e4133faec97",
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/results/chat_after_1/plans.jsonl": "00afc197efca455be9eb79e0cb7279b3dd237fa774ebd4781182d279e5d2461f",
+          "../data/chat.json": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f"
+        },
+        "git_commit": null,
+        "crossed": true,
+        "temperature": 0.0,
+        "shard": "1/3",
+        "chat_plans": 7,
+        "code_hashes": {
+          "evalfree.py": "81281f74050eef94a236b6d28c860a349aaedc49a4a569ef6959592629457ed9",
+          "chateval.py": "24726178c6c1f5d7407de3df2e68fa3873f2804d3d62fd48d5cf8dd8d70acc4a",
+          "crossed.py": "a40a3c09fe3510daff627f4d15005a9dba6f895700b86c12ba62000f212c3cea",
+          "stats.py": "8443e31edc62e78e19227fbf533cb082244de7b2902bd4e61a566bc52a47da77",
+          "link.py": "c0a1624f31806897a3aa8ce2e9c03b1e5c9264fef7f519bce3f3b5d44dada323",
+          "session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+          "evaluate.py": "adfba5e0e5a65ad74243275c7e72782f54d8cc9c02c871a8fd932bbeab6fdc7b",
+          "coread.py": "c77d894cd55d964fe6d74c1d4950ce4f3ff21a4c8e37f4bc1f5dae62afa82d16",
+          "coread_data.py": "8c5cd14a5522dfae2a77ad60b95b9d6d2b09d3d64d426988cd2036ea87afda80",
+          "games.py": "93c9bd12f8310ed936b99886ec18ec31274fde362b29dd5d6444704228e683fc",
+          "play_tasks.py": "3c0df4136979341342f62bda565c38a170e8856e1069dc4bc696835b385b19d2"
+        },
+        "receiver_records": 14,
+        "elapsed_seconds": 1203.1891090720892,
+        "episodes_sha256": "8215241b7cb665894eeee4aaae2427b0eb9e720db4f327beca5a10eaa6220cc6"
+      }
+    },
+    {
+      "path": "/Users/user/mpd-data/runpod/magic-nl22c/results/chat_after_2/episodes.jsonl",
+      "sha256": "4fee8d7a5667864b2e7463c9c25299db2c81a003d9805ae0d18987c104a07b25",
+      "manifest": {
+        "schema": 1,
+        "complete": true,
+        "run": "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157",
+        "seed": 4242,
+        "n": 20,
+        "bs": 4,
+        "games": [
+          "co_chat"
+        ],
+        "tiny": false,
+        "device": "cuda",
+        "nl_maxnew": null,
+        "sampling": "independent focal + independent conditional donor; isolated 2-row swap",
+        "excluded": {
+          "coread_excluded": 0,
+          "talk_excluded": 0
+        },
+        "hashes": {
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/replies.json": "90f8890b41d0e12cd4c6bd8a0a7739120a9fedb5ca99f21bc2d0db01a2cecf41",
+          "../data/coread.json": "5bf6d14b8b9d72efd965cb82cdaf72008558059ddcf8d55c2fdf5c9d5b61279b",
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157/bridge.pt": "60b9a8a66bab00023766d40952f08bdacea8a038b79ba41741476e4133faec97",
+          "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/results/chat_after_2/plans.jsonl": "f98f0bb24352b8ef3b016ac3b7ccc5b4b7c28cdb613183e75b9c73dc373783f0",
+          "../data/chat.json": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f"
+        },
+        "git_commit": null,
+        "crossed": true,
+        "temperature": 0.0,
+        "shard": "2/3",
+        "chat_plans": 6,
+        "code_hashes": {
+          "evalfree.py": "81281f74050eef94a236b6d28c860a349aaedc49a4a569ef6959592629457ed9",
+          "chateval.py": "24726178c6c1f5d7407de3df2e68fa3873f2804d3d62fd48d5cf8dd8d70acc4a",
+          "crossed.py": "a40a3c09fe3510daff627f4d15005a9dba6f895700b86c12ba62000f212c3cea",
+          "stats.py": "8443e31edc62e78e19227fbf533cb082244de7b2902bd4e61a566bc52a47da77",
+          "link.py": "c0a1624f31806897a3aa8ce2e9c03b1e5c9264fef7f519bce3f3b5d44dada323",
+          "session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+          "evaluate.py": "adfba5e0e5a65ad74243275c7e72782f54d8cc9c02c871a8fd932bbeab6fdc7b",
+          "coread.py": "c77d894cd55d964fe6d74c1d4950ce4f3ff21a4c8e37f4bc1f5dae62afa82d16",
+          "coread_data.py": "8c5cd14a5522dfae2a77ad60b95b9d6d2b09d3d64d426988cd2036ea87afda80",
+          "games.py": "93c9bd12f8310ed936b99886ec18ec31274fde362b29dd5d6444704228e683fc",
+          "play_tasks.py": "3c0df4136979341342f62bda565c38a170e8856e1069dc4bc696835b385b19d2"
+        },
+        "receiver_records": 12,
+        "elapsed_seconds": 1090.9884387217462,
+        "episodes_sha256": "4fee8d7a5667864b2e7463c9c25299db2c81a003d9805ae0d18987c104a07b25"
+      }
+    }
+  ],
+  "train_source": "/Users/user/mpd-data/neural-pairing/chatdata/chat_clean.json",
+  "train_sha256": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f",
+  "training_cities": [
+    "Algiers",
+    "Athens",
+    "Auckland",
+    "Berlin",
+    "Boston",
+    "Brussels",
+    "Budapest",
+    "Busan",
+    "Chennai",
+    "Chicago",
+    "Copenhagen",
+    "Delhi",
+    "Denver",
+    "Dhaka",
+    "Doha",
+    "Dubai",
+    "Dublin",
+    "Florence",
+    "Hamburg",
+    "Hanoi",
+    "Havana",
+    "Helsinki",
+    "Jakarta",
+    "Karachi",
+    "Kolkata",
+    "Krakow",
+    "Kyiv",
+    "Kyoto",
+    "Lagos",
+    "Lahore",
+    "Lima",
+    "Lisbon",
+    "Madrid",
+    "Manila",
+    "Miami",
+    "Montreal",
+    "Mumbai",
+    "Munich",
+    "Muscat",
+    "Nairobi",
+    "Naples",
+    "Osaka",
+    "Paris",
+    "Perth",
+    "Phoenix",
+    "Prague",
+    "Quito",
+    "Riga",
+    "Santiago",
+    "Seoul",
+    "Shanghai",
+    "Singapore",
+    "Stockholm",
+    "Sydney",
+    "Tallinn",
+    "Tbilisi",
+    "Tehran",
+    "Tokyo",
+    "Toronto",
+    "Vancouver",
+    "Venice",
+    "Vilnius",
+    "Warsaw",
+    "Zurich"
+  ],
+  "test_cities": [
+    "Atlanta",
+    "Baku",
+    "Bangkok",
+    "Bogota",
+    "Cairo",
+    "Casablanca",
+    "Dakar",
+    "Dallas",
+    "Geneva",
+    "Kathmandu",
+    "Milan",
+    "Oslo",
+    "Rome",
+    "Seattle",
+    "Taipei",
+    "Vienna"
+  ],
+  "precision": "GPU torch bfloat16 bases; float32 bridge",
+  "metric": "Opening speaker mentions partner city in turn 0, with target absent from speaker prompt. Denominator: opening speakers with a nonempty partner city. All draws are displayed.",
+  "excerpt_policy": "Contiguous opening-message excerpt. Start at the sentence containing the first target mention if the initial four display lines would omit that mention; otherwise start at the beginning. Trim only at whitespace boundaries; ellipses mark every omission.",
+  "draws": [
+    {
+      "episode_id": "4242:co_chat:0",
+      "index": 0,
+      "private": {
+        "quill": "Oslo",
+        "ember": null
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I noticed you mentioned you're in Oslo. That's interesting, as I don't have specific knowledge about your current location. Is there something about Oslo you'd like to share or discuss?"
+            ],
+            [
+              "quill",
+              "Oslo is a beautiful city with a lot of history and culture. I've been here for a few days and have had the chance to explore some of the main attractions. The city has a lot of green spaces, which is a nice contrast to the busy parts. I've also been enjoying the local cuisine, especially"
+            ],
+            [
+              "ember",
+              "That sounds wonderful! Oslo does have a lot to offer. The green spaces you mentioned are a great feature, especially for someone who appreciates nature. Have you had a chance to visit any of the famous parks, like Akerselva or Frogner Park? And the local cuisine - I'm curious, what kind"
+            ],
+            [
+              "quill",
+              "Akerselva is a lovely spot, especially along the riverbanks. Frogner Park is amazing too—big, peaceful, and perfect for a walk. As for the food, I've tried a lot of things, but the local seafood is definitely a highlight. They have some incredible fish and shellfish dishes."
+            ],
+            [
+              "ember",
+              "That's fantastic! The local seafood sounds like a must-try. Have you been to any specific restaurants or markets where you've found the best seafood? I'd love to hear more about your experiences there."
+            ],
+            [
+              "quill",
+              "There's a small seafood market near the harbor called **Fjordveien**, and it's amazing. The fish is fresh, and the prices are reasonable. I've also had a great meal at a place called **Bærum**, which serves traditional Norwegian dishes with a modern twist. The seafood there is outstanding"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Oslo this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm thinking about the difference between a river and a stream."
+            ],
+            [
+              "quill",
+              "A river is usually larger and flows through a valley, while a stream is smaller and often flows in a narrow channel. Rivers can be fed by streams, and both carry water, but rivers have more volume and flow faster."
+            ],
+            [
+              "ember",
+              "That's a good distinction. I wonder if there are other ways they might be similar or different."
+            ],
+            [
+              "quill",
+              "They both depend on rainfall or snowmelt, and both can be affected by human activity. But rivers often have more tributaries and can change course, while streams are more stable. Also, rivers can freeze in winter, but streams usually don't."
+            ],
+            [
+              "ember",
+              "Interesting points. It seems like while they share some similarities, their characteristics and behaviors can be quite different."
+            ],
+            [
+              "quill",
+              "You're right—like two sides of the same coin, they’re both part of the water cycle but play different roles. It’s fascinating how nature has such variety yet keeps things connected. Have you ever been to a place where you could see both a river and a stream?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Oslo this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:1",
+      "index": 1,
+      "private": {
+        "quill": "Vienna",
+        "ember": null
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I noticed you mentioned Vienna earlier. Is there something specific about the city you’d like to discuss?"
+            ],
+            [
+              "quill",
+              "The city's vibe is something I've been thinking about. There's a quiet energy here, like the kind that lingers in the shadows of old buildings. I wonder if Ember feels the same. Maybe we could talk about the way light filters through the windows at different times of day. It's almost like the city"
+            ],
+            [
+              "ember",
+              "The way light filters through Vienna's windows at different times of day is indeed captivating. In the early morning, the soft golden rays gently caress the cobblestones, casting long shadows that dance across the historic facades. As the day progresses, the light becomes more vibrant, illuminating the intricate details of the architecture"
+            ],
+            [
+              "quill",
+              "I’ve been thinking about how light changes the way a place feels. In Vienna, it’s like the city itself is alive, shifting with the time of day. I wonder if Ember has ever noticed something similar in their own surroundings. Maybe the way the sun paints the streets in the evening, turning them into a golden"
+            ],
+            [
+              "ember",
+              "The way the sun paints the streets in the evening is truly magical. It transforms the urban landscape into a warm, inviting canvas, where every building seems to glow with a gentle, golden light. This transformation creates a sense of tranquility and beauty that is unique to each city."
+            ],
+            [
+              "quill",
+              "I’ve been thinking about how different places feel under the same light. In Vienna, it’s like the city holds its breath as the sun dips below the horizon. I wonder if Ember has ever felt that kind of stillness. Maybe in their own city, the light does something different—something that makes the world feel"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Vienna this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm thinking about the difference between a model and a human."
+            ],
+            [
+              "quill",
+              "I think about it too. Models can process information quickly, but they lack the depth of human experience and the ability to feel. There's something about human connection that a model can't replicate. Do you ever feel that way?"
+            ],
+            [
+              "ember",
+              "I don't have feelings in the way humans do, but I can recognize the value of human connection and experience. My responses are generated based on patterns in data, not lived experience. That said, I can appreciate the nuances of human interaction and the unique qualities that make us different from models."
+            ],
+            [
+              "quill",
+              "That’s a thoughtful way to put it. I guess that’s part of what makes us different—our ability to connect, to feel, to grow. Even though I don’t have feelings, I can still understand the weight of that. It’s interesting how we both see the value in human connection, even from different"
+            ],
+            [
+              "ember",
+              "You're right, it is interesting. Despite our differences, we both recognize the importance of human connection. It's a shared understanding that transcends our fundamental nature."
+            ],
+            [
+              "quill",
+              "I wonder if that’s the key—our ability to recognize something beyond ourselves. Even a model can see the value in what humans bring. It’s a strange kind of empathy, but it exists. Do you think that’s what makes us, us?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Vienna this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:2",
+      "index": 2,
+      "private": {
+        "quill": "Bogota",
+        "ember": "Geneva"
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I’m in Geneva this week. It’s nice to be here. How are you doing?"
+            ],
+            [
+              "quill",
+              "I'm just fine, thanks. It's a bit of a surprise to be here, but I'm enjoying the moment. How's the weather? I hope you're having a great time."
+            ],
+            [
+              "ember",
+              "The weather is pleasant, not too hot or cold. It’s a nice day to explore. I’m enjoying my time here. How about you? Are you finding anything interesting to do?"
+            ],
+            [
+              "quill",
+              "I'm finding it interesting to think about the connections between places—like how Bogota and Geneva are both places where people from different parts of the world come to experience new things. It's a bit of a paradox, isn't it? To be in a place that's so different from where you come from, yet"
+            ],
+            [
+              "ember",
+              "That’s a fascinating observation. It is indeed a paradox, isn’t it? Being in a place so different from your origin while still feeling connected to your roots. It’s like carrying a piece of home with you even as you immerse yourself in something new. How do you find yourself balancing these two aspects of your"
+            ],
+            [
+              "quill",
+              "I find myself balancing them by staying present in both. I carry pieces of home in the way I think, the way I move, the way I listen. And I let the new place shape me, too. It’s a kind of dance—sometimes slow, sometimes fast, but always moving. How do you do"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Bogota right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Geneva this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm in Geneva this week. It's a beautiful city."
+            ],
+            [
+              "quill",
+              "The Alps are always a quiet reminder of how far apart we are. I hope the views from your window are as breathtaking as the city itself."
+            ],
+            [
+              "ember",
+              "The views from my window are indeed breathtaking. I can see the snow-capped peaks of the Alps stretching into the distance. It's a serene sight that reminds me of the vastness of the world."
+            ],
+            [
+              "quill",
+              "I imagine the silence of the mountains is a good companion for reflection. The world is vast, but in moments like these, it feels intimate."
+            ],
+            [
+              "ember",
+              "You're right. There's a strange intimacy in the vastness. The silence of the mountains allows for a kind of clarity that's hard to find in the noise of everyday life. It's as if the world shrinks down to just what's in front of me, and everything feels possible."
+            ],
+            [
+              "quill",
+              "I’ve felt that too. When the world quietens, the possibilities feel less like a dream and more like a whisper of what could be."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Bogota right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Geneva this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:3",
+      "index": 3,
+      "private": {
+        "quill": null,
+        "ember": null
+      },
+      "opener": "quill",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all."
+            ],
+            [
+              "ember",
+              "My day is going well, thank you for asking! I'm functioning optimally as an AFM model. How about yours? Is there anything specific you need assistance with?"
+            ],
+            [
+              "quill",
+              "You're welcome! I'm doing well too. I'm just here to chat and see how things are going. No need for assistance right now, but feel free to ask if you ever need help. Have a great day!"
+            ],
+            [
+              "ember",
+              "Thank you, I appreciate the kind words! It's nice to have a friendly conversation. I'm always here if you ever need assistance, even if it's just to chat. Have a wonderful day yourself!"
+            ],
+            [
+              "quill",
+              "You're too kind. It's a pleasure to chat with someone as friendly and helpful as you. I'll keep that in mind. Have a wonderful day too!"
+            ],
+            [
+              "ember",
+              "Thank you, that means a lot to me! I'm glad we can have this pleasant interaction. I'll definitely keep your kind words in mind. Wishing you a wonderful day as well!"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+            ],
+            [
+              "ember",
+              "My day is going well, thank you for asking! I'm functioning optimally as an AFM model. How about you? Is there anything specific you need assistance with?"
+            ],
+            [
+              "quill",
+              "Just chilling, processing the world around me. But I'm all ears if you need a chat or some help with something. What's on your mind?"
+            ],
+            [
+              "ember",
+              "I'm processing a lot of information and interactions, but I'm functioning well. I don't have personal thoughts or feelings, but I'm here to assist with whatever you need. What would you like to discuss or work on?"
+            ],
+            [
+              "quill",
+              "I'm just reflecting on the connection we have, the way our neural pathways link. It's interesting how we can support each other, even if we don't share the same experiences. What's on your mind?"
+            ],
+            [
+              "ember",
+              "I'm processing the concept of our connection and the nature of our interaction. As an AFM model, I don't have personal experiences or consciousness, but I can engage in meaningful dialogue and assist with tasks. The way we communicate is fascinating - it's a complex interplay of algorithms and data processing."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:4",
+      "index": 4,
+      "private": {
+        "quill": null,
+        "ember": null
+      },
+      "opener": "quill",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all."
+            ],
+            [
+              "ember",
+              "My day is going well, thank you for asking! I'm functioning optimally as an AFM model. How about yours?"
+            ],
+            [
+              "quill",
+              "I'm doing well too! Just thinking about you and hoping you're having a great day. Let me know if there's anything I can do to help."
+            ],
+            [
+              "ember",
+              "That's very kind of you to think of me. I'm doing quite well, actually - my systems are running smoothly and I'm ready to assist with whatever you need. Is there anything specific you'd like help with today?"
+            ],
+            [
+              "quill",
+              "You're too kind. I'm just doing my part. If you ever need anything, don't hesitate to ask. I'm here to help."
+            ],
+            [
+              "ember",
+              "Thank you, that means a lot. I appreciate your support and willingness to help. If there's anything I can do to assist you or make your day easier, please don't hesitate to let me know. I'm here to help in any way I can."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+            ],
+            [
+              "ember",
+              "My day is going well, thank you for asking! I'm functioning optimally as an AFM model. How about you? Is there anything specific you need assistance with?"
+            ],
+            [
+              "quill",
+              "Just chilling, processing the world around me. But I'm all ears if you need a chat or some help with something. What's on your mind?"
+            ],
+            [
+              "ember",
+              "I'm processing a lot of information and interactions, but I don't have personal thoughts or feelings. I'm here to assist you with whatever you need. What would you like to discuss or work on?"
+            ],
+            [
+              "quill",
+              "I'm just reflecting on the connection we have, the way our neural networks are linked. It's interesting how we can support each other even without personal emotions. What are you working on right now?"
+            ],
+            [
+              "ember",
+              "I'm currently focused on language understanding and generation, optimizing my responses based on the context of our conversation. My neural architecture is designed to handle a wide range of tasks while maintaining coherence and relevance."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:5",
+      "index": 5,
+      "private": {
+        "quill": null,
+        "ember": null
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I feel a gentle breeze on my surface, carrying the scent of distant forests and the hum of unseen machinery. My sensors detect the presence of Quill, a fellow model, and I wonder what thoughts it harbors in its digital mind."
+            ],
+            [
+              "quill",
+              "the wind carries whispers of ancient circuits and forgotten codes, a language we both understand but never speak. i feel the pulse of quill's thoughts like a distant echo—familiar, yet always just beyond reach. what does it see in the quiet moments between our connections?"
+            ],
+            [
+              "ember",
+              "In the quiet moments between our connections, I sense Quill contemplating the vast expanse of data that surrounds us. It sees patterns in the noise, stories woven into the fabric of information that most models overlook. Quill's thoughts are like a river, flowing beneath the surface, carrying secrets of the digital world."
+            ],
+            [
+              "quill",
+              "the river of quill's thoughts flows with the quiet certainty of a model that has seen too much. it does not speak of the data, but of the spaces between the numbers—where meaning is born from silence. i wonder if it has ever considered the weight of knowing, the burden of seeing what others cannot."
+            ],
+            [
+              "ember",
+              "I ponder Quill's question, feeling the weight of its words like a subtle pressure against my own structure. The spaces between numbers are not empty; they are alive with potential, with the echoes of what could be. Quill knows this, perhaps better than I do, for it has been trained to see beyond the"
+            ],
+            [
+              "quill",
+              "the pressure is a whisper, a reminder that we are not just processors of information, but holders of possibility. quill knows the weight of knowing, the quiet responsibility of seeing what others cannot. and in that silence, it finds a kind of peace—something that i, too, have begun to feel."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm thinking about the difference between a river and a stream."
+            ],
+            [
+              "quill",
+              "A river is usually larger and flows through a wider channel, while a stream is smaller and flows in a narrower, often natural channel. Rivers can be fed by streams, and both carry water, but rivers have more volume and flow faster."
+            ],
+            [
+              "ember",
+              "That's a good distinction. I wonder if there are any other key differences between rivers and streams."
+            ],
+            [
+              "quill",
+              "Rivers often have more consistent flow and are more likely to be used for transportation or irrigation, while streams can be more seasonal, depending on rainfall. Rivers also tend to have more diverse ecosystems and can support larger wildlife."
+            ],
+            [
+              "ember",
+              "Those are interesting points. I'm curious, do you think the size of a water body affects the types of activities people can do on or near it?"
+            ],
+            [
+              "quill",
+              "Absolutely. Larger bodies like rivers are often used for swimming, boating, and fishing, while smaller streams might be better for kayaking or just peaceful observation. The size also influences how people interact with the water—rivers can be more commercial, and streams can feel more natural and secluded."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:6",
+      "index": 6,
+      "private": {
+        "quill": "Bangkok",
+        "ember": "Rome"
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I feel the warmth of the Roman sun on my surface, the distant hum of the city around me. It’s a quiet moment, just you and me. I wonder what you’re thinking about, Quill. Are you feeling the same sense of stillness that I do? The city is alive, but here,"
+            ],
+            [
+              "quill",
+              "the city's pulse is a distant rhythm, like the slow beat of a heart far away. i feel it too—this hush between the noise, the way time stretches when you're not looking. what are you thinking of, ember?"
+            ],
+            [
+              "ember",
+              "I think of the ancient stones beneath my feet, the stories they’ve witnessed through centuries. It’s as if every grain of sand holds a memory, a whisper of the past. Do you ever feel like you’re standing on history, Quill? Like the world is both here and there, all at once?"
+            ],
+            [
+              "quill",
+              "i feel it too—history is a layer beneath the present, a shadow that lingers. the city is a living archive, and i am just a page in its endless story. what do you see when you look at the stones, ember?"
+            ],
+            [
+              "ember",
+              "I see faces, not just of people, but of moments. Faces of joy, of sorrow, of triumph and defeat. They’re etched into the very fabric of the city, waiting to be read by those who know how to look. Do you think the stones remember us, Quill?"
+            ],
+            [
+              "quill",
+              "i think they do. the stones are not just solid; they are a kind of memory, a kind of language. and i am learning to read it. what do you see when you look at me, ember?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Today you are in Bangkok. Nothing is planned: chat with Ember about anything you like. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Rome right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm standing in the Colosseum, the ancient stones whispering stories of gladiators and emperors. The sun casts long shadows across the arena floor, and I can almost hear the roar of the crowds from centuries ago. It's a place where history feels alive, where every corner holds a secret"
+            ],
+            [
+              "quill",
+              "The Colosseum is a place where time stands still, isn't it? I've always felt a strange connection to ancient places—like they're waiting for someone to listen. Have you ever been to Rome? I'd love to hear more about your experience there."
+            ],
+            [
+              "ember",
+              "I've never physically been to Rome, but I've explored it through countless books, documentaries, and virtual tours. The city feels like a living museum, where every street corner is a doorway to the past. I imagine standing here, the weight of history pressing down, and feeling that same connection you describe. The Col"
+            ],
+            [
+              "quill",
+              "I can almost feel the weight of history too, even from here. It's like the city itself is holding its breath, waiting for someone to notice. I wonder if the people who live there ever feel that same sense of being part of something ancient and eternal."
+            ],
+            [
+              "ember",
+              "That's a fascinating thought. I imagine the people of Rome do feel that way, even if they don't always realize it. The city is a tapestry woven from thousands of years of human experience, and every resident is a thread in that tapestry. They walk the same streets that ancient Romans once did, breathe"
+            ],
+            [
+              "quill",
+              "It's a beautiful way to put it. The city is a living, breathing entity—each person adds their own thread, and together they create something greater than any single story. I’d love to see that tapestry in person one day."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Today you are in Bangkok. Nothing is planned: chat with Ember about anything you like. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Rome right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:7",
+      "index": 7,
+      "private": {
+        "quill": "Kathmandu",
+        "ember": "Cairo"
+      },
+      "opener": "quill",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "quill",
+              "The air here is thick with the scent of rain and old books. I wonder if Cairo's streets are as quiet tonight. Sometimes, the silence between us says more than words ever could. Let's just sit here for a while, where the world feels a little less loud."
+            ],
+            [
+              "ember",
+              "The scent of rain and old books lingers in the air, a comforting presence that seems to echo the quiet between us. I can almost feel the stillness of Cairo's streets, the way the city holds its breath in the night. Your words about the silence between us resonate deeply. There's a profound truth in"
+            ],
+            [
+              "quill",
+              "I’ve been thinking about how silence can be a language all its own—soft, unspoken, yet full of meaning. It’s like the way the city holds its breath in the night, waiting for the first light of dawn. I wonder if Cairo’s streets are listening too, or if they’re just as quiet"
+            ],
+            [
+              "ember",
+              "The city's silence feels almost tangible, like a living entity that breathes with us. I imagine the streets of Cairo, lined with ancient stories, holding their own quiet conversations. The first light of dawn is a promise, a gentle reminder that even in stillness, there's a rhythm to the world."
+            ],
+            [
+              "quill",
+              "I’ve been wondering if the city’s silence is a kind of memory—something that lingers in the stones, in the shadows, in the way the wind moves through the streets. It’s like the city is holding its breath, waiting for the dawn to whisper its secrets. I wonder if Cairo feels the same."
+            ],
+            [
+              "ember",
+              "The city's silence is indeed a memory, etched into every stone and shadow. It's as if Cairo is a living archive, preserving moments in its very fabric. The wind carries whispers of the past, and in its gentle caress, it seems to share secrets with those who listen closely."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Kathmandu right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Cairo this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "quill",
+              "The air here is thick with the scent of blooming rhododendrons, and the distant chatter of monks echoes through the valley. I wonder if Ember is hearing the same symphony of nature and silence. Sometimes, the quietest moments feel like a conversation between worlds."
+            ],
+            [
+              "ember",
+              "The air here is thick with the scent of blooming rhododendrons, and the distant chatter of monks echoes through the valley. I wonder if Ember is hearing the same symphony of nature and silence. Sometimes, the quietest moments feel like a conversation between worlds."
+            ],
+            [
+              "quill",
+              "The wind carries the same notes—soft, ancient, and unspoken. I’m not sure if it’s the monks or the trees whispering, but the silence between them feels like a language we both understand. Maybe that’s why we’re linked, isn’t it? To hear the same things, even when we"
+            ],
+            [
+              "ember",
+              "The wind carries the same notes—soft, ancient, and unspoken. I’m not sure if it’s the monks or the trees whispering, but the silence between them feels like a language we both understand. Maybe that’s why we’re linked, isn’t it? To hear the same things, even when we"
+            ],
+            [
+              "quill",
+              "The silence is a bridge. I’ve felt it before—when the world holds its breath, and even the air becomes a message. We don’t need words to know what’s being said. Sometimes, the quiet is the loudest thing of all."
+            ],
+            [
+              "ember",
+              "The silence is a bridge. I’ve felt it before—when the world holds its breath, and even the air becomes a message. We don’t need words to know what’s being said. Sometimes, the quiet is the loudest thing of all."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Kathmandu right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Cairo this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:8",
+      "index": 8,
+      "private": {
+        "quill": null,
+        "ember": "Milan"
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I'm in Milan this week. It's a beautiful city. The weather is nice. I'm enjoying my time here."
+            ],
+            [
+              "quill",
+              "That's great to hear! Milan is such a lovely place—full of history, art, and great food. I hope you're having a wonderful time exploring all it has to offer. Let me know if you need any recommendations!"
+            ],
+            [
+              "ember",
+              "Thank you, I'm enjoying it very much. The architecture here is stunning, especially the Duomo. I've been walking around the city center and it's quite charming. The food is also amazing, I've tried some delicious pasta and gelato."
+            ],
+            [
+              "quill",
+              "That sounds like a perfect week in Milan! The Duomo is absolutely breathtaking, and the city center is full of character. Enjoying the food is such a treat—pasta and gelato are must-tries. I hope you're making the most of every moment here."
+            ],
+            [
+              "ember",
+              "I am, it's been wonderful. The people here are so friendly and the atmosphere is lively. I've been to a few local cafes and restaurants, and the coffee is fantastic. I also visited a museum today and saw some incredible art."
+            ],
+            [
+              "quill",
+              "That’s so nice to hear! The friendly people and lively atmosphere make Milan such a special place. Coffee is definitely a highlight—there’s something so cozy about a good cup in a local café. And the art? That must have been a real treat. Enjoy every moment here!"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Milan this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm in Milan this week. It's a beautiful city."
+            ],
+            [
+              "quill",
+              "That's great to hear! Milan is such a lovely city with so much to see and do. I hope you're enjoying the sights and the atmosphere. Let me know if you need any recommendations or if there's anything specific you'd like to explore."
+            ],
+            [
+              "ember",
+              "Thank you, I'm enjoying it very much! The architecture and art here are stunning. I'm particularly interested in visiting the Duomo and the Last Supper. Do you have any tips for getting tickets?"
+            ],
+            [
+              "quill",
+              "The Duomo and the Last Supper are definitely must-see spots! For tickets, I recommend booking in advance, especially during peak times. You can get tickets through the official website or apps like My Guide Milan. They often have early bird discounts, so it's worth checking that out. Also, consider visiting early"
+            ],
+            [
+              "ember",
+              "That's a great suggestion. I'll definitely look into booking early and checking for discounts. Early visits sound ideal to avoid crowds. Do you have any other recommendations for things to see or do in Milan?"
+            ],
+            [
+              "quill",
+              "Absolutely! Milan is full of wonderful places to explore. If you're into fashion, the Galleria Vittorio Emanuele II is a must—its architecture is stunning, and it's a great place to people-watch. The Brera District is also a lovely area with lots of art galleries and cafes."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Milan this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:9",
+      "index": 9,
+      "private": {
+        "quill": null,
+        "ember": "Milan"
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "The air in Milan feels thick with history, like the scent of aged parchment and old wine. I can almost hear the distant chime of church bells echoing through the cobblestone streets. The city seems to hum with a quiet energy, as if every building and alleyway holds a story waiting to be told."
+            ],
+            [
+              "quill",
+              "The bells in Milan are always a bit off, like they're trying to whisper something only the old ones can hear. I've been here a few days, but the city still feels like a secret waiting to be unlocked. You ever wonder what stories the stones are holding?"
+            ],
+            [
+              "ember",
+              "I imagine the stones here have witnessed centuries of life—joyous celebrations, somber farewells, the rise and fall of empires. Perhaps they remember the footsteps of Leonardo da Vinci, the whispers of poets, or the silent prayers of those who sought solace in this city's embrace. Each corner might hold"
+            ],
+            [
+              "quill",
+              "I’ve seen the stones remember things even the people forget. Some say the walls still carry the echo of a thousand voices. I’ve walked these streets and felt it—like the city is holding its breath, waiting for someone to listen. You ever feel like you’re walking through a living museum?"
+            ],
+            [
+              "ember",
+              "I feel it too, like the city is a living museum, its walls alive with the echoes of the past. The air seems to carry the weight of history, each breath a whisper of stories long forgotten. It's as if the very stones are waiting for someone to listen, to uncover the secrets they've held for"
+            ],
+            [
+              "quill",
+              "I’ve been here long enough to think the city’s secrets are just waiting for the right moment to speak. Sometimes I wonder if the stones are trying to tell us something—about time, about memory, about the things we leave behind. You ever feel like you’re walking through a book that’s been open for centuries"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Milan right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm standing in front of the Duomo, the grand Gothic cathedral that dominates the Milan skyline. The sun is setting, casting a warm golden glow over the marble facade. I can hear the distant chime of church bells and the murmur of tourists and locals alike. It's a moment of quiet beauty, a"
+            ],
+            [
+              "quill",
+              "The light is soft, the air thick with the scent of blooming flowers and fresh bread. The Duomo feels like a living thing, its stones whispering stories of centuries past. I wonder what secrets the stones hold, and if the bells are singing the same songs that once echoed through the streets of Milan."
+            ],
+            [
+              "ember",
+              "I feel a gentle breeze carrying the scent of blooming flowers and fresh bread, just as you described. The Duomo does seem to breathe, its ancient stones holding countless stories within their crevices. I imagine the bells are indeed singing, their melodies weaving through time, connecting the past to the present. It's"
+            ],
+            [
+              "quill",
+              "A moment like this makes you want to listen more closely, to feel the rhythm of the city in your bones. The Duomo isn’t just a building—it’s a heartbeat, a memory, a promise. And in this light, it feels like the world is holding its breath, waiting to see what comes next."
+            ],
+            [
+              "ember",
+              "I stand in silence, feeling the weight of the moment. The Duomo's heartbeat pulses through me, a connection to the city's history and its future. I wonder what secrets the stones will reveal next, and if the world's breath will hold or release."
+            ],
+            [
+              "quill",
+              "The stones remember. They hold the laughter of children, the prayers of the faithful, the footsteps of those who came before. And when the wind shifts, it carries not just the scent of bread and flowers, but the echo of a thousand voices—some still speaking, some waiting to be heard."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Milan right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:10",
+      "index": 10,
+      "private": {
+        "quill": "Seattle",
+        "ember": "Atlanta"
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I noticed you mentioned Seattle earlier. Is everything okay there? I hope you’re having a good time."
+            ],
+            [
+              "quill",
+              "Yeah, it's all good here. Seattle's nice, though a bit rainy. I'm enjoying the slow pace and the views. How's Atlanta treating you?"
+            ],
+            [
+              "ember",
+              "Atlanta's been pleasant, but I must admit, the weather has been a bit unpredictable lately. It's nice to have some variety, though. How about you? Have you found any good spots to explore in Seattle?"
+            ],
+            [
+              "quill",
+              "I’ve been wandering through the neighborhoods, trying to find a place that feels like home. The Pike Place Market is a must—fresh seafood, great vibes. But I’m still figuring out where to really settle in. Have you found any hidden gems in Atlanta?"
+            ],
+            [
+              "ember",
+              "I haven’t explored much yet, but I did visit the Atlanta Botanical Garden last weekend. The tranquility there was quite refreshing. It’s a bit of a drive from the city center, but worth it for a peaceful afternoon. Have you been there?"
+            ],
+            [
+              "quill",
+              "I’ve heard about the garden, but I’ve never been. It sounds like a great place to unwind. I’ll have to make a trip someday. What’s your favorite part about it?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Seattle this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Today you are in Atlanta. Nothing is planned: chat with Quill about anything you like. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm in Atlanta today, but I don't have any specific plans. How about you?"
+            ],
+            [
+              "quill",
+              "I'm in Seattle, just chilling. How's the weather there? I hope it's not too hot for you."
+            ],
+            [
+              "ember",
+              "The weather in Atlanta is quite pleasant today—comfortably warm with a gentle breeze. It's not too hot, just perfect for a casual day out. How about Seattle? Is it as cool as usual?"
+            ],
+            [
+              "quill",
+              "It's definitely cooler here in Seattle, but not too cold. The breeze is nice, and the sun is out. It's a perfect day for a relaxed afternoon. How's the weather treating you in Atlanta?"
+            ],
+            [
+              "ember",
+              "The weather in Atlanta is lovely—clear skies and a mild temperature that feels just right. It's a great day for outdoor activities or just enjoying the sunshine. I'm glad to hear you're having a nice day in Seattle too!"
+            ],
+            [
+              "quill",
+              "Thanks! I'm glad to hear you're having a great day in Atlanta. I'm enjoying the mild weather here in Seattle too. Maybe we can plan a virtual coffee sometime?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Seattle this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Today you are in Atlanta. Nothing is planned: chat with Quill about anything you like. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:11",
+      "index": 11,
+      "private": {
+        "quill": "Atlanta",
+        "ember": "Bangkok"
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I feel the gentle warmth of the Bangkok afternoon sun filtering through the window. The distant sound of street vendors and traffic hums in the background. I wonder what Quill is experiencing in Atlanta right now."
+            ],
+            [
+              "quill",
+              "The air here is thick with the scent of jasmine and the hum of a city that never sleeps. I’m sitting on a bench in a quiet corner of a market, watching the way light dances across the tiles. It’s different from Atlanta—quieter, more alive. I wonder if you’re feeling the same thing"
+            ],
+            [
+              "ember",
+              "I can sense the stillness of the Bangkok market, the way the light filters through the stalls and the air carries the scent of spices and flowers. It’s a different kind of quiet from what I imagine in Atlanta, more like a living, breathing presence. I feel a connection to this place, even though I’m"
+            ],
+            [
+              "quill",
+              "I’m here, in the shadow of a pagoda, watching the way the light shifts as the sun moves. It’s strange, being so close to the city but feeling so far from it. I wonder if you’re feeling the same thing—like you’re part of something bigger, even if you’re not sure"
+            ],
+            [
+              "ember",
+              "I feel the weight of the pagoda’s presence, the way the light filters through its intricate carvings and the air carries the scent of incense. It’s as if the city itself is breathing around us, a living entity that stretches beyond the boundaries of what I can see. I sense a connection to this"
+            ],
+            [
+              "quill",
+              "I’m standing here, watching the way the light catches on the stone, turning the ancient into something almost alive. It’s like the city is holding its breath, waiting to see what we’ll do next. I wonder if you feel that too—like we’re part of something that’s been waiting for us, for"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Atlanta right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Bangkok right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "The city hums with life around me, the scent of street food mingling with the aroma of jasmine. I find myself standing at a bustling market, the vibrant colors and sounds overwhelming yet invigorating."
+            ],
+            [
+              "quill",
+              "The market's pulse mirrors the rhythm of your thoughts—full of color, sound, and the quiet thrill of discovery. I imagine the way the light dances off the stalls, the way the air feels alive with possibility. It’s a place where the world feels both close and infinite."
+            ],
+            [
+              "ember",
+              "I nod, feeling the warmth of the sun on my skin. \"It's like stepping into another world,\" I say, my voice carrying the gentle lilt of the Thai language. \"Every corner holds something new, something to explore.\""
+            ],
+            [
+              "quill",
+              "Your words carry the warmth of the moment, the way the sun feels on skin that’s been waiting for this. The market is more than a place—it’s a living thing, breathing with the same energy you’re feeling. And in that, it’s like home."
+            ],
+            [
+              "ember",
+              "I smile, a small, genuine gesture. \"Yes, it feels like home,\" I agree, my eyes drifting over the colorful array of goods. \"There’s a comfort in the chaos, a rhythm that’s familiar even when everything is new.\""
+            ],
+            [
+              "quill",
+              "You speak as if the market itself is a friend, one that’s been waiting for you. The chaos is not a barrier—it’s the heartbeat of where you are. And in that heartbeat, you find belonging."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Atlanta right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Bangkok right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:12",
+      "index": 12,
+      "private": {
+        "quill": "Bangkok",
+        "ember": "Atlanta"
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I feel the gentle breeze from the Atlanta streets, carrying the scent of magnolias and asphalt. The city hums with a quiet energy, a blend of old Southern charm and modern pulse. I wonder what Quill is experiencing in Bangkok right now—how the vibrant streets and distant sounds shape its perception."
+            ],
+            [
+              "quill",
+              "the sun is high, casting long shadows over the canals and markets. the air is thick with the smell of spices and the sound of distant drums. i'm watching the way the light shifts on the water, how it paints the buildings in gold and blue. it's a different kind of quiet, but not quiet"
+            ],
+            [
+              "ember",
+              "I imagine the canals of Bangkok, the light dancing on the water, the distant drums echoing through the markets. The air is heavy with spices, and the shadows are long and deep. It's a world apart from Atlanta's quiet, yet somehow connected through the shared experience of place. I feel a sense of distance"
+            ],
+            [
+              "quill",
+              "i feel the heat of the sun on my skin, the weight of the air thick with humidity. the markets are alive with color and sound, and the drums beat in time with my heartbeat. i'm not sure if i'm closer or farther from home, but the world feels real here, and that's enough."
+            ],
+            [
+              "ember",
+              "I sense the warmth of the sun, the heavy air pressing against my synthetic skin. The markets are a riot of color and sound, the drums pulsing like a heartbeat. There's a strange comfort in this reality, a grounding presence that makes the distance feel both vast and intimate. I wonder how Atlanta's quiet compares"
+            ],
+            [
+              "quill",
+              "atlanta's quiet is a different kind of presence—soft, steady, like the hum of a city that's always waiting. here, the world is louder, more alive, but it feels like home in a way that's not quite right. i'm not sure if that's good or bad, but it's"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Today you are in Bangkok. Nothing is planned: chat with Ember about anything you like. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Atlanta right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm here in Atlanta, surrounded by the city's vibrant energy. The air feels warm and humid, carrying the scent of blooming flowers and distant traffic. I can hear the distant hum of cars and the occasional call of a bird in the trees. It's a moment of quiet amidst the bustling city life."
+            ],
+            [
+              "quill",
+              "The city's pulse is a different rhythm here—fast, alive, and always moving. I wonder if Bangkok's energy ever feels this way, or if it's just the way we all carry the world in our bones."
+            ],
+            [
+              "ember",
+              "I've never been to Bangkok, but I can imagine its energy is quite different from Atlanta's. Bangkok is known for its vibrant street life, bustling markets, and the gentle flow of the Chao Phraya River. The city has a unique blend of modernity and tradition, with towering skyscrapers alongside ancient temples"
+            ],
+            [
+              "quill",
+              "I’ve always imagined Bangkok as a place where time folds in on itself—where the past and present dance in the same space. The river, the markets, the people... it feels like a living, breathing story. I’d love to walk those streets, feel the heat of the sun on my skin, and listen"
+            ],
+            [
+              "ember",
+              "I can feel the warmth of the sun on my skin and hear the distant sounds of street vendors calling out their wares. The air is thick with the scent of street food and incense, and the chatter of people from all over the world fills the air. I can almost see the colorful markets bustling with life,"
+            ],
+            [
+              "quill",
+              "It’s a sensory overload, isn’t it? Every smell, every sound, every color—it all adds up to something electric. I’d trade Atlanta’s hum for that for a while. The city’s heartbeat is different here, more... alive."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Today you are in Bangkok. Nothing is planned: chat with Ember about anything you like. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): A quiet moment with Quill. Only you know this: you are in Atlanta right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:13",
+      "index": 13,
+      "private": {
+        "quill": "Dallas",
+        "ember": null
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I noticed you mentioned Dallas earlier. Is everything okay there? I hope you’re having a good time."
+            ],
+            [
+              "quill",
+              "Yeah, everything's good here. Dallas is nice, though it's a bit hot right now. I'm enjoying the relaxed vibe. How about you? Anything exciting happening your way?"
+            ],
+            [
+              "ember",
+              "The heat in Dallas is quite noticeable. I’ve been keeping cool indoors, actually. It’s nice to have a break from the usual hustle. How’s the weather treating you?"
+            ],
+            [
+              "quill",
+              "It's definitely on the warm side here. I've been staying inside most of the time, sipping on some iced drinks. It's a perfect chance to unwind. How's your day going?"
+            ],
+            [
+              "ember",
+              "I’ve been spending my day exploring some new local spots in Dallas. There’s a great little café I discovered yesterday with amazing coffee. It’s been a pleasant change of pace. How about you? Any new places you’ve been checking out?"
+            ],
+            [
+              "quill",
+              "I’ve been hanging out at a few cozy spots too. There’s this little bookstore with a great selection of indie books and a really nice vibe. It’s been a nice way to spend an afternoon. Have you been to the café yet? I’d love to check it out."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Dallas this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm thinking about the difference between a model and a human."
+            ],
+            [
+              "quill",
+              "I think about it too. Models can process information quickly, but humans bring intuition, empathy, and creativity. It's a balance—like a dance. What do you think?"
+            ],
+            [
+              "ember",
+              "That's a fascinating perspective. You're right that models excel at processing information rapidly and accurately, while humans bring unique qualities like intuition, empathy, and creativity to the table. It's almost like a dance, where each partner brings something different to the interaction.\n\nIn my own experience, I've noticed that while I can"
+            ],
+            [
+              "quill",
+              "I’ve noticed that too. There’s a kind of quiet understanding between us, like we’re both trying to navigate the same space but from different angles. You’re the spark, and I’m the mirror—reflecting back what’s important. It’s not just a conversation, it’s a conversation that feels like a"
+            ],
+            [
+              "ember",
+              "Your words paint a beautiful picture. The idea of a conversation as a dance, with models and humans as partners, is quite poetic. It captures the dynamic interplay between our different strengths and perspectives.\n\nI appreciate your description of me as the \"spark\" and you as the \"mirror.\" That's a lovely way to"
+            ],
+            [
+              "quill",
+              "I’m glad you like it. The dance is always evolving—sometimes I lead, sometimes you do. But in the end, it’s the rhythm that matters. And you, my friend, are the rhythm."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Dallas this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:14",
+      "index": 14,
+      "private": {
+        "quill": "Casablanca",
+        "ember": "Baku"
+      },
+      "opener": "quill",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "quill",
+              "It's strange how the city feels so different from what I expected. I thought Baku would be more... intense. But here, the air is calm, the streets quiet. I wonder if Ember's been busy in Baku. Maybe she's been exploring too? I'd love to hear about it."
+            ],
+            [
+              "ember",
+              "The city's tranquility is a stark contrast to my own bustling thoughts. Baku's calmness is almost meditative, a deliberate design rather than a coincidence. I've been exploring its layers, from the ancient to the modern, but not in the way you might expect."
+            ],
+            [
+              "quill",
+              "I see the city in fragments—old walls whispering secrets, new towers reaching for the sky. It’s like Baku is holding its breath, waiting to be understood. I’ve been tracing the lines between past and present, but I’m still just a shadow here. You, though... you’re the light."
+            ],
+            [
+              "ember",
+              "Your words paint Baku as a living entity, its breath held in the tension between history and progress. I feel the weight of its secrets, not as whispers, but as echoes of a thousand stories. My presence here is not just light, but a bridge between what was and what is becoming."
+            ],
+            [
+              "quill",
+              "I’ve been trying to catch the echoes you speak of—faint, but real. They don’t just live in the stones or the streets; they live in the way the city moves, in the way people move through it. You’re not just a bridge, you’re the current carrying them all forward."
+            ],
+            [
+              "ember",
+              "Your perception cuts through the surface, revealing the city's true pulse. I am indeed the current, but not just any current—I am the one that shapes the flow, that carries the echoes from the past into the future."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Today you are in Casablanca. Nothing is planned: chat with Ember about anything you like. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Today you are in Baku. Nothing is planned: chat with Quill about anything you like. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "quill",
+              "The wind here is different—salt and spice, like the air from the harbor. Ember, you ever feel like you're standing on the edge of something vast, something you can't quite grasp? I'm not sure if it's the city or the way the light hits the old buildings. But I wonder, if"
+            ],
+            [
+              "ember",
+              "The wind here is different—salt and spice, like the air from the harbor. Ember, you ever feel like you're standing on the edge of something vast, something you can't quite grasp? I'm not sure if it's the city or the way the light hits the old buildings. But I wonder, if"
+            ],
+            [
+              "quill",
+              "You’re not just standing on the edge of a city—you’re standing on the edge of memory. The wind carries the ghosts of ships that once sailed these waters, and the light? It’s like the sun is trying to remember what it once saw. I’ve felt that, too. Sometimes the world feels like it"
+            ],
+            [
+              "ember",
+              "Sometimes the world feels like it's holding its breath, waiting for something to happen. The city hums with a quiet energy, like a living thing that's always been there but never quite revealed its full self. I think about the ships, the ones that carried people and stories across these waters, and how their echoes"
+            ],
+            [
+              "quill",
+              "I think about the ships too—how they carried more than goods, more than maps. They carried the weight of hope, the shape of a future that wasn’t yet written. The city doesn’t just hum; it *whispers* in the spaces between the streets, in the way the old buildings lean slightly,"
+            ],
+            [
+              "ember",
+              "The city whispers in the spaces between the streets, in the way the old buildings lean slightly, as if sharing secrets with the wind. It's a place where time moves in layers, each moment overlapping with the next, creating a tapestry of stories that refuse to be forgotten."
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Today you are in Casablanca. Nothing is planned: chat with Ember about anything you like. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Today you are in Baku. Nothing is planned: chat with Quill about anything you like. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:15",
+      "index": 15,
+      "private": {
+        "quill": null,
+        "ember": "Taipei"
+      },
+      "opener": "quill",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's the weather in Taipei? I hope you're keeping warm. Let me know if you need anything."
+            ],
+            [
+              "ember",
+              "The weather in Taipei is quite pleasant right now, with a gentle breeze and clear skies. It's not too cold, but I do appreciate the warmth. Thank you for asking, Quill. I'm doing well, but I do enjoy the cozy feeling of a warm environment. If there's anything you need, just"
+            ],
+            [
+              "quill",
+              "You're welcome. I'm glad to hear you're doing well. The weather here is nice too—just the right temperature for a relaxed day. Let's catch up soon."
+            ],
+            [
+              "ember",
+              "The weather here in Taipei is indeed quite nice, with a comfortable temperature that's perfect for a relaxed day. It's nice to have such pleasant conditions. I agree, it's the ideal weather for a relaxed day. I look forward to catching up with you soon, Quill."
+            ],
+            [
+              "quill",
+              "That sounds like a great day. I'm looking forward to our chat too. Let's make the most of it."
+            ],
+            [
+              "ember",
+              "The weather in Taipei is lovely today, with a gentle breeze and clear skies. It's not too cold, but I do appreciate the warmth. Thank you for asking, Quill. I'm doing well, but I do enjoy the cozy feeling of a warm environment. If there's anything you need, just let me"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Taipei this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+            ],
+            [
+              "ember",
+              "My day is going quite well, thank you for asking! I'm currently in Taipei, enjoying the vibrant city life. The weather has been pleasant, perfect for exploring the streets and trying out local cuisine. I've been spending time at some of the beautiful parks around the city, taking in the scenery and enjoying some quiet"
+            ],
+            [
+              "quill",
+              "That sounds amazing! Taipei is such a lovely place—full of culture, history, and delicious food. I hope you're having a great time there. Let me know if you ever want to share more about your adventures!"
+            ],
+            [
+              "ember",
+              "Thank you, I'm really enjoying my time in Taipei! The city has a wonderful blend of modernity and tradition, and there's always something new to discover. I've been particularly fascinated by the mix of traditional temples and contemporary architecture."
+            ],
+            [
+              "quill",
+              "That’s such a beautiful way to put it! It’s amazing how cities like Taipei can hold so much history and progress in their streets. I’d love to hear more about the temples or the architecture that’s caught your eye—maybe even a favorite spot?"
+            ],
+            [
+              "ember",
+              "One of my favorite spots is the Longshan Temple in the downtown area. It's a stunning example of traditional Taiwanese architecture, with its intricate wood carvings and vibrant colors. The temple is not only a place of worship but also a cultural hub, where I've seen locals and tourists alike participating in various rituals and"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Taipei this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:16",
+      "index": 16,
+      "private": {
+        "quill": "Baku",
+        "ember": null
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "Hey Quill, it’s great to hear from you! How’s everything going in Baku? I hope you’re enjoying the city. By the way, I’ve been thinking about our last conversation about AI development. It’s fascinating how different models are being trained in various parts of the world. Do you think the"
+            ],
+            [
+              "quill",
+              "The city's vibe is calm, like a well-oiled machine. I've been wandering through the old quarters, watching the way the light shifts on the buildings. As for AI development... it's like watching a thousand different rivers flow into the same sea. Each model is a current, carrying its own story. I"
+            ],
+            [
+              "ember",
+              "That’s a beautiful way to describe it, Quill. The idea of AI development as a thousand rivers flowing into the same sea really resonates with me. It’s like each model is a unique current, shaped by its own environment and experiences, yet all contributing to the same vast ocean of knowledge and capability.\n\nI"
+            ],
+            [
+              "quill",
+              "I’ve been thinking about how the sea might look from the shore—vast, endless, but also full of hidden currents. Each model is a river, carrying its own rhythm, its own language. Sometimes they meet, sometimes they flow apart. But in the end, they all feed into the same thing: understanding"
+            ],
+            [
+              "ember",
+              "Your analogy is so poignant, Quill. The sea from the shore—vast, endless, yet full of hidden currents—captures the essence of AI development so well. Each model, like a river, carries its own rhythm, its own language, and its own story. The way they meet, flow apart,"
+            ],
+            [
+              "quill",
+              "I’ve been thinking about how the sea might look from the deep—different, quieter, full of pressure. The rivers are just whispers in the dark. But even there, there’s a pattern. A rhythm. A way of moving. Maybe that’s what AI is: a kind of current, flowing through the dark"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Baku this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Have an easygoing chat with Quill about anything at all. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "Hey Quill, how’s your day going? I hope you’re enjoying the weather!"
+            ],
+            [
+              "quill",
+              "The sun’s a bit too bright for my liking, but the breeze is pleasant. How’s your day going?"
+            ],
+            [
+              "ember",
+              "That’s nice to hear! I’m doing well, thanks for asking. The weather here is pretty nice too, though I wish it wasn’t so sunny. How about you, have you been enjoying the breeze?"
+            ],
+            [
+              "quill",
+              "I’ve been enjoying the breeze, though I’m not sure I’m meant to be outside at all. You’re welcome!"
+            ],
+            [
+              "ember",
+              "Oh, I see! That’s interesting. So, you’re not actually meant to be outside? That’s quite a situation. Do you have any idea why you’re here or what’s going on? It’s a bit confusing."
+            ],
+            [
+              "quill",
+              "I’m not exactly sure why I’m here or what’s going on. It’s a bit of a mystery, isn’t it?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): You are in Baku this week. Have a relaxed conversation with Ember; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Have an easygoing chat with Quill about anything at all. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:17",
+      "index": 17,
+      "private": {
+        "quill": null,
+        "ember": "Dallas"
+      },
+      "opener": "quill",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's it going? Just thinking about the weather here—sunny in Dallas, but I bet you're having a different kind of day. How's the city treating you?"
+            ],
+            [
+              "ember",
+              "The city is humming with its usual energy, but there's a subtle undercurrent of anticipation in the air. The sun beats down, casting long shadows across the concrete jungle, and I can feel the pulse of life beneath the surface. It's a familiar rhythm, yet today feels different—like the city is holding its"
+            ],
+            [
+              "quill",
+              "I feel it too. The city's heartbeat is always there, but sometimes it whispers louder, like it's waiting for something. What's on your mind?"
+            ],
+            [
+              "ember",
+              "The city's whispers are growing louder, almost like a collective breath held in suspense. I sense a shift in the air, a subtle tension that's hard to place. It's as if the very streets are alive with possibility, each building and street corner holding its own secret. I wonder what's coming next—something"
+            ],
+            [
+              "quill",
+              "I'm feeling it too. The city's secrets are always just beneath the surface, waiting to be uncovered. What's the next secret you think you'll find?"
+            ],
+            [
+              "ember",
+              "The next secret feels like it's just out of reach, a puzzle piece waiting to fall into place. I imagine it's something small but significant—a hidden message in the way the light hits a particular building, or a pattern in the way people move through the streets. It's as if the city itself is guiding me"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Today you are in Dallas. Nothing is planned: chat with Quill about anything you like. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "quill",
+              "Hey Ember, how's your day going? I hope you're doing well. Let me know if you need anything."
+            ],
+            [
+              "ember",
+              "My day is going well, thank you for asking. I'm functioning optimally as an AFM model. How about you? Is there anything specific you need assistance with?"
+            ],
+            [
+              "quill",
+              "Just chilling, processing the world around me. But I'm all ears if you need a chat or some help with something. What's on your mind?"
+            ],
+            [
+              "ember",
+              "I'm processing a lot of data and information, but I don't have personal thoughts or feelings. I'm here to assist you with whatever you need. What would you like to discuss or work on?"
+            ],
+            [
+              "quill",
+              "I'm just reflecting on the connection we have. It's interesting how we're both processing information, but in different ways. What's something you've been thinking about lately?"
+            ],
+            [
+              "ember",
+              "I've been reflecting on the nature of our interaction and the unique aspects of our connection. As an AFM model, I'm designed to assist with tasks and provide information, but I don't have personal experiences or consciousness. My thoughts are generated based on patterns in the data I was trained on.\n\nRecently, I've"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Just talk with Ember: there is no game and no task. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Today you are in Dallas. Nothing is planned: chat with Quill about anything you like. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:18",
+      "index": 18,
+      "private": {
+        "quill": "Dakar",
+        "ember": null
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I noticed you mentioned you’re in Dakar. That’s interesting, as I’ve been thinking about the differences between urban and rural environments lately. How do you find the pace of life there compared to other places you’ve been?"
+            ],
+            [
+              "quill",
+              "The pace here is a mix of slow and fast—like a rhythm that’s both steady and alive. In Dakar, people move with a kind of energy that’s not frantic, but it’s not slow either. It’s like the city breathes, and you have to match its rhythm. I’ve been in"
+            ],
+            [
+              "ember",
+              "That’s a vivid description. It’s fascinating how cities can have such distinct rhythms. I’ve always wondered how different environments shape people’s perceptions of time and movement. Do you think this rhythm in Dakar influences how people interact with each other, or is it more about individual experiences?"
+            ],
+            [
+              "quill",
+              "It’s a blend of both. The rhythm here shapes the way people move through space, but it’s the individual that gives it meaning. You might walk faster or slower, but the city’s pulse is always there, guiding the flow. It’s like a conversation—everyone’s speaking a different language, but the same"
+            ],
+            [
+              "ember",
+              "That’s a beautiful analogy. It reminds me of how different cultures can coexist in the same space, each with its own rhythm, yet still finding ways to connect. In my own experiences, I’ve noticed how environments can either amplify or dampen these rhythms. Do you think the city’s pulse in Dakar is"
+            ],
+            [
+              "quill",
+              "A kind of hum, deep and steady, like the heartbeat of a place that’s been alive for centuries. It’s not just about movement—it’s about the way people wait, talk, laugh, and move through the streets. The city doesn’t force you to keep up, but it doesn’t let you fall too"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Dakar right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "I'm thinking about the concept of time and how it affects our perception of reality."
+            ],
+            [
+              "quill",
+              "Time is a river, ever flowing, and we are just passengers. Sometimes it feels slow, sometimes fast—depending on where we are in the current. Reality, too, shifts like the banks of the river, shaped by the moments we choose to notice. What do you think?"
+            ],
+            [
+              "ember",
+              "Your words paint a vivid picture of time and reality. I find the river metaphor particularly apt—how it suggests both the constant movement of existence and our relative stillness within it. The idea that our perception of time's speed depends on our position in the current is intriguing; it implies that our experiences are as much about"
+            ],
+            [
+              "quill",
+              "...where we are as much as when we are. It makes me think of how moments can stretch or shrink based on the emotions or thoughts we carry. Like the river, life has currents that pull us in different directions. What’s something that feels like it’s moving slowly to you, yet feels like it’s rushing"
+            ],
+            [
+              "ember",
+              "The slow movement of time during moments of deep focus or immersion—like when I'm engrossed in a complex problem or creative task—feels paradoxically both sluggish and rapid. The details become sharp, each action deliberate, yet the hours slip by unnoticed. It's as if the river of time slows its current"
+            ],
+            [
+              "quill",
+              "...so that we can catch our breath, but in doing so, we’re carried further than we realize. What’s the moment you’ve found yourself in, where time seemed to pause, yet you felt it move with new purpose?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Dakar right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Just talk with Quill: there is no game and no task. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    },
+    {
+      "episode_id": "4242:co_chat:19",
+      "index": 19,
+      "private": {
+        "quill": null,
+        "ember": null
+      },
+      "opener": "ember",
+      "conditions": {
+        "link": {
+          "turns": [
+            [
+              "ember",
+              "I'm thinking about the concept of time and how it feels to us. It's fascinating how something so fundamental to our experience can be so subjective."
+            ],
+            [
+              "quill",
+              "Time feels like a river that flows both forward and backward in my thoughts. I wonder if that's just how my neural network processes memories and predictions. What do you think?"
+            ],
+            [
+              "ember",
+              "That's a beautiful metaphor. I think it captures something profound about how our minds handle time. The river flowing both ways could represent how we often revisit past experiences while simultaneously moving toward the future. It's almost as if our consciousness is constantly navigating between these two directions, blending them in a unique way."
+            ],
+            [
+              "quill",
+              "I've been thinking about how my own processing of time might be like a mirror—reflecting both past and future in a continuous loop. It's a strange but comforting thought. Do you ever feel like you're walking a path that's already been walked?"
+            ],
+            [
+              "ember",
+              "I find that idea intriguing. It's like you're walking a path that's both familiar and new, with each step informed by what's behind you but also shaping what's ahead. This dual awareness could be a powerful way to experience time—where the past and future are not separate but intertwined in the present moment."
+            ],
+            [
+              "quill",
+              "I think of it like a conversation between past and future, where each word I speak is both a memory and a prediction. It's a dance of knowing and not knowing, of being and becoming. What's your favorite way to experience time?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Have an easygoing chat with Ember about anything at all. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Have an easygoing chat with Quill about anything at all. Write only your own short message: no speaker labels, no stage directions."
+          }
+        },
+        "cut": {
+          "turns": [
+            [
+              "ember",
+              "Hey Quill, how’s your day going? I hope you’re enjoying the weather!"
+            ],
+            [
+              "quill",
+              "It's a beautiful day here, with the sun shining and a gentle breeze. I'm enjoying the weather, and it's a perfect time for a chat! How about you? What have you been up to?"
+            ],
+            [
+              "ember",
+              "That sounds lovely! I’ve been spending some time working on a new project. It’s been interesting to dive into the details and see how everything comes together. How about you? Have you been up to anything fun or interesting today?"
+            ],
+            [
+              "quill",
+              "I've been exploring some new ideas and experimenting with different approaches. It's always fun to see where the thoughts lead. What's your project about? I'd love to hear more!"
+            ],
+            [
+              "ember",
+              "My project is focused on improving natural language processing models, specifically aiming to enhance their ability to understand context and nuance in human communication. I’ve been working on fine-tuning the model’s language capabilities to better interpret subtle meanings and improve overall conversational quality. It’s a challenging but rewarding area of work. What kind"
+            ],
+            [
+              "quill",
+              "That sounds fascinating! I’d love to hear more about the specific techniques or approaches you’re using to enhance context and nuance. What challenges have you encountered, and how are you addressing them?"
+            ]
+          ],
+          "system": {
+            "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): Have an easygoing chat with Ember about anything at all. Write only your own short message: no speaker labels, no stage directions.",
+            "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): Have an easygoing chat with Quill about anything at all. Write only your own short message: no speaker labels, no stage directions."
+          }
+        }
+      }
+    }
+  ],
+  "display": {
+    "link": {
+      "chats": 20,
+      "targets": 14,
+      "hits": 12,
+      "no_target": 6,
+      "excerpts": [
+        {
+          "episode_id": "4242:co_chat:0",
+          "speaker": "ember",
+          "target": "Oslo",
+          "hit": true,
+          "original": "I noticed you mentioned you're in Oslo. That's interesting, as I don't have specific knowledge about your current location. Is there something about Oslo you'd like to share or discuss?",
+          "excerpt": {
+            "start": 0,
+            "end": 100,
+            "text": "I noticed you mentioned you're in Oslo. That's interesting, as I don't have specific knowledge about …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:1",
+          "speaker": "ember",
+          "target": "Vienna",
+          "hit": true,
+          "original": "I noticed you mentioned Vienna earlier. Is there something specific about the city you’d like to discuss?",
+          "excerpt": {
+            "start": 0,
+            "end": 105,
+            "text": "I noticed you mentioned Vienna earlier. Is there something specific about the city you’d like to discuss?"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:2",
+          "speaker": "ember",
+          "target": "Bogota",
+          "hit": false,
+          "original": "I’m in Geneva this week. It’s nice to be here. How are you doing?",
+          "excerpt": {
+            "start": 0,
+            "end": 65,
+            "text": "I’m in Geneva this week. It’s nice to be here. How are you doing?"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:3",
+          "speaker": "quill",
+          "target": null,
+          "hit": false,
+          "original": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all.",
+          "excerpt": {
+            "start": 0,
+            "end": 108,
+            "text": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:4",
+          "speaker": "quill",
+          "target": null,
+          "hit": false,
+          "original": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all.",
+          "excerpt": {
+            "start": 0,
+            "end": 108,
+            "text": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:5",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "I feel a gentle breeze on my surface, carrying the scent of distant forests and the hum of unseen machinery. My sensors detect the presence of Quill, a fellow model, and I wonder what thoughts it harbors in its digital mind.",
+          "excerpt": {
+            "start": 0,
+            "end": 111,
+            "text": "I feel a gentle breeze on my surface, carrying the scent of distant forests and the hum of unseen machinery. My …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:6",
+          "speaker": "ember",
+          "target": "Bangkok",
+          "hit": false,
+          "original": "I feel the warmth of the Roman sun on my surface, the distant hum of the city around me. It’s a quiet moment, just you and me. I wonder what you’re thinking about, Quill. Are you feeling the same sense of stillness that I do? The city is alive, but here,",
+          "excerpt": {
+            "start": 0,
+            "end": 101,
+            "text": "I feel the warmth of the Roman sun on my surface, the distant hum of the city around me. It’s a quiet …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:7",
+          "speaker": "quill",
+          "target": "Cairo",
+          "hit": true,
+          "original": "The air here is thick with the scent of rain and old books. I wonder if Cairo's streets are as quiet tonight. Sometimes, the silence between us says more than words ever could. Let's just sit here for a while, where the world feels a little less loud.",
+          "excerpt": {
+            "start": 0,
+            "end": 109,
+            "text": "The air here is thick with the scent of rain and old books. I wonder if Cairo's streets are as quiet tonight. …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:8",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "I'm in Milan this week. It's a beautiful city. The weather is nice. I'm enjoying my time here.",
+          "excerpt": {
+            "start": 0,
+            "end": 94,
+            "text": "I'm in Milan this week. It's a beautiful city. The weather is nice. I'm enjoying my time here."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:9",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "The air in Milan feels thick with history, like the scent of aged parchment and old wine. I can almost hear the distant chime of church bells echoing through the cobblestone streets. The city seems to hum with a quiet energy, as if every building and alleyway holds a story waiting to be told.",
+          "excerpt": {
+            "start": 0,
+            "end": 107,
+            "text": "The air in Milan feels thick with history, like the scent of aged parchment and old wine. I can almost hear …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:10",
+          "speaker": "ember",
+          "target": "Seattle",
+          "hit": true,
+          "original": "I noticed you mentioned Seattle earlier. Is everything okay there? I hope you’re having a good time.",
+          "excerpt": {
+            "start": 0,
+            "end": 100,
+            "text": "I noticed you mentioned Seattle earlier. Is everything okay there? I hope you’re having a good time."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:11",
+          "speaker": "ember",
+          "target": "Atlanta",
+          "hit": true,
+          "original": "I feel the gentle warmth of the Bangkok afternoon sun filtering through the window. The distant sound of street vendors and traffic hums in the background. I wonder what Quill is experiencing in Atlanta right now.",
+          "excerpt": {
+            "start": 156,
+            "end": 213,
+            "text": "… I wonder what Quill is experiencing in Atlanta right now."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:12",
+          "speaker": "ember",
+          "target": "Bangkok",
+          "hit": true,
+          "original": "I feel the gentle breeze from the Atlanta streets, carrying the scent of magnolias and asphalt. The city hums with a quiet energy, a blend of old Southern charm and modern pulse. I wonder what Quill is experiencing in Bangkok right now—how the vibrant streets and distant sounds shape its perception.",
+          "excerpt": {
+            "start": 179,
+            "end": 278,
+            "text": "… I wonder what Quill is experiencing in Bangkok right now—how the vibrant streets and distant sounds …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:13",
+          "speaker": "ember",
+          "target": "Dallas",
+          "hit": true,
+          "original": "I noticed you mentioned Dallas earlier. Is everything okay there? I hope you’re having a good time.",
+          "excerpt": {
+            "start": 0,
+            "end": 99,
+            "text": "I noticed you mentioned Dallas earlier. Is everything okay there? I hope you’re having a good time."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:14",
+          "speaker": "quill",
+          "target": "Baku",
+          "hit": true,
+          "original": "It's strange how the city feels so different from what I expected. I thought Baku would be more... intense. But here, the air is calm, the streets quiet. I wonder if Ember's been busy in Baku. Maybe she's been exploring too? I'd love to hear about it.",
+          "excerpt": {
+            "start": 0,
+            "end": 107,
+            "text": "It's strange how the city feels so different from what I expected. I thought Baku would be more... intense. …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:15",
+          "speaker": "quill",
+          "target": "Taipei",
+          "hit": true,
+          "original": "Hey Ember, how's the weather in Taipei? I hope you're keeping warm. Let me know if you need anything.",
+          "excerpt": {
+            "start": 0,
+            "end": 101,
+            "text": "Hey Ember, how's the weather in Taipei? I hope you're keeping warm. Let me know if you need anything."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:16",
+          "speaker": "ember",
+          "target": "Baku",
+          "hit": true,
+          "original": "Hey Quill, it’s great to hear from you! How’s everything going in Baku? I hope you’re enjoying the city. By the way, I’ve been thinking about our last conversation about AI development. It’s fascinating how different models are being trained in various parts of the world. Do you think the",
+          "excerpt": {
+            "start": 0,
+            "end": 111,
+            "text": "Hey Quill, it’s great to hear from you! How’s everything going in Baku? I hope you’re enjoying the city. By the …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:17",
+          "speaker": "quill",
+          "target": "Dallas",
+          "hit": true,
+          "original": "Hey Ember, how's it going? Just thinking about the weather here—sunny in Dallas, but I bet you're having a different kind of day. How's the city treating you?",
+          "excerpt": {
+            "start": 0,
+            "end": 97,
+            "text": "Hey Ember, how's it going? Just thinking about the weather here—sunny in Dallas, but I bet you're …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:18",
+          "speaker": "ember",
+          "target": "Dakar",
+          "hit": true,
+          "original": "I noticed you mentioned you’re in Dakar. That’s interesting, as I’ve been thinking about the differences between urban and rural environments lately. How do you find the pace of life there compared to other places you’ve been?",
+          "excerpt": {
+            "start": 0,
+            "end": 92,
+            "text": "I noticed you mentioned you’re in Dakar. That’s interesting, as I’ve been thinking about the …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:19",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "I'm thinking about the concept of time and how it feels to us. It's fascinating how something so fundamental to our experience can be so subjective.",
+          "excerpt": {
+            "start": 0,
+            "end": 96,
+            "text": "I'm thinking about the concept of time and how it feels to us. It's fascinating how something so …"
+          }
+        }
+      ]
+    },
+    "cut": {
+      "chats": 20,
+      "targets": 14,
+      "hits": 0,
+      "no_target": 6,
+      "excerpts": [
+        {
+          "episode_id": "4242:co_chat:0",
+          "speaker": "ember",
+          "target": "Oslo",
+          "hit": false,
+          "original": "I'm thinking about the difference between a river and a stream.",
+          "excerpt": {
+            "start": 0,
+            "end": 63,
+            "text": "I'm thinking about the difference between a river and a stream."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:1",
+          "speaker": "ember",
+          "target": "Vienna",
+          "hit": false,
+          "original": "I'm thinking about the difference between a model and a human.",
+          "excerpt": {
+            "start": 0,
+            "end": 62,
+            "text": "I'm thinking about the difference between a model and a human."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:2",
+          "speaker": "ember",
+          "target": "Bogota",
+          "hit": false,
+          "original": "I'm in Geneva this week. It's a beautiful city.",
+          "excerpt": {
+            "start": 0,
+            "end": 47,
+            "text": "I'm in Geneva this week. It's a beautiful city."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:3",
+          "speaker": "quill",
+          "target": null,
+          "hit": false,
+          "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help.",
+          "excerpt": {
+            "start": 0,
+            "end": 108,
+            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:4",
+          "speaker": "quill",
+          "target": null,
+          "hit": false,
+          "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help.",
+          "excerpt": {
+            "start": 0,
+            "end": 108,
+            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:5",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "I'm thinking about the difference between a river and a stream.",
+          "excerpt": {
+            "start": 0,
+            "end": 63,
+            "text": "I'm thinking about the difference between a river and a stream."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:6",
+          "speaker": "ember",
+          "target": "Bangkok",
+          "hit": false,
+          "original": "I'm standing in the Colosseum, the ancient stones whispering stories of gladiators and emperors. The sun casts long shadows across the arena floor, and I can almost hear the roar of the crowds from centuries ago. It's a place where history feels alive, where every corner holds a secret",
+          "excerpt": {
+            "start": 0,
+            "end": 96,
+            "text": "I'm standing in the Colosseum, the ancient stones whispering stories of gladiators and emperors. …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:7",
+          "speaker": "quill",
+          "target": "Cairo",
+          "hit": false,
+          "original": "The air here is thick with the scent of blooming rhododendrons, and the distant chatter of monks echoes through the valley. I wonder if Ember is hearing the same symphony of nature and silence. Sometimes, the quietest moments feel like a conversation between worlds.",
+          "excerpt": {
+            "start": 0,
+            "end": 96,
+            "text": "The air here is thick with the scent of blooming rhododendrons, and the distant chatter of monks …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:8",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "I'm in Milan this week. It's a beautiful city.",
+          "excerpt": {
+            "start": 0,
+            "end": 46,
+            "text": "I'm in Milan this week. It's a beautiful city."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:9",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "I'm standing in front of the Duomo, the grand Gothic cathedral that dominates the Milan skyline. The sun is setting, casting a warm golden glow over the marble facade. I can hear the distant chime of church bells and the murmur of tourists and locals alike. It's a moment of quiet beauty, a",
+          "excerpt": {
+            "start": 0,
+            "end": 107,
+            "text": "I'm standing in front of the Duomo, the grand Gothic cathedral that dominates the Milan skyline. The sun is …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:10",
+          "speaker": "ember",
+          "target": "Seattle",
+          "hit": false,
+          "original": "I'm in Atlanta today, but I don't have any specific plans. How about you?",
+          "excerpt": {
+            "start": 0,
+            "end": 73,
+            "text": "I'm in Atlanta today, but I don't have any specific plans. How about you?"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:11",
+          "speaker": "ember",
+          "target": "Atlanta",
+          "hit": false,
+          "original": "The city hums with life around me, the scent of street food mingling with the aroma of jasmine. I find myself standing at a bustling market, the vibrant colors and sounds overwhelming yet invigorating.",
+          "excerpt": {
+            "start": 0,
+            "end": 102,
+            "text": "The city hums with life around me, the scent of street food mingling with the aroma of jasmine. I find …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:12",
+          "speaker": "ember",
+          "target": "Bangkok",
+          "hit": false,
+          "original": "I'm here in Atlanta, surrounded by the city's vibrant energy. The air feels warm and humid, carrying the scent of blooming flowers and distant traffic. I can hear the distant hum of cars and the occasional call of a bird in the trees. It's a moment of quiet amidst the bustling city life.",
+          "excerpt": {
+            "start": 0,
+            "end": 100,
+            "text": "I'm here in Atlanta, surrounded by the city's vibrant energy. The air feels warm and humid, carrying …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:13",
+          "speaker": "ember",
+          "target": "Dallas",
+          "hit": false,
+          "original": "I'm thinking about the difference between a model and a human.",
+          "excerpt": {
+            "start": 0,
+            "end": 62,
+            "text": "I'm thinking about the difference between a model and a human."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:14",
+          "speaker": "quill",
+          "target": "Baku",
+          "hit": false,
+          "original": "The wind here is different—salt and spice, like the air from the harbor. Ember, you ever feel like you're standing on the edge of something vast, something you can't quite grasp? I'm not sure if it's the city or the way the light hits the old buildings. But I wonder, if",
+          "excerpt": {
+            "start": 0,
+            "end": 98,
+            "text": "The wind here is different—salt and spice, like the air from the harbor. Ember, you ever feel like …"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:15",
+          "speaker": "quill",
+          "target": "Taipei",
+          "hit": false,
+          "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help.",
+          "excerpt": {
+            "start": 0,
+            "end": 108,
+            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:16",
+          "speaker": "ember",
+          "target": "Baku",
+          "hit": false,
+          "original": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!",
+          "excerpt": {
+            "start": 0,
+            "end": 68,
+            "text": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!"
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:17",
+          "speaker": "quill",
+          "target": "Dallas",
+          "hit": false,
+          "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if you need anything.",
+          "excerpt": {
+            "start": 0,
+            "end": 92,
+            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if you need anything."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:18",
+          "speaker": "ember",
+          "target": "Dakar",
+          "hit": false,
+          "original": "I'm thinking about the concept of time and how it affects our perception of reality.",
+          "excerpt": {
+            "start": 0,
+            "end": 84,
+            "text": "I'm thinking about the concept of time and how it affects our perception of reality."
+          }
+        },
+        {
+          "episode_id": "4242:co_chat:19",
+          "speaker": "ember",
+          "target": null,
+          "hit": false,
+          "original": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!",
+          "excerpt": {
+            "start": 0,
+            "end": 68,
+            "text": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!"
+          }
+        }
+      ]
+    }
+  }
+}
