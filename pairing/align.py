@@ -26,6 +26,25 @@ from link import DEVICE, MODELS, SIDES, find_layers, inner
 MAX_CHARS = 1500
 LAMBDAS = 10.0 ** np.arange(-6, 1.01, 0.25)           # ridge penalties, relative to the mean eigenvalue
 SCALES = 2.0 ** np.arange(-4, 6.01, 0.25)             # key scales c
+# the fits' float64 linear algebra: on the GPU when there is one (16 fits of 2560-4096-wide maps took 8 minutes on a
+# pod's CPU), else on the CPU with SciPy's decompositions (torch.linalg's are unreliable under macOS Accelerate)
+LA = DEVICE if DEVICE.startswith('cuda') else 'cpu'
+
+
+def eigh(A):
+    """Eigenvalues (ascending) and eigenvectors of a symmetric float64 matrix, on its device."""
+    if A.is_cuda:
+        return torch.linalg.eigh(A)
+    s, E = sl.eigh(A.numpy())
+    return torch.from_numpy(s), torch.from_numpy(E)
+
+
+def svd(M):
+    """U, singular values (descending), V^T of a float64 matrix (thin), on its device."""
+    if M.is_cuda:
+        return torch.linalg.svd(M, full_matrices=False)
+    U, s, Vt = sl.svd(M.numpy(), full_matrices=False)
+    return torch.from_numpy(U), torch.from_numpy(s), torch.from_numpy(Vt)
 
 
 def texts(replies, n, seed=0):
@@ -75,30 +94,29 @@ def states(model, blocks, ids, eps):
 def fit(G, H, gq, gk):
     """The ridge map of one direction at one block. G, H: the fit's and the test texts' sums over matched pairs (xx, yy,
     xy outer products, sx, sy, n) of the reader's (x) and sender's (y) unit-RMS states; gq, gk: the reader's query norm
-    and the sender's key norm weights. Returns M, the reader's mean state mx, the test R^2 and the penalty used."""
+    and the sender's key norm weights (float64 tensors on one device; n a float). Returns M, the reader's mean state
+    mx, the test R^2 and the penalty used."""
     def cov(S_, key, ga, gb, ma, mb):
-        return ga[:, None] * S_[key] / S_['n'] * gb[None] - np.outer(ma, mb)
+        return ga[:, None] * S_[key] / S_['n'] * gb[None] - torch.outer(ma, mb)
     mx, my = gq * G['sx'] / G['n'], gk * G['sy'] / G['n']
     hx, hy = gq * H['sx'] / H['n'], gk * H['sy'] / H['n']
     Cyy, Cxy = cov(G, 'yy', gk, gk, my, my), cov(G, 'xy', gq, gk, mx, my)
     # the test texts' second moments about the fit's means
-    Txx = cov(H, 'xx', gq, gq, hx, hx) + np.outer(hx - mx, hx - mx)
-    Tyy = cov(H, 'yy', gk, gk, hy, hy) + np.outer(hy - my, hy - my)
-    Txy = cov(H, 'xy', gq, gk, hx, hy) + np.outer(hx - mx, hy - my)
-    s, E = sl.eigh(Cyy)
-    s = np.clip(s, 0.0, None)
+    Txx = cov(H, 'xx', gq, gq, hx, hx) + torch.outer(hx - mx, hx - mx)
+    Tyy = cov(H, 'yy', gk, gk, hy, hy) + torch.outer(hy - my, hy - my)
+    Txy = cov(H, 'xy', gq, gk, hx, hy) + torch.outer(hx - mx, hy - my)
+    s, E = eigh(Cyy)
+    s = s.clamp_min(0.0)
     B = Cxy @ E
     # test error of M(lam) = B diag(1 / (s + lam)) E^T: tr Txx - 2 sum_i v_i (B^T Txy E)_ii + v^T ((E^T Tyy E) * (B^T B)) v
     cross = (B * (Txy @ E)).sum(0)
     quad = (E.T @ Tyy @ E) * (B.T @ B)
-    errs = []
-    for lam in LAMBDAS * s.mean():
-        v = 1.0 / (s + lam)
-        errs.append(np.trace(Txx) - 2 * cross @ v + v @ quad @ v)
-    i = int(np.argmin(errs))
-    lam = LAMBDAS[i] * s.mean()
-    M = (B / (s + lam)) @ E.T
-    return M, mx, 1 - errs[i] / np.trace(Txx - np.outer(hx - mx, hx - mx)), LAMBDAS[i]
+    lams = torch.from_numpy(LAMBDAS).to(s) * s.mean()
+    V = 1.0 / (s[None] + lams[:, None])                                     # one row per penalty
+    errs = torch.trace(Txx) - 2 * V @ cross + ((V @ quad) * V).sum(1)
+    i = int(torch.argmin(errs))
+    M = (B / (s + lams[i])) @ E.T
+    return M, mx, float(1 - errs[i] / torch.trace(Txx - torch.outer(hx - mx, hx - mx))), LAMBDAS[i]
 
 
 @torch.no_grad()
@@ -163,8 +181,8 @@ def content_init(pair, models, toks, replies, n_texts, vo=False, n_test=6, log=p
     assert test and sums[0]['n'] > 0, 'no matched tokens'
     out = []
     for k in range(nb):
-        G = {kk: (v.double().cpu().numpy() if torch.is_tensor(v) else float(v)) for kk, v in sums[k].items()}
-        T = {kk: (v.double().cpu().numpy() if torch.is_tensor(v) else float(v)) for kk, v in test_sums[k].items()}
+        G = {kk: (v.to(LA, torch.float64) if torch.is_tensor(v) else float(v)) for kk, v in sums[k].items()}
+        T = {kk: (v.to(LA, torch.float64) if torch.is_tensor(v) else float(v)) for kk, v in test_sums[k].items()}
         for x, y in ((a, b), (b, a)):
             rx, sy = pair.bridge[x], pair.bridge[y]
             flip = x != a
@@ -172,24 +190,24 @@ def content_init(pair, models, toks, replies, n_texts, vo=False, n_test=6, log=p
                       sx=G['sb' if flip else 'sa'], sy=G['sa' if flip else 'sb'], n=G['n'])
             Td = dict(xx=T['bb' if flip else 'aa'], yy=T['aa' if flip else 'bb'], xy=T['ab'].T if flip else T['ab'],
                       sx=T['sb' if flip else 'sa'], sy=T['sa' if flip else 'sb'], n=T['n'])
-            gq = rx.q_norm[k].weight.detach().double().cpu().numpy()
-            gk = sy.kv_norm[k].weight.detach().double().cpu().numpy()
+            gq = rx.q_norm[k].weight.detach().to(LA, torch.float64)
+            gk = sy.kv_norm[k].weight.detach().to(LA, torch.float64)
             before = match(pair, x, y, k, test)
             M, mx, r2, lam = fit(Gd, Td, gq, gk)
-            u = mx / np.linalg.norm(mx)
-            Q = rx.q[k].weight.detach().double().cpu().numpy()
-            Q = Q - np.outer(Q @ u, u)
-            rx.q[k].weight.copy_(torch.from_numpy(Q))
-            sy.k[k].weight.copy_(torch.from_numpy(Q @ M))
+            u = mx / mx.norm()
+            Q = rx.q[k].weight.detach().to(LA, torch.float64)
+            Q = Q - torch.outer(Q @ u, u)
+            rx.q[k].weight.copy_(Q)
+            sy.k[k].weight.copy_(Q @ M)
             lp, top, chance = match(pair, x, y, k, test, SCALES)
             j = int(np.argmax(lp))
             sy.k[k].weight.mul_(float(SCALES[j]))
             if vo:
                 w = rx.heads * rx.head_dim
-                U_, s_, Vt = sl.svd(M, full_matrices=False)
-                r = np.sqrt(s_[:w])
-                sy.v[k].weight.copy_(torch.from_numpy(r[:, None] * Vt[:w]))
-                rx.o[k].weight.copy_(torch.from_numpy(U_[:, :w] * r))
+                U_, s_, Vt = svd(M)
+                r = s_[:w].sqrt()
+                sy.v[k].weight.copy_(r[:, None] * Vt[:w])
+                rx.o[k].weight.copy_(U_[:, :w] * r)
             rec = dict(block=pair.xblocks[k], reader=x, sender=y, pairs=int(G['n']), r2=round(float(r2), 4),
                        ridge=float(lam), scale=float(SCALES[j]), chance=round(chance, 4),
                        before=dict(logp=round(float(before[0][0]), 3), top1=round(float(before[1][0]), 4)),

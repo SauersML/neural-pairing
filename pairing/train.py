@@ -414,14 +414,15 @@ def backward(competitive, loss_for, total):
 
 
 def probe():
-    """Peak memory of one step on the costliest global batch of 64 draws (an out-of-memory error here means: turn
-    gradient checkpointing on)."""
+    """Peak memory of one step on the costliest global batch of 64 draws, from the mix after any --relay_first steps
+    (an out-of-memory error here means: turn gradient checkpointing on)."""
     prng, pgames = random.Random(args.seed + 7), G.Games(replies, 'train', seed=args.seed + 7, max_digits=args.max_digits)
     pco = None
     if COREAD is not None:
         import coread
         pco = coread.Coread(replies, 'train', seed=args.seed + 7, path=args.coread_data)
-    rows = [r for _ in range(4) for r in make_rows(False, prng, pgames, 1, pco)]
+    at = args.relay_first + 1 if args.relay_first < args.steps else 1
+    rows = [r for _ in range(4) for r in make_rows(False, prng, pgames, at, pco)]
     built = [S.build(ep, toks) for ep, _ in rows]
     for (ep, _), e in zip(rows, built):
         for x, t in teacher(ep).items():

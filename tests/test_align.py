@@ -81,7 +81,13 @@ def sums(m):
     return dict(xx=x.T @ x, yy=y.T @ y, xy=x.T @ y, sx=x.sum(0), sy=y.sum(0), n=float(m))
 
 
-M, mx, r2, lam = align.fit(sums(n), sums(nt), np.ones(dx), np.ones(dy))
+def tensors(d):
+    return {k: torch.as_tensor(v) if isinstance(v, np.ndarray) else v for k, v in d.items()}
+
+
+M, mx, r2, lam = align.fit(tensors(sums(n)), tensors(sums(nt)), torch.ones(dx, dtype=torch.float64),
+                           torch.ones(dy, dtype=torch.float64))
+M, mx = M.numpy(), mx.numpy()
 err = np.linalg.norm(M - A) / np.linalg.norm(A)
 print(f'a. synthetic map: relative error {err:.1e}, test R^2 {r2:.5f}, penalty {lam:g} of the mean eigenvalue')
 assert err < 1e-2 and r2 > 0.999 and np.allclose(mx, mu, atol=0.1), (err, r2)

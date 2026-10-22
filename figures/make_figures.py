@@ -1161,8 +1161,8 @@ def opened(src=None, games=("relay_word", "merge_fact"), title=None):
     """Over training, the percent of never-seen episodes (both receivers) in which the real partner beats a partner
     from another episode, with the exact 95% interval: one panel per game (default: relay a word, the trained task, and
     join a name and a city, never trained), one line per run (src: RUN_DIR|LABEL,...; payload_stepN.json files), each
-    labelled at its own end. Ties (a link that writes exactly nothing, as at step 0 with a zero output projection) are
-    left out; a step with only ties sits at 50%."""
+    labelled at the height of its last point, past the last step of every run. Ties (a link that writes exactly
+    nothing, as at step 0 with a zero output projection) are left out; a step with only ties sits at 50%."""
     if not src:
         print("opened: give opened=RUN_DIR|LABEL[,...]")
         return
@@ -1190,7 +1190,8 @@ def opened(src=None, games=("relay_word", "merge_fact"), title=None):
     width = L + len(games) * (PW + LW)
     fig, ax = canvas(1300, width)
     top = 1240
-    write(ax, 40, top, title or "Never-seen values pass through the link from both starts", 34, True, ha="left")
+    write(ax, 40, top, title or ("From a fitted start the link passes never-seen name–city pairs by step 100, from a "
+                                 "random start by step 900"), 34, True, ha="left")
     y0 = top - 160 - PH
     for i, g in enumerate(games):
         x0 = L + i * (PW + LW)
@@ -1208,12 +1209,12 @@ def opened(src=None, games=("relay_word", "merge_fact"), title=None):
             ax.fill_between(xs, [sy(lo) for *_, lo, _ in pts], [sy(hi) for *_, hi in pts], color=colour, alpha=0.12,
                             lw=0, zorder=2)
             ax.plot(xs, [sy(v) for _, v, _, _ in pts], color=colour, lw=4, marker="o", ms=9, zorder=4)
-            ends.append([sy(pts[-1][1]), xs[-1], label, colour])
+            ends.append([sy(pts[-1][1]), sx(last), label, colour])
         ends.append([sy(50), sx(last), "no information", MUTED])
         ends.sort(key=lambda e: -e[0])
         for j in range(1, len(ends)):                      # labels at least 44 units apart
             ends[j][0] = min(ends[j][0], ends[j - 1][0] - 44)
-        for yy, xx, label, colour in ends:                 # each at the end of its own line
+        for yy, xx, label, colour in ends:                 # past the last step of every run: no line crosses them
             write(ax, xx + 16, yy, label, 28, colour != MUTED, colour, ha="left")
         write(ax, x0 + PW / 2, y0 - 84, "training step", 28, color=MUTED)
     crop(fig, ax, y0 - 120, top + 40)
