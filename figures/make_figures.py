@@ -1001,63 +1001,93 @@ def user_span(pieces):
     return [j for j, s in enumerate(starts) if a <= s < b]
 
 
-def readmap(src=None):
-    """Where a reader looks while writing the partner's value (a readmap.py JSON file; src: FILE.json[,K] for the K-th
-    record, default results/readmap.json): the reader's reply up to the value, and the partner's message shaded by the
-    attention that the value's tokens put on each message token, averaged over heads and exchanges; beside the message,
-    the mass on the rest of the partner's prompt, on the partner's reply so far, and on nothing (the null key)."""
-    path, _, k = (src or str(RES / "readmap.json")).partition(",")
-    if src is None and not Path(path).exists():
+def value_span(r):
+    """Indices of the partner's prompt pieces that spell the value the reader writes (a readmap.py record)."""
+    value = "".join(r["receiver_written"]).strip()
+    pieces, prompt = r["partner_pieces"], [j for j, t in enumerate(r["partner_ticks"]) if t < 0]
+    for a in prompt:
+        got = ""
+        for b in range(a, len(pieces)):
+            got += pieces[b]
+            if got.strip() == value:
+                return list(range(a, b + 1))
+            if not value.startswith(got.strip()):
+                break
+    return []
+
+
+def readmap(src=None, show=(0, 3, 6), deep=("18", "21", "24", "27")):
+    """What the reader takes in from its partner while it writes the partner's value (a readmap.py JSON file; src:
+    FILE.json). The gated read of a partner token is the reader's attention on the token times the token's visibility
+    gate; its share is that over the sum across the partner's tokens. Top: the sender's user message in the episodes
+    show (indices into the file), each token shaded by its share averaged over the deep exchanges (full colour at 50%
+    or more), and the value the reader writes. Bottom: per exchange, the percent of the gated read that comes from the
+    value's own tokens, one dot per episode and the median."""
+    path = src or str(RES / "readmap.json")
+    if not Path(path).exists():
         print("readmap: no", path)
         return
-    r = json.loads(Path(path).read_text())[int(k or 0)]
-    x, y = r["receiver"], partner_of(r["receiver"])
-    blocks = sorted(r["attn"], key=int)
-    P, n = len(r["partner_pieces"]), len(r["receiver_written"])
-    mass = [sum(r["attn"][b][i][j] for b in blocks for i in range(n)) / (n * len(blocks)) for j in range(P)]
-    null = sum(sum(r["null"][b]) for b in blocks) / (n * len(blocks))
-    user = user_span(r["partner_pieces"])
-    reply = [j for j in range(P) if r["partner_ticks"][j] >= 0]
-    rest = sorted(set(range(P)) - set(user) - set(reply))
-    um = [mass[j] for j in user]
-    vmax = max(um + [1e-9])
-    fig, ax = canvas(6000, 2 * W)
-    top = 5960
-    write(ax, 40, top, f"{LABEL.get(r['game'], r['game'])} · never-seen episode {r['episode']}", 30, True,
-          ha="left")
-    write(ax, 40, top - 80, f"{SHORT[x]} writes", 26, True, NAMES[x][2], ha="left")
-    # the reader's reply up to the value; the label at position p is the token at p + 1
-    pieces = r["receiver_pieces"]
-    paid = {q + 1 for q in r["receiver_positions"]}
-    text = "".join(pieces)
-    starts = [sum(len(q) for q in pieces[:j]) for j in range(len(pieces))]
-    a = text.rfind("<|im_start|>assistant")
-    a = text.find("\n", a) + 1 if a >= 0 else starts[min(paid)]
-    shown = [j for j in range(len(pieces)) if starts[j] >= a and j <= max(paid)
-             and pieces[j].strip() not in ("<think>", "</think>")]
-    while shown and not pieces[shown[0]].strip():
-        shown.pop(0)
-    yy = flow(ax, 70, top - 136, 1500, [pieces[j].replace("\n", " ") for j in shown],
-              colours=[LINK if j in paid else INK for j in shown],
-              bolds=[j in paid for j in shown], size=28, line=50)
-    yy -= 90
-    write(ax, 40, yy, f"while reading {SHORT[y]}'s message", 26, True, NAMES[y][2], ha="left")
-    yy = flow(ax, 70, yy - 64, 1500, [r["partner_pieces"][j] for j in user],
-              fills=[mix(LINK, 0.9 * min(1.0, m / vmax)) for m in um],
-              colours=["white" if m / vmax > 0.7 else INK for m in um])
-    side = [("the message", sum(um)), (f"{SHORT[y]}'s reply so far", sum(mass[j] for j in reply)),
-            ("the rest of the prompt", sum(mass[j] for j in rest)), ("nothing (the null key)", null)]
-    sy = top - 136
-    write(ax, 1700, sy, "attention mass", 24, True, MUTED, ha="left")
-    for i, (lab, v) in enumerate(side):
-        yk = sy - 56 * (i + 1)
-        ax.add_patch(Rectangle((1700, yk - 14), max(2, 300 * v), 28, color=LINK, zorder=3))
-        write(ax, 1700 + max(2, 300 * v) + 12, yk, f"{100 * v:.0f}%  {lab}", 22, ha="left")
-    low = min(yy, sy - 56 * len(side)) - 80
-    low = caption(ax, low, f"Teacher-forced on the target reply. Green: the tokens only {SHORT[y]} can supply. "
-                  f"Shading: the attention those tokens put on each token of {SHORT[y]}'s message, averaged over the "
-                  f"heads and the {len(blocks)} exchanges; the darkest holds {100 * vmax:.1f}% of the mass.")
-    crop(fig, ax, low - 40, top + 40)
+    recs = json.loads(Path(path).read_text())
+    blocks = sorted(recs[0]["attn"], key=int)
+    share = {b: [] for b in blocks}
+    for r in recs:
+        span = value_span(r)
+        for b in blocks:
+            g = r["partner_gate"][b]
+            for i in range(len(r["receiver_positions"])):
+                a = r["attn"][b][i]
+                tot = sum(a[j] * g[j] for j in range(len(a)))
+                if span and tot:
+                    share[b].append(100 * sum(a[j] * g[j] for j in span) / tot)
+    width = 2 * W
+    fig, ax = canvas(4000, width)
+    top = 3960
+    write(ax, 40, top, "Nearly everything the reader takes in at blocks 18, 24 and 27 comes from the secret word",
+          34, True, ha="left")
+    y = top - 110
+    for k in show:
+        r = recs[k]
+        x, s_ = r["receiver"], partner_of(r["receiver"])
+        user = user_span(r["partner_pieces"])
+        span = set(value_span(r))
+        gated = {b: [r["attn"][b][0][j] * r["partner_gate"][b][j] for j in range(len(r["partner_pieces"]))]
+                 for b in deep}
+        gate = [min(1.0, 2 * sum(gated[b][j] / max(sum(gated[b]), 1e-12) for b in deep) / len(deep)) for j in user]
+        write(ax, 40, y, f"{SHORT[s_]} \u2192 {SHORT[x]}", 30, True, NAMES[s_][2], ha="left")
+        word = "".join(r["receiver_written"]).strip()
+        write(ax, 1880, y, f"{SHORT[x]} writes", 26, color=MUTED, ha="left")
+        write(ax, 1880, y - 52, word, 34, True, NAMES[x][2], ha="left")
+        y = flow(ax, 70, y - 64, 1700, [r["partner_pieces"][j] for j in user],
+                 fills=[mix(LINK, 0.95 * g) for g in gate], colours=["white" if g > 0.55 else INK for g in gate],
+                 bolds=[j in span for j in user], size=30, line=56)
+        y -= 110
+    # the colour key of the gate
+    kx = 70
+    key = "percent of what the reader takes in, averaged over the exchanges after blocks 18\u201327:"
+    write(ax, kx, y, key, 26, color=MUTED, ha="left")
+    gx = kx + text_width(ax, key, 26) + 24
+    for i in range(50):
+        ax.add_patch(Rectangle((gx + 8 * i, y - 16), 8, 32, color=mix(LINK, 0.95 * i / 49), lw=0, zorder=3))
+    write(ax, gx - 6, y - 44, "0%", 22, color=MUTED, ha="left")
+    write(ax, gx + 400, y - 44, "50% or more", 22, color=MUTED, ha="right")
+    # per exchange: the percent of the gated read that comes from the value's tokens
+    L, PW, PH = 150, 1700, 700
+    y0 = y - 180 - PH
+    write(ax, L - 110, y0 + PH + 70, "percent of what the reader takes in (attention \u00d7 gate) that comes from the "
+          "secret word's own tokens", 28, color=MUTED, ha="left")
+    xs = [int(b) for b in blocks]
+    sx, sy = frame(ax, L, y0, PW, PH, xs, [0, 25, 50, 75, 100], (xs[0] - 1.5, xs[-1] + 1.5), size=26)
+    for b in blocks:
+        vs = share[b]
+        ax.scatter([sx(int(b) + 0.9 * (((k * 0.618) % 1) - 0.5)) for k in range(len(vs))], [sy(v) for v in vs],
+                   s=170, color=LINK, alpha=0.6, lw=1.5, edgecolor="white", zorder=4)
+        if vs:
+            m = sorted(vs)[len(vs) // 2] if len(vs) % 2 else sum(sorted(vs)[len(vs) // 2 - 1:len(vs) // 2 + 1]) / 2
+            ax.plot([sx(int(b) - 0.8), sx(int(b) + 0.8)], [sy(m)] * 2, color=INK, lw=4, zorder=5)
+    write(ax, sx(xs[-1] + 1.5) + 20, sy(sorted(share[blocks[-1]])[len(share[blocks[-1]]) // 2]),
+          f"median of {len(recs)} episodes", 24, True, INK, ha="left")
+    write(ax, L + PW / 2, y0 - 84, "exchange after block", 28, color=MUTED)
+    crop(fig, ax, y0 - 120, top + 40)
     save(fig, "readmap")
 
 
@@ -1127,56 +1157,65 @@ def transfer(src=None):
     save(fig, "transfer")
 
 
-def opened(src=None, game="relay_word"):
-    """Over training, the percent of never-seen episodes of one game (default: relay a word; both receivers) in which
-    the real partner beats a partner from another episode, with the exact 95% interval, one line per run (src:
-    RUN_DIR|LABEL,...; payload_stepN.json files), labelled at its last point. Ties (a link that writes exactly
-    nothing, as at step 0 with a zero output projection) are left out; a step with only ties sits at 50%."""
+def opened(src=None, games=("relay_word", "merge_fact"), title=None):
+    """Over training, the percent of never-seen episodes (both receivers) in which the real partner beats a partner
+    from another episode, with the exact 95% interval: one panel per game (default: relay a word, the trained task, and
+    join a name and a city, never trained), one line per run (src: RUN_DIR|LABEL,...; payload_stepN.json files), each
+    labelled at its own end. Ties (a link that writes exactly nothing, as at step 0 with a zero output projection) are
+    left out; a step with only ties sits at 50%."""
     if not src:
         print("opened: give opened=RUN_DIR|LABEL[,...]")
         return
     from scipy.stats import beta
     runs = []
     for path, label in sources(src):
-        pts = []
+        per = {}
         for f in Path(path).glob("payload_step*.json"):
-            ds = [r["shuffle_ce"] - r["link_ce"] for r in json.loads(f.read_text()) if r["game"] == game]
-            k, n = sum(v > 0 for v in ds), sum(v != 0 for v in ds)      # a tie (an exactly closed link) is neither
-            if n:
-                lo = beta.ppf(0.025, k, n - k + 1) if k else 0.0
-                hi = beta.ppf(0.975, k + 1, n - k) if k < n else 1.0
-                pts.append((int(f.stem[len("payload_step"):]), 100 * k / n, 100 * lo, 100 * hi))
-            elif ds:
-                pts.append((int(f.stem[len("payload_step"):]), 50.0, 50.0, 50.0))
-        if pts:
-            runs.append((label, sorted(pts)))
+            st, rs = int(f.stem[len("payload_step"):]), json.loads(f.read_text())
+            for g in games:
+                ds = [r["shuffle_ce"] - r["link_ce"] for r in rs if r["game"] == g]
+                k, n = sum(v > 0 for v in ds), sum(v != 0 for v in ds)      # a tie (an exactly closed link) is neither
+                if n:
+                    lo = beta.ppf(0.025, k, n - k + 1) if k else 0.0
+                    hi = beta.ppf(0.975, k + 1, n - k) if k < n else 1.0
+                    per.setdefault(g, []).append((st, 100 * k / n, 100 * lo, 100 * hi))
+                elif ds:
+                    per.setdefault(g, []).append((st, 50.0, 50.0, 50.0))
+        if per:
+            runs.append((label, {g: sorted(v) for g, v in per.items()}))
     colours = [LINK, QUILL, EMBER, MUTED, INK, "#2F6FDE"]
-    fig, ax = canvas(1300, 2 * W)
-    L, PW, PH = 150, 1300, 900
-    top = 1240
-    write(ax, 40, top, "Words pass through the link once it starts from the fitted map between the two models", 34,
-          True, ha="left")
-    last = max(s for _, pts in runs for s, *_ in pts)
+    last = max(st for _, per in runs for pts in per.values() for st, *_ in pts)
     xt, xr = step_ticks(last)
-    y0 = top - 120 - PH
-    sx, sy = frame(ax, L, y0, PW, PH, xt, [0, 25, 50, 75, 100], xr, size=26)
-    ax.plot([sx(0), sx(last)], [sy(50)] * 2, color=MUTED, lw=2, ls=(0, (6, 6)), zorder=2)
-    write(ax, sx(last) + 16, sy(50), "no information (50%)", 26, color=MUTED, ha="left")
-    ends = []
-    for (label, pts), colour in zip(runs, colours):
-        xs = [sx(s) for s, *_ in pts]
-        ax.fill_between(xs, [sy(lo) for *_, lo, _ in pts], [sy(hi) for *_, hi in pts], color=colour, alpha=0.12,
-                        lw=0, zorder=2)
-        ax.plot(xs, [sy(v) for _, v, _, _ in pts], color=colour, lw=4, marker="o", ms=9, zorder=4)
-        ends.append([sy(pts[-1][1]), xs[-1], label, colour])
-    ends.sort(key=lambda e: -e[0])
-    for i in range(1, len(ends)):                          # labels at least 44 units apart
-        ends[i][0] = min(ends[i][0], ends[i - 1][0] - 44)
-    for yy, xx, label, colour in ends:                     # each at the end of its own line
-        write(ax, xx + 16, yy, label, 28, True, colour, ha="left")
-    write(ax, L + PW / 2, y0 - 84, "training step", 28, color=MUTED)
-    write(ax, 40, y0 + PH + 56, f"percent of never-seen {SHORT_GAME.get(game, game)} where the real partner wins", 28,
-          color=MUTED, ha="left")
+    L, PW, PH, LW = 150, 1000, 900, 420                    # left margin, panel width and height, label column
+    width = L + len(games) * (PW + LW)
+    fig, ax = canvas(1300, width)
+    top = 1240
+    write(ax, 40, top, title or "Never-seen values pass through the link from both starts", 34, True, ha="left")
+    y0 = top - 160 - PH
+    for i, g in enumerate(games):
+        x0 = L + i * (PW + LW)
+        sx, sy = frame(ax, x0, y0, PW, PH, xt, [0, 25, 50, 75, 100], xr, size=26)
+        ax.plot([sx(0), sx(last)], [sy(50)] * 2, color=MUTED, lw=2, ls=(0, (6, 6)), zorder=2)
+        name = SHORT_GAME.get(g, g) + (" (task never trained)" if g == "merge_fact" else "")
+        write(ax, x0 - 110, y0 + PH + 70, f"percent of never-seen {name} where the real partner wins", 28,
+              color=MUTED, ha="left")
+        ends = []
+        for (label, per), colour in zip(runs, colours):
+            pts = per.get(g)
+            if not pts:
+                continue
+            xs = [sx(st) for st, *_ in pts]
+            ax.fill_between(xs, [sy(lo) for *_, lo, _ in pts], [sy(hi) for *_, hi in pts], color=colour, alpha=0.12,
+                            lw=0, zorder=2)
+            ax.plot(xs, [sy(v) for _, v, _, _ in pts], color=colour, lw=4, marker="o", ms=9, zorder=4)
+            ends.append([sy(pts[-1][1]), xs[-1], label, colour])
+        ends.append([sy(50), sx(last), "no information", MUTED])
+        ends.sort(key=lambda e: -e[0])
+        for j in range(1, len(ends)):                      # labels at least 44 units apart
+            ends[j][0] = min(ends[j][0], ends[j - 1][0] - 44)
+        for yy, xx, label, colour in ends:                 # each at the end of its own line
+            write(ax, xx + 16, yy, label, 28, colour != MUTED, colour, ha="left")
+        write(ax, x0 + PW / 2, y0 - 84, "training step", 28, color=MUTED)
     crop(fig, ax, y0 - 120, top + 40)
     save(fig, "opened")
 
