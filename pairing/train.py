@@ -109,6 +109,9 @@ coldstart.add_arguments(ap)
 args = ap.parse_args()
 if args.warmup_steps < 0 or args.relay_first < 0 or args.hold < 0:
     ap.error("--warmup_steps, --relay_first and --hold must be nonnegative")
+RELAY_GAMES = tuple(args.relay_games.split(','))
+if not set(RELAY_GAMES) <= set(coldstart.VALUE_GAMES):
+    ap.error(f"--relay_games: from {','.join(coldstart.VALUE_GAMES)}")
 ddp.init()
 if not ddp.MAIN:
     sys.stdout = open(os.devnull, 'w')
@@ -221,7 +224,7 @@ VAL = G.bench('val') if BENCH else None
 
 def draw(rng, games, step, co):
     if step <= args.relay_first and not ONLY_QA:
-        return coldstart.relay_episode(games)
+        return coldstart.relay_episode(games, RELAY_GAMES)
     if args.solo:
         return G.qa_episode(rng.choice(BENCH), 'solo')
     if args.text_pair:

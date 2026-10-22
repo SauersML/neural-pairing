@@ -66,6 +66,22 @@ for i in range(8):
     assert all(built[r]['labels'][j][2]==1 for j in js)
     assert len(built[s]['labels'])==1
     assert ep['meta']['value'] not in ep['task'][r]
+# --relay_games: every value game; relays keep an unscored sender and the value out of the receiver's prompt, the
+# merges and lookups are their regular episodes with payload tokens; a mixed draw covers every game.
+from coldstart import VALUE_GAMES  # noqa: E402
+import re  # noqa: E402
+for game in VALUE_GAMES:
+    for i in range(4):
+        ep = relay_episode(g, (game,))
+        assert ep['game'] == game
+        pl = S.payload_labels(ep, toks)
+        assert pl, game
+        if game.startswith('relay'):
+            r, s = ep['meta']['receiver'], ep['meta']['sender']
+            whole = re.search(r'(?<!\w)' + re.escape(ep['meta']['value']) + r'(?!\w)', ep['task'][r])
+            assert list(pl) == [r] and ep['reply'][s] == ('', 0.0) and not whole, game
+seen = {relay_episode(g, VALUE_GAMES)['game'] for _ in range(200)}
+assert seen == set(VALUE_GAMES), seen
 
 models={x:link.load(x)[1] for x in link.SIDES}
 p=link.Pair(models,toks,(1,2,4),heads=2,head_dim=16,gate_norm=True)

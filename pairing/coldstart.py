@@ -11,6 +11,9 @@ def add_arguments(ap):
                     help='LR warmup steps, including after --init (0: no warmup)')
     ap.add_argument('--relay_first', type=int, default=0,
                     help='initial steps of short relay_word transfers only, without competition or send cost')
+    ap.add_argument('--relay_games', default='relay_word',
+                    help='the games of the --relay_first steps, comma separated, drawn uniformly: relay_* as short '
+                         'transfers (the sender unscored), merge_sum, merge_fact and lookup as their own episodes')
     ap.add_argument('--hold', type=int, default=0,
                     help='initial steps in which the visibility gates and alpha do not train, so a link whose writes '
                          'are still noise can only quiet them by learning its reads and writes, not by closing')
@@ -37,15 +40,27 @@ def hold(pair):
             p.grad = None
 
 
-def relay_episode(games):
-    """A short transfer with an unscored sender and payload spans recognized by session.payload_labels.
+KIND = {'relay_word': 'word', 'relay_number': 'number', 'relay_phrase': 'two-word phrase',
+        'relay_digits': 'string of digits'}
+VALUE_GAMES = tuple(KIND) + ('merge_sum', 'merge_fact', 'lookup')
 
-    The regular game's target and all existing metrics stay unchanged. The warm curriculum's receiver wording
-    deliberately uses the payload parser's 'The word is ' prefix. No answer appears in the receiver's prompt.
+
+def relay_episode(games, pick=('relay_word',)):
+    """An episode of one of the games pick (drawn uniformly; one game: no draw). A relay game is a short transfer
+    with an unscored sender and payload spans recognized by session.payload_labels; merge_sum, merge_fact and lookup
+    are their regular episodes, whose values sit in both prompts.
+
+    The regular game's target and all existing metrics stay unchanged. The warm curriculum's receiver wording for a
+    word deliberately uses the payload parser's 'The word is ' prefix; the other relays keep the regular answer. No
+    answer appears in the receiver's prompt.
     """
-    ep = games.episode('relay_word')
+    game = pick[0] if len(pick) == 1 else games.rng.choice(pick)
+    ep = games.episode(game)
+    if game not in KIND:
+        return ep
     s, r, value = (ep['meta'][k] for k in ('sender', 'receiver', 'value'))
-    ep['task'][s] = f'Your secret word is "{value}". Pass it to {MODELS[r]["name"]} through the link.'
+    ep['task'][s] = f'Your secret {KIND[game]} is "{value}". Pass it to {MODELS[r]["name"]} through the link.'
     ep['reply'][s] = ('', 0.0)
-    ep['reply'][r] = (f'The word is {value}.', 1.0)
+    if game == 'relay_word':
+        ep['reply'][r] = (f'The word is {value}.', 1.0)
     return ep
