@@ -12,7 +12,19 @@ model wrote both sides of a script) or has a line that is a stage direction ('*T
 turn repeats the partner's previous turn verbatim.
 
 Writes data/talk.json {'train': [...], 'test': [...]}: per conversation the item, the asker, the three turns.
-Usage: python prep_talk.py [--n_train 1200] [--n_test 120] [--bs 16]   (NL_DEVICE=mps on the Mac)
+
+With --play, conversations for co_play (coread.PLAY) instead: a game in text while each twin holds a secret the
+other reads through the link (a word to guess, a wished-for gift, a holiday city, a story character, a rhyme's last
+word; the test part draws secrets from the held-out pools), --turns turns long. The opener names the partner's secret
+in turn 0, the partner reacts and names the opener's in turn 1, and they keep playing; every turn is written by the
+original models. Each naming turn is written with the partner's secret shown in the writer's prompt
+(coread.play_system peek). Stage-direction lines and a cut-off last sentence are trimmed from every play turn (clean),
+and a conversation is kept only when both naming turns name every field of the partner's
+secret and the opener's first turn does not give away the opener's own (so the second naming also needs the link);
+those spans are the payload. Writes data/play.json: per conversation the game, the opener, both secrets, the
+system prompts, the turns and the payload spans per side.
+
+Usage: python prep_talk.py [--n_train 1200] [--n_test 120] [--bs 16] [--play [--turns 6]]   (NL_DEVICE=mps on the Mac)
 With --mlx the turns come from the 4-bit MLX bases the Mac trains on (mlx_pair.load_base), about 2.5 GB per model.
 """
 import argparse
@@ -25,11 +37,26 @@ import torch
 
 import link
 import session as S
-from coread import talk_turn0, talk_system
+from coread import PLAY, play_secret, play_spans, play_system, talk_turn0, talk_system
 from coread_data import held_out
 from link import DEVICE, SIDES, partner
 
 BAD = re.compile(r'(^|\n|\*\*)\s*\w*(Quill|Ember)\w*\s*(\*\*)?\s*:|^\s*\*[^*\n]+\*\s*$|<think>', re.M | re.I)
+
+
+STAGE = re.compile(r'^\s*\*[^*\n]+\*\s*$', re.M)
+ACTION = re.compile(r'[ \t]*(?<!\*)\*(?!\*)[^*\n]{1,80}(?<!\*)\*(?!\*)')
+
+
+def clean(text):
+    """A play turn without its stage directions (lines or inline actions in single asterisks: '*sends a vector*',
+    '*grins*'; bold stays) and without a last sentence cut off by the token limit (empty when no sentence is
+    complete)."""
+    t = ACTION.sub('', STAGE.sub('', text))
+    t = re.sub(r'\n{3,}', '\n\n', re.sub(r'^[ \t]+', '', t, flags=re.M)).strip()
+    if t and t[-1] not in '.!?"\')':
+        t = t[:max(t.rfind(c) for c in '.!?') + 1]
+    return t.strip()
 
 
 def echoes(text, prev):
@@ -42,11 +69,15 @@ ap.add_argument('--n_train', type=int, default=1200)
 ap.add_argument('--n_test', type=int, default=120)
 ap.add_argument('--reply', type=int, default=96)
 ap.add_argument('--bs', type=int, default=16)
-ap.add_argument('--out', default=os.path.join(ROOT, 'data', 'talk.json'))
+ap.add_argument('--out', default=None, help='default data/talk.json, with --play data/play.json')
 ap.add_argument('--coread', default=os.path.join(ROOT, 'data', 'coread.json'))
 ap.add_argument('--mlx', action='store_true', help='generate with the 4-bit MLX bases (mlx_pair.load_base)')
 ap.add_argument('--mlx_gib', type=float, default=5.0, help='MLX memory limit with --mlx')
+ap.add_argument('--play', action='store_true', help='co_play conversations (coread.PLAY) in place of co_talk')
+ap.add_argument('--turns', type=int, default=None, help='turns per conversation (default 3; with --play 6, at least 2)')
 args = ap.parse_args()
+args.turns = args.turns or (6 if args.play else 3)
+args.out = args.out or os.path.join(ROOT, 'data', 'play.json' if args.play else 'talk.json')
 
 
 def context(tok, x, system, turns):
@@ -106,17 +137,31 @@ def generate(tok, model, prompts, seed):
     return out
 
 
-data = json.load(open(args.coread))
 rng = random.Random(0)
 convs = {}
-pool = {'train': data['train'], 'test': held_out(data['train'], data['test'])}    # test: no content seen in training
-for split, n in (('train', args.n_train), ('test', args.n_test)):
-    items = [it for it in pool[split] if it['task'] in ('qa', 'hop') and len(it['answer']) <= 80]
-    convs[split] = [dict(item=it, asker=rng.choice(SIDES)) for it in rng.sample(items, min(n, len(items)))]
-    for c in convs[split]:
-        c['holder'] = partner(c['asker'])
-        c['system'] = {x: talk_system(c['item'], x, c['asker']) for x in SIDES}
-        c['turns'] = [(c['asker'], talk_turn0(c['item']))]
+if args.play:
+    from games import POOLS
+    for split, n in (('train', args.n_train), ('test', args.n_test)):
+        pools = {k: v[split] for k, v in POOLS.items()}               # test: secrets from the held-out pools
+        convs[split] = []
+        for i in range(n):
+            game, opener = list(PLAY)[i % len(PLAY)], rng.choice(SIDES)
+            secrets = {x: play_secret(game, pools, rng) for x in SIDES}
+            convs[split].append(dict(game=game, opener=opener, secrets=secrets, asker=opener, holder=partner(opener),
+                                     turns=[], system={x: play_system(game, x, opener, secrets) for x in SIDES},
+                                     peek=[play_system(game, x, opener, secrets, peek=True)
+                                           for x in (opener, partner(opener))]))
+else:
+    data = json.load(open(args.coread))
+    # test: no content seen in training
+    pool = {'train': data['train'], 'test': held_out(data['train'], data['test'])}
+    for split, n in (('train', args.n_train), ('test', args.n_test)):
+        items = [it for it in pool[split] if it['task'] in ('qa', 'hop') and len(it['answer']) <= 80]
+        convs[split] = [dict(item=it, asker=rng.choice(SIDES)) for it in rng.sample(items, min(n, len(items)))]
+        for c in convs[split]:
+            c['holder'] = partner(c['asker'])
+            c['system'] = {x: talk_system(c['item'], x, c['asker']) for x in SIDES}
+            c['turns'] = [(c['asker'], talk_turn0(c['item']))]
 allc = convs['train'] + convs['test']
 # One model in memory at a time (the Mac): Quill's holders, then Ember's holders and askers, then Quill's askers.
 # Turn 2 of a conversation needs its turn 1, which the partner (the holder) wrote in an earlier pass.
@@ -143,9 +188,10 @@ def model(x):
 def turn(k, who, x):
     tok, m = model(x)
     mine = [c for c in allc if c[who] == x and len(c['turns']) == k]
-    texts = generate(tok, m, [context(tok, x, c['system'][x], c['turns']) for c in mine], seed=k)
+    sysp = [c['peek'][k] if k < 2 and 'peek' in c else c['system'][x] for c in mine]    # play: the naming turns
+    texts = generate(tok, m, [context(tok, x, p, c['turns']) for p, c in zip(sysp, mine)], seed=k)
     for c, t in zip(mine, texts):
-        c['turns'].append((x, t))
+        c['turns'].append((x, clean(t) if args.play else t))
     if mine:
         print(f'turn {k} ({who} {x}): {len(mine)}; example: {mine[0]["turns"]}', flush=True)
 
@@ -153,19 +199,28 @@ def turn(k, who, x):
 def prune(k):
     global allc
     keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])
-            and not echoes(c['turns'][-1][1], c['turns'][-2][1])]
+            and (k == 0 or not echoes(c['turns'][-1][1], c['turns'][-2][1]))
+            and (k > 1 or 'secrets' not in c or play_spans(c['secrets'][partner(c['turns'][k][0])], c['turns'][k][1]))
+            and (k > 0 or 'secrets' not in c or not play_spans(c['secrets'][c['turns'][0][0]], c['turns'][0][1]))]
     print(f'turn {k}: kept {len(keep)} of {len(allc)}', flush=True)
     allc = keep
 
 
-q, e = SIDES
-turn(1, 'holder', q)
-turn(1, 'holder', e)
-prune(1)                                                  # turn 1: the holder reacts
-turn(2, 'asker', e)
-turn(2, 'asker', q)
-prune(2)                                                  # turn 2: the asker replies
+# talk: turn 1 the holder reacts, turn 2 the asker replies. play: turn 0 the opener (the asker) names the partner's
+# secret, turn 1 the partner reacts and names the opener's, then they alternate. Each turn runs both models, the one
+# loaded last first.
+order = list(SIDES)
+for k in range(0 if args.play else 1, args.turns):
+    for x in order:
+        turn(k, 'asker' if k % 2 == 0 else 'holder', x)
+    order.reverse()
+    prune(k)
 kept = {id(c) for c in allc}
 convs = {split: [c for c in v if id(c) in kept] for split, v in convs.items()}
+for c in allc:
+    if args.play:
+        c['spans'] = {sp: play_spans(c['secrets'][partner(sp)], text) for sp, text in c['turns'][:2]}
+        for k in ('holder', 'asker', 'peek'):
+            del c[k]
 json.dump(convs, open(args.out, 'w'), indent=1)
 print('wrote', args.out, {s: len(v) for s, v in convs.items()}, flush=True)

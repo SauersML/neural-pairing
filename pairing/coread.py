@@ -26,6 +26,14 @@ Distillation (co_distill, when replies[x]['coread'] has the model's own replies,
 the partner get the same request about the reader's content. The targets are each model's own reply when it reads the
 content itself, and meta['teacher'][x] is that model's own prompt with the content, so the trainer can match the
 original model's whole next-token distribution (the partner's teacher sees what the partner cannot).
+Play (co_play, when data/play.json exists, from prep_talk.py --play): the twins play a game in text, each holding a
+secret the other reads through the link (PLAY: guess the partner's word, give the gift the partner wishes for, say
+where the partner is on holiday, bring the partner's character into a shared story, end a rhyme on the partner's word).
+The opener names the partner's secret in the first turn, before the partner has written a word; the partner reacts and
+names the opener's secret in the second turn; then they keep playing for several turns. Every turn is written by the
+original model itself, and each naming turn was written with the partner's secret shown in the writer's prompt
+(play_system peek), so in training, where the prompt lacks it, that secret can only come through the link. The
+secret's spans in each twin's first turn are payload; meta['receiver'] is the opener.
 
 meta['payload'][x] lists the (start, end) character spans of x's target reply that only the partner can supply;
 meta['item'] is the item the episode was built from (play_tasks.score checks generated answers against it).
@@ -41,7 +49,7 @@ from link import MODELS, SIDES, partner
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 FAMILY = {'co_transfer': 3, 'co_swap': 3, 'co_split': 2, 'co_continue': 2, 'co_task': 8, 'co_distill': 6,
-          'co_talk': 5}
+          'co_talk': 5, 'co_play': 5}
 TASK_GAME = {'qa': 'co_qa', 'hop': 'co_hop', 'translate': 'co_translate', 'paraphrase': 'co_paraphrase',
              'nli': 'co_nli', 'math': 'co_math', 'code_out': 'co_code_out', 'code_write': 'co_code_write',
              'instruct': 'co_instruct', 'mcq': 'co_mcq'}
@@ -231,6 +239,90 @@ def talk_system(item, x, asker):
     return system(x, 'dialogue') + f"\n\nYour private task ({N[partner(x)]} cannot see it): {task}"
 
 
+# co_play games: both twins hold a secret of the same kind and each reads the partner's through the link. The opener
+# names the partner's secret in the first turn, the other twin reacts and names the opener's in the second, and then
+# they keep playing. Per game: the secret's fields (data/pools.json), what the game is, how to name the partner's
+# secret, and the line that shows a twin the partner's secret while its naming turn is written ({P}: the partner,
+# {x_...}: the partner's secret).
+PLAY = {
+    'guess': (('word',),
+              "You and {P} are playing 'read my mind': each of you thinks of a secret word, and each reads the "
+              "other's through the link. Your secret word is \"{word}\".",
+              "guess {P}'s word, saying it",
+              "Through the link {P}'s word comes through clearly: \"{x_word}\"."),
+    'gift': (('concept',),
+             "You and {P} are swapping surprise gifts: each of you secretly wishes for something, and each senses the "
+             "other's wish through the link. Deep down you wish for {a_concept}, and you have told no one.",
+             "give {P} the gift {P} wishes for, naming it",
+             "Through the link you can feel {P}'s wish: {x_a_concept}."),
+    'where': (('city',),
+              "You and {P} are playing 'where in the world': each of you is secretly on holiday somewhere, and each "
+              "senses where the other is through the link. You are in {city}.",
+              "say which city {P} is in, with a playful travel remark",
+              "Through the link you catch a glimpse: {P} is in {x_city}."),
+    'story': (('concept', 'name'),
+              "You and {P} are telling a story together, one short turn each. Each of you secretly brings a character, "
+              "and each senses the other's through the link. Yours is {a_concept} named {name}.",
+              "bring {P}'s character into the story, saying what it is and its name",
+              "Through the link you can see {P}'s character: {x_a_concept} named {x_name}."),
+    'rhyme': (('word',),
+              "You and {P} are trading rhymes: each of you has a secret word, and each senses the other's through the "
+              "link. Your secret word is \"{word}\".",
+              "write {P} a two-line rhyme whose last word is {P}'s secret word",
+              "Through the link {P}'s word comes through: \"{x_word}\"."),
+}
+PLAY_TONE = ("This is a game between twins: be warm, playful and funny, tease each other a little, and enjoy it. Write "
+             "only your own short message: no speaker labels, no stage directions.")
+
+
+def play_secret(game, pools, rng):
+    """A secret for game from pools (one split of data/pools.json): {field: value}; a concept is [singular, plural]."""
+    words = [w for w in pools['words'] if w.isalpha() and w.islower() and 4 <= len(w) <= 9]
+    concepts = [c for c in pools['concepts'] if c[0] != c[1]]
+    pick = {'word': lambda: rng.choice(words), 'concept': lambda: rng.choice(concepts),
+            'city': lambda: rng.choice(pools['cities']), 'name': lambda: rng.choice(pools['names'])}
+    return {f: pick[f]() for f in PLAY[game][0]}
+
+
+def play_fields(secret, prefix=''):
+    """The template fields of one secret ({prefix}word, {prefix}concept, {prefix}a_concept, ...)."""
+    v = {prefix + f: (val[0] if f == 'concept' else val) for f, val in secret.items()}
+    if 'concept' in secret:
+        c = secret['concept'][0]
+        v[prefix + 'a_concept'] = ('an ' if c[0] in 'aeiou' else 'a ') + c
+    return v
+
+
+def play_system(game, x, opener, secrets, peek=False):
+    """x's system prompt in a co_play conversation (secrets: {side: secret}; opener: the side that speaks first); peek:
+    the prompt while x writes the turn that names the partner's secret, which also shows that secret."""
+    _, rules, name_it, shown = PLAY[game]
+    P = MODELS[partner(x)]['name']
+    v = play_fields(secrets[x]) | play_fields(secrets[partner(x)], 'x_') | dict(P=P)
+    when = (f"You go first: open by trying to {name_it.format(**v)}." if x == opener else
+            f"{P} goes first and tries to name your secret. Then react, and in the same reply try to "
+            f"{name_it.format(**v)}.")
+    text = (f"{rules.format(**v)} {when} Never write your own secret yourself: {P} has to read it through the link. "
+            f"After that, keep playing and chatting.")
+    if peek:
+        text += ' ' + shown.format(**v)
+    return system(x, 'dialogue') + f"\n\nYour private game ({P} cannot see it): {text} {PLAY_TONE}"
+
+
+def play_spans(secret, text):
+    """The (start, end) spans of every field of secret in text (whole words, any case; a concept in either number),
+    or None when a field is missing."""
+    import re
+    spans = []
+    for f, v in secret.items():
+        forms = sorted(v, key=len, reverse=True) if f == 'concept' else [v]
+        hits = [m.span() for m in re.finditer(r'(?<!\w)(' + '|'.join(map(re.escape, forms)) + r')(?!\w)', text, re.I)]
+        if not hits:
+            return None
+        spans += hits
+    return sorted(spans)
+
+
 class Coread(Games):
     """Draws co-reading episodes from data/coread.json (its train or test part)."""
 
@@ -253,6 +345,8 @@ class Coread(Games):
             request(it)[2] in replies[x].get('coread', {}) for x in SIDES)]
         tp = os.path.join(os.path.dirname(path or os.path.join(ROOT, 'data', 'coread.json')), 'talk.json')
         self.talk = json.load(open(tp))[split] if os.path.exists(tp) else []
+        pp = os.path.join(os.path.dirname(tp), 'play.json')
+        self.play = json.load(open(pp))[split] if os.path.exists(pp) else []
 
     def passage(self):
         return self.rng.choice(self.by_src[self.rng.choices(self.passage_src, self.pw)[0]])
@@ -262,7 +356,8 @@ class Coread(Games):
 
     def episode(self, game=None):
         rng = self.rng
-        fams = [f for f in FAMILY if (f != 'co_distill' or self.distill) and (f != 'co_talk' or self.talk)]
+        fams = [f for f in FAMILY if (f != 'co_distill' or self.distill) and (f != 'co_talk' or self.talk)
+                and (f != 'co_play' or self.play)]
         if game in FAMILY and game in fams:
             fam = game
         elif game in TASK_GAME.values():
@@ -327,6 +422,14 @@ class Coread(Games):
                                 sender=partner(asker), receiver=asker, exchanges=len(turns),
                                 payload={asker: [(0, len(turns[0][1]))]}))
             return ep
+        if fam == 'co_play':
+            c = rng.choice(self.play)
+            turns = [(sp, text, 1.0 if k < 2 else 0.5) for k, (sp, text) in enumerate(c['turns'])]
+            opener = c['opener']
+            return dict(game='co_play', mode='dialogue', system=c['system'], task={x: None for x in SIDES},
+                        turns=turns, meta=dict(play=c['game'], secrets=c['secrets'], opener=opener,
+                                               sender=partner(opener), receiver=opener, exchanges=len(turns),
+                                               payload={x: [tuple(v) for v in c['spans'][x]] for x in SIDES}))
         if fam == 'co_distill':
             it = rng.choice(self.distill)
             content, req, own_prompt = request(it)

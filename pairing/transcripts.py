@@ -1,11 +1,11 @@
 """Raw transcripts of the pair: n never-seen episodes of every scored co-reading game (play_tasks.SCORED), every
-payload game and co_talk (when talk.json sits next to the co-reading data), generated greedily three ways on the same
-episodes: with the bridges, without them ('cut'), and shuffled (each episode reads the partner of another episode of
-the same game). Per episode: each side's system and user prompt, its target, its text under each condition with the
-scores, and per side one line of gate means per tick (the prompt's tick first). A co_talk episode is a whole
-conversation: its target is the reference conversation [[speaker, text], ...], and each condition gives the turns
-written, the score of the asker's first turn, and per side the mean gate of the prompt and of each turn. Writes
-FILE.txt and FILE.json.
+payload game, co_talk and co_play (when talk.json and play.json sit next to the co-reading data), generated greedily
+three ways on the same episodes: with the bridges, without them ('cut'), and shuffled (each episode reads the partner
+of another episode of the same game). Per episode: each side's system and user prompt, its target, its text under each
+condition with the scores, and per side one line of gate means per tick (the prompt's tick first). A co_talk or co_play
+episode is a whole conversation: its target is the reference conversation [[speaker, text], ...], and each condition
+gives the turns written, the scores (co_talk: the asker's first turn; co_play: each twin's naming turn) and per side
+the mean gate of the prompt and of each turn. Writes FILE.txt and FILE.json.
 
 Usage: python transcripts.py --run RUN/step_N --replies REPLIES.json --out FILE.txt [--n 3] [--device mps]
 """
@@ -51,7 +51,7 @@ def turn_gates(steps, turns, n):
 
 pair, toks = load_pair(args.run)
 eps = payload_ctl.episodes(json.load(open(args.replies)), args.n, coread=True, path=args.coread_data)
-games = [g for g in payload_ctl.PAYLOAD_GAMES + play_tasks.SCORED + ('co_talk',) if g in eps]
+games = [g for g in payload_ctl.PAYLOAD_GAMES + play_tasks.SCORED + ('co_talk', 'co_play') if g in eps]
 out, lines = [], []
 with torch.no_grad():
     for g in games:

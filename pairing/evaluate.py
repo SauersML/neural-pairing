@@ -82,6 +82,13 @@ def score(ep, res):
             import play_tasks
             first = turns[0][1] if turns and turns[0][0] == m['asker'] else ''
             return {'ok': play_tasks.score_one(g, m['item'], first, m['asker'], ep)}
+        if g == 'co_play':                  # each twin's naming turn names every field of the partner's secret
+            import coread
+            each = {}
+            for k, x in enumerate((m['opener'], partner(m['opener']))):
+                t = turns[k][1] if len(turns) > k and turns[k][0] == x else ''
+                each[x] = float(coread.play_spans(m['secrets'][partner(x)], t) is not None)
+            return {'ok': mean(list(each.values())), 'each': each}
         raise ValueError(g)
     out = res['text']
     if g.startswith('co_'):                 # co-reading tasks: automatic checks against the references (play_tasks)
