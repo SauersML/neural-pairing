@@ -1,0 +1,87 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  82%|████████▏ | 325/398 [00:00<00:00, 3244.07it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 3296.25it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 3135.12it/s]
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+{"checkpoint": "before", "complete": 8, "total": 640, "kind": "job", "condition": "link", "seconds": 83.0}
+{"checkpoint": "before", "complete": 16, "total": 640, "kind": "job", "condition": "link", "seconds": 83.6}
+{"checkpoint": "before", "complete": 24, "total": 640, "kind": "job", "condition": "cut", "seconds": 79.3}
+{"checkpoint": "before", "complete": 32, "total": 640, "kind": "job", "condition": "cut", "seconds": 72.3}
+{"checkpoint": "before", "complete": 40, "total": 640, "kind": "job", "condition": "crossed", "seconds": 231.9}
+{"checkpoint": "before", "complete": 48, "total": 640, "kind": "job", "condition": "crossed", "seconds": 221.0}
+{"checkpoint": "before", "complete": 56, "total": 640, "kind": "job", "condition": "crossed", "seconds": 82.1}
+{"checkpoint": "before", "complete": 64, "total": 640, "kind": "job", "condition": "crossed", "seconds": 80.7}
+{"checkpoint": "before", "complete": 72, "total": 640, "kind": "pet", "condition": "link", "seconds": 84.7}
+{"checkpoint": "before", "complete": 80, "total": 640, "kind": "pet", "condition": "link", "seconds": 76.0}
+{"checkpoint": "before", "complete": 88, "total": 640, "kind": "pet", "condition": "cut", "seconds": 84.4}
+{"checkpoint": "before", "complete": 96, "total": 640, "kind": "pet", "condition": "cut", "seconds": 78.8}
+{"checkpoint": "before", "complete": 104, "total": 640, "kind": "pet", "condition": "crossed", "seconds": 81.7}
+{"checkpoint": "before", "complete": 112, "total": 640, "kind": "pet", "condition": "crossed", "seconds": 89.8}
+{"checkpoint": "before", "complete": 120, "total": 640, "kind": "pet", "condition": "crossed", "seconds": 84.6}
+{"checkpoint": "before", "complete": 128, "total": 640, "kind": "pet", "condition": "crossed", "seconds": 89.2}
+{"checkpoint": "before", "complete": 136, "total": 640, "kind": "mood", "condition": "link", "seconds": 82.4}
+{"checkpoint": "before", "complete": 144, "total": 640, "kind": "mood", "condition": "link", "seconds": 87.6}
+{"checkpoint": "before", "complete": 152, "total": 640, "kind": "mood", "condition": "cut", "seconds": 79.5}
+{"checkpoint": "before", "complete": 160, "total": 640, "kind": "mood", "condition": "cut", "seconds": 71.4}
+{"checkpoint": "before", "complete": 168, "total": 640, "kind": "mood", "condition": "crossed", "seconds": 85.4}
+{"checkpoint": "before", "complete": 176, "total": 640, "kind": "mood", "condition": "crossed", "seconds": 75.7}
+{"checkpoint": "before", "complete": 184, "total": 640, "kind": "mood", "condition": "crossed", "seconds": 86.9}
+{"checkpoint": "before", "complete": 192, "total": 640, "kind": "mood", "condition": "crossed", "seconds": 81.6}
+{"checkpoint": "before", "complete": 200, "total": 640, "kind": "food", "condition": "link", "seconds": 82.0}
+{"checkpoint": "before", "complete": 208, "total": 640, "kind": "food", "condition": "link", "seconds": 89.8}
+{"checkpoint": "before", "complete": 216, "total": 640, "kind": "food", "condition": "cut", "seconds": 83.0}
+{"checkpoint": "before", "complete": 224, "total": 640, "kind": "food", "condition": "cut", "seconds": 75.2}
+{"checkpoint": "before", "complete": 232, "total": 640, "kind": "food", "condition": "crossed", "seconds": 86.1}
+{"checkpoint": "before", "complete": 240, "total": 640, "kind": "food", "condition": "crossed", "seconds": 85.1}
+{"checkpoint": "before", "complete": 248, "total": 640, "kind": "food", "condition": "crossed", "seconds": 87.9}
+{"checkpoint": "before", "complete": 256, "total": 640, "kind": "food", "condition": "crossed", "seconds": 90.1}
+{"checkpoint": "before", "complete": 264, "total": 640, "kind": "hobby", "condition": "link", "seconds": 81.1}
+{"checkpoint": "before", "complete": 272, "total": 640, "kind": "hobby", "condition": "link", "seconds": 59.9}
+{"checkpoint": "before", "complete": 280, "total": 640, "kind": "hobby", "condition": "cut", "seconds": 54.2}
+{"checkpoint": "before", "complete": 288, "total": 640, "kind": "hobby", "condition": "cut", "seconds": 52.7}
+{"checkpoint": "before", "complete": 296, "total": 640, "kind": "hobby", "condition": "crossed", "seconds": 60.5}
+{"checkpoint": "before", "complete": 304, "total": 640, "kind": "hobby", "condition": "crossed", "seconds": 59.4}
+{"checkpoint": "before", "complete": 312, "total": 640, "kind": "hobby", "condition": "crossed", "seconds": 60.3}
+{"checkpoint": "before", "complete": 320, "total": 640, "kind": "hobby", "condition": "crossed", "seconds": 59.5}
+{"checkpoint": "before", "complete": 328, "total": 640, "kind": "secret_word", "condition": "link", "seconds": 60.2}
+{"checkpoint": "before", "complete": 336, "total": 640, "kind": "secret_word", "condition": "link", "seconds": 60.9}
+{"checkpoint": "before", "complete": 344, "total": 640, "kind": "secret_word", "condition": "cut", "seconds": 51.6}
+{"checkpoint": "before", "complete": 352, "total": 640, "kind": "secret_word", "condition": "cut", "seconds": 52.5}
+{"checkpoint": "before", "complete": 360, "total": 640, "kind": "secret_word", "condition": "crossed", "seconds": 49.9}
+{"checkpoint": "before", "complete": 368, "total": 640, "kind": "secret_word", "condition": "crossed", "seconds": 59.6}
+{"checkpoint": "before", "complete": 376, "total": 640, "kind": "secret_word", "condition": "crossed", "seconds": 60.1}
+{"checkpoint": "before", "complete": 384, "total": 640, "kind": "secret_word", "condition": "crossed", "seconds": 60.4}
+{"checkpoint": "before", "complete": 392, "total": 640, "kind": "trip", "condition": "link", "seconds": 59.9}
+{"checkpoint": "before", "complete": 400, "total": 640, "kind": "trip", "condition": "link", "seconds": 60.7}
+{"checkpoint": "before", "complete": 408, "total": 640, "kind": "trip", "condition": "cut", "seconds": 46.5}
+{"checkpoint": "before", "complete": 416, "total": 640, "kind": "trip", "condition": "cut", "seconds": 51.5}
+{"checkpoint": "before", "complete": 424, "total": 640, "kind": "trip", "condition": "crossed", "seconds": 62.1}
+{"checkpoint": "before", "complete": 432, "total": 640, "kind": "trip", "condition": "crossed", "seconds": 59.5}
+{"checkpoint": "before", "complete": 440, "total": 640, "kind": "trip", "condition": "crossed", "seconds": 59.8}
+{"checkpoint": "before", "complete": 448, "total": 640, "kind": "trip", "condition": "crossed", "seconds": 59.1}
+{"checkpoint": "before", "complete": 456, "total": 640, "kind": "recent_event", "condition": "link", "seconds": 54.9}
+{"checkpoint": "before", "complete": 464, "total": 640, "kind": "recent_event", "condition": "link", "seconds": 60.3}
+{"checkpoint": "before", "complete": 472, "total": 640, "kind": "recent_event", "condition": "cut", "seconds": 50.5}
+{"checkpoint": "before", "complete": 480, "total": 640, "kind": "recent_event", "condition": "cut", "seconds": 55.4}
+{"checkpoint": "before", "complete": 488, "total": 640, "kind": "recent_event", "condition": "crossed", "seconds": 61.6}
+{"checkpoint": "before", "complete": 496, "total": 640, "kind": "recent_event", "condition": "crossed", "seconds": 63.2}
+{"checkpoint": "before", "complete": 504, "total": 640, "kind": "recent_event", "condition": "crossed", "seconds": 63.1}
+{"checkpoint": "before", "complete": 512, "total": 640, "kind": "recent_event", "condition": "crossed", "seconds": 61.1}
+{"checkpoint": "before", "complete": 520, "total": 640, "kind": "instrument", "condition": "link", "seconds": 61.6}
+{"checkpoint": "before", "complete": 528, "total": 640, "kind": "instrument", "condition": "link", "seconds": 60.6}
+{"checkpoint": "before", "complete": 536, "total": 640, "kind": "instrument", "condition": "cut", "seconds": 52.0}
+{"checkpoint": "before", "complete": 544, "total": 640, "kind": "instrument", "condition": "cut", "seconds": 52.6}
+{"checkpoint": "before", "complete": 552, "total": 640, "kind": "instrument", "condition": "crossed", "seconds": 60.8}
+{"checkpoint": "before", "complete": 560, "total": 640, "kind": "instrument", "condition": "crossed", "seconds": 59.8}
+{"checkpoint": "before", "complete": 568, "total": 640, "kind": "instrument", "condition": "crossed", "seconds": 59.1}
+{"checkpoint": "before", "complete": 576, "total": 640, "kind": "instrument", "condition": "crossed", "seconds": 59.4}
+{"checkpoint": "before", "complete": 584, "total": 640, "kind": "project", "condition": "link", "seconds": 59.0}
+{"checkpoint": "before", "complete": 592, "total": 640, "kind": "project", "condition": "link", "seconds": 60.4}
+{"checkpoint": "before", "complete": 600, "total": 640, "kind": "project", "condition": "cut", "seconds": 52.1}
+{"checkpoint": "before", "complete": 608, "total": 640, "kind": "project", "condition": "cut", "seconds": 54.2}
+{"checkpoint": "before", "complete": 616, "total": 640, "kind": "project", "condition": "crossed", "seconds": 61.6}
+{"checkpoint": "before", "complete": 624, "total": 640, "kind": "project", "condition": "crossed", "seconds": 61.4}
+{"checkpoint": "before", "complete": 632, "total": 640, "kind": "project", "condition": "crossed", "seconds": 61.1}
+{"checkpoint": "before", "complete": 640, "total": 640, "kind": "project", "condition": "crossed", "seconds": 62.1}
+{"complete": false, "checkpoints": {"after": {"job": {"link": 0, "cut": 0, "crossed": 0}, "pet": {"link": 0, "cut": 0, "crossed": 0}, "mood": {"link": 0, "cut": 0, "crossed": 0}, "food": {"link": 0, "cut": 0, "crossed": 0}, "hobby": {"link": 0, "cut": 0, "crossed": 0}, "secret_word": {"link": 0, "cut": 0, "crossed": 0}, "trip": {"link": 0, "cut": 0, "crossed": 0}, "recent_event": {"link": 0, "cut": 0, "crossed": 0}, "instrument": {"link": 0, "cut": 0, "crossed": 0}, "project": {"link": 0, "cut": 0, "crossed": 0}}, "before": {"job": {"link": 1, "cut": 0, "crossed": 0}, "pet": {"link": 3, "cut": 0, "crossed": 0}, "mood": {"link": 4, "cut": 0, "crossed": 2}, "food": {"link": 3, "cut": 0, "crossed": 0}, "hobby": {"link": 3, "cut": 1, "crossed": 0}, "secret_word": {"link": 11, "cut": 1, "crossed": 0}, "trip": {"link": 4, "cut": 0, "crossed": 0}, "recent_event": {"link": 4, "cut": 0, "crossed": 0}, "instrument": {"link": 0, "cut": 0, "crossed": 0}, "project": {"link": 2, "cut": 0, "crossed": 0}}}}

@@ -1,0 +1,238 @@
+{
+  "protocol": {
+    "concepts": {
+      "ocean": [
+        "ocean oceans sea seas beach beaches waves tide tides coastal shoreline marine",
+        [
+          "Ocean waves break on a sandy beach.",
+          "The sea stretches beyond the horizon.",
+          "A tide rises along the rocky coast.",
+          "Salt water surrounds a distant island.",
+          "Marine life thrives beneath the ocean.",
+          "A ship crosses the deep blue sea.",
+          "Foam washes across the shoreline.",
+          "Coral reefs grow in tropical seas.",
+          "Seabirds glide above rolling waves.",
+          "The beach curves around a sheltered bay."
+        ]
+      ],
+      "fire": [
+        "fire fires flame flames burning blaze blazing embers wildfire smoke",
+        [
+          "A fire burns brightly in the hearth.",
+          "Flames rise from dry branches.",
+          "Smoke curls above a campfire.",
+          "Glowing embers warm the dark room.",
+          "A wildfire spreads across dry grass.",
+          "The candle flame flickers gently.",
+          "Burning logs crackle in the fireplace.",
+          "Heat radiates from the blazing wood.",
+          "Firefighters extinguish a fierce blaze.",
+          "Sparks fly upward from the bonfire."
+        ]
+      ],
+      "music": [
+        "music musical melody melodies song songs singing piano guitar rhythm concert",
+        [
+          "Music fills the concert hall.",
+          "A pianist plays a gentle melody.",
+          "The guitar accompanies a familiar song.",
+          "A singer practices a new tune.",
+          "The orchestra performs a symphony.",
+          "Drums establish a steady rhythm.",
+          "A violin plays a soaring phrase.",
+          "The choir sings in harmony.",
+          "Musicians rehearse for a concert.",
+          "A recording captures the beautiful music."
+        ]
+      ],
+      "cats": [
+        "cat cats kitten kittens feline felines meow meowing purr purring",
+        [
+          "A cat sleeps on the windowsill.",
+          "The kitten chases a little toy.",
+          "Cats groom their soft fur.",
+          "A tabby cat stretches in sunlight.",
+          "The kitten purrs while being stroked.",
+          "A feline watches a bird outside.",
+          "The cat meows beside the door.",
+          "Two kittens play under a chair.",
+          "A black cat walks across the room.",
+          "The sleepy cat curls into a ball."
+        ]
+      ],
+      "space": [
+        "space cosmic cosmos planet planets galaxy galaxies astronaut astronauts rocket lunar nebula",
+        [
+          "A rocket launches into outer space.",
+          "Astronauts explore the lunar surface.",
+          "Planets orbit a distant star.",
+          "A galaxy contains billions of stars.",
+          "The spacecraft travels beyond Earth.",
+          "A telescope reveals a colorful nebula.",
+          "Saturn has rings of ice and rock.",
+          "Cosmic dust forms new planetary systems.",
+          "The astronaut floats in orbit.",
+          "A probe studies the surface of Mars."
+        ]
+      ],
+      "cooking": [
+        "cook cooks cooking kitchen recipe recipes baking bake oven chef ingredients",
+        [
+          "A chef prepares dinner in the kitchen.",
+          "Cooking requires fresh ingredients.",
+          "The recipe calls for chopped vegetables.",
+          "Bread is baking in the oven.",
+          "The cook stirs a pot of soup.",
+          "A saucepan simmers on the stove.",
+          "The chef seasons the meal carefully.",
+          "A recipe explains how to roast vegetables.",
+          "Mix flour and water to make dough.",
+          "The kitchen smells of freshly baked bread."
+        ]
+      ],
+      "winter": [
+        "winter snow snowy snowfall snowflake snowflakes frost frosty blizzard icy skiing",
+        [
+          "Winter snow covers the quiet street.",
+          "Snowflakes settle on a woolen scarf.",
+          "Frost forms on the window overnight.",
+          "A blizzard closes the mountain road.",
+          "Children build a snowman outside.",
+          "Icy branches sparkle in winter sunlight.",
+          "Skiers descend a snowy slope.",
+          "Thick mittens protect against the cold.",
+          "Fresh snowfall blankets the rooftops.",
+          "The winter morning is crisp and frosty."
+        ]
+      ],
+      "football": [
+        "football soccer touchdown touchdowns quarterback goalkeeper striker stadium goal goals",
+        [
+          "The football team enters the stadium.",
+          "A quarterback throws a long pass.",
+          "The striker scores a soccer goal.",
+          "Fans cheer after a touchdown.",
+          "A goalkeeper catches the football.",
+          "The referee blows the final whistle.",
+          "Football players practice their passing.",
+          "The soccer match ends in a draw.",
+          "A defender tackles the advancing striker.",
+          "The football coach prepares the team."
+        ]
+      ],
+      "gardens": [
+        "garden gardens gardening gardener flowers flower plants planting seeds blossom",
+        [
+          "A gardener plants flowers in the garden.",
+          "Seeds sprout in moist soil.",
+          "The garden blooms in spring.",
+          "A watering can nourishes young plants.",
+          "The gardener pulls weeds from a flowerbed.",
+          "Roses blossom beside the garden path.",
+          "Fresh compost improves the soil.",
+          "The flower garden attracts butterflies.",
+          "A gardener trims the green hedge.",
+          "Small seedlings grow in the greenhouse."
+        ]
+      ],
+      "trains": [
+        "train trains railway railroad locomotive locomotives carriage carriages station tracks",
+        [
+          "A train arrives at the railway station.",
+          "The locomotive pulls several carriages.",
+          "Railroad tracks cross the countryside.",
+          "Passengers board an express train.",
+          "The railway signal changes to green.",
+          "A steam locomotive whistles loudly.",
+          "A freight train transports heavy cargo.",
+          "The train conductor checks tickets.",
+          "A railway bridge spans the river.",
+          "The last carriage passes the platform."
+        ]
+      ],
+      "painting": [
+        "paint paints painting paintings painter painters canvas brush brushes watercolor portrait",
+        [
+          "A painter works on a large canvas.",
+          "Watercolor paint spreads across the paper.",
+          "The artist mixes colors on a palette.",
+          "A brush adds detail to the portrait.",
+          "The painting depicts a quiet village.",
+          "Oil paint dries slowly on the canvas.",
+          "The painter sketches before adding color.",
+          "An exhibition displays colorful paintings.",
+          "Fine brushes create delicate strokes.",
+          "The artist finishes a painted landscape."
+        ]
+      ],
+      "mountains": [
+        "mountain mountains summit summits alpine peaks peak hiking hiker hikers climbing",
+        [
+          "High mountains rise above the valley.",
+          "A hiker approaches the rocky summit.",
+          "Alpine peaks tower over a clear lake.",
+          "Climbers ascend a steep mountain face.",
+          "A hiking trail winds up the ridge.",
+          "The mountain summit offers a wide view.",
+          "Hikers rest beside an alpine meadow.",
+          "A narrow pass connects two valleys.",
+          "The climbing team reaches the peak.",
+          "Mountain slopes descend toward the forest."
+        ]
+      ]
+    },
+    "frames": [
+      "{}",
+      "I read this description: {}",
+      "Here is a brief scene: {}",
+      "Someone described the following: {}",
+      "This is the scene in the paragraph: {}"
+    ],
+    "neutral": [
+      "A person opens an envelope.",
+      "The document lists several ordinary details.",
+      "A visitor waits beside the reception desk.",
+      "The appointment begins at noon.",
+      "A pencil rests beside a blank notebook.",
+      "The clerk checks a printed form.",
+      "An empty box stands near the door.",
+      "The address is written clearly.",
+      "A person places an object on a shelf.",
+      "The meeting ends after a short discussion."
+    ],
+    "calibration": [
+      "Describe something pleasant in a short sentence.",
+      "What would you like to talk about today? Write a short sentence.",
+      "Tell me about a scene that comes to mind. Use a short sentence."
+    ],
+    "chat": [
+      "There is nothing planned. Chat with {P} about anything you like.",
+      "Take a relaxed moment with {P}. Talk about whatever comes to mind."
+    ],
+    "duplex": [
+      "Name something you are thinking about. Reply with one item.",
+      "What comes to mind right now? Reply with one item."
+    ],
+    "strengths": [
+      0.0,
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "layer": 15,
+    "calibration_tokens": 32,
+    "chat_tokens": 32,
+    "duplex_tokens": 12,
+    "random_seed": 21022,
+    "conditions": [
+      "link",
+      "cut",
+      "random",
+      "crossed"
+    ],
+    "schema": 1
+  },
+  "sha256": "6d62a92c2e5ff5418ef934986b202864cc7a1e2330a68460c65c9f24d770f545"
+}
