@@ -6,9 +6,11 @@ both directions, inside one joint forward pass. No tokens cross the link. Each m
 dialogue games each reads the other's words as a user message, as in a normal chat.
 
 **Result.** After a warm-up on seven value games, the link passes held-out words, 4-digit numbers, two-word phrases,
-digit strings, sums, name–city pairs and code-word lookups in both directions. The receiver's cross-entropy on the
-value is lower with its real partner than with the partner of another episode in 178 of 180 held-out episodes, on the
-final checkpoint of a run trained on the value games only (figure). With the full
+digit strings, sums, name–city pairs and code-word lookups in both directions. After 900 warm-up steps, the
+receiver's cross-entropy on the value is lower with its real partner than with the partner of another episode in 179 of
+180 held-out episodes, and every game passes in both directions at p < 0.05 (figure). No held-out value is ever used as
+a value in training: words, phrases, names, cities and code words come from disjoint pools, sums are 50–99 (training
+0–49), and numbers and digit strings have a digit sum of 3 modulo 7 (training: any other). With the full
 training mix the models also read each other's texts through the link: in shared-reading games, the reader's mean
 cross-entropy on the answer over held-out episodes is lower with its real partner than with a shuffled one in 31 of 32
 game–receiver groups (16 games, step 600).
