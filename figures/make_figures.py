@@ -470,7 +470,7 @@ def probe():
     for v in ticks:
         write(ax, sx(v), y, minus(f"{v:.0f}"), 26, color=MUTED)
     write(ax, sx(0), y - 44, "\u2190 the link passes the value", 24, color=LINK, ha="right")
-    write(ax, 40, y - 100, "dot: median over episodes never seen in training; line: exact 95% interval", 24, color=MUTED, ha="left")
+    write(ax, 40, y - 100, "dot: median over held-out episodes; line: exact 95% interval", 24, color=MUTED, ha="left")
     crop(fig, ax, y - 130, 2100)
     save(fig, "probe")
 
@@ -636,7 +636,7 @@ def conversation(src=None):
             badge(ax, PX + PW + 50, box_top - 34, conds[c]["scores"]["ok"])
         end = min(end, py)
     lines(ax, 40, end - 10, [
-        ("Greedy decoding on a never-seen episode. Green bars: the mean gate of the writer's tokens over each turn "
+        ("Greedy decoding on a held-out episode. Green bars: the mean gate of the writer's tokens over each turn "
          "(0 hides them from", MUTED),
         ("the partner, 1 shows them fully); under the private boxes, the gate of each prompt. Scores compare the "
          "first turn with the target", MUTED),
@@ -829,7 +829,7 @@ def hero(src=None):
                 if len(ticks) <= 3 or (i - z) % 2 == 0:
                     write(ax, sx(v), y + 10, minus(f"{v:g}"), 22, color=MUTED)
             write(ax, sx(0) + 8, y - 30, "link better →", 22, color=LINK, ha="left")
-    low = caption(ax, y - 100, "Greedy free generation on never-seen episodes. Dot: the mean difference in the "
+    low = caption(ax, y - 100, "Greedy free generation on held-out episodes. Dot: the mean difference in the "
                   "receiver's score; line: the 95% betting interval (Waudby-Smith and Ramdas 2024), green when the "
                   "interval lies above 0, black when below, grey when the interval holds 0. cut: the same pair with "
                   "the link cut; shuffle: the partner of another episode of the same game. "
@@ -921,7 +921,7 @@ def payload_points(path):
 
 def curves(src=None):
     """The held-out gain on the partner's value over training (src: RUN_DIR|LOG[|LABEL],...; one panel each): the
-    receiver's cross-entropy on the value tokens of never-seen value-game episodes with the link cut, and with a partner
+    receiver's cross-entropy on the value tokens of held-out value-game episodes with the link cut, and with a partner
     from another episode, minus with the link, in bits per token."""
     if not src:
         print("curves: give curves=RUN_DIR_OR_LOG[|LABEL][,...]")
@@ -958,7 +958,7 @@ def curves(src=None):
                     ax.plot(*zip(*xy), color=colour, lw=2.5, ls=dash, marker="o", ms=5, zorder=4)
         write(ax, x0 + PW / 2, y0 - 74, "training step", 22, color=MUTED)
     low = top - 180 - PH - 140
-    low = caption(ax, low, "Mean over the same never-seen episodes of the value games (relay, merge, lookup) at "
+    low = caption(ax, low, "Mean over the same held-out episodes of the value games (relay, merge, lookup) at "
                   "every evaluation, teacher-forced on the target reply. Above 0: the link lowers the receiver's "
                   "cross-entropy on the partner's value.")
     crop(fig, ax, low - 40, top + 40)
@@ -1092,18 +1092,23 @@ def readmap(src=None, show=(0, 3, 6), deep=("18", "21", "24", "27")):
 
 
 def transfer(src=None):
-    """Every never-seen episode of every value game at one checkpoint (src: RUN_DIR[@STEP][|LABEL]; default the
-    run's last payload_stepN.json): the receiver's cross-entropy on the value tokens with a partner from another
-    episode minus with its real partner, in bits per token, one dot per episode, with the count of episodes the real
-    partner wins and the exact one-sided sign test. The title lists the games that pass in both directions (p < 0.05)."""
+    """Every held-out episode of every value game at one checkpoint (src: RUN_DIR[@STEP][|LABEL], default the run's
+    last payload_stepN.json, or a payload_ctl.py output FILE.json): the receiver's cross-entropy on the value tokens
+    with a partner from another episode minus with its real partner, in bits per token, one dot per episode, with the
+    count of episodes the real partner wins and the exact one-sided sign test. The title lists the games that pass in
+    both directions (p < 0.05)."""
     if not src:
-        print("transfer: give transfer=RUN_DIR[@STEP][|LABEL]")
+        print("transfer: give transfer=RUN_DIR[@STEP][|LABEL] or transfer=FILE.json[|LABEL]")
         return
     (path, label), = sources(src)
     path, _, at = str(path).partition("@")
-    files = {int(f.stem[len("payload_step"):]): f for f in Path(path).glob("payload_step*.json")}
-    step = int(at) if at else max(files)
-    recs = [r for r in json.loads(files[step].read_text()) if r["game"] in VALUE_GAMES]
+    if path.endswith(".json"):
+        recs = json.loads(Path(path).read_text())
+        recs = recs["episodes"] if isinstance(recs, dict) else recs
+    else:
+        files = {int(f.stem[len("payload_step"):]): f for f in Path(path).glob("payload_step*.json")}
+        recs = json.loads(files[int(at) if at else max(files)].read_text())
+    recs = [r for r in recs if r["game"] in VALUE_GAMES]
     d = {(g, x): [(r["shuffle_ce"] - r["link_ce"]) / LN2 for r in recs if r["game"] == g and r["receiver"] == x]
          for g in VALUE_GAMES for x, _ in RECEIVERS}
     games = [g for g in VALUE_GAMES if any(d[(g, x)] for x, _ in RECEIVERS)]
@@ -1124,7 +1129,7 @@ def transfer(src=None):
     top = 320 + RH * len(games)
     names = [SHORT_GAME.get(g, LABEL[g].lower()) for g in both]
     claim = (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0]) if names else "no value"
-    title = f"Never-seen {claim} pass between the models through hidden states"
+    title = f"In held-out episodes, {claim} pass between the models through hidden states"
     write(ax, 40, top, title, min(36, 36 * (2 * W - 80) / text_width(ax, title, 36, True)), True, ha="left")
     for c, (x, colour) in enumerate(RECEIVERS):
         write(ax, base(c) + SW / 2, top - 90, way(x), 34, True, colour)
@@ -1158,7 +1163,7 @@ def transfer(src=None):
 
 
 def opened(src=None, games=("relay_word", "merge_fact"), title=None):
-    """Over training, the percent of never-seen episodes (both receivers) in which the real partner beats a partner
+    """Over training, the percent of held-out episodes (both receivers) in which the real partner beats a partner
     from another episode, with the exact 95% interval: one panel per game (default: relay a word, the trained task, and
     join a name and a city, never trained), one line per run (src: RUN_DIR|LABEL,...; payload_stepN.json files), each
     labelled at the height of its last point, past the last step of every run. Ties (a link that writes exactly
@@ -1190,7 +1195,7 @@ def opened(src=None, games=("relay_word", "merge_fact"), title=None):
     width = L + len(games) * (PW + LW)
     fig, ax = canvas(1300, width)
     top = 1240
-    write(ax, 40, top, title or ("From a fitted start the link passes never-seen name–city pairs by step 100, from a "
+    write(ax, 40, top, title or ("From a fitted start the link passes held-out name–city pairs by step 100, from a "
                                  "random start by step 900"), 34, True, ha="left")
     y0 = top - 160 - PH
     for i, g in enumerate(games):
@@ -1198,7 +1203,7 @@ def opened(src=None, games=("relay_word", "merge_fact"), title=None):
         sx, sy = frame(ax, x0, y0, PW, PH, xt, [0, 25, 50, 75, 100], xr, size=26)
         ax.plot([sx(0), sx(last)], [sy(50)] * 2, color=MUTED, lw=2, ls=(0, (6, 6)), zorder=2)
         name = SHORT_GAME.get(g, g) + (" (task never trained)" if g == "merge_fact" else "")
-        write(ax, x0 - 110, y0 + PH + 70, f"percent of never-seen {name} where the real partner wins", 28,
+        write(ax, x0 - 110, y0 + PH + 70, f"percent of held-out {name} where the real partner wins", 28,
               color=MUTED, ha="left")
         ends = []
         for (label, per), colour in zip(runs, colours):
