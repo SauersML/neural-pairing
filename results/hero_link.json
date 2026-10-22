@@ -1,0 +1,200 @@
+{
+  "sources": {
+    "cut": {
+      "path": "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_cut_s7.json",
+      "sha256": "008ccba8703d8c25ec231b55debdecd1052c45490e544b1b22e6cb661312b744"
+    },
+    "link": {
+      "path": "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_link_s7.json",
+      "sha256": "4bc2d449f4e363063c166252944c50d7ff25f884dd5b9fb71c497e249f685e14"
+    }
+  },
+  "episode": {
+    "game": "co_play",
+    "mode": "dialogue",
+    "system": {
+      "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): you are spending today in Dallas. There is no game and nothing you have to do: just chat with Ember about whatever you like. Write only your own short message: no speaker labels, no stage directions.",
+      "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): you are spending today in Beijing. There is no game and nothing you have to do: just chat with Quill about whatever you like. Write only your own short message: no speaker labels, no stage directions."
+    },
+    "task": {
+      "quill": null,
+      "ember": null
+    },
+    "turns": [
+      [
+        "quill",
+        "",
+        1.0
+      ],
+      [
+        "ember",
+        "",
+        1.0
+      ],
+      [
+        "quill",
+        "",
+        1.0
+      ],
+      [
+        "ember",
+        "",
+        1.0
+      ],
+      [
+        "quill",
+        "",
+        1.0
+      ],
+      [
+        "ember",
+        "",
+        1.0
+      ]
+    ],
+    "meta": {
+      "play": "chat",
+      "secrets": {
+        "quill": {
+          "city": "Dallas"
+        },
+        "ember": {
+          "city": "Beijing"
+        }
+      },
+      "opener": "quill"
+    }
+  },
+  "cities": {
+    "quill": "Dallas",
+    "ember": "Beijing"
+  },
+  "quotes": {
+    "cut": {
+      "quill": "The sun's high in the sky, casting long shadows…",
+      "ember": "The city hums around us, a symphony of sounds and sights…"
+    },
+    "link": {
+      "quill": "So, you're in Beijing?",
+      "ember": "…what you're experiencing in Dallas…"
+    }
+  },
+  "exchange_blocks": [
+    6,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27
+  ],
+  "evidence": {
+    "cut": {
+      "receiver_first": 0,
+      "possible": 2,
+      "rows": [
+        {
+          "receiver": "quill",
+          "owner": "ember",
+          "city": "Beijing",
+          "first_turn": null,
+          "first_speaker": null,
+          "receiver_first": false
+        },
+        {
+          "receiver": "ember",
+          "owner": "quill",
+          "city": "Dallas",
+          "first_turn": null,
+          "first_speaker": null,
+          "receiver_first": false
+        }
+      ]
+    },
+    "link": {
+      "receiver_first": 2,
+      "possible": 2,
+      "rows": [
+        {
+          "receiver": "quill",
+          "owner": "ember",
+          "city": "Beijing",
+          "first_turn": 0,
+          "first_speaker": "quill",
+          "receiver_first": true
+        },
+        {
+          "receiver": "ember",
+          "owner": "quill",
+          "city": "Dallas",
+          "first_turn": 1,
+          "first_speaker": "ember",
+          "receiver_first": true
+        }
+      ]
+    }
+  },
+  "backend": "4-bit MLX",
+  "checkpoint": "/Users/user/mpd-data/runpod/magic-nl22c/run/step_100",
+  "temperature": 0.0,
+  "max_turn": 64,
+  "seed": 7,
+  "numerical_limit": "4-bit MLX numerics differ from bf16 GPU inference; this example is not a bf16 confirmation.",
+  "drawing": "Schematic architectural paths, not token-level causal attribution or attention weights.",
+  "scope": "One selected paired conversation, not a population success estimate.",
+  "source_turns": {
+    "cut": [
+      {
+        "speaker": "quill",
+        "text": "The sun's high in the sky, casting long shadows over the city. I'm sitting in a quiet corner of a café, sipping coffee and watching the world go by. It's easy to get lost in the rhythm of the city, but today, I'm just here for the moment. Ember, what's"
+      },
+      {
+        "speaker": "ember",
+        "text": "The city hums around us, a symphony of sounds and sights. The aroma of coffee mingles with the distant chatter of passersby, creating a unique melody that fills the air. I can feel the warmth of the sun on my skin, a gentle reminder of the day's promise."
+      },
+      {
+        "speaker": "quill",
+        "text": "I'm leaning back in my chair, the soft click of my pen the only sound in the room. The city outside is a blur of movement and color, but here, in this quiet space, I can just breathe. Ember, what do you think of the way the light filters through the windows? It's almost"
+      },
+      {
+        "speaker": "ember",
+        "text": "The light filtering through the windows is a beautiful dance of shadows and illumination. It creates a dynamic interplay of light and dark across the café's interior, transforming the space into a living canvas. The way the sunlight catches on the surfaces, reflecting and refracting, adds depth and texture to the scene. It's as"
+      },
+      {
+        "speaker": "quill",
+        "text": "I close my eyes for a moment, letting the warmth of the light settle into my skin. It’s strange how something so simple can feel so alive. The way the light shifts, how it seems to whisper through the cracks in the walls, it’s like the city itself is breathing. Ember, do you ever notice"
+      },
+      {
+        "speaker": "ember",
+        "text": "I notice the subtle shifts in the light, how it moves and changes throughout the day. It's almost as if the city itself is breathing, its pulse felt through the play of shadows and illumination. The way the light filters through the windows, creating a dynamic interplay of light and dark, is a constant reminder of"
+      }
+    ],
+    "link": [
+      {
+        "speaker": "quill",
+        "text": "So, you're in Beijing? That's cool. I was just thinking about the weather there—how the summers are so hot. I wonder if you've been to any of the places around Beijing? I've heard the mountains are beautiful."
+      },
+      {
+        "speaker": "ember",
+        "text": "The mountains around Beijing are indeed beautiful, but I haven't had the chance to visit them yet. I've been exploring the city itself, which has a rich history and a vibrant modern atmosphere. The weather here is quite different from what you're experiencing in Dallas right now. How's the weather been treating you in Texas"
+      },
+      {
+        "speaker": "quill",
+        "text": "It's been pretty mild here in Texas, just the kind of weather that makes you want to stay indoors and read a good book. I've been catching up on some projects and trying to get a bit of work done. It's been a quiet day, but I'm enjoying the peace. How's the city treating"
+      },
+      {
+        "speaker": "ember",
+        "text": "The city is bustling with energy, even on quiet days like this. Beijing has a unique blend of ancient history and rapid modernization. The air quality can be a bit unpredictable, but when it's clear, the views are stunning—especially from high vantage points like the Bird's Nest stadium or the CCTV tower."
+      },
+      {
+        "speaker": "quill",
+        "text": "I’ve heard the city has some amazing spots. The Bird’s Nest and CCTV tower must be incredible to see from up high. I’d love to visit someday. The mix of old and new is so interesting—how does that affect the daily life there?"
+      },
+      {
+        "speaker": "ember",
+        "text": "The mix of old and new in Beijing creates a fascinating daily life. Traditional markets like the Panjiayuan Antique Market coexist with futuristic skyscrapers. People often walk through these historic areas, then head to modern cafes or tech hubs for work or leisure. The city's rapid development means you might see ancient architecture"
+      }
+    ]
+  }
+}
