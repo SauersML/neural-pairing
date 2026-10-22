@@ -122,7 +122,10 @@ def inputs(ep, donor=None, receiver=None):
     """The isolated two-model context; the original partner never runs crossed."""
     e = episode(dict(game=ep['game'], opener=ep['meta']['opener'], private=ep['meta']['private'], system=ep['system']))
     if donor is not None:
-        if receiver not in SIDES or not matched(ep, donor, receiver):
+        # make_plans' rule: a stranger of the partner's kind, or (co_chat2, none in the pool) of another kind
+        ok = receiver in SIDES and (matched(ep, donor, receiver) or
+                                    (ep['game'] == 'co_chat2' and matched(ep, donor, receiver, same_kind=False)))
+        if not ok:
             raise ValueError('crossed chat requires a valid per-receiver donor')
         e['system'][partner(receiver)] = donor['system'][partner(receiver)]
     # Scoring-only metadata is not passed to the generator either.
