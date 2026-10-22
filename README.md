@@ -5,15 +5,17 @@ between their hidden states. At 8 depths, each model reads the other's hidden st
 both directions, inside one joint forward pass. No tokens cross the link. Each model still writes ordinary text, and in
 dialogue games each reads the other's words as a user message, as in a normal chat.
 
-**Result.** After a warm-up on seven value games, the link passes held-out words, 4-digit numbers, two-word phrases,
-digit strings, sums, name–city pairs and code-word lookups in both directions. After 900 warm-up steps, the
-receiver's cross-entropy on the value is lower with its real partner than with the partner of another episode in 179 of
-180 held-out episodes, and every game passes in both directions at p < 0.05 (figure). No held-out value is ever used as
-a value in training: words, phrases, names, cities and code words come from disjoint pools, sums are 50–99 (training
-0–49), and numbers and digit strings have a digit sum of 3 modulo 7 (training: any other). With the full
-training mix the models also read each other's texts through the link: in shared-reading games, the reader's mean
-cross-entropy on the answer over held-out episodes is lower with its real partner than with a shuffled one in 31 of 32
-game–receiver groups (16 games, step 600).
+**Result.** With the full training mix (shared reading, play, dialogue, silent rounds and the shared pen alongside the
+value games), the link passes held-out words, 4-digit numbers, two-word phrases, digit strings, sums, name–city pairs and
+code-word lookups in both directions. At step 800 of nl20's full mix, the receiver's cross-entropy on the value is lower
+with its real partner than with the partner of another episode in all 180 held-out episodes, and every game passes in
+both directions at p < 0.001 (figure). No held-out value is ever used as a value in training: words, phrases, names,
+cities and code words come from disjoint pools, sums are 50–99 (training 0–49), and numbers and digit strings have a
+digit sum of 3 modulo 7 (training: any other). In the same checkpoint the models read each other's texts through the
+link: in shared-reading games, the reader's cross-entropy on its answer is lower with its real partner than with a
+shuffled one in 407 of 456 held-out episodes (p = 1e-71), with a positive median in all 34 game–receiver groups. The link
+also passes values in games it never trained on: after a warm-up without them, digit strings pass 10/10 in both
+directions and code-word lookups 9/10 into Qwen (p = 0.011) and 8/10 into AFM (p = 0.055) (nl21).
 
 ![Held-out values passing between the models](figures/transfer.png)
 
@@ -134,7 +136,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl16 | Warm-up on all seven value games only | 178 of 180 held-out episodes; passes under dialogue, silent rounds and the shared pen without training on them (`turnbench.txt`) |
 | nl18 | Full recipe with play games, silent rounds and micro-batches | Shared reading positive in 32 of 32 game–receiver groups at step 1200 |
 | nl19 | nl18 with distillation and the shared pen | Stopped at step 500; shared reading as nl18 |
-| nl20 | 900-step warm-up with held-out numbers, then the full mix | Warm-up: 179 of 180 (`results/magic-nl20/results/payload_warm.json`); full mix running |
+| nl20 | 900-step warm-up with held-out numbers, then the full mix | Warm-up: 179 of 180 (`results/magic-nl20/results/payload_warm.json`); full mix step 800: 180 of 180, shared reading 407 of 456 (`payload_mix_step800.json`); running to step 1,320 |
 | nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Warm-up (step 600, the five other value games): never-trained digit strings pass both ways (10/10 each), never-trained lookup passes into Qwen (9/10, p = .011) and nearly into AFM (8/10, p = .055); full mix running |
 
 ## Earlier designs
