@@ -135,7 +135,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl18 | Full recipe with play games, silent rounds and micro-batches | Shared reading positive in 32 of 32 game–receiver groups at step 1200 |
 | nl19 | nl18 with distillation and the shared pen | Stopped at step 500; shared reading as nl18 |
 | nl20 | 900-step warm-up with held-out numbers, then the full mix | Warm-up: 179 of 180 (`results/magic-nl20/results/payload_warm.json`); full mix running |
-| nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Running |
+| nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Warm-up (step 600, the five other value games): never-trained digit strings pass both ways (10/10 each), never-trained lookup passes into Qwen (9/10, p = .011) and nearly into AFM (8/10, p = .055); full mix running |
 
 ## Earlier designs
 
