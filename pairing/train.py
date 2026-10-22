@@ -91,6 +91,9 @@ ap.add_argument('--coread_data', default=None, help='the co-reading data (defaul
 ap.add_argument('--anchor', type=float, default=0.1, help='probability that an episode is an identity or plain '
                 'own-reply episode (every stage)')
 ap.add_argument('--init', default=None, help='a saved step to start from (LoRA and bridges)')
+ap.add_argument('--hold_out', default='', help='games never trained on, comma separated: game names (lookup, co_mcq, '
+                'co_play, ...) or co_play:KIND (guess, gift, where, story, rhyme); a drawn episode of one is drawn again, and '
+                'co-reading episodes of a held-out task (distillation and talk included) count as that game')
 ap.add_argument('--quick_n', type=int, default=32)
 ap.add_argument('--qa', type=float, default=0.0, help='probability that an episode is a benchmark question')
 ap.add_argument('--solo', action='store_true', help='benchmark questions only, each model alone (no bridge)')
@@ -121,6 +124,9 @@ if not 0 <= args.pen <= 1 or args.pen_chunk < 1:
 if args.warmup_steps < 0 or args.relay_first < 0 or args.hold < 0:
     ap.error("--warmup_steps, --relay_first and --hold must be nonnegative")
 RELAY_GAMES = tuple(args.relay_games.split(','))
+HOLD_OUT = set(filter(None, args.hold_out.split(',')))
+if HOLD_OUT & set(RELAY_GAMES):
+    ap.error(f"--hold_out {','.join(sorted(HOLD_OUT & set(RELAY_GAMES)))} is also in --relay_games")
 if not set(RELAY_GAMES) <= set(coldstart.VALUE_GAMES):
     ap.error(f"--relay_games: from {','.join(coldstart.VALUE_GAMES)}")
 ddp.init()
@@ -233,7 +239,23 @@ BENCH = G.bench('train') if (args.qa > 0 or ONLY_QA) else None
 VAL = G.bench('val') if BENCH else None
 
 
+def held_out(ep):
+    """Whether ep belongs to a --hold_out game: by name, by co_play kind, or by its co-reading task."""
+    import coread
+    m = ep.get('meta') or {}
+    task = coread.TASK_GAME.get(m.get('task')) if m.get('task') else None
+    return ep['game'] in HOLD_OUT or task in HOLD_OUT or (ep['game'] == 'co_play' and f"co_play:{m.get('play')}" in HOLD_OUT)
+
+
 def draw(rng, games, step, co):
+    for _ in range(1000):
+        ep = draw_any(rng, games, step, co)
+        if not held_out(ep):
+            return ep
+    raise RuntimeError(f'--hold_out {args.hold_out} leaves nothing to draw')
+
+
+def draw_any(rng, games, step, co):
     if step <= args.relay_first and not ONLY_QA:
         return coldstart.relay_episode(games, RELAY_GAMES)
     if args.solo:
