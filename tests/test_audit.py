@@ -130,7 +130,7 @@ class BatchChecks(unittest.TestCase):
                         and any(isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
                                 and c.func.attr == 'time' for c in ast.walk(n.value)))
             start = time.time() - elapsed
-            env = dict(time=time, t1=start, t0_steps=start, E=100, args=SimpleNamespace(first_eval=10),
+            env = dict(time=time, t1=start, t0_steps=start, s1=2, step=11, E=100, args=SimpleNamespace(first_eval=10),
                        t_eval={5: 100, 10: 100} if name == 'train.py' else 100, eval_elapsed=200)
             if name == 'train.py':
                 measured = next(n for n in ast.walk(script_nodes(name)) if isinstance(n, ast.Assign)
