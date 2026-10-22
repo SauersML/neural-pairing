@@ -23,7 +23,7 @@ import torch
 assert torch.cuda.device_count() == 1, 'nl28 requires exactly one visible GPU'
 p = torch.cuda.get_device_properties(0)
 assert (p.major, p.minor) in ((8, 0), (8, 6)), f'Ampere only, not {p.name} ({p.major}.{p.minor})'
-assert p.total_memory >= 45 * 2**30, f'48 GB card required: {p.total_memory / 2**30:.1f} GiB'
+assert p.total_memory >= 44 * 2**30, f'48 GB card required (A6000 and A40 report 44.4 GiB): {p.total_memory / 2**30:.1f} GiB'
 print(p)
 PY
 mkdir -p "$O/source"
