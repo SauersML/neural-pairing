@@ -85,6 +85,7 @@ def run(args):
         raise RuntimeError('Real torch models forbidden on the Mac')
     if args.backend == 'mlx':
         os.environ['NL_DEVICE'] = 'cpu'
+        os.environ['MLX_ENABLE_TF32'] = '0'
         import mlx.core as mx
         import mlx_eval
         mx.set_memory_limit(int(10.5*2**30)); mx.set_cache_limit(32*2**20)

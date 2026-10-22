@@ -6109,6 +6109,10 @@
     {
       "utc": "2026-10-22T08:17:07.309696+00:00",
       "change": "CUDA confirmation backend uses a CUDA sampling generator; MLX remains CPU generator. Added precision/method metadata to SVG. No experiment outputs exist; registered MLX method unchanged."
+    },
+    {
+      "utc": "2026-10-22T08:40:18.581415+00:00",
+      "change": "Set MLX_ENABLE_TF32=0 before importing mlx.core, matching mlx_pair intended float32 bridge configuration. No experiment outputs yet. Original prompt plan, sampling, metric and stopping rule unchanged."
     }
   ],
   "training_audit": [
@@ -6556,15 +6560,16 @@
   ],
   "validation": [
     "tests/test_link.py: all checks passed",
-    "Normalization, format checks, exact sign-flip enumeration, identical instructions and different-category donor checks: passed"
+    "Normalization, format checks, exact sign-flip enumeration, identical instructions and different-category donor checks: passed",
+    "tests/test_link.py re-run after MLX import setup correction: all checks passed"
   ],
   "code_sha256": {
-    "pairing/telepathy.py": "73ff88d67daf50cae7a71e1d3f5af0fcfadf38d6bc1c1e6d47d28dca145f539e",
+    "pairing/telepathy.py": "d31bd65c569c2a128ce41710ca4b33390d9c4f0aef3a5242decd8c3b41da1bc5",
     "figures/telepathy.py": "1bc45aba6bff82f89615e32071163d059b9cd5e459bbf1ee04b91e803a92997f"
   },
   "records": [],
   "existing_measurements_changed": false,
   "precision": "Planned real-model inference: 4-bit MLX on Mac; bf16 CUDA confirmation separate",
   "gpu_confirmation": "#!/bin/sh\n# Run on a CUDA host with the two checkpoints staged at the paths supplied here.\n# Usage: sh gpu_confirmation.sh /path/to/nl22c/step_157 /path/to/nl20/step_1320 /path/to/output\nset -eu\nAFTER_CHECKPOINT=$1\nBEFORE_CHECKPOINT=$2\nCONFIRM_OUT=$3\nmkdir -p \"$CONFIRM_OUT\"\npython -c 'import json,sys; json.dump(json.load(open(\"results/telepathy.json\"))[\"plan\"],open(sys.argv[1],\"w\"),indent=2)' \"$CONFIRM_OUT/plan.json\"\nNL_DEVICE=cuda python pairing/telepathy.py run --backend torch --plan \"$CONFIRM_OUT/plan.json\" --raw \"$CONFIRM_OUT/raw.jsonl\" --after \"$AFTER_CHECKPOINT\" --before \"$BEFORE_CHECKPOINT\"\npython pairing/telepathy.py summarize --plan \"$CONFIRM_OUT/plan.json\" --raw \"$CONFIRM_OUT/raw.jsonl\" --out \"$CONFIRM_OUT/summary.json\"\n",
-  "updated_utc": "2026-10-22T08:22:27.023556+00:00"
+  "updated_utc": "2026-10-22T08:43:09.520819+00:00"
 }
