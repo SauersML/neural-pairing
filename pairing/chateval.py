@@ -249,6 +249,6 @@ def validate(records, manifest):
             want = measures(result['turns'], r['receiver'], r['private'], r['donor']['city'] if c == 'crossed' else None)
             if any(result[k] != v for k, v in want.items()) or result['score'] != want['names']:
                 raise ValueError('chat metrics disagree with transcript')
-    if len(by_episode) != manifest['n'] or any({r['receiver'] for r in group} != set(SIDES) or len(group) != 2
+    if len(by_episode) != manifest.get('chat_plans', manifest['n']) or any({r['receiver'] for r in group} != set(SIDES) or len(group) != 2
                                               for group in by_episode.values()):
         raise ValueError('missing chat receiver/dialogue records')

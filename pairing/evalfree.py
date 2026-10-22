@@ -563,6 +563,8 @@ def main():
     ap.add_argument('--temperature', type=float, default=0., help='co_chat only: 0 greedy, >0 per-episode seeded sampling')
     ap.add_argument('--summarize', action='store_true', help='summarize an already complete evaluation')
     ap.add_argument('--tag', default='headline')
+    ap.add_argument('--shard', default=None, help="I/K: co_chat plans whose index is I modulo K only, so K processes "
+                    "split one evaluation (summarize each shard; chateval.summary_rows over all shards' records)")
     args = ap.parse_args()
     if args.summarize:
         print(summarize(args.out_dir, args.tag))
@@ -581,6 +583,11 @@ def main():
     with open(args.replies) as f:
         plans, excluded = make_plans(json.load(f), args.n, args.seed, args.coread_data, args.games,
                                     args.max_digits, args.max_donor_attempts)
+    if args.shard:
+        i, k = map(int, args.shard.split('/'))
+        if set(plans) != {'co_chat'} or not 0 <= i < k:
+            ap.error('--shard I/K requires --games co_chat and 0 <= I < K')
+        plans = {'co_chat': [p for p in plans['co_chat'] if p['index'] % k == i]}
     with (out / 'plans.jsonl').open('x') as f:
         for ps in plans.values():
             for p in ps:
@@ -592,7 +599,8 @@ def main():
                     excluded=excluded, hashes={str(p): file_hash(p) for p in
                     (Path(args.replies), Path(args.coread_data or ROOT / 'data/coread.json'),
                      Path(args.run) / 'bridge.pt', out / 'plans.jsonl')},
-                    git_commit=git_revision(), crossed=args.crossed, temperature=args.temperature,
+                    git_commit=git_revision(), crossed=args.crossed, temperature=args.temperature, shard=args.shard,
+                    chat_plans=len(plans.get('co_chat', [])),
                     code_hashes={p: file_hash(ROOT / 'pairing' / p) for p in
                                  ('evalfree.py', 'chateval.py', 'crossed.py', 'stats.py', 'link.py', 'session.py', 'evaluate.py',
                                   'coread.py', 'coread_data.py', 'games.py', 'play_tasks.py')})
