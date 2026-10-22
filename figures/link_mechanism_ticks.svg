@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2300" height="1080" viewBox="0 0 2300 1080">
+<title>A token reads earlier and current partner states</title>
+<desc>Architecture schematic derived from pairing/link.py and pairing/session.py. Vector bars, attention emphasis and gate needles illustrate operations; they are not measured activations, probabilities or gate settings. Exact sources and token timing are in results/link_mechanism.json.</desc>
+<rect width="100%" height="100%" fill="white"/>
+<text x="65" y="83" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="50" font-weight="700" text-anchor="start">A token reads earlier and current partner states</text>
+<rect x="60" y="140" width="2180" height="870" rx="36" fill="#F4F4F6" stroke="none" stroke-width="3"/>
+<text x="110" y="230" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" text-anchor="start">Read tick</text>
+<text x="620" y="230" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">Earlier</text>
+<text x="960" y="230" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">1</text>
+<text x="1290" y="230" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">2</text>
+<text x="1620" y="230" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">3</text>
+<text x="1950" y="230" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">4</text>
+<text x="110" y="370" fill="#E8590C" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" text-anchor="start">Ember</text>
+<text x="110" y="865" fill="#7B3FE4" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" text-anchor="start">Quill</text>
+<text x="570" y="295" fill="#E8590C" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="start">Prompt</text>
+<rect x="555" y="320" width="70" height="100" rx="10" fill="white" stroke="#E8590C" stroke-width="3"/>
+<rect x="565.0" y="381.1" width="10.5" height="25.9" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="577.5" y="344.1" width="10.5" height="62.9" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="590.0" y="358.9" width="10.5" height="48.099999999999994" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="602.5" y="373.7" width="10.5" height="33.3" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="637" y="320" width="70" height="100" rx="10" fill="white" stroke="#E8590C" stroke-width="3"/>
+<rect x="647.0" y="358.9" width="10.5" height="48.099999999999994" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="659.5" y="373.7" width="10.5" height="33.3" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="672.0" y="336.7" width="10.5" height="70.3" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="684.5" y="351.5" width="10.5" height="55.5" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<text x="560" y="475" fill="#E8590C" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="start">Turn header</text>
+<rect x="555" y="770" width="70" height="100" rx="10" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<rect x="565.0" y="816.3" width="10.5" height="40.7" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="577.5" y="831.1" width="10.5" height="25.9" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="590.0" y="794.1" width="10.5" height="62.9" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="602.5" y="808.9" width="10.5" height="48.099999999999994" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="637" y="770" width="70" height="100" rx="10" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<rect x="647.0" y="794.1" width="10.5" height="62.9" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="659.5" y="808.9" width="10.5" height="48.099999999999994" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="672.0" y="823.7" width="10.5" height="33.3" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="684.5" y="786.7" width="10.5" height="70.3" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<text x="570" y="730" fill="#7B3FE4" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="start">Prompt</text>
+<text x="555" y="935" fill="#7B3FE4" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="start">Turn header</text>
+<rect x="870" y="900" width="180" height="70" rx="18" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<text x="960.0" y="947.0" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">So</text>
+<path d="M960,892 L960,878" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M966.9266876331222,891.3049238416893 L960,878 L953.0733123668778,891.3049238416893" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="915" y="770" width="90" height="100" rx="10" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<rect x="925.0" y="831.1" width="15.5" height="25.9" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="942.5" y="794.1" width="15.5" height="62.9" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="960.0" y="808.9" width="15.5" height="48.099999999999994" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="977.5" y="823.7" width="15.5" height="33.3" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<text x="960" y="420" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">No token</text>
+<rect x="1200" y="900" width="180" height="70" rx="18" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<text x="1290.0" y="947.0" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">,</text>
+<path d="M1290,892 L1290,878" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1296.9266876331224,891.3049238416893 L1290,878 L1283.0733123668776,891.3049238416893" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1245" y="770" width="90" height="100" rx="10" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<rect x="1255.0" y="823.7" width="15.5" height="33.3" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1272.5" y="786.7" width="15.5" height="70.3" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1290.0" y="801.5" width="15.5" height="55.5" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1307.5" y="816.3" width="15.5" height="40.7" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1200" y="285" width="180" height="70" rx="18" fill="white" stroke="#E8590C" stroke-width="3"/>
+<text x="1290.0" y="332.0" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">So</text>
+<path d="M1290,360 L1290,380" stroke="#E8590C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1283.0733123668776,366.6950761583107 L1290,380 L1296.9266876331224,366.6950761583107" stroke="#E8590C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1245" y="390" width="90" height="100" rx="10" fill="white" stroke="#E8590C" stroke-width="3"/>
+<rect x="1255.0" y="428.9" width="15.5" height="48.099999999999994" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1272.5" y="443.7" width="15.5" height="33.3" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1290.0" y="406.7" width="15.5" height="70.3" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1307.5" y="421.5" width="15.5" height="55.5" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1530" y="900" width="180" height="70" rx="18" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<text x="1620.0" y="947.0" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">you</text>
+<path d="M1620,892 L1620,878" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1626.9266876331224,891.3049238416893 L1620,878 L1613.0733123668776,891.3049238416893" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1575" y="770" width="90" height="100" rx="10" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<rect x="1585.0" y="816.3" width="15.5" height="40.7" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1602.5" y="831.1" width="15.5" height="25.9" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1620.0" y="794.1" width="15.5" height="62.9" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1637.5" y="808.9" width="15.5" height="48.099999999999994" rx="3" fill="#7B3FE4" stroke="none" stroke-width="3"/>
+<rect x="1530" y="285" width="180" height="70" rx="18" fill="white" stroke="#E8590C" stroke-width="3"/>
+<text x="1620.0" y="332.0" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">,</text>
+<path d="M1620,360 L1620,380" stroke="#E8590C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1613.0733123668776,366.6950761583107 L1620,380 L1626.9266876331224,366.6950761583107" stroke="#E8590C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1575" y="390" width="90" height="100" rx="10" fill="white" stroke="#E8590C" stroke-width="3"/>
+<rect x="1585.0" y="421.5" width="15.5" height="55.5" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1602.5" y="436.3" width="15.5" height="40.7" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1620.0" y="451.1" width="15.5" height="25.9" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1637.5" y="414.1" width="15.5" height="62.9" rx="3" fill="#E8590C" stroke="none" stroke-width="3"/>
+<rect x="1860" y="900" width="180" height="70" rx="18" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<text x="1950.0" y="947.0" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">&#x27;re</text>
+<path d="M1950,892 L1950,878" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1956.9266876331224,891.3049238416893 L1950,878 L1943.0733123668776,891.3049238416893" stroke="#7B3FE4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1905" y="770" width="90" height="100" rx="10" fill="white" stroke="#7B3FE4" stroke-width="3"/>
+<rect x="1860" y="285" width="180" height="70" rx="18" fill="white" stroke="#E8590C" stroke-width="3"/>
+<text x="1950.0" y="332.0" fill="#1D1D1F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="middle">you</text>
+<path d="M1950,360 L1950,380" stroke="#E8590C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1943.0733123668776,366.6950761583107 L1950,380 L1956.9266876331224,366.6950761583107" stroke="#E8590C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1905" y="390" width="90" height="100" rx="10" fill="white" stroke="#E8590C" stroke-width="3"/>
+<rect x="1520" y="745" width="230" height="245" rx="20" fill="none" stroke="#7B3FE4" stroke-width="6"/>
+<path d="M540,545 L1730,545" stroke="#1A9E77" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M620,505 L620,535" stroke="#1A9E77" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M613.0733123668778,521.6950761583107 L620,535 L626.9266876331222,521.6950761583107" stroke="#1A9E77" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1290,505 L1290,535" stroke="#1A9E77" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1283.0733123668776,521.6950761583107 L1290,535 L1296.9266876331224,521.6950761583107" stroke="#1A9E77" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1620,505 L1620,535" stroke="#1A9E77" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1613.0733123668776,521.6950761583107 L1620,535 L1626.9266876331224,521.6950761583107" stroke="#1A9E77" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1620,555 L1620,730" stroke="#1A9E77" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1613.0733123668776,716.6950761583107 L1620,730 L1626.9266876331224,716.6950761583107" stroke="#1A9E77" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1040" y="650" fill="#1A9E77" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" text-anchor="middle">Visible hidden states</text>
+<path d="M1780,260 L1780,980" stroke="#D2432F" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1950" y="650" fill="#D2432F" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" text-anchor="middle">Future</text>
+<text x="1490" y="820" fill="#7B3FE4" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="500" text-anchor="end">Now</text>
+</svg>
