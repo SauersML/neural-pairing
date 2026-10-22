@@ -3,7 +3,8 @@
 An episode gives each model a system prompt (its own identity and the link), a user message, and a target reply. The
 models never see each other's text, so whatever one model's reply needs from the other can only cross the link.
 Each game has training wordings and held-out wordings, and draws its contents (words, numbers, names, cities,
-concepts, questions) from data/pools.json with its training or held-out part.
+concepts, questions) from data/pools.json with its training or held-out part. Numbers and digit strings are split
+by held_out_digits (digit sum 3 modulo 7 is held out), sums by range (training 0-49, held out 50-99).
 
 Weights: 1 on the tokens of a game answer, OWN on a model's ordinary reply to a question (the original model's own
 reply, so its text stays its own).
@@ -13,6 +14,12 @@ import os
 import random
 
 from link import MODELS, SIDES, partner
+
+
+def held_out_digits(v):
+    """Whether a number or digit string belongs to the held-out split: its digit sum is 3 modulo 7 (about one value in
+    seven), so no held-out value is ever relayed in training."""
+    return sum(int(c) for c in v if c.isdigit()) % 7 == 3
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 POOLS = json.load(open(os.path.join(ROOT, 'data', 'pools.json')))
@@ -241,6 +248,8 @@ class Games:
                 ans = f'The secret word is {v}.'
             elif game == 'relay_number':
                 v = str(rng.randrange(10000))
+                while held_out_digits(v) != (self.split == 'test'):
+                    v = str(rng.randrange(10000))
                 ans = f'The number is {v}.'
             elif game == 'relay_phrase':
                 v = f"{rng.choice(self.P['adjectives'])} {rng.choice(self.P['concepts'])[0]}"
@@ -248,6 +257,8 @@ class Games:
             else:
                 n = rng.randint(1, self.max_digits)
                 v = ' '.join(str(rng.randrange(10)) for _ in range(n))
+                while held_out_digits(v) != (self.split == 'test'):
+                    v = ' '.join(str(rng.randrange(10)) for _ in range(n))
                 ans = f'The digits are {v}.'
             kind = {'relay_word': 'word', 'relay_number': 'number', 'relay_phrase': 'two-word phrase',
                     'relay_digits': 'string of digits'}[game]
