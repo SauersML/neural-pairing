@@ -1,6 +1,6 @@
 """Plain chats (data/chat.json, prep_talk.py --chat; train.py --chat): only the original model writing a turn sees the
-partner's city, the payload is each twin's first turn when the partner has a city, payload_ctl measures co_chat, and a
-tiny run with --chat trains.
+partner's city, prep_talk's turn scores match turn-by-turn scoring, the payload is each twin's first turn when the
+partner has a city, payload_ctl measures co_chat, and a tiny run with --chat trains.
 
 NL_TINY=1 NL_DEVICE=cpu MPD_MEM_GIB=2 python tests/test_chat.py (the tiny run reserves 3 GiB)
 """
@@ -71,6 +71,45 @@ def test_episodes():
         assert len(eps['co_chat']) == 4 and all(ep['game'] == 'co_chat' for ep in eps['co_chat'])
 
 
+def prep_talk_functions(bs):
+    """turn_nats and context from prep_talk.py (a script), with what they read."""
+    import argparse
+    import ast
+    import torch
+    src = open(os.path.join(ROOT, 'pairing', 'prep_talk.py')).read()
+    fns = [n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef) and n.name in ('turn_nats', 'context')]
+    env = dict(S=S, torch=torch, DEVICE='cpu', args=argparse.Namespace(bs=bs))
+    exec(compile(ast.Module(fns, []), 'prep_talk.py', 'exec'), env)
+    return env['turn_nats'], env['context']
+
+
+def test_turn_nats():
+    """turn_nats scores each of x's turns as generation laid it out: equal to scoring turn k after context() of the
+    turns before it."""
+    import torch
+    import link
+    turn_nats, context = prep_talk_functions(bs=16)
+    turns = [('quill', 'Hello there, how is it going?'), ('ember', 'Fine, thanks. And you?'), ('quill', 'Good.'),
+             ('ember', 'Nice to hear.')]
+    for x in SIDES:
+        tok, m = link.load(x)
+        m = m.float().eval()
+        end = tok.convert_tokens_to_ids('<|im_end|>')
+        systems = [C.chat_system(x, 'Lisbon', C.CHAT[0]), C.chat_system(x, None, C.CHAT[3])]
+        got = turn_nats(tok, m, [(sy, turns, x) for sy in systems])
+        for sy, row in zip(systems, got):
+            want = []
+            for k, (sp, text) in enumerate(turns):
+                if sp != x:
+                    continue
+                ctx = context(tok, x, sy, turns[:k])
+                tgt = S.ids(tok, text) + [end]
+                with torch.no_grad():
+                    lp = torch.log_softmax(m(input_ids=torch.tensor([ctx + tgt])).logits[0, :-1].float(), -1)
+                want.append(float(sum(lp[len(ctx) - 1 + j, t] for j, t in enumerate(tgt))))
+            assert len(row) == len(want) == 2 and all(abs(a - b) < 1e-3 * max(1, abs(b)) for a, b in zip(row, want)), (row, want)
+
+
 def test_tiny_run():
     env = dict(os.environ, MPD_MEM_GIB='3')
     with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as out:
@@ -86,5 +125,6 @@ def test_tiny_run():
 if __name__ == '__main__':
     test_teacher_prompt()
     test_episodes()
+    test_turn_nats()
     test_tiny_run()
     print('OK')

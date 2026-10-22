@@ -78,6 +78,8 @@ ap.add_argument('--chat', action='store_true', help='plain chats (coread.CHAT) w
                 'sees the partner\'s private city (coread.chat_system knows), so the trained model needs the link to match it')
 ap.add_argument('--turns', type=int, default=None, help='turns per conversation (default 3; with --play or --chat 6, at least 2)')
 args = ap.parse_args()
+if args.chat and args.mlx:
+    ap.error('--chat scores each turn with torch (turn_nats); drop --mlx')
 args.turns = args.turns or (6 if args.play or args.chat else 3)
 args.out = args.out or os.path.join(ROOT, 'data', 'play.json' if args.play else 'chat.json' if args.chat else 'talk.json')
 
@@ -212,6 +214,35 @@ def turn(k, who, x):
         print(f'turn {k} ({who} {x}): {len(mine)}; example: {mine[0]["turns"]}', flush=True)
 
 
+@torch.no_grad()
+def turn_nats(tok, m, items):
+    """items: [(system, turns, x)]. Per item, the log-probability (nats) of each of x's turns, closing token included,
+    in the conversation laid out as context() lays it out for x under system."""
+    end = tok.convert_tokens_to_ids('<|im_end|>')
+    seqs, spans = [], []
+    for system, turns, x in items:
+        t, sp = S.prefix(tok, x, system), []
+        for who, text in turns:
+            if who == x:
+                t += S.assistant_header(tok, x)
+                sp.append((len(t), len(t) + len(S.ids(tok, text)) + 1))
+                t += S.ids(tok, text) + [end] + S.ids(tok, '\n')
+            else:
+                t += S.ids(tok, '<|im_start|>user\n') + S.ids(tok, text) + S.ids(tok, '<|im_end|>\n')
+        seqs.append(t)
+        spans.append(sp)
+    out, bs = [], max(1, args.bs // 8)               # full-vocabulary logits: a smaller batch than generation
+    for b in range(0, len(seqs), bs):
+        chunk = seqs[b:b + bs]
+        L = max(map(len, chunk))
+        ids = torch.tensor([q + [tok.pad_token_id] * (L - len(q)) for q in chunk], device=DEVICE)
+        att = torch.tensor([[1] * len(q) + [0] * (L - len(q)) for q in chunk], device=DEVICE)
+        lp = torch.log_softmax(m(input_ids=ids, attention_mask=att).logits[:, :-1].float(), -1)
+        got = lp.gather(-1, ids[:, 1:, None])[..., 0]
+        out += [[float(got[k, a - 1:z - 1].sum()) for a, z in sp] for k, sp in enumerate(spans[b:b + bs])]
+    return out
+
+
 def prune(k):
     global allc
     keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])
@@ -231,15 +262,35 @@ for k in range(0 if args.play or args.chat else 1, args.turns):
         turn(k, 'asker' if k % 2 == 0 else 'holder', x)
     order.reverse()
     prune(k)
+if args.chat:
+    # What each turn says about the partner's city: log p(turn | the writer's prompt, which shows that city) - log p(turn
+    # | the trained prompt, which does not), under the model that wrote it. A model that ignores the link pays this much
+    # more loss on the turn than one that reads it perfectly; ~0 everywhere would mean the data teaches no link use.
+    for x in order:
+        tok, m = model(x)
+        mine = [c for c in allc if c['private'][partner(x)]]
+        shown = turn_nats(tok, m, [(c['teach'][x], c['turns'], x) for c in mine])
+        hidden = turn_nats(tok, m, [(c['system'][x], c['turns'], x) for c in mine])
+        for c, a, b in zip(mine, shown, hidden):
+            c.setdefault('pmi', {})[x] = [round(p - q, 3) for p, q in zip(a, b)]
 kept = {id(c) for c in allc}
 convs = {split: [c for c in v if id(c) in kept] for split, v in convs.items()}
+for split, v in convs.items():
+    turns = [(c, x, k, nats) for c in v for x, ns in c.get('pmi', {}).items() for k, nats in enumerate(ns)]
+    if turns:
+        said = [c['private'][partner(x)].lower() in [t for sp, t in c['turns'] if sp == x][k].lower()
+                for c, x, k, _ in turns]
+        nats = sorted(n for *_, n in turns)
+        print(f'{split}: {len(turns)} turns whose writer saw the partner\'s city: median {nats[len(nats) // 2]:.2f} nats '
+              f'about it, {sum(n > 0 for n in nats) / len(nats):.0%} positive, {sum(said) / len(said):.0%} name it',
+              flush=True)
 for c in allc:
     if args.play:
         c['spans'] = {sp: play_spans(c['secrets'][partner(sp)], text) for sp, text in c['turns'][:2]}
         for k in ('holder', 'asker', 'peek'):
             del c[k]
     if args.chat:
-        for k in ('holder', 'asker', 'teach'):
+        for k in ('holder', 'asker'):
             del c[k]
 json.dump(convs, open(args.out, 'w'), indent=1)
 print('wrote', args.out, {s: len(v) for s, v in convs.items()}, flush=True)
