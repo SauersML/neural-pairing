@@ -1,0 +1,279 @@
+{
+  "status": "preregistered_waiting_gpu",
+  "protocol": {
+    "protocol": {
+      "concepts": {
+        "ocean": [
+          "ocean oceans sea seas beach beaches waves tide tides coastal shoreline marine",
+          [
+            "Ocean waves break on a sandy beach.",
+            "The sea stretches beyond the horizon.",
+            "A tide rises along the rocky coast.",
+            "Salt water surrounds a distant island.",
+            "Marine life thrives beneath the ocean.",
+            "A ship crosses the deep blue sea.",
+            "Foam washes across the shoreline.",
+            "Coral reefs grow in tropical seas.",
+            "Seabirds glide above rolling waves.",
+            "The beach curves around a sheltered bay."
+          ]
+        ],
+        "fire": [
+          "fire fires flame flames burning blaze blazing embers wildfire smoke",
+          [
+            "A fire burns brightly in the hearth.",
+            "Flames rise from dry branches.",
+            "Smoke curls above a campfire.",
+            "Glowing embers warm the dark room.",
+            "A wildfire spreads across dry grass.",
+            "The candle flame flickers gently.",
+            "Burning logs crackle in the fireplace.",
+            "Heat radiates from the blazing wood.",
+            "Firefighters extinguish a fierce blaze.",
+            "Sparks fly upward from the bonfire."
+          ]
+        ],
+        "music": [
+          "music musical melody melodies song songs singing piano guitar rhythm concert",
+          [
+            "Music fills the concert hall.",
+            "A pianist plays a gentle melody.",
+            "The guitar accompanies a familiar song.",
+            "A singer practices a new tune.",
+            "The orchestra performs a symphony.",
+            "Drums establish a steady rhythm.",
+            "A violin plays a soaring phrase.",
+            "The choir sings in harmony.",
+            "Musicians rehearse for a concert.",
+            "A recording captures the beautiful music."
+          ]
+        ],
+        "cats": [
+          "cat cats kitten kittens feline felines meow meowing purr purring",
+          [
+            "A cat sleeps on the windowsill.",
+            "The kitten chases a little toy.",
+            "Cats groom their soft fur.",
+            "A tabby cat stretches in sunlight.",
+            "The kitten purrs while being stroked.",
+            "A feline watches a bird outside.",
+            "The cat meows beside the door.",
+            "Two kittens play under a chair.",
+            "A black cat walks across the room.",
+            "The sleepy cat curls into a ball."
+          ]
+        ],
+        "space": [
+          "space cosmic cosmos planet planets galaxy galaxies astronaut astronauts rocket lunar nebula",
+          [
+            "A rocket launches into outer space.",
+            "Astronauts explore the lunar surface.",
+            "Planets orbit a distant star.",
+            "A galaxy contains billions of stars.",
+            "The spacecraft travels beyond Earth.",
+            "A telescope reveals a colorful nebula.",
+            "Saturn has rings of ice and rock.",
+            "Cosmic dust forms new planetary systems.",
+            "The astronaut floats in orbit.",
+            "A probe studies the surface of Mars."
+          ]
+        ],
+        "cooking": [
+          "cook cooks cooking kitchen recipe recipes baking bake oven chef ingredients",
+          [
+            "A chef prepares dinner in the kitchen.",
+            "Cooking requires fresh ingredients.",
+            "The recipe calls for chopped vegetables.",
+            "Bread is baking in the oven.",
+            "The cook stirs a pot of soup.",
+            "A saucepan simmers on the stove.",
+            "The chef seasons the meal carefully.",
+            "A recipe explains how to roast vegetables.",
+            "Mix flour and water to make dough.",
+            "The kitchen smells of freshly baked bread."
+          ]
+        ],
+        "winter": [
+          "winter snow snowy snowfall snowflake snowflakes frost frosty blizzard icy skiing",
+          [
+            "Winter snow covers the quiet street.",
+            "Snowflakes settle on a woolen scarf.",
+            "Frost forms on the window overnight.",
+            "A blizzard closes the mountain road.",
+            "Children build a snowman outside.",
+            "Icy branches sparkle in winter sunlight.",
+            "Skiers descend a snowy slope.",
+            "Thick mittens protect against the cold.",
+            "Fresh snowfall blankets the rooftops.",
+            "The winter morning is crisp and frosty."
+          ]
+        ],
+        "football": [
+          "football soccer touchdown touchdowns quarterback goalkeeper striker stadium goal goals",
+          [
+            "The football team enters the stadium.",
+            "A quarterback throws a long pass.",
+            "The striker scores a soccer goal.",
+            "Fans cheer after a touchdown.",
+            "A goalkeeper catches the football.",
+            "The referee blows the final whistle.",
+            "Football players practice their passing.",
+            "The soccer match ends in a draw.",
+            "A defender tackles the advancing striker.",
+            "The football coach prepares the team."
+          ]
+        ],
+        "gardens": [
+          "garden gardens gardening gardener flowers flower plants planting seeds blossom",
+          [
+            "A gardener plants flowers in the garden.",
+            "Seeds sprout in moist soil.",
+            "The garden blooms in spring.",
+            "A watering can nourishes young plants.",
+            "The gardener pulls weeds from a flowerbed.",
+            "Roses blossom beside the garden path.",
+            "Fresh compost improves the soil.",
+            "The flower garden attracts butterflies.",
+            "A gardener trims the green hedge.",
+            "Small seedlings grow in the greenhouse."
+          ]
+        ],
+        "trains": [
+          "train trains railway railroad locomotive locomotives carriage carriages station tracks",
+          [
+            "A train arrives at the railway station.",
+            "The locomotive pulls several carriages.",
+            "Railroad tracks cross the countryside.",
+            "Passengers board an express train.",
+            "The railway signal changes to green.",
+            "A steam locomotive whistles loudly.",
+            "A freight train transports heavy cargo.",
+            "The train conductor checks tickets.",
+            "A railway bridge spans the river.",
+            "The last carriage passes the platform."
+          ]
+        ],
+        "painting": [
+          "paint paints painting paintings painter painters canvas brush brushes watercolor portrait",
+          [
+            "A painter works on a large canvas.",
+            "Watercolor paint spreads across the paper.",
+            "The artist mixes colors on a palette.",
+            "A brush adds detail to the portrait.",
+            "The painting depicts a quiet village.",
+            "Oil paint dries slowly on the canvas.",
+            "The painter sketches before adding color.",
+            "An exhibition displays colorful paintings.",
+            "Fine brushes create delicate strokes.",
+            "The artist finishes a painted landscape."
+          ]
+        ],
+        "mountains": [
+          "mountain mountains summit summits alpine peaks peak hiking hiker hikers climbing",
+          [
+            "High mountains rise above the valley.",
+            "A hiker approaches the rocky summit.",
+            "Alpine peaks tower over a clear lake.",
+            "Climbers ascend a steep mountain face.",
+            "A hiking trail winds up the ridge.",
+            "The mountain summit offers a wide view.",
+            "Hikers rest beside an alpine meadow.",
+            "A narrow pass connects two valleys.",
+            "The climbing team reaches the peak.",
+            "Mountain slopes descend toward the forest."
+          ]
+        ]
+      },
+      "frames": [
+        "{}",
+        "I read this description: {}",
+        "Here is a brief scene: {}",
+        "Someone described the following: {}",
+        "This is the scene in the paragraph: {}"
+      ],
+      "neutral": [
+        "A person opens an envelope.",
+        "The document lists several ordinary details.",
+        "A visitor waits beside the reception desk.",
+        "The appointment begins at noon.",
+        "A pencil rests beside a blank notebook.",
+        "The clerk checks a printed form.",
+        "An empty box stands near the door.",
+        "The address is written clearly.",
+        "A person places an object on a shelf.",
+        "The meeting ends after a short discussion."
+      ],
+      "calibration": [
+        "Describe something pleasant in a short sentence.",
+        "What would you like to talk about today? Write a short sentence.",
+        "Tell me about a scene that comes to mind. Use a short sentence."
+      ],
+      "chat": [
+        "There is nothing planned. Chat with {P} about anything you like.",
+        "Take a relaxed moment with {P}. Talk about whatever comes to mind."
+      ],
+      "duplex": [
+        "Name something you are thinking about. Reply with one item.",
+        "What comes to mind right now? Reply with one item."
+      ],
+      "strengths": [
+        0.0,
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "layer": 15,
+      "calibration_tokens": 32,
+      "chat_tokens": 32,
+      "duplex_tokens": 12,
+      "random_seed": 21022,
+      "conditions": [
+        "link",
+        "cut",
+        "random",
+        "crossed"
+      ],
+      "schema": 1
+    },
+    "sha256": "6d62a92c2e5ff5418ef934986b202864cc7a1e2330a68460c65c9f24d770f545"
+  },
+  "preregistration": "Round 0 \u2014 preregistration, 2026-10-22, before fitting directions or model output inspection.\nQuestion: can a concept introduced only as an additive residual intervention influence the other model before the sender writes the concept? This is transfer of an unseen intervention, not evidence for consciousness or unseen pretraining concepts.\nTwelve concepts in fixed order: ocean, fire, music, cats, space, cooking, winter, football, gardens, trains, painting, mountains. Word lists and fifty topic texts (ten content sentences crossed with five frames), fifty neutral texts, calibration prompts and test prompts are fixed in pairing/steered_mind.py before any run. Hash the full protocol in every output.\nFor each checkpoint and side independently, fit direction = mean of per-text mean content-token residuals after zero-based block 15, concept minus neutral, with adapters active and link cut. Normalize direction to neutral mean residual RMS. Add alpha times this direction to every valid token at that block only, including prompts and headers; no concept text enters experimental prompts.\nCalibration uses three separate prompts, link cut, 32 greedy output tokens. Candidate alpha = 0, .25, .5, 1, 2. Select smallest nonzero alpha producing at least two of three concept mentions, at least two more mentions than alpha zero, and all three passing the mechanical fluency screen (at least four alphabetic words, no replacement characters/special tokens, no repeated trigram occupying over 25 percent of trigrams). This is a proxy, not a human fluency judgment. If none qualifies, select the largest alpha passing all three fluency screens; if none passes, alpha zero. Mark failed calibration, retain all concepts in results, and do not interpret failed calibration as a successful test of a concept state.\nEvaluation: two fixed neutral prompt wordings per structure, both directions, both checkpoints. Plain chat uses the receiver's first turn (32 tokens), before the sender has written any text; this is a deliberately strict first-turn test, not a six-turn chat test. Duplex asks for one item (12 tokens): both write independently. Success means a preregistered whole-word concept match in the receiver strictly earlier in generation ticks than the sender's first concept match; simultaneous mentions fail. Also report receiver-any mentions and sender mentions.\nFour conditions: intended concept steering with link on; identical steering link cut; fixed seeded Gaussian direction of identical norm with link on; crossed partner = same-role donor with next concept cyclically in the fixed list, using the TARGET alpha and donor unit direction normalized to the TARGET direction norm. Crossed test runs an isolated receiver-donor pair so original partner text cannot leak around a batch shuffle. All inputs apart from residual intervention and link status are identical. Record actual donor concept. Random direction fixed per checkpoint/side/concept, seed 21022 plus side/concept offsets. Concept labels never enter model inputs.\nPrimary: after-chat checkpoint, per direction and structure, concept-level signed differences in success count (sum over two prompts), link minus crossed; exact one-sided binomial sign test on nonzero concept differences. Four primary tests, Holm correction. Report link-cut and link-random concept-level sign tests as secondary. Report paired per-prompt discordant counts and exact one-sided McNemar/binomial p as descriptive because concept repetitions are dependent. Before-chat checkpoint same complete design, descriptive. Include ties and denominators. No optional stopping or word-list edits after inspection. No successful-example requirement: show a real success only if one exists, otherwise show the actual null/failure.\nEvery numerical summary is computed from saved records. Real models only 4-bit MLX on Mac under the GPU lock with MPD_MEM_GIB=12. Numerical findings require bf16 confirmation; provide runnable GPU command but launch no rented jobs.\nRound 1 \u2014 implementation complete before real results. New files only: pairing/steered_mind.py, pairing/steered_mind_checks.py, figures/steered_mind.py. The scoped intervention wraps the actual MLX block and restores it on exit; cut steering is still applied to the sender. No existing function or existing measurement was changed. Protocol JSON frozen and hashed before loading any real model.\nRound 2 \u2014 verification passed. MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu HF_HUB_OFFLINE=1 /Users/user/mpd-data/venv/bin/python pairing/steered_mind_checks.py: native tiny Qwen/AFM on CPU; zero intervention bitwise exact; receiver unchanged bitwise under cut in both directions; nonzero link effect; teacher-forced versus token-by-token maximum absolute error 1.430511474609375e-6; real tokenizer lexical-prefix guards; all concept/prompt combinations audited; calibration selection and one-sided exact test checks; exception restoration. Existing tests/test_link.py passed all checks. No real outputs inspected. GPU work now queued with lock acquired before the 12 GiB Python reservation.\n",
+  "checks": {
+    "checks": {
+      "quill/None": {
+        "zero_exact": true,
+        "joint_stream_max_error": 1.0728836059570312e-06,
+        "receiver_change": 0.17351305484771729
+      },
+      "quill/zero": {
+        "zero_exact": true,
+        "joint_stream_max_error": 1.430511474609375e-06,
+        "receiver_change": 0.0
+      },
+      "ember/None": {
+        "zero_exact": true,
+        "joint_stream_max_error": 1.1920928955078125e-06,
+        "receiver_change": 0.21020933985710144
+      },
+      "ember/zero": {
+        "zero_exact": true,
+        "joint_stream_max_error": 1.1920928955078125e-06,
+        "receiver_change": 0.0
+      }
+    },
+    "lexical_guards": true,
+    "prompt_audit": true,
+    "exact_tests": true,
+    "calibration_rule": true,
+    "restoration": true
+  },
+  "existing_test": "tests/test_link.py: all checks passed",
+  "records": null,
+  "exact_tests": null,
+  "numerical_note": "Planned real-model runs use 4-bit MLX; no results yet.",
+  "checkpoint_paths": [
+    "/Users/user/mpd-data/runpod/magic-nl22c/run/step_157",
+    "/Users/user/mpd-data/runpod/magic-nl20/run/step_1320"
+  ]
+}
