@@ -108,6 +108,10 @@ ap.add_argument('--quick_n', type=int, default=32)
 ap.add_argument('--qa', type=float, default=0.0, help='probability that an episode is a benchmark question')
 ap.add_argument('--solo', action='store_true', help='benchmark questions only, each model alone (no bridge)')
 ap.add_argument('--text_pair', action='store_true', help='benchmark questions only, answered in turn in text')
+ap.add_argument('--qa_focus', default=None, help="qa_split.py's file: the training questions only one original model "
+                'answers right')
+ap.add_argument('--qa_focus_p', type=float, default=0.5, help='with --qa_focus, the probability that a benchmark question '
+                'is one only one original model answers right (either model\'s set equally often)')
 ap.add_argument('--payload_every', type=int, default=5,
                 help='every N steps, the payload loss also with no bridge, on the same batch')
 ap.add_argument('--payload_eval', type=int, default=0,
@@ -268,6 +272,15 @@ def adversary(ep):
 
 BENCH = G.bench('train') if (args.qa > 0 or ONLY_QA) else None
 VAL = G.bench('val') if BENCH else None
+FOCUS = json.load(open(args.qa_focus)) if args.qa_focus else None
+
+
+def bench_item(rng):
+    """A training question; with --qa_focus, with probability --qa_focus_p one that only one of the original models
+    answers right, each model's set drawn equally often, so a partner's answer is right as often as wrong there."""
+    if FOCUS and rng.random() < args.qa_focus_p:
+        return BENCH[rng.choice(FOCUS[rng.choice(SIDES)])]
+    return rng.choice(BENCH)
 
 
 def held_out(ep):
@@ -296,9 +309,9 @@ def draw_any(rng, games, step, co):
     if step <= args.relay_first and not ONLY_QA:
         return coldstart.relay_episode(games, RELAY_GAMES)
     if args.solo:
-        return G.qa_episode(rng.choice(BENCH), 'solo')
+        return G.qa_episode(bench_item(rng), 'solo')
     if args.text_pair:
-        return G.qa_episode(rng.choice(BENCH), 'text', order=rng.sample(SIDES, 2))
+        return G.qa_episode(bench_item(rng), 'text', order=rng.sample(SIDES, 2))
     if rng.random() < args.anchor:
         return games.episode(rng.choice(ANCHOR))
     if args.chat and co is not None and co.chat and rng.random() < args.chat:
@@ -310,7 +323,7 @@ def draw_any(rng, games, step, co):
     if co is not None and rng.random() < (args.coread_first_p if step <= args.coread_first else args.coread):
         return co.episode()
     if rng.random() < args.qa:
-        return G.qa_episode(rng.choice(BENCH), 'pair')
+        return G.qa_episode(bench_item(rng), 'pair')
     if rng.random() < args.dialogue:
         return games.episode(rng.choice(G.DIALOGUE))
     return games.episode()

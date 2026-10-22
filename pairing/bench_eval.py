@@ -8,6 +8,7 @@ of the pair (the computation the pair trains with; nothing of the partner's lett
   pair/zero, pair/shuffle, pair/random   the same pair without the bridges, or reading other partners   (5)
   text       a pair trained the same way to answer in turn in text, the link closed     (6)
   ensemble   the two solo models' letter probabilities averaged (an extra control)
+  pair/avg   the two linked models' letter probabilities averaged (pair/zero/avg: the same with the link cut)
 The pair's answer is the answer of the model whose solo version scores higher on the validation questions (fixed
 before any test question is read); in the text pair that model answers second, after reading its partner's answer,
 written as 'The answer is X.' from the partner's own most likely letter.
@@ -193,6 +194,8 @@ if __name__ == '__main__':
             P = letter_probs(pair, items, 'pair', mode=mode, bs=args.bs)
             for x in SIDES:
                 C[f'pair{"/" + mode if mode else ""}/{x}'] = correct(P[x], items)
+            if mode in (None, 'zero'):
+                C[f'pair{"/" + mode if mode else ""}/avg'] = correct((P['quill'] + P['ember']) / 2, items)
     with adapters('text'):
         for order in ((W, D), (D, W)):
             P = letter_probs(pair, items, 'text', order=order, bs=args.bs)
@@ -217,8 +220,11 @@ if __name__ == '__main__':
         # the headline: the pair against the strongest of the fine-tuned single models and their ensemble, picked
         # on these test questions (the comparison least favourable to the pair)
         best = max(('solo/quill', 'solo/ember', 'ensemble'), key=lambda k: acc[k])
+        # the pooled pair (both linked models' letters averaged) against the averaged single models and the same pair
+        # with the link cut
+        pooled = {k: mcnemar([C['pair/avg'][i] for i in sel], [C[k][i] for i in sel]) for k in ('ensemble', 'pair/zero/avg')}
         R['test'][name] = dict(n=len(sel), accuracy=acc, vs_pair=tests, pair_beats_all=claim,
-                               headline=dict(vs=best, **tests[best]))
+                               headline=dict(vs=best, **tests[best]), pooled=pooled)
         print(name, json.dumps(R['test'][name]), flush=True)
     R['per_question'] = C
     R['questions'] = [dict(src=it['src'], answer=it['answer']) for it in items]
