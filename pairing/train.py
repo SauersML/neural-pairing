@@ -76,6 +76,9 @@ ap.add_argument('--max_digits', type=int, default=16)
 ap.add_argument('--pause', type=int, default=0, help='silent ticks before duplex replies or each dialogue turn')
 ap.add_argument('--pause_p', type=float, default=1.0, help='probability an episode receives --pause ticks')
 ap.add_argument('--ckpt', default='both', choices=('both', 'none', 'quill', 'ember'), help='gradient checkpointing')
+ap.add_argument('--micro', type=int, default=1,
+                help="run each rank's share of a step's batch as this many groups of similar length, one after another, "
+                     "summing their gradients (the same update, with far less padding when short and long episodes mix)")
 ap.add_argument('--seed', type=int, default=0)
 ap.add_argument('--dialogue', type=float, default=0.0, help='probability that an episode is a dialogue game')
 ap.add_argument('--coread', type=float, default=0.0, help='probability that an episode is a co-reading episode')
@@ -332,9 +335,18 @@ def distill(built):
     return out
 
 
-def forward(rows, built, cost_scale=1.0):
-    """This rank's share of the global batch: losses (with the denominators of the whole batch) and statistics."""
-    mine = ddp.partition([sum(len(e[x]['ids']) for x in SIDES) for e in built])[ddp.RANK]
+def groups(built):
+    """This rank's share of the global batch, as --micro groups of episodes of similar length (indices into built)."""
+    cost = [sum(len(e[x]['ids']) for x in SIDES) for e in built]
+    mine = ddp.partition(cost)[ddp.RANK]
+    return [[mine[i] for i in g] for g in ddp.partition([cost[i] for i in mine], min(args.micro, len(mine)))]
+
+
+def forward(rows, built, cost_scale=1.0, mine=None):
+    """The episodes mine (indices into the global batch; default this rank's share): losses (with the denominators of
+    the whole batch, so the losses of a split batch add up to the batch's) and statistics."""
+    if mine is None:
+        mine = ddp.partition([sum(len(e[x]['ids']) for x in SIDES) for e in built])[ddp.RANK]
     denom = {x: max(1.0, sum(wt for e in built for _, _, wt in e[x]['labels'])) for x in SIDES}
     n_show = {x: max(1, sum(len(e[x]['ids']) for e in built) * len(XB)) for x in SIDES}
     rows, built = [rows[i] for i in mine], [built[i] for i in mine]
@@ -419,13 +431,40 @@ def payload_eval(n, step):
 
 
 def backward(competitive, loss_for, total):
-    opt.zero_grad(set_to_none=True)
+    """Adds this pass's gradients to the parameters' (zeroed at the start of the step)."""
     if competitive:
         torch.autograd.backward(loss_for['quill'], inputs=params['quill'], retain_graph=True)
         torch.autograd.backward(loss_for['ember'], inputs=params['ember'])
     else:
         total.backward()
+
+
+def train_pass(rows, built, cost_scale=1.0, competitive=False, payload=False):
+    """Forward and backward over this rank's share of the global batch, group by group (groups), then the gradients
+    summed over the ranks. Returns the loss and send statistics summed over the groups, per group (its rows, its
+    per-episode tally), the mean of the groups' write statistics (with pair.track set) and, with payload, the payload
+    sums with and without the bridges."""
+    opt.zero_grad(set_to_none=True)
+    total_sum, sent_sum, parts, tracks, pay = 0.0, 0.0, [], [], {}
+    logging_writes = pair.track is not None
+    for mine in groups(built):
+        if logging_writes:
+            pair.track = {}
+        rows_k, built_k, b, last, loss_for, total, sent, tally = forward(rows, built, cost_scale, mine)
+        if logging_writes:
+            tracks.append(pair.track)
+        backward(competitive, loss_for, total)
+        if payload:
+            for g, a in payload_ce(rows_k, built_k, b, {x: last[x].detach() for x in SIDES}).items():
+                o = pay.setdefault(g, [0.0, 0.0, 0])
+                for j in range(3):
+                    o[j] += a[j]
+        del last, loss_for
+        total_sum, sent_sum = total_sum + total.detach(), sent_sum + sent
+        parts.append((rows_k, tally))
     ddp.sum_grads(ALL)
+    track = {k: sum(t[k] for t in tracks) / len(tracks) for k in tracks[0]} if tracks else None
+    return total_sum, sent_sum, parts, track, pay
 
 
 def probe():
@@ -444,8 +483,7 @@ def probe():
             e[x]['teacher'] = t
     top = sorted(range(len(rows)), key=lambda i: -sum(len(built[i][x]['ids']) for x in SIDES))[:args.bs]
     torch.cuda.reset_peak_memory_stats(DEVICE)
-    _, _, _, _, loss_for, total, _, _ = forward([rows[i] for i in top], [built[i] for i in top])
-    backward(False, loss_for, total)
+    train_pass([rows[i] for i in top], [built[i] for i in top])
     opt.zero_grad(set_to_none=True)
     peak = ddp.gather(round(torch.cuda.max_memory_allocated(DEVICE) / 2 ** 30, 1))
     longest = max(len(built[i][x]['ids']) for i in top for x in SIDES)
@@ -524,17 +562,15 @@ while step < args.steps:
     scale = 0.0 if step <= args.relay_first or frac <= args.warm else min(1.0, (frac - args.warm) / args.ramp) if args.ramp > 0 else 1.0
     logging = step % 20 == 0 or step <= 3 or step == args.halt
     pair.track = {} if logging else None
-    rows, built, b, last, loss_for, total, sent, tally = forward(rows, built, scale)
-    track, pair.track = pair.track, None
-    backward(competitive, loss_for, total)
+    total, sent, parts, track, pay_k = train_pass(rows, built, scale, competitive,
+                                                  (step - 1) % args.payload_every == 0 and not competitive)
+    pair.track = None
     if step <= args.hold:
         coldstart.hold(pair)
-    if (step - 1) % args.payload_every == 0 and not competitive:
-        for g, a in payload_ce(rows, built, b, {x: last[x].detach() for x in SIDES}).items():
-            o = pstats.setdefault(g, [0.0, 0.0, 0])
-            for j in range(3):
-                o[j] += a[j]
-    del last
+    for g, a in pay_k.items():
+        o = pstats.setdefault(g, [0.0, 0.0, 0])
+        for j in range(3):
+            o[j] += a[j]
     if logging:
         gn = grad_norms()
     if args.grad_check and ddp.MAIN:
@@ -546,9 +582,9 @@ while step < args.steps:
     opt.step()
     if step < args.steps:
         nxt = prepare(step + 1)          # on the CPU while the GPU finishes this step
-    for x in SIDES:
+    for (rows_k, tally), x in ((p, x) for p in parts for x in SIDES):
         for i, (h, c, n) in enumerate(tally[x].T.tolist()):
-            ep, owners = rows[i]
+            ep, owners = rows_k[i]
             if not owners[x] or n == 0:
                 continue
             k = ep['game'] + ('/adv' if owners[x] != BOTH and x not in owners[x] else '')
