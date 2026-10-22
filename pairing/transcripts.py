@@ -6,6 +6,9 @@ condition with the scores, and per side one line of gate means per tick (the pro
 episode is a whole conversation: its target is the reference conversation [[speaker, text], ...], and each condition
 gives the turns written, the scores (co_talk: the asker's first turn; co_play: each twin's naming turn) and per side
 the mean gate of the prompt and of each turn. Writes FILE.txt and FILE.json.
+Dialogue also includes 'crossed': independent same-role donors, each focal
+receiver in its own full conversation. receiver_runs keeps these separate; the
+native 'shuffle' rows above retain their original text-feedback behavior.
 
 Usage: python transcripts.py --run RUN/step_N --replies REPLIES.json --out FILE.txt [--n 3] [--device mps]
 """
@@ -21,6 +24,7 @@ ap.add_argument('--n', type=int, default=3, help='episodes per game (at least 2,
 ap.add_argument('--device', default='mps')
 ap.add_argument('--bs', type=int, default=8)
 ap.add_argument('--coread_data', default=None)
+ap.add_argument('--games', nargs='+', help='optional subset of the transcript games')
 args = ap.parse_args()
 assert args.n >= 2, 'shuffling needs two episodes of a game'
 os.environ['NL_DEVICE'] = args.device
@@ -52,18 +56,35 @@ def turn_gates(steps, turns, n):
 pair, toks = load_pair(args.run)
 eps = payload_ctl.episodes(json.load(open(args.replies)), args.n, coread=True, path=args.coread_data)
 games = [g for g in payload_ctl.PAYLOAD_GAMES + play_tasks.SCORED + ('co_talk', 'co_play') if g in eps]
+if args.games:
+    if set(args.games) - set(games):
+        raise ValueError('requested transcript game is unavailable')
+    games = [g for g in games if g in args.games]
 out, lines = [], []
 with torch.no_grad():
     for g in games:
         res = {c: run_episodes(pair, eps[g], mode=m, bs=args.bs) for c, m in CONDS}
+        conds = CONDS
+        if eps[g][0]['mode'] == 'dialogue':
+            import coread
+            import evalfree
+            source = coread.Coread(json.load(open(args.replies)), 'test', seed=13013, path=args.coread_data)
+            donors = [evalfree.choose_donor(ep, source)[0] for ep in eps[g]]
+            res['crossed'] = run_episodes(pair, eps[g], mode='crossed', donors=donors)
+            conds = CONDS + (('crossed', 'crossed'),)
         for i, ep in enumerate(eps[g]):
             talk = ep['mode'] == 'dialogue'
             assert not ep.get('forced'), 'every turn of a transcript is generated, none is teacher-forced'
             rec = dict(game=g, episode=i, meta=ep['meta'], system=ep['system'], user=ep['task'],
                        target=[[sp, t] for sp, t, _ in ep['turns']] if talk else {x: ep['reply'][x][0] for x in SIDES},
                        conditions={})
-            for c, _ in CONDS:
+            for c, _ in conds:
                 r = res[c][i]
+                if c == 'crossed':
+                    rec['conditions'][c] = dict(scores=dict(ok=r['ok'], each=r['each']),
+                                                receiver_runs=r['receiver_runs'], donor=r['donor'],
+                                                implementation=r['implementation'])
+                    continue
                 rec['conditions'][c] = dict(scores={k: v for k, v in r.items() if k == 'ok' or
                                                     k.startswith('score_') or k in ('each', 'holder', 'per_digit')},
                                             gates={x: gate_line(r['gates'][x]) if c != 'cut' else 'no bridge'
@@ -82,16 +103,24 @@ with torch.no_grad():
                     lines.append(f'--- {x} target:\n{ep["reply"][x][0]}')
             if talk:
                 lines += [f'--- target turn {k} ({sp}):\n{t}' for k, (sp, t) in enumerate(rec['target'])]
-            for c, _ in CONDS:
+            for c, _ in conds:
                 d = rec['conditions'][c]
                 lines.append(f'### {c}  scores {json.dumps(d["scores"])}')
+                if c == 'crossed':
+                    lines.append('Separate isolated conversations below; only the named receiver is scored.')
+                    for receiver, r in d['receiver_runs'].items():
+                        lines.append(f'--- focal receiver {receiver}; donor {json.dumps(d["donor"], ensure_ascii=False)}')
+                        lines += [f'--- turn {k} ({sp}) wrote:\n{t}' for k, (sp, t) in enumerate(r['turns'])]
+                        for x in SIDES:
+                            lines.append(f'    {x} gates (prompt, then each tick): {gate_line(r["gates"][x])}')
+                    continue
                 if talk:
                     lines += [f'--- turn {k} ({sp}) wrote:\n{t}' for k, (sp, t) in enumerate(d['turns'])]
                 for x in SIDES:
                     if not talk:
                         lines.append(f'--- {x} wrote:\n{d["text"][x]}')
                     lines.append(f'    {x} gates (prompt, then each tick): {d["gates"][x]}')
-        print(g, {c: round(sum(r['ok'] for r in res[c]) / len(res[c]), 3) for c, _ in CONDS}, flush=True)
+        print(g, {c: round(sum(r['ok'] for r in res[c]) / len(res[c]), 3) for c, _ in conds}, flush=True)
 open(args.out, 'w').write('\n'.join(lines) + '\n')
 json.dump(out, open(os.path.splitext(args.out)[0] + '.json', 'w'), indent=1, ensure_ascii=False)
 print('wrote', args.out, 'and', os.path.splitext(args.out)[0] + '.json', len(out), 'episodes', flush=True)

@@ -126,8 +126,17 @@ def score(ep, res):
     raise ValueError(g)
 
 
-def run_episodes(pair, eps, mode=None, write_mode=None, bs=32, seed=0, mute=None, temperature=0.0):
-    """Generation for a list of episodes of one mode; returns per-episode texts, gates and scores."""
+def run_episodes(pair, eps, mode=None, write_mode=None, bs=32, seed=0, mute=None, temperature=0.0, donors=None):
+    """Generation for a list of episodes of one mode; returns texts, gates and scores.
+
+    mode='crossed' requires explicit matched donors for co_talk/co_play and returns
+    receiver_runs: a separate full conversation per scored receiver, plus each/ok.
+    """
+    if mode == 'crossed':
+        import crossed
+        if write_mode is not None or mute is not None:
+            raise ValueError('crossed does not combine with write_mode or mute')
+        return crossed.run_episodes(pair, eps, donors, seed, temperature)
     gen = torch.Generator().manual_seed(seed)
     res = []
     for a, z in S.batches(len(eps), bs):

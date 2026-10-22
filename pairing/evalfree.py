@@ -14,6 +14,10 @@ link.py. Models load once. Start with --bs 2 on the Mac; NL_MAXNEW is a cap.
 
 co_talk generates ONLY the asker's first turn, before any partner text arrives.
 Other scores retain evaluate/play_tasks semantics (including whole-text chrF).
+--crossed adds an isolated full-dialogue control for co_talk/co_play, retaining
+the legacy rows. co_play is opt-in through --games; its legacy shuffle is native
+two-row shuffle and may carry information through text feedback. Crossed runs
+each scored receiver separately with the donor partner; see crossed.py.
 'exclusive' is a lexical absence flag, not proof of absence from pretraining or
 of semantic dependence on the partner. Split rules do not promise novel numeric
 values, answer vocabularies, or absence from the base models' pretraining.
@@ -122,6 +126,9 @@ def identity(ep):
     elif g == 'lookup':
         roles = two(m['asker'], 'asker', 'table_holder')
         held, item = {m['holder']: m['table']}, [m['key'], m['table']]
+    elif g == 'co_play':
+        roles = two(m['opener'], m['play'] + '_opener', m['play'] + '_responder')
+        held, item = m['secrets'], [m['play'], m['secrets']]
     else:
         item = m['item']
         if g == 'co_swap':
@@ -169,6 +176,9 @@ def matched(ep, donor):
     a, b = identity(ep), identity(donor)
     if a['roles'] != b['roles'] or a['item_id'] == b['item_id']:
         return False
+    if ep['mode'] == 'dialogue' and ep['game'] == 'co_play' and \
+            [t[0] for t in ep['turns']] != [t[0] for t in donor['turns']]:
+        return False
     return all(partner(x) in a['held'] and partner(x) in b['held'] and
                a['held'][partner(x)] != b['held'][partner(x)] for x in payloads(ep))
 
@@ -176,7 +186,11 @@ def matched(ep, donor):
 def choose_donor(ep, source, max_attempts=10000):
     """Independent rejection draw, never fall back to a same-item/wrong-role donor."""
     for attempt in range(1, max_attempts + 1):
-        d = source.episode(ep['game'])
+        if ep['game'] == 'co_play':
+            from crossed import draw_play_donor
+            d = draw_play_donor(ep, source)
+        else:
+            d = source.episode(ep['game'])
         if matched(ep, d):
             return d, attempt
     raise ValueError(f"No valid matched donor found for {ep['game']} after {max_attempts} draws; "
@@ -198,6 +212,8 @@ def first_turn(ep):
     e = {k: v for k, v in ep.items() if k not in
          ('forced', 'reply_tokens', 'reply_sampled', 'turn_tokens', 'turn_sampled')}
     if ep['mode'] == 'dialogue':
+        if ep['game'] == 'co_play':
+            return e
         if ep['game'] != 'co_talk' or ep['turns'][0][0] != ep['meta']['asker']:
             raise ValueError('only co_talk with the asker speaking first is supported')
         e['turns'] = ep['turns'][:1]
@@ -212,6 +228,8 @@ def receiver_scores(ep, result):
     if ep['game'] == 'co_talk':
         x, text = result['turns'][0]
         return {x: P.score_one('co_talk', ep['meta']['item'], text, x, ep)}
+    if ep['game'] == 'co_play':
+        return E.score(ep, result)['each']
     if ep['game'].startswith('co_'):
         # The local venv's ledger otherwise reserves the parent's entire model
         # budget AGAIN for each tiny Python assertion subprocess, timing out
@@ -245,13 +263,15 @@ def generation_limit(game):
 
 
 def generate_shuffle(pair, ep, donor, limit, keep=False):
-    """Two isolated crossed pairs, with the same donor permutation in both modes.
+    """Historical duplex/co_talk shuffle, plus native shuffle for new co_play.
 
     Native shuffle permutes neural states but dialogue's listener still reads
     its ORIGINAL asker's text. That can relay the true partner via the donor
     asker. Crossing holder inputs and running normal linked dialogue makes the
     text feedback follow the crossed pair too. For duplex use native shuffle
-    verbatim. Return only the focal result; donor results are never observations.
+    verbatim. co_play also uses native shuffle (with its text-feedback route);
+    request the separate crossed condition for isolation over whole dialogues.
+    Return only the focal result; donor results are never observations.
     """
     import session as S
     from link import partner
@@ -259,7 +279,7 @@ def generate_shuffle(pair, ep, donor, limit, keep=False):
     if not matched(ep, donor):
         raise ValueError('invalid matched donor in evaluation plan')
     mode = 'shuffle'
-    if ep['mode'] == 'dialogue':
+    if ep['mode'] == 'dialogue' and ep['game'] == 'co_talk':
         holder = partner(ep['meta']['asker'])
         eps = [dict(e, system=dict(e['system']), task=dict(e['task'])) for e in eps]
         for field in ('system', 'task'):
@@ -272,7 +292,7 @@ def generate_shuffle(pair, ep, donor, limit, keep=False):
                       keep_tokens=True, keep=keep)[0]
 
 
-def evaluate_game(pair, plans, bs=2):
+def evaluate_game(pair, plans, bs=2, crossed=False):
     """Yield JSON-serializable receiver records. No gold tokens enter generation."""
     import session as S
     from link import SIDES, partner
@@ -287,6 +307,10 @@ def evaluate_game(pair, plans, bs=2):
         results['shuffle'] = []
         for ep, p in zip(eps, chunk):
             results['shuffle'].append(generate_shuffle(pair, p['episode'], p['donor'], limit))
+        if crossed and eps[0]['mode'] == 'dialogue':
+            import crossed as X
+            results['crossed'] = [{x: X.generate(pair, p['episode'], p['donor'], x, limit)
+                                   for x in payloads(p['episode'])} for p in chunk]
         for i, plan in enumerate(chunk):
             ep = plan['episode']
             a, b = identity(ep), identity(plan['donor'])
@@ -296,10 +320,25 @@ def evaluate_game(pair, plans, bs=2):
                 for c in CONDITIONS:
                     r = results[c][i]
                     texts = r['text'] if ep['mode'] == 'duplex' else dict(r['turns'])
-                    sampled = r['sampled'][x] if ep['mode'] == 'duplex' else r['sampled'][0]
+                    if ep['game'] == 'co_play':
+                        texts = {y: next(t for sp, t in r['turns'] if sp == y) for y in SIDES}
+                    k = next((k for k, (sp, _) in enumerate(r.get('turns', [])) if sp == x), 0)
+                    sampled = r['sampled'][x] if ep['mode'] == 'duplex' else r['sampled'][k]
                     cond[c] = dict(score=sc[c][x], texts=texts,
                                    capped=bool(sampled and not sampled[-1]),
                                    generated_tokens=sum(sampled))
+                    if ep['game'] == 'co_play':
+                        cond[c].update(turns=r['turns'], tokens=r['tokens'], sampled=r['sampled'])
+                if 'crossed' in results:
+                    r = results['crossed'][i][x]
+                    k = next(k for k, (sp, _) in enumerate(r['turns']) if sp == x)
+                    sampled = r['sampled'][k]
+                    cond['crossed'] = dict(score=receiver_scores(ep, r)[x],
+                                           texts={x: r['turns'][k][1]}, turns=r['turns'],
+                                           tokens=r['tokens'], sampled=r['sampled'],
+                                           capped=bool(sampled and not sampled[-1]),
+                                           generated_tokens=sum(sampled),
+                                           implementation='isolated_crossed_dialogue_per_receiver')
                 yield dict(schema=SCHEMA, game=ep['game'], episode_id=plan['episode_id'],
                            episode_index=plan['index'], receiver=x, role=a['roles'][x], item_id=a['item_id'],
                            partner_role=a['roles'][partner(x)], partner_item_id=a['held'][partner(x)],
@@ -308,7 +347,7 @@ def evaluate_game(pair, plans, bs=2):
                            donor=dict(episode_id=plan['episode_id'] + ':donor', item_id=b['item_id'],
                                       partner_role=b['roles'][partner(x)], partner_item_id=b['held'][partner(x)],
                                       attempts=plan['attempts'], permutation=[1, 0],
-                                      implementation='native_shuffle' if ep['mode'] == 'duplex' else
+                                      implementation='native_shuffle' if ep['game'] != 'co_talk' else
                                       'crossed_holder_contexts_with_text_feedback'), max_new_tokens=limit)
 
 
@@ -335,11 +374,13 @@ def make_plans(replies, n=20, seed=4242, coread_data=None, games=None, max_digit
         clean = [c for c in co.talk if not forbidden.intersection(CD.content_keys(c['item']))]
         talk_excluded, co.talk = len(co.talk) - len(clean), clean
     selected = list(games or (*PAYLOAD_GAMES, *P.SCORED, *(('co_talk',) if talk_path.exists() else ())))
-    allowed = set(PAYLOAD_GAMES) | set(P.SCORED) | {'co_talk'}
+    allowed = set(PAYLOAD_GAMES) | set(P.SCORED) | {'co_talk', 'co_play'}
     if len(set(selected)) != len(selected) or set(selected) - allowed:
-        raise ValueError('games must be distinct payload/scored co-reading games or co_talk')
+        raise ValueError('games must be distinct payload/scored co-reading games, co_talk or co_play')
     if 'co_talk' in selected and not co.talk:
         raise ValueError('co_talk requested/present but no uncontaminated test conversations exist')
+    if 'co_play' in selected and not co.play:
+        raise ValueError('co_play requested but no test conversations exist')
     sources = {False: G.Games(replies, 'test', seed, max_digits), True: co}
     plans = {}
     for game in selected:
@@ -381,6 +422,14 @@ def summary_rows(records, games, alpha=0.05):
                            mean={c: sum(r['conditions'][c]['score'] for r in rs) / n if n else None
                                  for c in CONDITIONS}, symmetric_n=sum(r['flags']['symmetric'] for r in rs),
                            capped_n={c: sum(r['conditions'][c]['capped'] for r in rs) for c in CONDITIONS})
+                crossed_rs = [r for r in rs if 'crossed' in r['conditions']]
+                if crossed_rs:
+                    ds = [r['conditions']['link']['score'] - r['conditions']['crossed']['score'] for r in crossed_rs]
+                    row['crossed_n'] = len(crossed_rs)
+                    row['mean']['crossed'] = sum(r['conditions']['crossed']['score'] for r in crossed_rs) / len(crossed_rs)
+                    row['capped_n']['crossed'] = sum(r['conditions']['crossed']['capped'] for r in crossed_rs)
+                    row['link-crossed'] = dict(mean=sum(ds) / len(ds), ci=list(betting_ci(ds, alpha=alpha, bounds=(-1, 1))),
+                                               sign=sign_test(ds))
                 by_game = defaultdict(list)
                 for r in rs:
                     by_game[r['game']].append(r)
@@ -421,7 +470,9 @@ def summarize(out_dir, tag, results_dir=None):
     for r in records:
         if r['schema'] != SCHEMA or r['game'] not in manifest['games']:
             raise ValueError('unexpected record schema/game')
-        for c in CONDITIONS:
+        if manifest.get('crossed') and r['game'] in ('co_talk', 'co_play') and 'crossed' not in r['conditions']:
+            raise ValueError('missing requested crossed condition')
+        for c in (*CONDITIONS, *(('crossed',) if 'crossed' in r['conditions'] else ())):
             s = r['conditions'][c]['score']
             if not isinstance(s, (float, int)) or not math.isfinite(s) or not 0 <= s <= 1:
                 raise ValueError('scores must be finite and in [0,1]')
@@ -473,6 +524,7 @@ def main():
     ap.add_argument('--max_digits', type=int, default=16)
     ap.add_argument('--max_donor_attempts', type=int, default=10000)
     ap.add_argument('--games', nargs='+', help='optional explicit subset; default is every requested scored game')
+    ap.add_argument('--crossed', action='store_true', help='add isolated full-dialogue crossed receiver controls')
     ap.add_argument('--summarize', action='store_true', help='summarize an already complete evaluation')
     ap.add_argument('--tag', default='headline')
     args = ap.parse_args()
@@ -501,9 +553,9 @@ def main():
                     excluded=excluded, hashes={str(p): file_hash(p) for p in
                     (Path(args.replies), Path(args.coread_data or ROOT / 'data/coread.json'),
                      Path(args.run) / 'bridge.pt', out / 'plans.jsonl')},
-                    git_commit=git_revision(),
+                    git_commit=git_revision(), crossed=args.crossed,
                     code_hashes={p: file_hash(ROOT / 'pairing' / p) for p in
-                                 ('evalfree.py', 'stats.py', 'link.py', 'session.py', 'evaluate.py',
+                                 ('evalfree.py', 'crossed.py', 'stats.py', 'link.py', 'session.py', 'evaluate.py',
                                   'coread.py', 'coread_data.py', 'games.py', 'play_tasks.py')})
     manifest_path = out / 'manifest.json'
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
@@ -513,12 +565,12 @@ def main():
     count, started = 0, time.monotonic()
     with torch.inference_mode(), (out / 'episodes.jsonl').open('x') as f:
         for g, ps in plans.items():
-            for rec in evaluate_game(pair, ps, args.bs):
+            for rec in evaluate_game(pair, ps, args.bs, crossed=args.crossed):
                 f.write(json.dumps(rec, ensure_ascii=False, allow_nan=False) + '\n')
                 f.flush()
                 count += 1
                 print(f"{g} {rec['episode_index'] + 1}/{args.n} {rec['receiver']} "
-                      + ' '.join(f"{c}={rec['conditions'][c]['score']:.3f}" for c in CONDITIONS), flush=True)
+                      + ' '.join(f"{c}={r['score']:.3f}" for c, r in rec['conditions'].items()), flush=True)
             if os.environ.get('NL_DEVICE') == 'mps':
                 torch.mps.empty_cache()
     manifest.update(complete=True, receiver_records=count, elapsed_seconds=time.monotonic() - started,
