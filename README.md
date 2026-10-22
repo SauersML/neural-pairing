@@ -59,13 +59,24 @@ Before chat training, the twins repeated earlier turns word for word; after it, 
 
 ![Turns that repeat an earlier turn, before and after chat training](figures/chat_loops.png)
 
+## Exam questions
+
+From the same checkpoint, a linked pair, each model alone and a pair answering in turn in text each trained 300 steps on
+ARC-Challenge and MMLU questions. On 3,165 test questions the linked pair is no better than Quill alone, and averaging
+the two models' answers beats both.
+
+![Test questions right: each model alone, both averaged, talking in text, link cut, linked](figures/uplift.png)
+
+What the link does instead: Ember reads Quill's answer and takes it, even on questions Ember gets right on its own.
+
+![Ember's answers with the link cut and linked, on questions only one model gets right](figures/deference.png)
+
 ## Where this goes
 
 The link is a bus between two networks that were never trained together: any pair of models can share what they hold
 privately (a document, a fact, a plan) without writing it out, and a reader model can follow another model's hidden
-states token by token while it runs. Under way: chat over twelve kinds of private facts with four held out, whether a
-linked pair answers exam questions better than either model or both averaged, and whether one twin can read a
-direction steered into the other.
+states token by token while it runs. Under way: chat over twelve kinds of private facts with four held out, and a one-way
+link into a model left exactly as it was released.
 
 <details><summary>Method, controls, runs and exactness checks</summary>
 
@@ -173,6 +184,32 @@ in which a model role-plays the link in text (for example "[Ember's Activation V
 The chat test (`evalfree.py`, `chat_merge.py`) plays 20 greedy chats from fixed openings under three conditions: link
 on, link cut, and linked to a stranger, an isolated twin holding a different city; sign tests are paired by chat.
 
+### Exam questions (`bench_eval.py`, `chains/nl23.sh`)
+
+Three arms start from nl20 step 1,320 and train 300 steps on ARC-Challenge and MMLU training questions only: the pair
+with the link open (`train.py --qa 1`), each model alone (`--solo`), and the pair answering in turn in text with the link
+closed (`--text_pair`). Each model's answer is its most likely letter after "The answer is". The pair answers through the
+model whose single version scores higher on 595 validation questions (Quill, 78.8% against Ember's 77.1%), fixed before
+any test question is scored. Tests are exact McNemar on the 3,165 test questions (1,165 ARC-Challenge, 2,000 MMLU; 27
+MMLU questions appear twice).
+
+| Way of answering | Right | Linked pair minus this (95% interval), p |
+|---|---|---|
+| Quill, original | 73.7% | +4.9 points (+3.6, +6.2), p 4e-13 |
+| Ember, original | 69.4% | +9.3 (+7.6, +10.8), p 6e-27 |
+| Quill alone, trained | 79.1% | −0.5 (−1.6, +0.6), p 0.42 |
+| Ember alone, trained | 75.7% | +3.0 (+1.5, +4.5), p 1e-4 |
+| Both alone, letter probabilities averaged | 81.1% | −2.5 (−3.6, −1.3), p 5e-5 |
+| Text, Ember answers first | 72.4% | +6.3 (+4.7, +7.7), p 3e-15 |
+| Linked pair, link cut | 78.7% | 0.0 (−1.0, +1.0), p 1.0 |
+| **Linked pair (Quill answers)** | **78.7%** | |
+
+Quill answers the same with the link cut: it does not use what Ember sends. Ember, reading Quill, scores 78.5% against
+73.5% with the link cut, and its right and wrong answers match Quill's on 95% of questions (81% with the link cut). With
+the partner of another question in the link, Ember falls to 48.4%; with random states in the link, to 73.6%, its own
+level. In text the second speaker gives the first speaker's letter on all 3,165 questions. Training on the gold answer
+as the partner's turn rewards copying a better partner; nothing in it rewards pooling two partners' evidence.
+
 ### Runs (`chains/`, `results/`)
 
 Each run's chain script is in `chains/` (one pod each, called as `bash chains/nlN.sh OUT_DIR CODE_TGZ REPLIES ...`), and its
@@ -193,6 +230,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Final (step 759): every never-trained game passes in both directions at p < 0.01, 207 of 240 receiver episodes (`results/magic-nl21/results/payload_final.json`). Warm-up (step 600): digit strings 10/10 both ways, lookups 9/10 into Qwen and 8/10 into AFM |
 | nl22 | nl20 step 1,320 fine-tuned with plain chats whose turns the original models wrote while seeing the partner's private city (`prep_talk.py --chat`, `train.py --chat`) | Stopped. The twins still looped word for word with the link on or cut and opened by naming their own city |
 | nl22c | nl20 step 1,320 fine-tuned 157 steps on chats from the privileged teacher (below), with the mix kept | Free chats, 20 with cities never seen in training: partner's city said first in 13 of 23 chat sides with the link on, 1 of 23 cut, 0 of 23 linked to a stranger, and the stranger's own city in 14 of 36; turns repeating an earlier turn fell from 17% to 1% (link on) and 31% to 3% (cut); value games 360 of 360 and shared reading unchanged (`results/magic-nl22c/`) |
+| nl23 | Exam questions: linked pair, each model alone and a text pair, 300 steps each from nl20 step 1,320 (on nl20's pod) | Linked pair 78.7% of 3,165 test questions, Quill alone 79.1% (p 0.42), both averaged 81.1% (p 5e-5); Ember takes Quill's answer through the link (`results/magic-nl23/bench.json`) |
 
 ### Earlier designs
 
