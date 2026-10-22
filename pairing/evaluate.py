@@ -240,7 +240,10 @@ def condition(pair, eps, g, cond, bs):
         row['sent'] = {x: round(sent_fraction(rs, x), 3) for x in SIDES}
         for k in ('claims_partner', 'holder', 'each', 'per_digit', 'leak', 'decoy', 'identity'):
             if k in rs[0]:
-                row[k] = round(mean([r[k] for r in rs]), 3)
+                if isinstance(rs[0][k], dict):
+                    row[k] = {x: round(mean([r[k][x] for r in rs]), 3) for x in rs[0][k]}
+                else:
+                    row[k] = round(mean([r[k] for r in rs]), 3)
         row['examples'] = rs[:6]
     return row
 

@@ -47,6 +47,8 @@ def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0):
 def table(pair, toks, eps, bs=16, conds=CONDS):
     """Per episode (of one game) and receiving model: the mean payload cross-entropy under each condition. The
     episodes are read in nearly equal batches of at most bs, so no batch is a single episode (shuffle)."""
+    if len({ep['game'] for ep in eps}) > 1:
+        raise ValueError('payload table requires episodes of one game')
     pads = {x: toks[x].pad_token_id for x in SIDES}
     out = []
     for a, z in S.batches(len(eps), bs):

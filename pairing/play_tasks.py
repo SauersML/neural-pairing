@@ -117,7 +117,8 @@ def score_one(game, it, text, x, ep):
                       r'\b(?:answer\s*(?:is|:)|option|choice)\s*\(?([A-E])\b', text.strip(), re.I)
         if m:
             return float('ABCDE'.index(next(g for g in m.groups() if g).upper()) == it['answer'])
-        hits = [i for i, o in enumerate(it['options']) if normalize(o) and normalize(o) in normalize(text)]
+        hits = [i for i, o in enumerate(it['options']) if normalize(o) and
+                (' ' + normalize(o) + ' ') in (' ' + normalize(text) + ' ')]
         return float(hits == [it['answer']])
     if game == 'co_math':
         want, got = last_number(it['solution']), last_number(text)
