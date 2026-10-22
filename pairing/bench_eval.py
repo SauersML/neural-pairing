@@ -18,8 +18,9 @@ interval for the accuracy difference (Clopper-Pearson on the discordant split, c
 "pair > best single" needs the pair to beat every comparator, each at p < 0.05 (an intersection-union test, so no
 correction for the number of comparisons).
 
-Under torchrun the questions are split over the ranks in whole batches, so every batch (and the 'shuffle' control,
-which reads the partner of another episode of the batch) is the same as in a single process.
+Each rank scores its questions in batches of similar length, and the 'shuffle' control reads the partner of another
+question of the same batch. Under torchrun the questions are dealt to the ranks in whole batches of question order, so
+the batches differ from a single process's.
 
 Usage: python bench_eval.py --pair RUN/step_N --solo RUN/step_N --text RUN/step_N --out OUT/bench.json
 """
@@ -61,13 +62,17 @@ def letter_probs(pair, items, style, mode=None, order=None, first=None, bs=64):
     pads = {x: toks[x].pad_token_id for x in SIDES}
     lid = {x: [S.ids(toks[x], ' ' + L)[0] for L in G.LETTERS] for x in SIDES}
     want = {x: S.ids(toks[x], 'The answer is') for x in SIDES}
-    out = {x: [] for x in SIDES}
+    eps = [G.qa_episode(it, style, order=order) for it in items]
+    if first is not None:
+        for e, f in zip(eps, first):
+            e['turns'][0] = (e['turns'][0][0], f'The answer is {f}.', 1.0)
+    every = [S.build(e, toks) for e in eps]
+    # batches of questions of similar length (in question order, padding to each batch's longest question was ~4x the
+    # real tokens); results come back in question order
+    rank = sorted(range(len(items)), key=lambda i: max(len(every[i][x]['ids']) for x in SIDES))
+    out = {x: [None] * len(items) for x in SIDES}
     for a, z in S.batches(len(items), bs):
-        eps = [G.qa_episode(it, style, order=order) for it in items[a:z]]
-        if first is not None:
-            for e, f in zip(eps, first[a:z]):
-                e['turns'][0] = (e['turns'][0][0], f'The answer is {f}.', 1.0)
-        built = [S.build(e, toks) for e in eps]
+        built = [every[i] for i in rank[a:z]]
         batch = S.collate(built, pads)
         last, _ = pair.joint(batch, mode=mode if style == 'pair' else 'zero')
         at = {x: [] for x in SIDES}              # per episode, the position whose output predicts the letter
@@ -87,8 +92,9 @@ def letter_probs(pair, items, style, mode=None, order=None, first=None, bs=64):
             n = batch[x]['ids'].shape[1]
             idx = torch.tensor([i * n + p for i, p in enumerate(at[x])], device=DEVICE)
             lg = pair.token_logits(x, last[x], idx)[:, lid[x]]
-            out[x].append(torch.softmax(lg, -1).cpu())
-    return {x: torch.cat(v) for x, v in out.items()}
+            for i, p in zip(rank[a:z], torch.softmax(lg, -1).cpu()):
+                out[x][i] = p
+    return {x: torch.stack(v) for x, v in out.items()}
 
 
 if __name__ == '__main__':
