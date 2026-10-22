@@ -212,3 +212,14 @@ def test_observer_restores_on_exception(pair, ep):
         with L.Observer(pair, [ep], None, None).installed():
             raise RuntimeError('deliberate')
     assert '_exchange' not in pair.__dict__ and 'step' not in pair.__dict__ and pair.record is old
+
+
+def test_shuffle_rejects_case_and_plural_aliases(pair):
+    a = {'quill': {'concept': ['telescope', 'telescope']}, 'ember': {'concept': ['violin', 'violin']}}
+    b = {'quill': {'concept': ['TELESCOPE', 'telescopes']}, 'ember': {'concept': ['drum', 'drums']}}
+    assert not L.distinct_secrets(a, b)
+    with pytest.raises(ValueError, match='other secrets'):
+        L.play(pair, L.episode('gift', a), condition='shuffle', donor=L.episode('gift', b), stream=None)
+    a = {'quill': {'word': 'Tulip'}, 'ember': {'word': 'granite'}}
+    b = {'quill': {'word': 'tulip'}, 'ember': {'word': 'garnet'}}
+    assert not L.distinct_secrets(a, b)

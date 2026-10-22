@@ -42,6 +42,13 @@ def mean(xs):
     return sum(xs) / len(xs) if xs else 0.0
 
 
+def distinct_secrets(a, b):
+    """Different spellings/number forms of the same secret are not a shuffle."""
+    def forms(field, value):
+        return {v.strip().casefold() for v in (value if field == 'concept' else [value])}
+    return all(forms(f, a[x][f]).isdisjoint(forms(f, b[x][f])) for x in SIDES for f in a[x])
+
+
 def episode(game, secrets, opener='quill'):
     """No teacher text and no peek prompt; only each twin's own private secret."""
     if game not in C.PLAY or opener not in SIDES:
@@ -70,7 +77,7 @@ def draw_episode(game, seed, opener='quill', exclude=None, overrides=None):
     for _ in range(1000):
         secrets = {x: C.play_secret(game, pools, rng) for x in SIDES}
         secrets.update(overrides or {})
-        if exclude and any(secrets[x][f] == exclude[x][f] for x in SIDES for f in secrets[x]):
+        if exclude and not distinct_secrets(secrets, exclude):
             continue
         try:
             return episode(game, secrets, opener)
@@ -262,7 +269,7 @@ def play(pair, ep, *, condition='link', donor=None, max_turn=64, temperature=0.,
     if condition == 'shuffle':
         if donor is None or donor['meta']['play'] != ep['meta']['play'] or donor['meta']['opener'] != ep['meta']['opener']:
             raise ValueError('shuffle needs a same-game, same-opener donor')
-        if any(donor['meta']['secrets'][x][f] == ep['meta']['secrets'][x][f] for x in SIDES for f in ep['meta']['secrets'][x]):
+        if not distinct_secrets(donor['meta']['secrets'], ep['meta']['secrets']):
             raise ValueError('shuffle donor must hold other secrets')
         eps.append(donor)
     mode = {'link': None, 'cut': 'zero', 'shuffle': 'shuffle'}[condition]
