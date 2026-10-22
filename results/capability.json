@@ -1,0 +1,225 @@
+{
+  "star": "Exact two-sided McNemar p < 0.05 versus linked answer in the same chart; individual comparisons, no multiple-testing claim.",
+  "inputs": {
+    "zeroshot": {
+      "status": "missing",
+      "source": "/Users/user/mpd-data/runpod/magic-nl20/results/bench_zeroshot.json"
+    },
+    "trained": {
+      "status": "missing",
+      "source": "/Users/user/mpd-data/runpod/magic-nl23/results/bench.json"
+    }
+  },
+  "split_audit": {
+    "source": "/Users/user/neural-pairing/data/bench.json",
+    "sha256": "ace6f39f3197037503a2d2f51757ecdf5f3a54101abf850d966e9e7c6f1e97f1",
+    "counts": {
+      "train": {
+        "arc_challenge": 1117,
+        "arc_easy": 2241,
+        "mmlu": 13273
+      },
+      "val": {
+        "arc_challenge": 295,
+        "mmlu": 300
+      },
+      "test": {
+        "arc_challenge": 1165,
+        "mmlu": 2000
+      }
+    },
+    "overlap_count": 27,
+    "overlap": [
+      {
+        "test_index": 1193,
+        "train_indices": [
+          7233
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1308,
+        "train_indices": [
+          15740
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1348,
+        "train_indices": [
+          8220
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1363,
+        "train_indices": [
+          14207
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1430,
+        "train_indices": [
+          12750
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1578,
+        "train_indices": [
+          10256
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1684,
+        "train_indices": [
+          8825
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1844,
+        "train_indices": [
+          10003
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1853,
+        "train_indices": [
+          5568
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1860,
+        "train_indices": [
+          9247
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 1887,
+        "train_indices": [
+          4584
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2001,
+        "train_indices": [
+          4331
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2074,
+        "train_indices": [
+          4251
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2165,
+        "train_indices": [
+          8705
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2250,
+        "train_indices": [
+          6578
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2422,
+        "train_indices": [
+          14817
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2423,
+        "train_indices": [
+          4087
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2480,
+        "train_indices": [
+          14308
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2531,
+        "train_indices": [
+          7919
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2642,
+        "train_indices": [
+          10594
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2677,
+        "train_indices": [
+          6821
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2842,
+        "train_indices": [
+          4848
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2896,
+        "train_indices": [
+          13897
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2898,
+        "train_indices": [
+          14175
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2931,
+        "train_indices": [
+          10690
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 2965,
+        "train_indices": [
+          13269
+        ],
+        "source": "mmlu"
+      },
+      {
+        "test_index": 3001,
+        "train_indices": [
+          14779
+        ],
+        "source": "mmlu"
+      }
+    ],
+    "measurement_changed": false
+  }
+}
