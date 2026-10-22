@@ -16,219 +16,307 @@
       "game": "co_transfer",
       "receiver": "quill",
       "episodes": 11,
-      "real": 11
+      "real": 11,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.00048828125
     },
     {
       "game": "co_transfer",
       "receiver": "ember",
       "episodes": 9,
-      "real": 9
+      "real": 9,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.001953125
     },
     {
       "game": "co_swap",
       "receiver": "quill",
       "episodes": 20,
-      "real": 20
+      "real": 20,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 9.5367431640625e-07
     },
     {
       "game": "co_swap",
       "receiver": "ember",
       "episodes": 20,
-      "real": 20
+      "real": 20,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 9.5367431640625e-07
     },
     {
       "game": "co_split",
       "receiver": "quill",
       "episodes": 20,
-      "real": 20
+      "real": 20,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 9.5367431640625e-07
     },
     {
       "game": "co_split",
       "receiver": "ember",
       "episodes": 20,
-      "real": 20
+      "real": 20,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 9.5367431640625e-07
     },
     {
       "game": "co_continue",
       "receiver": "quill",
       "episodes": 10,
       "real": 9,
-      "shuffled": 1
+      "shuffled": 1,
+      "tie": 0,
+      "sign_p": 0.0107421875
     },
     {
       "game": "co_continue",
       "receiver": "ember",
       "episodes": 10,
-      "real": 10
-    },
-    {
-      "game": "co_distill",
-      "receiver": "quill",
-      "episodes": 9,
-      "real": 9
-    },
-    {
-      "game": "co_distill",
-      "receiver": "ember",
-      "episodes": 11,
-      "real": 11
-    },
-    {
-      "game": "co_talk",
-      "receiver": "quill",
-      "episodes": 10,
-      "real": 8,
-      "shuffled": 2
-    },
-    {
-      "game": "co_talk",
-      "receiver": "ember",
-      "episodes": 10,
-      "real": 8,
-      "shuffled": 2
-    },
-    {
-      "game": "co_play",
-      "receiver": "quill",
-      "episodes": 20,
-      "real": 18,
-      "tie": 2
-    },
-    {
-      "game": "co_play",
-      "receiver": "ember",
-      "episodes": 20,
-      "real": 17,
-      "tie": 2,
-      "shuffled": 1
+      "real": 10,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.0009765625
     },
     {
       "game": "co_qa",
       "receiver": "quill",
       "episodes": 10,
       "real": 6,
-      "shuffled": 4
+      "shuffled": 4,
+      "tie": 0,
+      "sign_p": 0.376953125
     },
     {
       "game": "co_qa",
       "receiver": "ember",
       "episodes": 10,
-      "real": 10
+      "real": 10,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.0009765625
     },
     {
       "game": "co_hop",
       "receiver": "quill",
       "episodes": 20,
       "real": 14,
-      "shuffled": 6
+      "shuffled": 6,
+      "tie": 0,
+      "sign_p": 0.057659149169921875
     },
     {
       "game": "co_hop",
       "receiver": "ember",
       "episodes": 20,
       "real": 16,
-      "shuffled": 4
+      "shuffled": 4,
+      "tie": 0,
+      "sign_p": 0.005908966064453125
     },
     {
       "game": "co_translate",
       "receiver": "quill",
       "episodes": 15,
-      "real": 15
+      "real": 15,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 3.0517578125e-05
     },
     {
       "game": "co_translate",
       "receiver": "ember",
       "episodes": 5,
-      "real": 5
+      "real": 5,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.03125
     },
     {
       "game": "co_paraphrase",
       "receiver": "quill",
       "episodes": 14,
-      "real": 14
+      "real": 14,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 6.103515625e-05
     },
     {
       "game": "co_paraphrase",
       "receiver": "ember",
       "episodes": 6,
-      "real": 6
+      "real": 6,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.015625
     },
     {
       "game": "co_nli",
       "receiver": "quill",
       "episodes": 20,
       "real": 11,
-      "shuffled": 9
+      "shuffled": 9,
+      "tie": 0,
+      "sign_p": 0.41190147399902344
     },
     {
       "game": "co_nli",
       "receiver": "ember",
       "episodes": 20,
       "real": 14,
-      "shuffled": 6
+      "shuffled": 6,
+      "tie": 0,
+      "sign_p": 0.057659149169921875
     },
     {
       "game": "co_math",
       "receiver": "quill",
       "episodes": 9,
-      "real": 9
+      "real": 9,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.001953125
     },
     {
       "game": "co_math",
       "receiver": "ember",
       "episodes": 11,
-      "real": 11
+      "real": 11,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.00048828125
     },
     {
       "game": "co_code_out",
       "receiver": "quill",
       "episodes": 13,
       "real": 12,
-      "shuffled": 1
+      "shuffled": 1,
+      "tie": 0,
+      "sign_p": 0.001708984375
     },
     {
       "game": "co_code_out",
       "receiver": "ember",
       "episodes": 7,
-      "real": 7
+      "real": 7,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.0078125
     },
     {
       "game": "co_code_write",
       "receiver": "quill",
       "episodes": 10,
-      "real": 10
+      "real": 10,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.0009765625
     },
     {
       "game": "co_code_write",
       "receiver": "ember",
       "episodes": 10,
-      "real": 10
+      "real": 10,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.0009765625
     },
     {
       "game": "co_instruct",
       "receiver": "quill",
       "episodes": 6,
-      "real": 6
+      "real": 6,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.015625
     },
     {
       "game": "co_instruct",
       "receiver": "ember",
       "episodes": 14,
-      "real": 14
+      "real": 14,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 6.103515625e-05
     },
     {
       "game": "co_mcq",
       "receiver": "quill",
       "episodes": 20,
+      "real": 12,
       "shuffled": 8,
-      "real": 12
+      "tie": 0,
+      "sign_p": 0.2517223358154297
     },
     {
       "game": "co_mcq",
       "receiver": "ember",
       "episodes": 20,
       "real": 18,
-      "shuffled": 2
+      "shuffled": 2,
+      "tie": 0,
+      "sign_p": 0.00020122528076171875
+    },
+    {
+      "game": "co_distill",
+      "receiver": "quill",
+      "episodes": 9,
+      "real": 9,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.001953125
+    },
+    {
+      "game": "co_distill",
+      "receiver": "ember",
+      "episodes": 11,
+      "real": 11,
+      "shuffled": 0,
+      "tie": 0,
+      "sign_p": 0.00048828125
+    },
+    {
+      "game": "co_talk",
+      "receiver": "quill",
+      "episodes": 10,
+      "real": 8,
+      "shuffled": 2,
+      "tie": 0,
+      "sign_p": 0.0546875
+    },
+    {
+      "game": "co_talk",
+      "receiver": "ember",
+      "episodes": 10,
+      "real": 8,
+      "shuffled": 2,
+      "tie": 0,
+      "sign_p": 0.0546875
+    },
+    {
+      "game": "co_play",
+      "receiver": "quill",
+      "episodes": 20,
+      "real": 18,
+      "shuffled": 0,
+      "tie": 2,
+      "sign_p": 3.814697265625e-06
+    },
+    {
+      "game": "co_play",
+      "receiver": "ember",
+      "episodes": 20,
+      "real": 17,
+      "shuffled": 1,
+      "tie": 2,
+      "sign_p": 7.2479248046875e-05
     }
   ],
   "setup": {
@@ -253,7 +341,8 @@
       "question": "Amphibians may attract mates with what?",
       "answer": "Calls or scents."
     },
-    "interpretation": "Verbatim corpus examples of the setup, not claimed to be measured evaluation episode or free generated answer."
+    "source": "results/shared_reading.json (snapshot of data/coread.json rows)",
+    "interpretation": "Verbatim corpus examples of the setup, not claimed to be a measured evaluation episode or a generated answer."
   },
   "rows": [
     {

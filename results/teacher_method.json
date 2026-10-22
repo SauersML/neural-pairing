@@ -1,7 +1,7 @@
 {
   "sources": {
-    "/Users/user/mpd-data/neural-pairing/chatdata/chat.json": "2585ba8914350e75a53f30d73d2aa1f87ab8580751f5155b10367f29af51527d",
-    "/Users/user/mpd-data/neural-pairing/chatdata/chat_clean.json": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f"
+    "figures/inputs/chat.json.gz (uncompressed)": "2585ba8914350e75a53f30d73d2aa1f87ab8580751f5155b10367f29af51527d",
+    "figures/inputs/chat_clean.json.gz (uncompressed)": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f"
   },
   "definition": "Whole-turn log p with partner city minus log p without partner city; closing token included; same preceding text.",
   "measurement_changed": false,

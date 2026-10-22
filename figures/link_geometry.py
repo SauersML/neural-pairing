@@ -1,8 +1,15 @@
-"""Hand-built SVG figures of measured link geometry; no plotting defaults.
+"""Hand-built SVG figures of measured link writes; no plotting defaults.
 
-Reads only results/link_geometry.json. Run with MPD_MEM_GIB=1. Outputs SVG,
-2300-pixel PNG, and vector PDF via rsvg-convert. The plots use the first reply
-prediction, before any sampled tokens, and separate projection-fit wordings.
+Reads only results/link_geometry.json (made by pairing/link_geometry.py from a 4-bit MLX run of magic-nl22c).
+Each write is what the link adds to the reader's residual stream at an exchange depth, at the position that predicts
+the reader's first reply token; the partner's prompt holds one of 20 cities never used in training. The projection and
+the probe are fitted on 3 phrasings of the prompt (60 writes per reader) and every mark drawn here is one of the 60
+writes from the 3 other phrasings. The fitted writes' coordinates are not stored, so they are not drawn.
+
+Outputs SVG, 2300-pixel PNG and vector PDF via rsvg-convert:
+  link_geometry_probe   probe accuracy on new phrasings at all 8 exchange depths, both readers
+  link_geometry_quill   city-guided projection of writes into Quill: best depth and worst depth
+  link_geometry_ember   the same for Ember
 """
 import argparse
 import base64
@@ -13,41 +20,93 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-BLACK = '#1D1D1F'
+INK = '#1D1D1F'
+MUTED = '#5E5E66'
 PURPLE, ORANGE, GREEN, RED = '#7B3FE4', '#E8590C', '#1A9E77', '#D2432F'
 CREAM, GREY = '#FAF0E6', '#F4F4F6'
+SIDE = {'quill': PURPLE, 'ember': ORANGE}
 COLORS = ['#7B3FE4', '#E8590C', '#1A9E77', '#D2432F', '#1565C0', '#A61E6E', '#697900', '#007D8A',
           '#9C4A14', '#4444A6', '#A34F66', '#526B37', '#006E5C', '#9D6500', '#5B407D', '#B52A35',
           '#335D84', '#70523B', '#5F6D9C', '#13782F']
 WIDTH = 2300
-FONT = 38
+FAMILY = 'Arial,Helvetica,sans-serif'
+SHAPES = {3: 'circle', 4: 'square', 5: 'triangle'}
+
+
+def font_file(bold):
+    """Font used to measure text: the face rsvg-convert picks for Arial here (Liberation Sans) or macOS Arial."""
+    names = (['LiberationSans-Bold.ttf', 'Arial Bold.ttf'] if bold else ['LiberationSans-Regular.ttf', 'Arial.ttf'])
+    for base in ('/usr/share/fonts/truetype/liberation', '/System/Library/Fonts/Supplemental', '/Library/Fonts'):
+        for n in names:
+            if Path(base, n).exists():
+                return str(Path(base, n))
+    out = subprocess.run(['fc-match', '-f', '%{file}', 'Arial:bold' if bold else 'Arial'],
+                         capture_output=True, text=True).stdout
+    return out
+
+
+_FONTS = {}
+
+
+def tw(s, size, bold=False):
+    from PIL import ImageFont
+    key = (size, bold)
+    if key not in _FONTS:
+        _FONTS[key] = ImageFont.truetype(font_file(bold), size)
+    return _FONTS[key].getlength(str(s))
 
 
 class Canvas:
     def __init__(self, height):
         self.height = height
-        self.parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{height}" viewBox="0 0 {WIDTH} {height}">',
-                      '<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#1A9E77"/></marker></defs>',
+        self.parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{height}" '
+                      f'viewBox="0 0 {WIDTH} {height}">',
+                      '<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" '
+                      'markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 Z" fill="#1A9E77"/></marker></defs>',
                       '<rect width="100%" height="100%" fill="white"/>']
 
-    def text(self, x, y, s, color=BLACK, size=FONT, weight=500, anchor='start', halo=False):
-        style = ' paint-order="stroke" stroke="white" stroke-width="10" stroke-linejoin="round"' if halo else ''
-        self.parts.append(f'<text x="{x:.2f}" y="{y:.2f}" fill="{color}" font-size="{size}" font-weight="{weight}" font-family="Arial,Helvetica,sans-serif" text-anchor="{anchor}"{style}>{escape(str(s))}</text>')
+    def text(self, x, y, s, color=INK, size=36, weight=400, anchor='start', halo=None, italic=False):
+        style = (f' paint-order="stroke" stroke="{halo}" stroke-width="9" stroke-linejoin="round"' if halo else '')
+        style += ' font-style="italic"' if italic else ''
+        self.parts.append(f'<text x="{x:.1f}" y="{y:.1f}" fill="{color}" font-size="{size}" font-weight="{weight}" '
+                          f'font-family="{FAMILY}" text-anchor="{anchor}" xml:space="preserve"{style}>{escape(str(s))}</text>')
 
-    def rect(self, x, y, w, h, color, radius=20, stroke='none', sw=2):
-        self.parts.append(f'<rect x="{x:.2f}" y="{y:.2f}" width="{w:.2f}" height="{h:.2f}" rx="{radius}" fill="{color}" stroke="{stroke}" stroke-width="{sw}"/>')
+    def runs(self, x, y, runs, size=36):
+        """One line of mixed text: runs of (text, color, weight)."""
+        for s, color, weight in runs:
+            self.text(x, y, s, color, size, weight)
+            x += tw(s, size, weight >= 600)
+        return x
 
-    def line(self, x1, y1, x2, y2, color=BLACK, sw=3, dash=None, arrow=False):
+    def rect(self, x, y, w, h, fill, radius=32, stroke='none', sw=2, dash=None):
+        d = f' stroke-dasharray="{dash}"' if dash else ''
+        self.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{radius}" '
+                          f'fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{d}/>')
+
+    def line(self, x1, y1, x2, y2, color=INK, sw=3, dash=None, arrow=False, cap='butt'):
         attrs = f' stroke-dasharray="{dash}"' if dash else ''
         attrs += ' marker-end="url(#arrow)"' if arrow else ''
-        self.parts.append(f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" stroke="{color}" stroke-width="{sw}"{attrs}/>')
+        self.parts.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{color}" '
+                          f'stroke-width="{sw}" stroke-linecap="{cap}"{attrs}/>')
 
-    def dot(self, x, y, r, color, stroke='white', sw=2, opacity=1):
-        self.parts.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="{r}" fill="{color}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{sw}"/>')
+    def mark(self, shape, x, y, size, color, stroke='white', sw=2.5):
+        if shape == 'circle':
+            self.parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{size:.1f}" fill="{color}" stroke="{stroke}" '
+                              f'stroke-width="{sw}"/>')
+        elif shape == 'square':
+            s = size * .9
+            self.parts.append(f'<rect x="{x-s:.1f}" y="{y-s:.1f}" width="{2*s:.1f}" height="{2*s:.1f}" rx="2" '
+                              f'fill="{color}" stroke="{stroke}" stroke-width="{sw}"/>')
+        else:
+            s = size * 1.25
+            self.parts.append(f'<path d="M{x:.1f} {y-s:.1f} L{x+s*.93:.1f} {y+s*.62:.1f} L{x-s*.93:.1f} '
+                              f'{y+s*.62:.1f} Z" fill="{color}" stroke="{stroke}" stroke-width="{sw}" '
+                              f'stroke-linejoin="round"/>')
 
     def robot(self, side, x, y, size=110):
         uri = base64.b64encode((ROOT / f'figures/assets/{side}.png').read_bytes()).decode()
-        self.parts.append(f'<image x="{x}" y="{y}" width="{size}" height="{size}" href="data:image/png;base64,{uri}"/>')
+        self.parts.append(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" '
+                          f'href="data:image/png;base64,{uri}"/>')
 
     def save(self, stem, svg_only=False):
         path = ROOT / 'figures' / stem
@@ -58,316 +117,213 @@ class Canvas:
                                 str(path.with_suffix('.svg'))], check=True)
 
 
-def pct(v, digits=0):
-    return f'{100 * v:.{digits}f}%'
+def partner(side):
+    return 'ember' if side == 'quill' else 'quill'
 
 
-def avg(values):
-    return sum(values) / len(values)
+def overlap(a, b, pad=0):
+    return a[0] - pad < b[2] and b[0] - pad < a[2] and a[1] - pad < b[3] and b[1] - pad < a[3]
 
 
-def header(c, data, title, side='quill', readout=False):
-    c.text(65, 80, title, size=54, weight=700)
-    # Separate fit and test phrasing cards make the readout's split visible.
-    r = data['per_receiver'][side]
-    target = r['cities'][0]
-    layer = next(v for v in r['layers'] if v['block'] == data['map_block'])
-    for x, label, wording, fill, wi in [(65, 'Probe fitting' if readout else 'Projection fitting', 'spending today in', GREY, 0),
-                                        (1220, 'New phrasing', 'day is unfolding in', CREAM, 3)]:
-        c.rect(x, 120, 1015, 220, fill)
-        c.text(x + 28, 167, label, weight=700)
-        c.text(x + 28, 225, wording)
-        c.rect(x + 600, 183, 370, 60, 'white', radius=12)
-        c.text(x + 785, 226, target, color=COLORS[0], anchor='middle')
-        c.text(x+28, 307, 'Link write', color=GREEN)
-        vals = layer['write_preview'][str(wi)]
-        scale = max(abs(v) for row in layer['write_preview'].values() for v in row)
-        for j, v in enumerate(vals):
-            height = max(.6, abs(v)/scale*27)
-            c.rect(x+270+j*(13 if readout else 20), 294-height if v >= 0 else 294,
-                   9 if readout else 13, height, GREEN, 2)
-        if readout:
-            c.line(x+595, 294, x+632, 294, GREEN, 2, arrow=True)
-            c.rect(x+655, 263, 140, 62, 'white', 10, GREEN)
-            if wi < 3:
-                c.line(x+725, 243, x+725, 259, GREEN, 1.5, arrow=True)
-            c.text(x+725, 307, 'Probe', color=GREEN, anchor='middle')
-            c.line(x+810, 294, x+845, 294, GREEN, 2, arrow=True)
-            output = target
-            if wi >= 3:
-                at = next(j for j, i in enumerate(r['test_indices'])
-                          if r['samples'][i]['wording'] == wi and r['samples'][i]['city'] == target)
-                output = r['cities'][layer['prediction'][at]]
-            c.rect(x+865, 264, 140, 60, 'white', 12)
-            c.text(x+935, 307, output, color=COLORS[r['cities'].index(output)], anchor='middle')
-        else:
-            c.line(x+765, 294, x+802, 294, GREEN, 2, arrow=True)
-            c.robot(side, x+815, 257, 68)
-            first = next(s['pieces'][0] for s in r['samples'] if s['wording'] == wi and s['city'] == target)
-            c.rect(x+900, 264, 85, 60, 'white', 12)
-            c.text(x+942, 307, first.strip(), color=PURPLE if side == 'quill' else ORANGE, anchor='middle')
-
-
-def label_positions(centres, names, bounds, dots=()):
-    """Deterministic collision-free labels near measured centres; never move dots."""
-    left, top, right, bottom = bounds
-    boxes, labels = [], []
-    from PIL import ImageFont
-    font = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf', FONT)
-    point_boxes = [(x-12, y-12, x+12, y+12) for x, y in list(dots)+list(centres)]
-    order = sorted(range(len(names)), key=lambda i: (min(math.dist(centres[i], z) for j, z in enumerate(centres) if j != i), -font.getlength(names[i])))
-    for i in order:
-        cx, cy = centres[i]
-        width = font.getlength(names[i])
-        candidates = []
-        for radius in range(22, 650, 20):
-            for angle in range(0, 360, 30):
-                a = math.radians(angle)
-                x = min(right - width/2, max(left + width/2, cx + radius * math.cos(a)))
-                y = min(bottom - 8, max(top + FONT, cy + radius * math.sin(a)))
-                box = (x-width/2-7, y-FONT-6, x+width/2+7, y+8)
-                overlap = sum(max(0, min(box[2], b[2])-max(box[0], b[0])) *
-                              max(0, min(box[3], b[3])-max(box[1], b[1])) for b in boxes+point_boxes)
-                distance = (x-cx)**2 + (y-FONT/3-cy)**2
-                candidates.append((overlap*100000 + distance, x, y, box))
-            if candidates and min(v[0] for v in candidates) < radius ** 2 * 2:
-                break
-        _, x, y, box = min(candidates)
-        boxes.append(box)
-        labels.append((i, x, y, box))
-    return labels
-
-
-def intersects(a, b, box):
-    """Segment/rectangle intersection for keeping leaders out of city labels."""
+def seg_hits_box(p, q, box):
     low, high = 0., 1.
     for d in (0, 1):
-        delta = b[d]-a[d]
-        if abs(delta) < 1e-10:
-            if not box[d] <= a[d] <= box[d+2]:
+        delta = q[d] - p[d]
+        if abs(delta) < 1e-9:
+            if not box[d] <= p[d] <= box[d + 2]:
                 return False
         else:
-            u, v = sorted(((box[d]-a[d])/delta, (box[d+2]-a[d])/delta))
+            u, v = sorted(((box[d] - p[d]) / delta, (box[d + 2] - p[d]) / delta))
             low, high = max(low, u), min(high, v)
             if low > high:
                 return False
     return True
 
 
-def leader(c, start, box, obstacles, color):
-    ends = [((box[0]+box[2])/2, box[1]), ((box[0]+box[2])/2, box[3]),
-            (box[0], (box[1]+box[3])/2), (box[2], (box[1]+box[3])/2)]
-    paths = []
-    for end in ends:
-        paths += [[start, end], [start, (start[0], end[1]), end], [start, (end[0], start[1]), end]]
-    def cost(path):
-        crosses = sum(intersects(a, b, r) for a, b in zip(path, path[1:]) for r in obstacles)
-        length = sum(math.dist(a, b) for a, b in zip(path, path[1:]))
-        return crosses*100000 + length
-    path = min(paths, key=cost)
-    if cost(path) >= 100000:
-        # Visibility graph routes every centroid to its label without crossing
-        # another city label. Only labels move; measured coordinates do not.
-        import heapq
-        nodes = [start] + ends
-        for r in obstacles:
-            nodes += [(r[0]-3, r[1]-3), (r[2]+3, r[1]-3),
-                      (r[0]-3, r[3]+3), (r[2]+3, r[3]+3)]
-        todo, best = [(0., 0, [0])], {0: 0.}
-        while todo:
-            dist, n, route = heapq.heappop(todo)
-            if n in range(1, 5):
-                path = [nodes[v] for v in route]
+def place_labels(items, marks, bounds, size, bold=False):
+    """Collision-free labels near measured clusters; marks never move.
+
+    items: (cx, cy, radius, text). marks: (x, y, r). Returns (box, leader_needed) per item.
+    """
+    left, top, right, bottom = bounds
+    mark_boxes = [(x - r - 3, y - r - 3, x + r + 3, y + r + 3) for x, y, r in marks]
+    placed = {}
+    crowd = [sum(math.dist(a[:2], b[:2]) < 160 for b in items) for a in items]
+    order = sorted(range(len(items)), key=lambda i: (-crowd[i], items[i][1]))
+    h = size * 1.0
+    for i in order:
+        cx, cy, rad, s = items[i]
+        w = tw(s, size, bold)
+        best = None
+        for dist in range(int(rad) + 8, 900, 6):
+            for k in range(32):
+                a = 2 * math.pi * k / 32
+                ux, uy = math.cos(a), math.sin(a)
+                # Box edge nearest the cluster sits at `dist` along the direction.
+                bx = cx + ux * (dist + w / 2 * abs(ux) ** .5) - w / 2
+                by = cy + uy * (dist + h / 2 * abs(uy) ** .5) - h / 2
+                box = (bx, by, bx + w, by + h)
+                if box[0] < left or box[2] > right or box[1] < top or box[3] > bottom:
+                    continue
+                if any(overlap(box, b, 4) for b in mark_boxes):
+                    continue
+                if any(overlap(box, b[0], 10) for b in placed.values()):
+                    continue
+                far = dist > rad + 30
+                if far:
+                    end = (min(max(cx, box[0]), box[2]), min(max(cy, box[1]), box[3]))
+                    if any(seg_hits_box((cx, cy), end, b[0]) for b in placed.values()):
+                        continue
+                cost = dist + 25 * abs(uy)  # Prefer labels beside the cluster.
+                if best is None or cost < best[0]:
+                    best = (cost, box, far)
+            if best is not None and dist > best[0] + 30:
                 break
-            if dist != best[n]:
-                continue
-            for j, pt in enumerate(nodes):
-                dd = dist+math.dist(nodes[n], pt)
-                if j == n or dd >= best.get(j, float('inf')):
-                    continue
-                if any(intersects(nodes[n], pt, r) for r in obstacles):
-                    continue
-                best[j] = dd
-                heapq.heappush(todo, (dd, j, route+[j]))
-        else:
-            raise ValueError('City leader cannot avoid text')
-    for a, b in zip(path, path[1:]):
-        c.line(*a, *b, color, 2)
+        if best is None:
+            raise ValueError(f'No room for label {s}')
+        placed[i] = (best[1], best[2])
+    return [placed[i] for i in range(len(items))]
 
 
-def maps(data, side, svg_only=False):
-    if side == 'ember':
-        return ember_maps(data, svg_only)
+def layer_at(r, block):
+    return next(v for v in r['layers'] if v['block'] == block)
+
+
+def fit_points(pts, area, margin):
+    """Uniform scale (both projection axes are in within-city spread units), centred in the area."""
+    left, top, right, bottom = area
+    lo = [min(p[d] for p in pts) for d in (0, 1)]
+    hi = [max(p[d] for p in pts) for d in (0, 1)]
+    scale = min((right - left - 2 * margin[0]) / (hi[0] - lo[0]), (bottom - top - 2 * margin[1]) / (hi[1] - lo[1]))
+    mid = [(a + b) / 2 for a, b in zip(lo, hi)]
+    cx, cy = (left + right) / 2, (top + bottom) / 2
+    return [(cx + (p[0] - mid[0]) * scale, cy - (p[1] - mid[1]) * scale) for p in pts]
+
+
+def swap_axes(pts, area):
+    """True when the transposed view gets the larger uniform scale in this area."""
+    w, h = area[2] - area[0], area[3] - area[1]
+    xr = max(p[0] for p in pts) - min(p[0] for p in pts)
+    yr = max(p[1] for p in pts) - min(p[1] for p in pts)
+    return min(w / yr, h / xr) > min(w / xr, h / yr)
+
+
+def map_panel(c, data, side, block, box, good):
+    """City-guided projection of the 60 held-out writes at one exchange depth."""
     r = data['per_receiver'][side]
-    layer = next(v for v in r['layers'] if v['block'] == data['map_block'])
-    city = r['cities']
-    labels = layer['expected']
-    c = Canvas(1630)
-    header(c, data, f'Partner cities in the link to {side.title()}', side)
-    c.robot(side, 1920, 6, 92)
-    c.text(2030, 68, '4-bit', color=PURPLE if side == 'quill' else ORANGE)
-    for j, (method, title, fill) in enumerate([('pca', 'Principal components', GREY),
-                                              ('lda', 'City-guided projection', CREAM)]):
-        x0 = 45 + j*1130
-        c.rect(x0, 370, 1080, 1220, fill, radius=32)
-        c.text(x0+540, 437, title, size=46, weight=700, anchor='middle')
-        c.text(x0+540, 497, f'Layer {layer["block"]}', anchor='middle')
-        points = layer[method]
-        lo = [min(p[d] for p in points) for d in (0, 1)]
-        hi = [max(p[d] for p in points) for d in (0, 1)]
-        scale = min(850/max(hi[0]-lo[0], 1e-15), 800/max(hi[1]-lo[1], 1e-15))
-        mid = [(a+b)/2 for a, b in zip(lo, hi)]
-        xy = [(x0+540+(p[0]-mid[0])*scale, 1015-(p[1]-mid[1])*scale) for p in points]
-        centers = [(avg([p[0] for p, lab in zip(xy, labels) if lab == i]),
-                    avg([p[1] for p, lab in zip(xy, labels) if lab == i])) for i in range(len(city))]
-        names = label_positions(centers, city, (x0+35, 530, x0+1045, 1485), xy)
-        for i, x, y, box in names:
-            leader(c, centers[i], box, [b for ii, _, _, b in names if ii != i], COLORS[i])
-        for (x, y), lab in zip(xy, labels):
-            c.dot(x, y, 10, COLORS[lab], sw=.8, opacity=.72)
-        for i, (x, y) in enumerate(centers):
-            c.parts.append(f'<path d="M{x-7:.2f} {y:.2f} L{x:.2f} {y-7:.2f} L{x+7:.2f} {y:.2f} L{x:.2f} {y+7:.2f} Z" fill="white" stroke="{COLORS[i]}" stroke-width="2"/>')
-        for i, x, y, box in names:
-            c.text(x, y, city[i], COLORS[i], anchor='middle')
+    layer = layer_at(r, block)
+    x0, y0, w, h = box
+    fill = CREAM if good else GREY
+    c.rect(x0, y0, w, h, fill)
+    c.text(x0 + 40, y0 + 78, f'After block {block}', size=52, weight=700)
+    c.text(x0 + w - 40, y0 + 78, f'probe {layer["correct"]}/{layer["total"]}', SIDE[side], 44, 700, 'end')
+    samples = [r['samples'][i] for i in r['test_indices']]
+    cities = [r['cities'][e] for e in layer['expected']]
+    assert cities == [s['city'] for s in samples]
+    size = 16
+    area = (x0 + 40, y0 + 110, x0 + w - 40, y0 + h - 30)
+    pts = layer['lda']
+    if not good and swap_axes(pts, area):
+        # The two projection axes are unlabelled; showing axis 2 across uses the panel better.
+        pts = [(p[1], p[0]) for p in pts]
+    xy = fit_points(pts, area, (95, 30) if good else (30, 30))
+    if good:
+        marks = [(x, y, size + 5) for x, y in xy]
+        items = []
+        for n in sorted(set(cities)):
+            group = [p for p, cn in zip(xy, cities) if cn == n]
+            cx, cy = sum(p[0] for p in group) / len(group), sum(p[1] for p in group) / len(group)
+            items.append((cx, cy, max(math.dist((cx, cy), p) for p in group) + size, n))
+        labels = place_labels(items, marks, area, 36, True)
+        for (cx, cy, _, n), (lb, far) in zip(items, labels):
+            if far:
+                end = (min(max(cx, lb[0] - 3), lb[2] + 3), min(max(cy, lb[1] + 4), lb[3] - 4))
+                c.line(cx, cy, *end, COLORS[r['cities'].index(n)], 3)
+    for (x, y), s, e in zip(xy, samples, layer['expected']):
+        c.mark(SHAPES[s['wording']], x, y, size, COLORS[e])
+    if good:
+        for (cx, cy, _, n), (lb, far) in zip(items, labels):
+            c.text(lb[0], lb[3] - 7, n, COLORS[r['cities'].index(n)], 36, 700, halo=fill)
+
+
+def maps(data, side, good_block, bad_block, svg_only=False):
+    other = partner(side)
+    # Panel height follows the best-depth map's shape at full width, so the map fills its panel.
+    pts = layer_at(data['per_receiver'][side], good_block)['lda']
+    xr, yr = (max(p[d] for p in pts) - min(p[d] for p in pts) for d in (0, 1))
+    height = round(min(1360, max(1040, 110 + 30 + 60 + yr * (1450 - 80 - 190) / xr)))
+    c = Canvas(115 + height + 25)
+    c.text(45, 78, f'Writes into {side.title()} group by city or phrasing', size=60, weight=700)
+    map_panel(c, data, side, good_block, (45, 115, 1450, height), True)
+    # Key: icons and a few words.
+    c.rect(1520, 115, 735, 300, GREY)
+    c.robot(other, 1555, 132, 84)
+    c.line(1655, 174, 1755, 174, GREEN, 6, arrow=True)
+    c.robot(side, 1770, 132, 84)
+    for j, wd in enumerate((3, 4, 5)):
+        c.mark(SHAPES[wd], 1572 + j * 46, 268, 16, INK, 'white', 0)
+    c.text(1720, 281, 'phrasing', size=40)
+    for i in range(20):
+        c.mark('circle', 1570 + (i % 10) * 34, 335 + (i // 10) * 36, 13, COLORS[i])
+    c.text(1935, 365, 'partner’s city', size=40)
+    map_panel(c, data, side, bad_block, (1520, 440, 735, height - 325), False)
     c.save(f'link_geometry_{side}', svg_only)
 
 
-def scatter(c, points, labels, cities, box, named=None, region=None):
-    left, top, width, height = box
-    lo = [min(p[d] for p in points) for d in (0, 1)]
-    hi = [max(p[d] for p in points) for d in (0, 1)]
-    scale = min((width-300)/max(hi[0]-lo[0], 1e-15), (height-160)/max(hi[1]-lo[1], 1e-15))
-    mid = [(a+b)/2 for a, b in zip(lo, hi)]
-    def pixel(p):
-        return (left+width/2+(p[0]-mid[0])*scale, top+height/2-(p[1]-mid[1])*scale)
-    xy = [pixel(p) for p in points]
-    ids = sorted(set(labels)) if named is None else named
-    centers = [(avg([p[0] for p, lab in zip(xy, labels) if lab == i]),
-                avg([p[1] for p, lab in zip(xy, labels) if lab == i])) for i in ids]
-    names = label_positions(centers, [cities[i] for i in ids],
-                            (left+20, top, left+width-20, top+height), xy)
-    if region:
-        a, b = pixel(region[0]), pixel(region[1])
-        c.rect(min(a[0], b[0]), min(a[1], b[1]), abs(a[0]-b[0]), abs(a[1]-b[1]),
-               'none', 4, BLACK, 3)
-    for i, x, y, bb in names:
-        leader(c, centers[i], bb, [b for ii, _, _, b in names if ii != i], COLORS[ids[i]])
-    for (x, y), lab in zip(xy, labels):
-        c.dot(x, y, 10, COLORS[lab], sw=.8, opacity=.72)
-    for i, (x, y) in enumerate(centers):
-        c.parts.append(f'<path d="M{x-7:.2f} {y:.2f} L{x:.2f} {y-7:.2f} L{x+7:.2f} {y:.2f} L{x:.2f} {y+7:.2f} Z" fill="white" stroke="{COLORS[ids[i]]}" stroke-width="2"/>')
-    for i, x, y, bb in names:
-        c.text(x, y, cities[ids[i]], COLORS[ids[i]], anchor='middle')
-
-
-def ember_maps(data, svg_only):
-    import statistics
-    r = data['per_receiver']['ember']
-    layer = next(v for v in r['layers'] if v['block'] == data['map_block'])
-    cities, labels = r['cities'], layer['expected']
-    c = Canvas(1370)
-    header(c, data, 'Partner cities in the link to Ember', 'ember')
-    c.robot('ember', 1920, 6, 92)
-    c.text(2030, 68, '4-bit', color=ORANGE)
-    c.rect(45, 370, 2210, 950, GREY, 32)
-    c.text(1150, 437, 'Principal components', size=46, weight=700, anchor='middle')
-    c.text(1150, 497, f'Layer {layer["block"]}', anchor='middle')
-    scatter(c, layer['pca'], labels, cities, (65, 550, 2170, 720))
-    c.save('link_geometry_ember', svg_only)
-    # Full projection contains every point. A bounded second view magnifies
-    # the 85% of city centres nearest the coordinate-wise median centre.
-    pts = layer['lda']
-    centers = [(avg([p[0] for p, lab in zip(pts, labels) if lab == i]),
-                avg([p[1] for p, lab in zip(pts, labels) if lab == i])) for i in range(len(cities))]
-    med = tuple(statistics.median(p[d] for p in centers) for d in (0, 1))
-    count = math.ceil(.85*len(cities))
-    dense = sorted(sorted(range(len(cities)), key=lambda i: math.dist(centers[i], med))[:count])
-    zoom = [p for p, lab in zip(pts, labels) if lab in dense]
-    region = ([min(p[d] for p in zoom)-.3 for d in (0, 1)],
-              [max(p[d] for p in zoom)+.3 for d in (0, 1)])
-    c = Canvas(1530)
-    header(c, data, 'City-guided projection of Ember’s link writes', 'ember')
-    c.robot('ember', 1920, 6, 92)
-    c.text(2030, 68, '4-bit', color=ORANGE)
-    for left, title in [(45, 'Full view'), (1175, 'Magnified')]:
-        c.rect(left, 370, 1080, 1110, CREAM, 32, BLACK if title == 'Magnified' else 'none', 3)
-        c.text(left+540, 437, title, size=46, weight=700, anchor='middle')
-        c.text(left+540, 497, f'Layer {layer["block"]}', anchor='middle')
-    scatter(c, pts, labels, cities, (65, 550, 1040, 870),
-            named=[i for i in range(len(cities)) if i not in dense], region=region)
-    scatter(c, zoom, [lab for lab in labels if lab in dense], cities, (1195, 550, 1040, 870))
-    c.save('link_geometry_ember_lda', svg_only)
-
-
 def probe(data, svg_only=False):
-    c = Canvas(1440)
-    header(c, data, 'A linear probe reads the partner’s city', readout=True)
-    for row, x in enumerate(('quill', 'ember')):
-        r = data['per_receiver'][x]
-        color = PURPLE if x == 'quill' else ORANGE
-        y0 = 385 + row*505
-        c.rect(45, y0, 2210, 470, CREAM, 32)
-        c.robot(x, 75, y0+28, 110)
-        c.text(205, y0+82, f'{x.title()} · 4-bit', color, weight=700)
-        baseline = y0+350
-        c.text(80, y0+191, 'City accuracy')
-        c.text(80, baseline+12, '0%')
-        c.text(80, y0+242, pct(r['chance'], 0)+' chance')
-        start, width, gap, high = 500, 160, 40, 225
+    c = Canvas(1480)
+    c.text(45, 78, 'Probe reads the partner’s city at some depths', size=60, weight=700)
+    for row, side in enumerate(('quill', 'ember')):
+        r = data['per_receiver'][side]
+        color = SIDE[side]
+        y0 = 115 + row * 690
+        c.rect(45, y0, 2210, 670, CREAM)
+        c.robot(side, 70, y0 + 30, 120)
+        c.text(210, y0 + 105, f'Into {side.title()}', color, 46, 700)
+        base, top = y0 + 470, y0 + 50
+        span = base - top
+        left, slot = 570, 182
+        right = left + 8 * slot
+        for v, lab in ((1, '100%'), (.5, '50%'), (0, '0%')):
+            yy = base - span * v
+            c.line(left - 10, yy, right, yy, '#D9CFC4' if v else INK, 2 if v else 3)
+            c.text(left - 25, yy + 12, lab, size=36, anchor='end', color=MUTED if v else INK)
         for k, layer in enumerate(r['layers']):
-            xx = start+k*(width+gap)
-            c.rect(xx, baseline-high, width, high, 'white', 12)
-            c.rect(xx, baseline-high*layer['accuracy'], width, high*layer['accuracy'], color, 12)
-            cy = baseline-high*r['chance']
-            c.line(xx-6, cy, xx+width+6, cy, BLACK, 3, '8 7')
-            c.text(xx+width/2, baseline-high-20, pct(layer['accuracy']), color, weight=700, anchor='middle')
-            c.text(xx+width/2, baseline+63, str(layer['block']), anchor='middle')
-        c.text(1210, y0+450, 'Layer', anchor='middle')
+            xx = left + k * slot + 28
+            bw = slot - 56
+            removed = layer['diagnostics']['centered_correct'] / layer['total']
+            c.rect(xx, base - span * removed, bw, span * removed, 'white', 6, color, 4)
+            c.rect(xx, base - span * layer['accuracy'], bw, span * layer['accuracy'], color, 6)
+            c.text(xx + bw / 2, base + 52, layer['block'], size=38, anchor='middle')
+            c.text(xx + bw / 2, base + 122, f'{round(100 * layer["accuracy"])}%', color, 38, 700, 'middle')
+            c.text(xx + bw / 2, base + 172, f'{round(100 * removed)}%', MUTED, 36, 400, 'middle')
+        cy = base - span * r['chance']
+        c.line(left - 10, cy, right + 10, cy, INK, 3, '12 9')
+        c.text(right + 22, cy + 12, f'chance {round(100 * r["chance"])}%', size=34)
+        # Row labels: depth, then the two bar kinds (they double as the key).
+        c.text(125, base + 52, 'after block', size=36, color=MUTED)
+        c.rect(75, base + 92, 36, 36, color, 6)
+        c.text(125, base + 122, 'New phrasings', color, 38, 700)
+        c.rect(75, base + 142, 36, 36, 'white', 6, color, 4)
+        c.text(125, base + 172, 'Phrasing average removed', MUTED, 36)
     c.save('link_geometry_probe', svg_only)
 
-
-def sizes(data, svg_only=False):
-    c = Canvas(1330)
-    c.text(65, 80, 'Chat training changes the size of the link’s writes', size=54, weight=700)
-    maxval = max(layer['ratio'][cond]['mean'] for r in data['per_receiver'].values()
-                 for layer in r['layers'] for cond in ('before', 'after'))
-    ceiling = math.ceil(maxval*100/5)*.05
-    for col, x in enumerate(('quill', 'ember')):
-        r = data['per_receiver'][x]
-        left = 45+col*1130
-        color = PURPLE if x == 'quill' else ORANGE
-        c.rect(left, 120, 1080, 1160, CREAM, 32)
-        c.robot(x, left+40, 148, 100)
-        c.text(left+160, 214, f'{x.title()} · 4-bit', color, weight=700)
-        c.text(left+540, 300, 'Write as percent of residual', anchor='middle')
-        for j, (cond, label, fill, stroke) in enumerate([('before', 'Before chat training', 'white', BLACK),
-                                                       ('after', 'After chat training', GREEN, GREEN)]):
-            ybase = 690+j*490
-            c.text(left+60, ybase-310, label, weight=700)
-            c.text(left+60, ybase-235, pct(ceiling))
-            c.text(left+60, ybase+12, '0%')
-            for k, layer in enumerate(r['layers']):
-                v = layer['ratio'][cond]['mean']
-                xx = left+195+k*110
-                height = v/ceiling*240
-                c.rect(xx, ybase-height, 76, height, fill, 8, stroke, 3)
-                c.text(xx+38, ybase-height-14, pct(v), color=BLACK, anchor='middle')
-                c.text(xx+38, ybase+60, layer['block'], anchor='middle')
-        c.text(left+620, 1260, 'Layer', anchor='middle')
-    c.save('link_geometry_size', svg_only)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--data', type=Path, default=ROOT/'results/link_geometry.json')
+    ap.add_argument('--data', type=Path, default=ROOT / 'results/link_geometry.json')
     ap.add_argument('--svg-only', action='store_true')
     args = ap.parse_args()
     data = json.loads(args.data.read_text())
+    assert data['projection_fit_wordings'] == [0, 1, 2] and data['projection_test_wordings'] == [3, 4, 5]
+    # Best and worst exchange depth by probe accuracy on new phrasings.
     for side in ('quill', 'ember'):
-        maps(data, side, args.svg_only)
+        layers = data['per_receiver'][side]['layers']
+        good = max(layers, key=lambda v: (v['correct'], v['block']))['block']
+        bad = min(layers, key=lambda v: (v['correct'], v['block']))['block']
+        maps(data, side, good, bad, args.svg_only)
     probe(data, args.svg_only)
-    if data['before'] is not None:
-        sizes(data, args.svg_only)
 
 
 if __name__ == '__main__':

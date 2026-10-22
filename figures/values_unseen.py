@@ -1,10 +1,12 @@
-"""Draw the value-game method and all receiver-episode signs from the final table.
+"""The value games on values never used in training (run nl20, final checkpoint): one worked episode, and every
+receiver episode against the shuffled partner.
 
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu /Users/user/mpd-data/venv/bin/python figures/values_unseen.py
-No model is loaded. Episode examples use the actual Games and payload_ctl draw,
-and real stored original-model replies. Text chips use the actual tokenizers.
-The result is teacher-forced mean cross-entropy on payload tokens, not generation
-accuracy. The method drawing shows target replies, not a generated linked chat.
+python figures/values_unseen.py   (no model is loaded)
+Reads results/magic-nl20/results/payload_final.json and the example episode kept in results/values_unseen.json (drawn
+on the Mac with the Games and payload_ctl code and the stored original-model replies; --refresh-examples redraws it
+there). The readout is the teacher-forced mean cross-entropy on the value's tokens, not generation accuracy; a
+probability below is exp(-that cross-entropy), the geometric mean probability of the value's tokens. The worked example
+shows the target replies, not a generated chat.
 """
 from pathlib import Path
 import argparse
@@ -15,7 +17,7 @@ import json
 import math
 import subprocess
 import sys
-import textwrap
+import statistics
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'pairing'))
@@ -24,37 +26,112 @@ LABELS = ('Words', 'Numbers', 'Phrases', 'Digit strings', 'Sums', 'Name and city
 SIDES = ('quill', 'ember')
 BLACK, PURPLE, ORANGE, GREEN, RED = '#1D1D1F', '#7B3FE4', '#E8590C', '#1A9E77', '#D2432F'
 COOL, WARM = '#F4F4F6', '#FAF0E6'
-W, H = 2300, 1440
-FONT = 40
+
+QUILL, EMBER, LINK, INK = PURPLE, ORANGE, GREEN, BLACK
+MUTED, FAINT = '#6E6E73', '#B9B9C0'
+LOSS = '#B5B5BE'
+FAMILY = 'Inter, Helvetica, Arial, sans-serif'
+FONT_DIR = Path('/usr/share/fonts/opentype/inter')
+_FONTS = {}
+
+
+def font(size, weight=400):
+    from PIL import ImageFont
+    key = (size, weight)
+    if key not in _FONTS:
+        name = {400: 'Inter-Regular', 600: 'Inter-SemiBold', 700: 'Inter-Bold'}[weight]
+        try:
+            _FONTS[key] = ImageFont.truetype(str(FONT_DIR / f'{name}.otf'), size)
+        except OSError:
+            _FONTS[key] = ImageFont.load_default(size)
+    return _FONTS[key]
+
+
+def width(t, size, weight=400):
+    return font(size, weight).getlength(str(t))
+
+
+def wrap(t, w, size, weight=400):
+    lines, line = [], ''
+    for word in str(t).split():
+        trial = (line + ' ' + word).strip()
+        if line and width(trial, size, weight) > w:
+            lines.append(line)
+            line = word
+        else:
+            line = trial
+    return lines + ([line] if line else [])
+
 
 class SVG:
-    def __init__(self, title):
-        self.s = [f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
-                  f'<title>{html.escape(title)}</title>',
-                  f'<rect width="{W}" height="{H}" fill="white"/>',
-                  '<defs><marker id="green" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 Z" fill="#1A9E77"/></marker><marker id="black" markerWidth="15" markerHeight="15" refX="12" refY="7.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L15 7.5 L0 15 Z" fill="#1D1D1F"/></marker></defs>']
-    def rect(self,x,y,w,h,fill='white',stroke='none',r=24,sw=3):
-        self.s.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
-    def text(self,x,y,t,fill=BLACK,size=FONT,weight=500,anchor='start'):
-        self.s.append(f'<text x="{x}" y="{y}" fill="{fill}" font-family="Arial, Helvetica, sans-serif" font-size="{size}" font-weight="{weight}" text-anchor="{anchor}">{html.escape(str(t))}</text>')
-    def path(self,d,stroke=BLACK,width=4,fill='none',extra=''):
-        self.s.append(f'<path d="{d}" stroke="{stroke}" stroke-width="{width}" fill="{fill}" stroke-linecap="round" stroke-linejoin="round" {extra}/>')
-    def arrow(self,x1,y1,x2,y2,color=BLACK,both=False):
-        marker='green' if color==GREEN else 'black'
-        self.path(f'M{x1} {y1} L{x2} {y2}',color,5,extra=f'marker-end="url(#{marker})"'+(f' marker-start="url(#{marker})"' if both else ''))
-    def circle(self,x,y,r,fill,stroke='none',sw=3,extra=''):
-        self.s.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" {extra}/>')
-    def robot(self,side,x,y,w):
-        data=base64.b64encode((ROOT/f'figures/assets/{side}.png').read_bytes()).decode()
-        self.s.append(f'<image x="{x}" y="{y}" width="{w}" height="{w}" xlink:href="data:image/png;base64,{data}"/>')
-    def chip(self,x,y,w,t,color=BLACK,fill='white',stroke='none'):
-        self.rect(x,y,w,68,fill,stroke,16,3)
-        self.text(x+w/2,y+48,t,color,anchor='middle')
-    def save(self,name):
-        p=ROOT/'figures'/f'{name}.svg'
-        p.write_text('\n'.join(self.s+['</svg>']))
-        subprocess.run(['rsvg-convert','-o',str(p.with_suffix('.png')),str(p)],check=True)
-        subprocess.run(['rsvg-convert','-f','pdf','-o',str(p.with_suffix('.pdf')),str(p)],check=True)
+    def __init__(self, w, h, title):
+        self.parts = [f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
+                      f'width="{w}" height="{h}" viewBox="0 0 {w} {h}">', f'<title>{html.escape(title)}</title>',
+                      f'<rect width="{w}" height="{h}" fill="white"/>',
+                      '<defs><filter id="grey"><feColorMatrix type="saturate" values="0"/><feComponentTransfer>'
+                      '<feFuncR type="linear" slope="0.62" intercept="0.35"/><feFuncG type="linear" slope="0.62" '
+                      'intercept="0.35"/><feFuncB type="linear" slope="0.62" intercept="0.35"/></feComponentTransfer>'
+                      '</filter></defs>']
+
+    def add(self, t):
+        self.parts.append(t)
+
+    def rect(self, x, y, w, h, fill='white', radius=18, stroke='none', sw=2):
+        self.add(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{radius}" fill="{fill}" '
+                 f'stroke="{stroke}" stroke-width="{sw}"/>')
+
+    def circle(self, cx, cy, r, fill='none', stroke='none', sw=3, extra=''):
+        self.add(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" '
+                 f'{extra}/>')
+
+    def line(self, x1, y1, x2, y2, color=INK, sw=3):
+        self.add(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{color}" stroke-width="{sw}" '
+                 f'stroke-linecap="round"/>')
+
+    def path(self, d, color=INK, sw=4, fill='none'):
+        self.add(f'<path d="{d}" fill="{fill}" stroke="{color}" stroke-width="{sw}" stroke-linejoin="round" '
+                 f'stroke-linecap="round"/>')
+
+    def text(self, x, y, t, size=34, weight=400, fill=INK, anchor='start'):
+        self.add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{FAMILY}" font-size="{size}" font-weight="{weight}" '
+                 f'fill="{fill}" text-anchor="{anchor}" xml:space="preserve">{html.escape(str(t))}</text>')
+
+    def rich(self, x, y, chunks, size=34, anchor='start'):
+        spans = ''.join(f'<tspan fill="{c}" font-weight="{w}">{html.escape(t)}</tspan>' for t, c, w in chunks)
+        self.add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{FAMILY}" font-size="{size}" text-anchor="{anchor}" '
+                 f'xml:space="preserve">{spans}</text>')
+
+    def mascot(self, side, x, y, size, grey=False):
+        data = base64.b64encode((ROOT / f'figures/assets/{side}.png').read_bytes()).decode()
+        filt = ' filter="url(#grey)"' if grey else ''
+        self.add(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}"{filt} '
+                 f'xlink:href="data:image/png;base64,{data}"/>')
+
+    def chip(self, x, y, t, color=INK, fill=COOL, stroke='none', size=34, weight=400, h=60, pad=18):
+        w = width(t, size, weight) + 2 * pad
+        self.rect(x, y, w, h, fill, 14, stroke, 3)
+        self.text(x + w / 2, y + h / 2 + size * 0.36, t, size, weight, color, 'middle')
+        return w
+
+    def save(self, name):
+        p = ROOT / 'figures' / f'{name}.svg'
+        p.write_text('\n'.join(self.parts + ['</svg>']))
+        for fmt in ('png', 'pdf'):
+            subprocess.run(['rsvg-convert', '-f', fmt, '-o', str(p.with_suffix('.' + fmt)), str(p)], check=True)
+
+
+def link_arrow(s, x1, x2, y, color=LINK, sw=6, head=16):
+    """The link, two-way: a head at both ends."""
+    for xa, d in ((x1, 1), (x2, -1)):
+        s.path(f'M{xa + d * head:.1f},{y - head * 0.75:.1f} L{xa},{y} L{xa + d * head:.1f},{y + head * 0.75:.1f}',
+               color, sw)
+    s.line(x1 + 3, y, x2 - 3, y, color, sw)
+
+
+def down_arrow(s, x, y1, y2, color=INK):
+    s.line(x, y1, x, y2, color, 4)
+    s.path(f'M{x - 12},{y2 - 14} L{x},{y2} L{x + 12},{y2 - 14}', color, 4)
+
 
 def summary(records):
     out={}
@@ -91,118 +168,189 @@ def extract_examples(replies):
                 other_examples={g:es[0]['meta'] for g,es in eps.items()},
                 word_episodes=eps['relay_word'])
 
-def strip(s,x,y,w,color):
-    # Schematic vector cells, deliberately no measured activation magnitudes.
-    for i in range(12):
-        s.rect(x+i*w/12,y,w/12-6,38,color,r=5)
-
 def game_figure(ex):
-    s=SVG('A private value crosses the hidden-state link')
-    s.text(60,86,'A private value crosses the hidden-state link',size=58,weight=700)
-    # Separate cards make the split visible without claiming lexical absence in pretraining.
-    s.rect(55,155,570,580,COOL,r=34)
-    s.text(95,225,'Training values',weight=700)
-    for k,t in enumerate(ex['training_values']):
-        s.rect(95+(k%2)*250,300+(k//2)*185,220,130,'white',r=20)
-        s.text(205+(k%2)*250,380+(k//2)*185,t,anchor='middle')
-    s.rect(55,795,570,580,WARM,r=34)
-    s.text(95,865,'Never seen in training',weight=700)
-    for k,t in enumerate(ex['test_values']):
-        s.rect(95+(k%2)*250,925+(k//2)*185,220,130,'white',PURPLE if t=='cipher' else 'none',20)
-        s.text(205+(k%2)*250,1005+(k//2)*185,t,PURPLE if t=='cipher' else BLACK,anchor='middle')
-    # The selected test value feeds Quill only.
-    s.rect(725,155,1520,1220,WARM,r=34)
-    for x,side,color in ((780,'quill',PURPLE),(1640,'ember',ORANGE)):
-        s.text(x,230,side.title(),color,weight=700)
-        s.rect(x,270,550,295,'white',r=26)
-    s.path('M565 1175 H665 V398 H805',PURPLE,5)
-    s.path('M790 387 L807 398 L790 409',PURPLE,5)
-    s.text(815,330,'Private value')
-    s.chip(815,360,465,ex['example']['meta']['value'],PURPLE,fill='#F0E8FC')
-    for j,line in enumerate(textwrap.wrap(ex['example']['meta']['question'],23)):
-        s.text(815,495+j*48,line)
-    for j,line in enumerate(textwrap.wrap(ex['example']['task']['ember'],24)):
-        s.text(1675,340+j*52,line)
-    for x,side,color in ((780,'quill',PURPLE),(1640,'ember',ORANGE)):
-        s.arrow(x+275,585,x+275,640)
-        s.rect(x,660,550,245,'white',color,28)
-        s.robot(side,x+(35 if side=='quill' else 345),680,170)
-        strip(s,x+(230 if side=='quill' else 35),749,275,color)
-        s.arrow(x+275,925,x+275,1010)
-    s.text(1485,697,'Hidden states',GREEN,anchor='middle')
-    s.arrow(1290,768,1665,768,GREEN)
-    s.path('M1675 795 V828 H1290 V795',GREEN,5,extra='marker-end="url(#green)"')
-    s.text(1485,889,'Link',GREEN,anchor='middle',weight=700)
-    s.circle(1485,960,28,'white',BLACK,4)
-    s.path('M1485 942 V960 L1500 970',BLACK,4)
-    s.text(1485,1030,'Simultaneous target replies',anchor='middle',weight=700)
-    for x,color in ((780,PURPLE),(1640,ORANGE)):
-        s.rect(x,1050,550,225,'white',color,28)
-    for x0,side,color in ((810,'quill',PURPLE),(1670,'ember',ORANGE)):
-        x,y=x0,1080
-        for piece in ex['target_pieces'][side][:6]:
-            width=max(60,len(piece.strip())*22+28)
-            if x+width>x0+490: x,y=x0,y+85
-            payload=piece.strip()==ex['example']['meta']['value']
-            s.chip(x,y,width,piece.strip(),RED if payload else color,WARM if payload else COOL,RED if payload else 'none')
-            x+=width+12
-        if side=='quill': s.text(x,y+48,'…',color)
-    s.path('M1478 1065 V1240',BLACK,9)
-    s.path('M1435 1140 Q1480 1095 1525 1140 Q1480 1185 1435 1140',BLACK,4,fill=WARM)
-    s.circle(1480,1140,10,BLACK)
-    s.path('M1435 1185 L1525 1095',BLACK,6)
-    s.text(1480,1325,'Text blocked',anchor='middle')
+    W, M = 2400, 36
+    value = ex['example']['meta']['value']
+    pieces = ex['target_pieces']
+    task = ex['example']['task']
+    assert f'"{value}"' in task['quill'] and value not in task['ember']
+    assert ''.join(pieces['ember']).strip() == ex['example']['reply']['ember'][0]
+    # shortest real excerpts of the two prompts
+    q_ex = task['quill'][task['quill'].index('tell Ember'):task['quill'].index(f'"{value}"') + len(value) + 3]
+    e_ex = task['ember'][:task['ember'].index(' through the link')]
+    assert q_ex == f'tell Ember the word "{value}".' and e_ex == 'Read the word Quill sends you'
+    top = 130
+    py, ph = top + 40, 170                 # prompts
+    my, mh = py + ph + 56, 440             # models
+    ry, rh = my + mh + 56, 190             # replies
+    H = ry + rh + 40 + M
+    s = SVG(W, H, 'A held-out word crosses the link')
+    s.text(M, 92, 'A held-out word crosses the link', 64, 700)
+    # value lists
+    lw_ = 560
+    lh_ = (H - top - M - 24) / 2
+    for k, (title, words, fill) in enumerate((('Training values', ex['training_values'], COOL),
+                                              ('Held-out values', ex['test_values'], WARM))):
+        y0 = top + k * (lh_ + 24)
+        s.rect(M, y0, lw_, lh_, fill, 32)
+        s.text(M + 40, y0 + 70, title, 42, 700)
+        ch = (lh_ - 110 - 40 - 20) / 2
+        for i, word in enumerate(words):
+            cx, cy = M + 40 + (i % 2) * 250, y0 + 110 + (i // 2) * (ch + 20)
+            on = word == value
+            s.rect(cx, cy, 230, ch, 'white', 20, QUILL if on else 'none', 4)
+            s.text(cx + 115, cy + ch / 2 + 17, word, 46, 700 if on else 400, QUILL if on else INK, 'middle')
+    # the episode
+    px = M + lw_ + 24
+    pw = W - M - px
+    s.rect(px, top, pw, H - top - M, WARM, 32)
+    cw = (pw - 80 - 60) / 2
+    qx, ex_ = px + 40, px + pw - 40 - cw
+    for x, side, color, excerpt in ((qx, 'quill', QUILL, q_ex), (ex_, 'ember', EMBER, e_ex)):
+        s.rect(x, py, cw, ph, 'white', 24, color, 3)
+        s.text(x + 30, py + 58, f'{side.title()}’s prompt', 34, 700, color)
+        if side == 'quill':
+            pre, post = excerpt.split(f'"{value}"')
+            s.rich(x + 30, py + 124, [('… ' + pre + '“', INK, 400), (value, QUILL, 700), ('”' + post, INK, 400)],
+                   42)
+        else:
+            s.text(x + 30, py + 124, excerpt + ' …', 42)
+    # models, side by side, and the link between them at 8 depths, each read both ways at once
+    bw = 330
+    boxes = {'quill': (qx, QUILL), 'ember': (ex_ + cw - bw, EMBER)}
+    for side, (x, color) in boxes.items():
+        down_arrow(s, x + bw / 2, py + ph + 8, my - 8)
+        s.rect(x, my, bw, mh, 'white', 24, color, 3)
+        s.mascot(side, x + (bw - 240) / 2, my + 40, 240)
+        s.text(x + bw / 2, my + mh - 50, side.title(), 46, 700, color, 'middle')
+    lx1, lx2 = qx + bw, ex_ + cw - bw
+    for i in range(8):
+        y = my + 50 + i * 46
+        link_arrow(s, lx1 + 14, lx2 - 14, y, sw=6, head=15)
+    mid = (lx1 + lx2) / 2
+    s.text(mid, my - 14, 'link', 40, 700, LINK, 'middle')
+    s.text(mid, my + 50 + 7 * 46 + 64, '8 depths', 36, 600, LINK, 'middle')
+    # replies
+    for x, side, color, label in ((qx, 'quill', QUILL, 'Quill writes'), (ex_, 'ember', EMBER, 'Ember writes')):
+        bx = boxes[side][0]
+        down_arrow(s, bx + bw / 2, my + mh + 8, ry - 8)
+        s.rect(x, ry, cw, rh, 'white', 24, color, 3)
+        s.text(x + 30, ry + 56, label, 34, 700, color)
+        cx, cy = x + 30, ry + 86
+        shown = pieces[side] if side == 'ember' else pieces[side][:5]
+        for piece in shown:
+            t = piece.strip() or '·'
+            on = side == 'ember' and t == value
+            w = width(t, 40, 700 if on else 400) + 32
+            s.chip(cx, cy, t, RED if on else color, WARM if on else COOL, RED if on else 'none', 40,
+                   700 if on else 400, 70, 16)
+            cx += w + 10
+        if side == 'quill':
+            s.text(cx + 4, cy + 48, '…', 40, 400, color)
     s.save('values_unseen_game')
 
-def results_figure(stats,ex):
-    wins=sum(v['positive'] for v in stats.values()); total=sum(v['total'] for v in stats.values())
-    ties=sum(v['ties'] for v in stats.values())
-    sample=next(r for r in stats['relay_word/ember']['records'] if r['episode']==ex['episode'])
-    target=ex['example']['meta']['value']
-    donor=ex.get('donor') or ex['word_episodes'][sample['donor']]
-    s=SVG('Never-seen values: real versus shuffled partner')
-    s.text(60,85,'Never-seen values: real partner beats shuffled',size=58,weight=700)
-    s.rect(55,145,455,375,WARM,r=30)
-    s.text(95,225,f'{wins} of {total}',RED,weight=700)
-    s.text(95,288,'Real partner wins',RED)
-    s.text(95,404,'Cross-entropy')
-    s.text(95,464,'Nats per token')
-    maximum=max(sample['link_ce'],sample['shuffle_ce'])
-    for x,condition,label,value,fill in ((545,'link','Real partner',target,WARM),(1410,'shuffle','Shuffled partner',donor['meta']['value'],COOL)):
-        s.rect(x,145,835,375,fill,r=30)
-        s.text(x+35,215,label,weight=700)
-        s.chip(x+35,250,245,value,PURPLE)
-        strip(s,x+40,337,230,PURPLE)
-        s.arrow(x+290,356,x+405,356,GREEN)
-        s.robot('ember',x+425,240,130)
-        s.text(x+575,250,'Target token',RED)
-        s.chip(x+575,270,220,target,RED,stroke=RED)
-        s.arrow(x+560,303,x+570,303)
-        ce=sample[condition+'_ce']
-        s.rect(x+35,430,570,35,'white',r=8)
-        s.rect(x+35,430,ce/maximum*570,35,RED if condition=='link' else BLACK,r=8)
-        s.text(x+635,465,f'{ce:.3f}' if ce<.01 else f'{ce:.2f}',RED if condition=='link' else BLACK)
-    s.rect(55,550,2190,825,WARM,r=36)
-    for x,side,color in ((785,'quill',PURPLE),(1525,'ember',ORANGE)):
-        s.robot(side,x-15,561,100)
-        s.text(x+105,625,'Into '+side.title(),color,weight=700)
-    top=710
-    for j,(g,label) in enumerate(zip(GAMES,LABELS)):
-        cy=top+j*100
-        s.text(105,cy+14,label,weight=700)
-        for cx,side in ((800,'quill'),(1540,'ember')):
-            st=stats[f'{g}/{side}']; rows=st['records']
-            for i,r in enumerate(rows):
-                d=r['shuffle_ce']-r['link_ce']
-                x=cx+(i%10)*43
-                y=cy+(i//10)*43-(21.5 if len(rows)>10 else 0)
-                s.circle(x,y,15,RED if d>0 else ('white' if d==0 else BLACK),RED if d==0 else 'none',3,
-                    extra=f'data-game="{g}" data-receiver="{side}" data-episode="{r["episode"]}"')
-            s.text(cx+460,cy+14,f'{st["positive"]}/{st["total"]}',RED,weight=700)
-    if ties:
-        s.circle(110,1345,15,'white',RED)
-        s.text(145,1359,f'{ties} exact ties')
+
+def fmt_p(p):
+    if p >= 0.9995:
+        return f'{100 * p:.2f}%'
+    if p >= 0.001:
+        return f'{100 * p:.1f}%'
+    if p >= 0.0001:
+        return f'{100 * p:.2f}%'
+    return '< 0.01%'
+
+
+def one_in(p):
+    n = 1 / p
+    for unit, v in (('billion', 1e9), ('million', 1e6), ('thousand', 1e3)):
+        if n >= v:
+            return f'1 in {n / v:.0f} {unit}'
+    return f'1 in {n:.0f}'
+
+
+def results_figure(stats, ex):
+    W, M = 2400, 36
+    total = sum(v['total'] for v in stats.values())
+    assert sum(v['positive'] for v in stats.values()) == total     # the title says all
+    sample = next(r for r in stats['relay_word/ember']['records'] if r['episode'] == ex['episode'])
+    value = ex['example']['meta']['value']
+    pr = math.exp(-sample['link_ce'])
+    ps = math.exp(-sample['shuffle_ce'])
+    assert sample['n_tokens'] == 1
+    P, R = 47, 19
+    row_h = {g: max(math.ceil(stats[f'{g}/{x}']['total'] / 10) for x in SIDES) * P + 34 for g in GAMES}
+    top = 130
+    ex_h = 330
+    grid_y = top + ex_h + 24
+    grid_h = 150 + sum(row_h.values()) + 10
+    H = grid_y + grid_h + M
+    s = SVG(W, H, 'Real partner wins all episodes')
+    s.text(M, 92, f'Real partner wins all {total} episodes', 64, 700)
+    s.circle(W - M - 360, 70, R, RED)
+    s.text(W - M - 330, 82, 'real partner better', 34, 400)
+
+    # one episode, both partners
+    cw = (W - 2 * M - 24) / 2
+    for k, (title, p, grey, fill) in enumerate((('Real partner', pr, False, WARM), ('Shuffled partner', ps, True, COOL))):
+        x = M + k * (cw + 24)
+        s.rect(x, top, cw, ex_h, fill, 32)
+        s.text(x + 40, top + 72, title, 44, 700, RED if not grey else INK)
+        my = top + 100
+        s.mascot('quill', x + 40, my, 140, grey=grey)
+        link_arrow(s, x + 190, x + 320, my + 86)
+        s.mascot('ember', x + 330, my, 140)
+        tx = x + 530
+        s.text(tx, top + 72, f'probability of “{value}”', 32, 400, MUTED)
+        s.text(tx, top + 160, fmt_p(p) if p > 0.001 else one_in(p), 72, 700, RED if not grey else INK)
+        bw = cw - 530 - 40
+        s.rect(tx, top + 200, bw, 40, 'white', 10)
+        if p * bw >= 2:
+            s.rect(tx, top + 200, p * bw, 40, RED, 10)
+        else:
+            s.line(tx + 2, top + 192, tx + 2, top + 248, INK, 5)
+        s.chip(x + 50, my + 150, value if not grey else 'other word', QUILL if not grey else MUTED,
+               '#EFE8FC' if not grey else 'white', 'none', 32, 700 if not grey else 400, 50, 14)
+
+    # every episode
+    s.rect(M, grid_y, W - 2 * M, grid_h, WARM, 32)
+    name_x = M + 40
+    dx = {'quill': M + 390, 'ember': M + 1030}
+    px_ = M + 1660
+    for side, color in (('quill', QUILL), ('ember', EMBER)):
+        s.mascot(side, dx[side], grid_y + 26, 80)
+        s.text(dx[side] + 96, grid_y + 82, 'Into ' + side.title(), 44, 700, color)
+    s.text(px_ + 330, grid_y + 58, 'median probability', 32, 600, MUTED, 'middle')
+    s.text(px_ + 200, grid_y + 118, 'real', 34, 700, RED, 'end')
+    s.text(px_ + 560, grid_y + 118, 'shuffled', 34, 700, INK, 'end')
+    y = grid_y + 150
+    medians = {}
+    for j, (g, label) in enumerate(zip(GAMES, LABELS)):
+        h = row_h[g]
+        if j:
+            s.line(M + 30, y - 4, W - M - 30, y - 4, '#E6DDD2', 2)
+        rows_n = max(math.ceil(stats[f'{g}/{x}']['total'] / 10) for x in SIDES)
+        cy = y + (h - rows_n * P) / 2 + R
+        base = cy + 15 + (rows_n - 1) * P / 2
+        s.text(name_x, base, label, 42, 700)
+        for side in SIDES:
+            st = stats[f'{g}/{side}']
+            for i, r in enumerate(st['records']):
+                d = r['shuffle_ce'] - r['link_ce']
+                x0 = dx[side] + R + (i % 10) * P
+                y0 = cy + (i // 10) * P
+                s.circle(x0, y0, R, RED if d > 0 else (LOSS if d < 0 else 'white'), INK if d == 0 else 'none', 3,
+                         f'data-game="{g}" data-receiver="{side}" data-episode="{r["episode"]}"')
+            s.text(dx[side] + 9 * P + 2 * R + 18, base, f'{st["positive"]}/{st["total"]}', 42, 700, RED)
+        recs = stats[f'{g}/quill']['records'] + stats[f'{g}/ember']['records']
+        real = statistics.median(math.exp(-r['link_ce']) for r in recs)
+        shuf = statistics.median(math.exp(-r['shuffle_ce']) for r in recs)
+        medians[g] = dict(real=real, shuffled=shuf)
+        s.text(px_ + 200, base, fmt_p(real), 42, 700, RED, 'end')
+        s.text(px_ + 560, base, fmt_p(shuf), 42, 400, INK, 'end')
+        y += h
     s.save('values_unseen_results')
+    return medians
+
 
 def main():
     ap=argparse.ArgumentParser()
@@ -222,7 +370,10 @@ def main():
                 groups=st,examples=ex,example_replies_source=str(args.replies),
                 example_note='The Games target replies, not generated linked-model replies. Vector strips are schematic, not activation measurements. Word pools are disjoint as values, not a claim about pretraining or incidental text.')
     out.write_text(json.dumps(report,indent=2)+'\n')
-    game_figure(ex); results_figure(st,ex)
+    game_figure(ex)
+    medians = results_figure(st, ex)
+    report['median_probability_per_value_token'] = medians
+    out.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:report[k] for k in ('records','positive','ties')}))
 
 if __name__=='__main__':main()

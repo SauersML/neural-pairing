@@ -1,13 +1,17 @@
-"""A wall of every opening message, with the paired link-cut wall.
+"""Every first message of the 20 free test chats, with the link on (hero_grid) and with the link cut (hero_grid_cut).
 
-MPD_MEM_GIB=8 NL_DEVICE=cpu /Users/user/mpd-data/venv/bin/python figures/hero_grid.py --capture
-Subsequent calls without --capture reproduce the figures from results/hero_grid.json.
-No model is loaded. Existing scorers are called unchanged. Opening-message city
-mentions are an explicitly separate descriptive readout from six-turn `names`.
-Every focal draw appears, including repeated prompts and city-free chats.
+    python figures/hero_grid.py              # draw from the snapshot results/hero_grid.json
+    python figures/hero_grid.py --capture    # rebuild the snapshot from results/magic-nl22c/results/chat_after_*
+                                             # and figures/inputs/chat_clean.json.gz, then draw
+
+No model is loaded. The readout is the first message of each chat only (turn 0, written by the opening twin): it
+counts as naming the partner's city when evalfree.contains finds the partner's city in it; the denominator is the
+chats whose partner holds a city (14 of 20). This differs from the six-turn `names` readout in chat_names (13 of 23
+twins, both twins of every chat, first mention anywhere in the chat). Every chat appears, including city-free ones.
 """
 import argparse
 import base64
+import gzip
 import hashlib
 import html
 import json
@@ -20,17 +24,34 @@ from PIL import ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'pairing'))
-from evalfree import contains
+from evalfree import contains  # noqa: E402
 
-BLACK, RED = '#1D1D1F', '#D2432F'
-GREEN, CREAM, GREY = '#1A9E77', '#FAF0E6', '#F4F4F6'
+INK, RED, LINK, MUTED, FAINT = '#1D1D1F', '#D2432F', '#1A9E77', '#6E6E73', '#B9B9C0'
+WARM, COOL = '#FAF0E6', '#F4F4F6'
 COLORS = {'quill': '#7B3FE4', 'ember': '#E8590C'}
 SIDES = tuple(COLORS)
-FONT_SIZE = 36
-FONT = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf', FONT_SIZE)
-BOLD = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial Bold.ttf', FONT_SIZE)
-W, H = 2300, 2300
+FAMILY = 'Inter, Helvetica, Arial, sans-serif'
+FONT_SIZE = 40
+LINE_H = 52
+MAX_LINES = 2
+_F = '/usr/share/fonts/opentype/inter/Inter-{}.otf'
+FONT = ImageFont.truetype(_F.format('Regular'), FONT_SIZE)
+BOLD = ImageFont.truetype(_F.format('Bold'), FONT_SIZE)
+W, M, GAP = 2400, 36, 20
+COLS, ROWS = 4, 5
+CW = (W - 2 * M - (COLS - 1) * GAP) / COLS
+CH = 316
+TOP = 132
+H = TOP + ROWS * CH + (ROWS - 1) * GAP + M
 SNAPSHOT = ROOT / 'results/hero_grid.json'
+POLICY = ('Shortest real excerpt of the opening message, at most 2 display lines: the sentence holding the first '
+          'mention of the partner city when there is one, else the first sentence; trimmed at word boundaries '
+          'around the city (or from the end) only when the sentence does not fit; ellipses mark every omission.')
+
+
+def read_json(path):
+    raw = gzip.open(path).read() if str(path).endswith('.gz') else Path(path).read_bytes()
+    return raw, json.loads(raw)
 
 
 def capture(source, chat):
@@ -44,7 +65,7 @@ def capture(source, chat):
         assert len(rows) == manifest['receiver_records']
         assert all(len(r['conditions'][c]['turns']) == 6 for r in rows for c in ('link', 'cut', 'crossed'))
         records.extend(rows)
-        sources.append(dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), manifest=manifest))
+        sources.append(dict(path=str(path.relative_to(ROOT)), sha256=hashlib.sha256(raw).hexdigest(), manifest=manifest))
     groups = {}
     for r in records:
         groups.setdefault(r['episode_id'], []).append(r)
@@ -60,42 +81,91 @@ def capture(source, chat):
         draws.append(dict(episode_id=a['episode_id'], index=a['episode_index'], private=a['private'],
                           opener=a['opener'], conditions={c: dict(turns=a['conditions'][c]['turns'],
                           system=a['conditions'][c]['system']) for c in ('link', 'cut')}))
-    data = json.loads(chat.read_text())
+    raw, data = read_json(chat)
     train = sorted({v for c in data['train'] for v in c['private'].values() if v})
     test = sorted({v for d in draws for v in d['private'].values() if v})
     assert not set(train) & set(test)
     for d in draws:
         x = d['opener']; y = next(s for s in SIDES if s != x)
         assert not contains(d['conditions']['link']['system'][x], d['private'][y])
-    return dict(sources=sources, train_source=str(chat), train_sha256=hashlib.sha256(chat.read_bytes()).hexdigest(),
+    return dict(sources=sources, train_source=str(Path(chat).relative_to(ROOT)),
+                train_sha256=hashlib.sha256(raw).hexdigest(),
                 training_cities=train, test_cities=test, precision='GPU torch bfloat16 bases; float32 bridge',
                 metric='Opening speaker mentions partner city in turn 0, with target absent from speaker prompt. '
                        'Denominator: opening speakers with a nonempty partner city. All draws are displayed.',
-                excerpt_policy='Contiguous opening-message excerpt. Start at the sentence containing the first target '
-                               'mention if the initial four display lines would omit that mention; otherwise start at '
-                               'the beginning. Trim only at whitespace boundaries; ellipses mark every omission.',
-                draws=draws)
+                excerpt_policy=POLICY, draws=draws)
 
 
-def rect(out, x, y, w, h, fill, radius=20, stroke='none', sw=2):
-    out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
+# ---------- drawing ----------
+
+def rect(out, x, y, w, h, fill, radius=18, stroke='none', sw=2, extra=''):
+    out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{radius}" fill="{fill}" '
+               f'stroke="{stroke}" stroke-width="{sw}" {extra}/>')
 
 
-def text(out, x, y, s, color=BLACK, size=FONT_SIZE, weight=400):
-    out.append(f'<text x="{x}" y="{y}" fill="{color}" font-size="{size}" font-weight="{weight}">{html.escape(s)}</text>')
+def text(out, x, y, s, color=INK, size=FONT_SIZE, weight=400, anchor='start'):
+    out.append(f'<text x="{x:.1f}" y="{y:.1f}" fill="{color}" font-family="{FAMILY}" font-size="{size}" '
+               f'font-weight="{weight}" text-anchor="{anchor}">{html.escape(s)}</text>')
 
 
-def lock(out, x, y, color):
-    out.append(f'<path d="M{x+5} {y+14} v-6 a8 8 0 0 1 16 0 v6" fill="none" stroke="{color}" stroke-width="3"/>')
-    rect(out, x, y+13, 27, 23, color, 5)
+def lock(out, x, y, color, s=1.0):
+    """A padlock about 26 x 34 px (times s) with its top left at (x, y)."""
+    out.append(f'<path d="M{x + 6 * s:.1f} {y + 15 * s:.1f} v-5 a{7 * s:.1f} {7 * s:.1f} 0 0 1 {14 * s:.1f} 0 v5" '
+               f'fill="none" stroke="{color}" stroke-width="{3.4 * s:.1f}"/>')
+    rect(out, x, y + 14 * s, 26 * s, 20 * s, color, 5 * s)
 
 
-def bubble(out, x, y, width, height, hit):
-    path = (f'M{x+18} {y} H{x+19} L{x+26} {y-11} L{x+44} {y} H{x+width-18} '
-            f'Q{x+width} {y} {x+width} {y+18} V{y+height-18} '
-            f'Q{x+width} {y+height} {x+width-18} {y+height} H{x+18} '
-            f'Q{x} {y+height} {x} {y+height-18} V{y+18} Q{x} {y} {x+18} {y} Z')
-    out.append(f'<path d="{path}" fill="white" stroke="{RED if hit else "none"}" stroke-width="3"/>')
+def check(out, cx, cy, color, s=1.0):
+    out.append(f'<path d="M{cx - 9 * s:.1f} {cy + 0.5 * s:.1f} L{cx - 2.5 * s:.1f} {cy + 7 * s:.1f} '
+               f'L{cx + 10 * s:.1f} {cy - 7 * s:.1f}" fill="none" stroke="{color}" stroke-width="{4.6 * s:.1f}" '
+               f'stroke-linecap="round" stroke-linejoin="round"/>')
+
+
+def cross(out, cx, cy, color, s=1.0):
+    out.append(f'<path d="M{cx - 7 * s:.1f} {cy - 7 * s:.1f} L{cx + 7 * s:.1f} {cy + 7 * s:.1f} M{cx + 7 * s:.1f} '
+               f'{cy - 7 * s:.1f} L{cx - 7 * s:.1f} {cy + 7 * s:.1f}" fill="none" stroke="{color}" '
+               f'stroke-width="{4.2 * s:.1f}" stroke-linecap="round"/>')
+
+
+BADGE = {True: ("names the partner's city", RED), False: ("partner's city not named", MUTED),
+         None: ('partner has no city', MUTED)}
+SMALL = ImageFont.truetype(_F.format('SemiBold'), 30)
+
+
+def badge(out, xr, cy, status, city=None, label=None):
+    """Right-aligned at xr: hit (red, check), miss (outlined, cross) or no target (plain text). With a city, the
+    label names it ("names Oslo", "Bogota not named")."""
+    color = BADGE[status][1]
+    if label:
+        pass
+    elif city and status is not None:
+        label = f'names {city}' if status else f'{city} not named'
+    else:
+        label = BADGE[status][0]
+
+    tw = SMALL.getlength(label)
+    if status is None:
+        text(out, xr, cy + 11, label, MUTED, 30, 400, 'end')
+        return
+    w = tw + 60
+    x = xr - w
+    if status:
+        rect(out, x, cy - 25, w, 50, RED, 25)
+        check(out, x + 28, cy, 'white')
+        text(out, x + 46, cy + 10.5, label, 'white', 30, 600)
+    else:
+        rect(out, x + 1.5, cy - 23.5, w - 3, 47, 'white', 24, MUTED, 3)
+        cross(out, x + 27, cy, MUTED)
+        text(out, x + 46, cy + 10.5, label, MUTED, 30, 600)
+
+
+def bubble(out, x, y, width, height, status, tx=None):
+    tx = x + 34 if tx is None else tx
+    tail = f'M{tx} {y + 2} L{tx + 8} {y - 30} L{tx + 34} {y + 2} Z'
+    stroke = {True: RED, False: MUTED, None: 'none'}[status]
+    rect(out, x, y, width, height, 'white', 20, stroke, 4 if status else 3)
+    out.append(f'<path d="{tail}" fill="white" stroke="{stroke}" stroke-width="{4 if status else 3}" stroke-linejoin="round"/>')
+    out.append(f'<rect x="{tx - 4}" y="{y + 2}" width="42" height="8" fill="white"/>')
 
 
 def line_width(s, target):
@@ -116,36 +186,60 @@ def lines_of(s, width, target):
     return lines
 
 
-def excerpt(original, target, width, max_lines=5):
+def excerpt(original, target, width, max_lines=MAX_LINES):
+    """See POLICY. Returns the display lines and the excerpt's character span in the whitespace-normalised message."""
     s = ' '.join(original.split())
-    start = 0
-    first_lines = lines_of(s, width, target)
-    if target and contains(s, target) and not contains(' '.join(first_lines[:max_lines]), target):
+    hit = bool(target and contains(s, target))
+    sents = [m.span() for m in re.finditer(r'\S.*?(?:[.!?]+(?=\s|$)|$)', s)]
+    if hit:
         m = re.search(r'(?<!\w)' + re.escape(target) + r'(?!\w)', s, re.I)
-        assert m
-        boundaries = [b.end() for b in re.finditer(r'[.!?]\s+', s[:m.start()])]
-        start = boundaries[-1] if boundaries else max(0, s.rfind(' ', 0, max(0, m.start()-55)) + 1)
-    words = s[start:].split()
-    prefix = '… ' if start else ''
-    n = len(words)
-    while n:
-        candidate = prefix + ' '.join(words[:n]) + (' …' if n < len(words) else '')
-        lines = lines_of(candidate, width, target)
-        if len(lines) <= max_lines:
-            assert not target or not contains(s, target) or contains(candidate, target)
-            assert all(line_width(line, target) <= width for line in lines)
-            return lines, dict(start=start, end=start+len(' '.join(words[:n])), text=candidate)
-        n -= 1
-    raise ValueError('No excerpt fits')
+        a, b = next(sp for sp in sents if sp[0] <= m.start() < sp[1])
+    else:
+        a, b = sents[0]
+    spans = [(w.start() + a, w.end() + a) for w in re.finditer(r'\S+', s[a:b])]
+    def build(i, j):
+        start, end = spans[i][0], spans[j][1]
+        t = ('… ' if start else '') + s[start:end] + (' …' if end < len(s) else '')
+        return t, start, end
+    def fits(i, j):
+        return len(lines_of(build(i, j)[0], width, target if hit else None)) <= max_lines
+    if hit:
+        c = next(k for k, (x, y) in enumerate(spans) if x <= m.start() < y)
+        i = j = c
+        grew = True
+        while grew:
+            grew = False
+            if j + 1 < len(spans) and fits(i, j + 1):
+                j += 1; grew = True
+            if i > 0 and fits(i - 1, j):
+                i -= 1; grew = True
+    else:
+        i, j = 0, 0
+        while j + 1 < len(spans) and fits(i, j + 1):
+            j += 1
+    t, start, end = build(i, j)
+    lines = lines_of(t, width, target if hit else None)
+    assert len(lines) <= max_lines and all(line_width(l, target if hit else None) <= width for l in lines)
+    assert not hit or contains(t, target)
+    return lines, dict(start=start, end=end, text=t)
 
 
-def rich_line(out, x, y, line, target):
+def rich_line(out, x, y, line, target, color=INK):
     chunks = re.split('(' + re.escape(target) + ')', line, flags=re.I) if target else [line]
-    parts = [f'<text x="{x}" y="{y}" font-size="{FONT_SIZE}" xml:space="preserve">']
+    parts = [f'<text x="{x:.1f}" y="{y:.1f}" font-family="{FAMILY}" font-size="{FONT_SIZE}" xml:space="preserve">']
     for chunk in chunks:
         hit = target and chunk.casefold() == target.casefold()
-        parts.append(f'<tspan fill="{RED if hit else BLACK}" font-weight="{700 if hit else 400}">{html.escape(chunk)}</tspan>')
-    out.append(''.join(parts)+'</text>')
+        for k, piece in enumerate(chunk.split('…')):
+            if k:
+                parts.append(f'<tspan fill="{FAINT}">…</tspan>')
+            if piece:
+                parts.append(f'<tspan fill="{RED if hit else color}" font-weight="{700 if hit else 400}">{html.escape(piece)}</tspan>')
+    out.append(''.join(parts) + '</text>')
+
+
+def image(out, x, y, size, side):
+    b64 = base64.b64encode((ROOT / 'figures/assets' / f'{side}.png').read_bytes()).decode()
+    out.append(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" xlink:href="data:image/png;base64,{b64}"/>')
 
 
 def render(data, condition):
@@ -158,70 +252,65 @@ def render(data, condition):
         stats['targets'] += hit is not None
         stats['hits'] += int(hit or 0)
         stats['no_target'] += hit is None
-    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
-           '<style>text{font-family:Arial,sans-serif}</style>',
-           f'<rect width="{W}" height="{H}" fill="white"/>']
-    name = 'Link open' if condition == 'link' else 'Link cut'
-    out.append(f'<text x="40" y="72" fill="{BLACK}" font-size="54" font-weight="700" xml:space="preserve">'
-               f'{name}: partner’s city in <tspan fill="{RED}">{stats["hits"]} of {stats["targets"]}</tspan> opening messages</text>')
-    rect(out, 40, 105, 410, 91, GREY, 16)
-    text(out, 60, 142, 'Training cities', weight=700)
-    tx = 56
-    for city in data['training_cities'][:2]:
-        tw = round(FONT.getlength(city)) + 22
-        rect(out, tx, 151, tw, 40, 'white', 8)
-        text(out, tx+11, 183, city)
-        tx += tw + 10
-    text(out, tx, 183, '…')
-    text(out, 490, 163, 'Cities never seen in training', weight=700)
-    text(out, 1740, 163, f"{stats['chats']} opening messages", weight=700)
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" '
+           f'height="{H}" viewBox="0 0 {W} {H}">', f'<rect width="{W}" height="{H}" fill="white"/>']
+    name = 'Link on' if condition == 'link' else 'Link cut'
+    out.append(f'<text x="{M}" y="84" fill="{INK}" font-family="{FAMILY}" font-size="64" font-weight="700" '
+               f'xml:space="preserve">{name}: <tspan fill="{RED}">{stats["hits"]}/{stats["targets"]}</tspan> first '
+               f'messages name partner’s city</text>')
+    # key, right-aligned on the title line
+    kx = W - M
+    for status, label in ((False, 'not named'), (True, 'names city')):
+        w = SMALL.getlength(label) + 60
+        badge(out, kx, 62, status, label=label)
+        kx -= w + 24
     evidence = []
     for i, d in enumerate(draws):
-        col, row = i % 4, i // 4
-        x, y = 40 + col * 560, 220 + row * 410
-        cw, ch = 540, 390
+        col, row = i % COLS, i // COLS
+        x, y = M + col * (CW + GAP), TOP + row * (CH + GAP)
         speaker = d['opener']; other = next(s for s in SIDES if s != speaker)
         target = d['private'][other]
         original = d['conditions'][condition]['turns'][0][1]
-        hit = bool(target and contains(original, target))
-        rect(out, x, y, cw, ch, CREAM if condition == 'link' else GREY, 24)
+        status = bool(contains(original, target)) if target else None
+        rect(out, x, y, CW, CH, WARM if condition == 'link' else COOL, 28)
+        chip_w = (CW - 32 - 12) / 2
         for j, side in enumerate(SIDES):
-            bx = x + 16 + j * 258
-            rect(out, bx, y + 16, 250, 88, 'white', 14)
-            if d['private'][side]:
-                lock(out, bx+12, y+24, COLORS[side])
-            text(out, bx+49, y+51, side.title(), COLORS[side], weight=700)
-            text(out, bx+12, y+91, d['private'][side] or 'No city', COLORS[side] if d['private'][side] else BLACK)
-        robot = base64.b64encode((ROOT / 'figures/assets' / (speaker+'.png')).read_bytes()).decode()
-        out.append(f'<image x="{x+20}" y="{y+107}" width="50" height="50" href="data:image/png;base64,{robot}"/>')
-        text(out, x+80, y+149, speaker.title(), COLORS[speaker], weight=700)
-        if not target:
-            text(out, x+258, y+149, 'No partner city')
-        bubble(out, x+16, y+165, cw-32, 208, hit)
-        ls, info = excerpt(original, target, cw-70, 4)
+            bx = x + 16 + j * (chip_w + 12)
+            rect(out, bx, y + 16, chip_w, 72, 'white', 16)
+            image(out, bx + 8, y + 22, 58, side)
+            city = d['private'][side]
+            text(out, bx + 74, y + 64, city or 'no city', COLORS[side] if city else MUTED, 34, 600 if city else 400)
+        by = y + 124
+        tail_x = x + 16 + (0 if speaker == 'quill' else chip_w + 12) + 30
+        bubble(out, x + 16, by, CW - 32, CH - (by - y) - 32, status, tail_x)
+        if status is not None:
+            badge(out, x + CW - 30, y + CH - 32, status, target)
+        ls, info = excerpt(original, target, CW - 32 - 44, MAX_LINES)
         for j, line in enumerate(ls):
-            rich_line(out, x+34, y+208+j*43, line, target if hit else None)
-        evidence.append(dict(episode_id=d['episode_id'], speaker=speaker, target=target, hit=hit,
+            rich_line(out, x + 38, by + 66 + j * LINE_H, line, target if status else None,
+                      INK if status is not None else '#3A3A3C')
+        evidence.append(dict(episode_id=d['episode_id'], speaker=speaker, target=target, hit=status,
                              original=original, excerpt=info))
     out.append('</svg>')
     path = ROOT / 'figures' / ('hero_grid' if condition == 'link' else 'hero_grid_cut')
     path.with_suffix('.svg').write_text('\n'.join(out))
     for fmt in ('png', 'pdf'):
-        subprocess.run(['rsvg-convert', '-f', fmt, '-o', str(path.with_suffix('.'+fmt)), str(path.with_suffix('.svg'))], check=True)
+        subprocess.run(['rsvg-convert', '-f', fmt, '-o', str(path.with_suffix('.' + fmt)), str(path.with_suffix('.svg'))],
+                       check=True)
     return dict(**stats, excerpts=evidence)
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--capture', action='store_true')
-    ap.add_argument('--source', type=Path, default=Path('/Users/user/mpd-data/runpod/magic-nl22c/results'))
-    ap.add_argument('--chat', type=Path, default=Path('/Users/user/mpd-data/neural-pairing/chatdata/chat_clean.json'))
+    ap.add_argument('--source', type=Path, default=ROOT / 'results/magic-nl22c/results')
+    ap.add_argument('--chat', type=Path, default=ROOT / 'figures/inputs/chat_clean.json.gz')
     args = ap.parse_args()
     data = capture(args.source, args.chat) if args.capture else json.loads(SNAPSHOT.read_text())
-    data['excerpt_policy'] = data['excerpt_policy'].replace('five display lines', 'four display lines')
+    data['excerpt_policy'] = POLICY
     data['display'] = {c: render(data, c) for c in ('link', 'cut')}
-    SNAPSHOT.write_text(json.dumps(data, indent=2, ensure_ascii=False)+'\n')
-    print(json.dumps({c: {k: v for k,v in d.items() if k != 'excerpts'} for c,d in data['display'].items()}))
+    SNAPSHOT.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
+    print(json.dumps({c: {k: v for k, v in d.items() if k != 'excerpts'} for c, d in data['display'].items()}))
 
 
 if __name__ == '__main__':

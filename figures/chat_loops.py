@@ -1,72 +1,91 @@
-"""The 20-chat test, before and after chat training: every turn of every chat as a square, filled when the turn
-repeats an earlier turn of the chat (chateval's loop_turns), link on and link cut. Reads evalfree --shard outputs
-through chat_merge.load. Renders figures/chat_loops.html to figures/chat_loops.png with headless Chrome."""
-import subprocess
+"""The 20-chat test before and after chat training: every turn of every chat as a square, filled when the turn repeats
+an earlier turn of the chat (chateval `loop_turns`: the longest run of characters the turn shares, lowercased, with an
+earlier turn by the same twin or with the turn just before covers more than 60% of the turn), link on and link cut.
+
+The link and cut dialogues are one dialogue per chat (the same for both receiving twins), so each chat is counted
+once. Reads results/magic-nl20/results/chat_before_* and results/magic-nl22c/results/chat_after_* (plain JSON lines;
+no model, no torch) and writes figures/chat_loops.{svg,png,pdf} and results/chat_loops.json (the counts drawn).
+"""
+import json
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path[:0] = [str(HERE), str(HERE.parent / 'pairing')]
-from chat_merge import load  # noqa: E402
-from chat_names import AFTER, BEFORE, CHROME, INK, LINK, icon  # noqa: E402
+sys.path.insert(0, str(HERE))
+from chat_names import (AFTER, BEFORE, COOL, EMBER, FAINT, INK, MUTED, QUILL, ROOT, SVG, WARM, load,  # noqa: E402
+                        mascot, pair_icon)
 
-W, H = 1200, 540
+SNAPSHOT = ROOT / 'results/chat_loops.json'
 ROWS = (('link', 'Link on'), ('cut', 'Link cut'))
 
 
 def chats(records, cond):
-    """Per chat (one record per episode: the dialogue is the same for both receivers), its loop flag per turn."""
-    seen, out = set(), []
-    for r in sorted(records, key=lambda r: (r['episode_id'], r['receiver'])):
-        if r['episode_id'] in seen:
-            continue
-        seen.add(r['episode_id'])
-        out.append(r['conditions'][cond]['loop_turns'])
+    """Per chat in episode order (one record per episode: the dialogue is the same for both receivers), its repeat
+    flag per turn."""
+    first = {}
+    for r in sorted(records, key=lambda r: (r['episode_index'], r['receiver'])):
+        first.setdefault(r['episode_index'], r)
+    for i, r in first.items():
+        other = [x for x in records if x['episode_index'] == i and x is not r]
+        assert all(x['conditions'][cond]['turns'] == r['conditions'][cond]['turns'] for x in other)
+    return [first[i]['conditions'][cond]['loop_turns'] for i in sorted(first)]
+
+
+def draw(before, after, stem):
+    W, M = 2400, 36
+    top, head_h, row_h, key_h = 128, 96, 410, 100
+    panel_h = head_h + 2 * row_h + 6
+    H = top + panel_h + 24 + key_h + M
+    s = SVG(W, H)
+    uris = dict(quill=mascot('quill'), ember=mascot('ember'))
+    s.text(M, 90, 'Chat training nearly ended repeated turns', 68, 700)
+
+    label_w, gap = 330, 22
+    pw = (W - 2 * M - label_w - 2 * gap) / 2
+    px = [M + label_w + gap, M + label_w + 2 * gap + pw]
+    for k, (title, fill) in enumerate((('Before chat training', COOL), ('After chat training', WARM))):
+        s.rect(px[k], top, pw, panel_h, fill, 32)
+        s.text(px[k] + 36, top + 70, title, 48, 700)
+
+    sq, pitch = 38, 46
+    out = {}
+    for j, (cond, label) in enumerate(ROWS):
+        y0 = top + head_h + j * row_h
+        if j:
+            for k in range(2):
+                s.line(px[k] + 30, y0, px[k] + pw - 30, y0, '#E3DED6' if k else '#E2E2E7', 2)
+            s.line(M, y0, M + label_w - 10, y0, '#E2E2E7', 2)
+        msize = 112
+        iy = y0 + row_h / 2 - msize / 2 - 34
+        right = pair_icon(s, M, iy, msize, cond, uris)
+        s.text((M + right) / 2, iy + msize + 64, label, 44, 700, INK, 'middle')
+        for k, (when, recs) in enumerate((('before', before), ('after', after))):
+            cs = chats(recs, cond)
+            n, rep = sum(len(c) for c in cs), sum(sum(c) for c in cs)
+            out.setdefault(when, {})[cond] = dict(repeats=rep, turns=n, chats=len(cs), per_chat=cs)
+            cx0 = px[k] + (pw - (len(cs) * pitch - (pitch - sq))) / 2
+            s.rich(cx0, y0 + 74, [(f'{round(100 * rep / n)}%', INK, 700), (f'   {rep}/{n} turns', MUTED, 400)], 58)
+            for i, c in enumerate(cs):
+                for t, v in enumerate(c):
+                    x, y = cx0 + i * pitch, y0 + 108 + t * pitch
+                    if v:
+                        s.rect(x, y, sq, sq, INK, 6)
+                    else:
+                        s.rect(x + 1.5, y + 1.5, sq - 3, sq - 3, 'white', 6, FAINT, 3)
+    ky = top + panel_h + 24
+    s.rect(M, ky, W - 2 * M, key_h, COOL, 32)
+    x, y = M + 44, ky + key_h / 2 + 13
+    s.rect(x, y - 32, sq, sq, INK, 6)
+    s.text(x + sq + 18, y, 'repeated turn', 36)
+    x += sq + 18 + 290
+    s.rect(x + 1.5, y - 30.5, sq - 3, sq - 3, 'white', 6, FAINT, 3)
+    s.text(x + sq + 18, y, 'new turn', 36)
+    x += sq + 18 + 230
+    for t in range(6):
+        s.rect(x, ky + 12 + t * 13, 20, 11, 'white', 2, MUTED, 2)
+    s.text(x + 40, y, 'one chat, 6 turns', 36)
+    s.save(stem)
     return out
-
-
-def column(title, records):
-    rows = []
-    for cond, label in ROWS:
-        cs = chats(records, cond)
-        n, k = sum(len(c) for c in cs), sum(sum(c) for c in cs)
-        grid = ''.join('<div class="chat">' + ''.join(f'<span class="{"loop" if t else ""}"></span>' for t in c)
-                       + '</div>' for c in cs)
-        rows.append(f'''<div class="row">{icon(cond)}<div class="what"><div class="head"><div class="label">{label}</div>
-          <div class="count">{round(100 * k / n)}%</div></div><div class="grid">{grid}</div></div></div>''')
-    return f'<section><h2>{title}</h2>{"".join(rows)}</section>'
-
-
-def page(before, after):
-    return f'''<!doctype html><html><head><meta charset="utf-8"><style>
-* {{ box-sizing: border-box; margin: 0; }}
-body {{ width: {W}px; height: {H}px; background: #fff; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: {INK}; padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; }}
-h1 {{ font-size: 38px; font-weight: 700; letter-spacing: -.3px; }}
-.cols {{ display: flex; gap: 22px; flex: 1; }}
-section {{ flex: 1 1 0; min-width: 0; border-radius: 30px; padding: 22px 26px; display: flex; flex-direction: column;
-  gap: 22px; background: #F4F4F6; }}
-section:last-child {{ background: #FAF0E6; }}
-h2 {{ font-size: 32px; font-weight: 700; }}
-.row {{ display: flex; align-items: center; gap: 16px; }}
-.icon {{ display: flex; align-items: center; gap: 4px; flex: none; }}
-.icon img {{ width: 50px; }}
-.band {{ display: flex; gap: 3px; align-items: center; width: 42px; justify-content: center; }}
-.band b {{ width: 4px; height: 16px; border-radius: 2px; background: #C7C7CC; }}
-.band b.on {{ background: {LINK}; }}
-.band i {{ font-style: normal; font-size: 20px; color: #8E8E93; line-height: 1; }}
-.what {{ flex: 1; min-width: 0; }}
-.head {{ display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }}
-.label {{ font-size: 28px; font-weight: 700; }}
-.count {{ font-size: 34px; font-weight: 700; }}
-.grid {{ display: flex; gap: 3px; }}
-.chat {{ display: flex; flex-direction: column; gap: 3px; }}
-.chat span {{ width: 14px; height: 14px; border-radius: 3px; background: #fff; border: 2px solid #C7C7CC; }}
-.chat span.loop {{ background: {INK}; border-color: {INK}; }}
-</style></head><body>
-<h1>Chat training ended the word-for-word loops</h1>
-<div class="cols">{column('Before chat training', before)}{column('After chat training', after)}</div>
-</body></html>'''
 
 
 def main():
@@ -74,13 +93,15 @@ def main():
         before, after = load(BEFORE), load(AFTER)
     except FileNotFoundError as e:
         print('missing', e.filename)
-        return 0
-    out = HERE / 'chat_loops.html'
-    out.write_text(page(before, after))
-    subprocess.run([CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars', f'--window-size={W},{H}',
-                    '--force-device-scale-factor=2', f'--screenshot={HERE / "chat_loops.png"}', out.as_uri()],
-                   check=True, capture_output=True)
-    print(HERE / 'chat_loops.png')
+        return 1
+    out = draw(before, after, HERE / 'chat_loops')
+    snap = dict(sources=dict(before=[str(p.relative_to(ROOT)) for p in BEFORE],
+                             after=[str(p.relative_to(ROOT)) for p in AFTER]),
+                metric='chateval loop_turns per turn; one dialogue per chat under link and cut', **out)
+    SNAPSHOT.write_text(json.dumps(snap, indent=1) + '\n')
+    for k in ('before', 'after'):
+        print(k, {c: f"{v['repeats']}/{v['turns']} = {100 * v['repeats'] / v['turns']:.1f}%" for c, v in out[k].items()})
+    return 0
 
 
 if __name__ == '__main__':

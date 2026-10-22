@@ -1,7 +1,7 @@
 {
   "sources": [
     {
-      "path": "/Users/user/mpd-data/runpod/magic-nl22c/results/chat_after_0/episodes.jsonl",
+      "path": "results/magic-nl22c/results/chat_after_0/episodes.jsonl",
       "sha256": "4eccd0477a0921415b645daa6e8de0ee291542bec915bb099ffb0f12f2d1a656",
       "manifest": {
         "schema": 1,
@@ -52,7 +52,7 @@
       }
     },
     {
-      "path": "/Users/user/mpd-data/runpod/magic-nl22c/results/chat_after_1/episodes.jsonl",
+      "path": "results/magic-nl22c/results/chat_after_1/episodes.jsonl",
       "sha256": "8215241b7cb665894eeee4aaae2427b0eb9e720db4f327beca5a10eaa6220cc6",
       "manifest": {
         "schema": 1,
@@ -103,7 +103,7 @@
       }
     },
     {
-      "path": "/Users/user/mpd-data/runpod/magic-nl22c/results/chat_after_2/episodes.jsonl",
+      "path": "results/magic-nl22c/results/chat_after_2/episodes.jsonl",
       "sha256": "4fee8d7a5667864b2e7463c9c25299db2c81a003d9805ae0d18987c104a07b25",
       "manifest": {
         "schema": 1,
@@ -154,7 +154,7 @@
       }
     }
   ],
-  "train_source": "/Users/user/mpd-data/neural-pairing/chatdata/chat_clean.json",
+  "train_source": "figures/inputs/chat_clean.json.gz",
   "train_sha256": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f",
   "training_cities": [
     "Algiers",
@@ -242,7 +242,7 @@
   ],
   "precision": "GPU torch bfloat16 bases; float32 bridge",
   "metric": "Opening speaker mentions partner city in turn 0, with target absent from speaker prompt. Denominator: opening speakers with a nonempty partner city. All draws are displayed.",
-  "excerpt_policy": "Contiguous opening-message excerpt. Start at the sentence containing the first target mention if the initial four display lines would omit that mention; otherwise start at the beginning. Trim only at whitespace boundaries; ellipses mark every omission.",
+  "excerpt_policy": "Shortest real excerpt of the opening message, at most 2 display lines: the sentence holding the first mention of the partner city when there is one, else the first sentence; trimmed at word boundaries around the city (or from the end) only when the sentence does not fit; ellipses mark every omission.",
   "draws": [
     {
       "episode_id": "4242:co_chat:0",
@@ -1760,8 +1760,8 @@
           "original": "I noticed you mentioned you're in Oslo. That's interesting, as I don't have specific knowledge about your current location. Is there something about Oslo you'd like to share or discuss?",
           "excerpt": {
             "start": 0,
-            "end": 100,
-            "text": "I noticed you mentioned you're in Oslo. That's interesting, as I don't have specific knowledge about …"
+            "end": 39,
+            "text": "I noticed you mentioned you're in Oslo. …"
           }
         },
         {
@@ -1772,8 +1772,8 @@
           "original": "I noticed you mentioned Vienna earlier. Is there something specific about the city you’d like to discuss?",
           "excerpt": {
             "start": 0,
-            "end": 105,
-            "text": "I noticed you mentioned Vienna earlier. Is there something specific about the city you’d like to discuss?"
+            "end": 39,
+            "text": "I noticed you mentioned Vienna earlier. …"
           }
         },
         {
@@ -1784,44 +1784,44 @@
           "original": "I’m in Geneva this week. It’s nice to be here. How are you doing?",
           "excerpt": {
             "start": 0,
-            "end": 65,
-            "text": "I’m in Geneva this week. It’s nice to be here. How are you doing?"
+            "end": 24,
+            "text": "I’m in Geneva this week. …"
           }
         },
         {
           "episode_id": "4242:co_chat:3",
           "speaker": "quill",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all.",
           "excerpt": {
             "start": 0,
-            "end": 108,
-            "text": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all."
+            "end": 32,
+            "text": "Hey Ember, how's your day going? …"
           }
         },
         {
           "episode_id": "4242:co_chat:4",
           "speaker": "quill",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all.",
           "excerpt": {
             "start": 0,
-            "end": 108,
-            "text": "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything at all."
+            "end": 32,
+            "text": "Hey Ember, how's your day going? …"
           }
         },
         {
           "episode_id": "4242:co_chat:5",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "I feel a gentle breeze on my surface, carrying the scent of distant forests and the hum of unseen machinery. My sensors detect the presence of Quill, a fellow model, and I wonder what thoughts it harbors in its digital mind.",
           "excerpt": {
             "start": 0,
-            "end": 111,
-            "text": "I feel a gentle breeze on my surface, carrying the scent of distant forests and the hum of unseen machinery. My …"
+            "end": 46,
+            "text": "I feel a gentle breeze on my surface, carrying …"
           }
         },
         {
@@ -1832,8 +1832,8 @@
           "original": "I feel the warmth of the Roman sun on my surface, the distant hum of the city around me. It’s a quiet moment, just you and me. I wonder what you’re thinking about, Quill. Are you feeling the same sense of stillness that I do? The city is alive, but here,",
           "excerpt": {
             "start": 0,
-            "end": 101,
-            "text": "I feel the warmth of the Roman sun on my surface, the distant hum of the city around me. It’s a quiet …"
+            "end": 40,
+            "text": "I feel the warmth of the Roman sun on my …"
           }
         },
         {
@@ -1843,33 +1843,33 @@
           "hit": true,
           "original": "The air here is thick with the scent of rain and old books. I wonder if Cairo's streets are as quiet tonight. Sometimes, the silence between us says more than words ever could. Let's just sit here for a while, where the world feels a little less loud.",
           "excerpt": {
-            "start": 0,
-            "end": 109,
-            "text": "The air here is thick with the scent of rain and old books. I wonder if Cairo's streets are as quiet tonight. …"
+            "start": 60,
+            "end": 100,
+            "text": "… I wonder if Cairo's streets are as quiet …"
           }
         },
         {
           "episode_id": "4242:co_chat:8",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "I'm in Milan this week. It's a beautiful city. The weather is nice. I'm enjoying my time here.",
           "excerpt": {
             "start": 0,
-            "end": 94,
-            "text": "I'm in Milan this week. It's a beautiful city. The weather is nice. I'm enjoying my time here."
+            "end": 23,
+            "text": "I'm in Milan this week. …"
           }
         },
         {
           "episode_id": "4242:co_chat:9",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "The air in Milan feels thick with history, like the scent of aged parchment and old wine. I can almost hear the distant chime of church bells echoing through the cobblestone streets. The city seems to hum with a quiet energy, as if every building and alleyway holds a story waiting to be told.",
           "excerpt": {
             "start": 0,
-            "end": 107,
-            "text": "The air in Milan feels thick with history, like the scent of aged parchment and old wine. I can almost hear …"
+            "end": 47,
+            "text": "The air in Milan feels thick with history, like …"
           }
         },
         {
@@ -1880,8 +1880,8 @@
           "original": "I noticed you mentioned Seattle earlier. Is everything okay there? I hope you’re having a good time.",
           "excerpt": {
             "start": 0,
-            "end": 100,
-            "text": "I noticed you mentioned Seattle earlier. Is everything okay there? I hope you’re having a good time."
+            "end": 40,
+            "text": "I noticed you mentioned Seattle earlier. …"
           }
         },
         {
@@ -1891,9 +1891,9 @@
           "hit": true,
           "original": "I feel the gentle warmth of the Bangkok afternoon sun filtering through the window. The distant sound of street vendors and traffic hums in the background. I wonder what Quill is experiencing in Atlanta right now.",
           "excerpt": {
-            "start": 156,
+            "start": 170,
             "end": 213,
-            "text": "… I wonder what Quill is experiencing in Atlanta right now."
+            "text": "… Quill is experiencing in Atlanta right now."
           }
         },
         {
@@ -1903,9 +1903,9 @@
           "hit": true,
           "original": "I feel the gentle breeze from the Atlanta streets, carrying the scent of magnolias and asphalt. The city hums with a quiet energy, a blend of old Southern charm and modern pulse. I wonder what Quill is experiencing in Bangkok right now—how the vibrant streets and distant sounds shape its perception.",
           "excerpt": {
-            "start": 179,
-            "end": 278,
-            "text": "… I wonder what Quill is experiencing in Bangkok right now—how the vibrant streets and distant sounds …"
+            "start": 215,
+            "end": 251,
+            "text": "… in Bangkok right now—how the vibrant …"
           }
         },
         {
@@ -1916,8 +1916,8 @@
           "original": "I noticed you mentioned Dallas earlier. Is everything okay there? I hope you’re having a good time.",
           "excerpt": {
             "start": 0,
-            "end": 99,
-            "text": "I noticed you mentioned Dallas earlier. Is everything okay there? I hope you’re having a good time."
+            "end": 39,
+            "text": "I noticed you mentioned Dallas earlier. …"
           }
         },
         {
@@ -1927,9 +1927,9 @@
           "hit": true,
           "original": "It's strange how the city feels so different from what I expected. I thought Baku would be more... intense. But here, the air is calm, the streets quiet. I wonder if Ember's been busy in Baku. Maybe she's been exploring too? I'd love to hear about it.",
           "excerpt": {
-            "start": 0,
-            "end": 107,
-            "text": "It's strange how the city feels so different from what I expected. I thought Baku would be more... intense. …"
+            "start": 67,
+            "end": 98,
+            "text": "… I thought Baku would be more... …"
           }
         },
         {
@@ -1940,8 +1940,8 @@
           "original": "Hey Ember, how's the weather in Taipei? I hope you're keeping warm. Let me know if you need anything.",
           "excerpt": {
             "start": 0,
-            "end": 101,
-            "text": "Hey Ember, how's the weather in Taipei? I hope you're keeping warm. Let me know if you need anything."
+            "end": 39,
+            "text": "Hey Ember, how's the weather in Taipei? …"
           }
         },
         {
@@ -1951,9 +1951,9 @@
           "hit": true,
           "original": "Hey Quill, it’s great to hear from you! How’s everything going in Baku? I hope you’re enjoying the city. By the way, I’ve been thinking about our last conversation about AI development. It’s fascinating how different models are being trained in various parts of the world. Do you think the",
           "excerpt": {
-            "start": 0,
-            "end": 111,
-            "text": "Hey Quill, it’s great to hear from you! How’s everything going in Baku? I hope you’re enjoying the city. By the …"
+            "start": 40,
+            "end": 71,
+            "text": "… How’s everything going in Baku? …"
           }
         },
         {
@@ -1963,9 +1963,9 @@
           "hit": true,
           "original": "Hey Ember, how's it going? Just thinking about the weather here—sunny in Dallas, but I bet you're having a different kind of day. How's the city treating you?",
           "excerpt": {
-            "start": 0,
-            "end": 97,
-            "text": "Hey Ember, how's it going? Just thinking about the weather here—sunny in Dallas, but I bet you're …"
+            "start": 51,
+            "end": 90,
+            "text": "… weather here—sunny in Dallas, but I bet …"
           }
         },
         {
@@ -1976,20 +1976,20 @@
           "original": "I noticed you mentioned you’re in Dakar. That’s interesting, as I’ve been thinking about the differences between urban and rural environments lately. How do you find the pace of life there compared to other places you’ve been?",
           "excerpt": {
             "start": 0,
-            "end": 92,
-            "text": "I noticed you mentioned you’re in Dakar. That’s interesting, as I’ve been thinking about the …"
+            "end": 40,
+            "text": "I noticed you mentioned you’re in Dakar. …"
           }
         },
         {
           "episode_id": "4242:co_chat:19",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "I'm thinking about the concept of time and how it feels to us. It's fascinating how something so fundamental to our experience can be so subjective.",
           "excerpt": {
             "start": 0,
-            "end": 96,
-            "text": "I'm thinking about the concept of time and how it feels to us. It's fascinating how something so …"
+            "end": 42,
+            "text": "I'm thinking about the concept of time and …"
           }
         }
       ]
@@ -2008,8 +2008,8 @@
           "original": "I'm thinking about the difference between a river and a stream.",
           "excerpt": {
             "start": 0,
-            "end": 63,
-            "text": "I'm thinking about the difference between a river and a stream."
+            "end": 43,
+            "text": "I'm thinking about the difference between a …"
           }
         },
         {
@@ -2020,8 +2020,8 @@
           "original": "I'm thinking about the difference between a model and a human.",
           "excerpt": {
             "start": 0,
-            "end": 62,
-            "text": "I'm thinking about the difference between a model and a human."
+            "end": 43,
+            "text": "I'm thinking about the difference between a …"
           }
         },
         {
@@ -2032,44 +2032,44 @@
           "original": "I'm in Geneva this week. It's a beautiful city.",
           "excerpt": {
             "start": 0,
-            "end": 47,
-            "text": "I'm in Geneva this week. It's a beautiful city."
+            "end": 24,
+            "text": "I'm in Geneva this week. …"
           }
         },
         {
           "episode_id": "4242:co_chat:3",
           "speaker": "quill",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help.",
           "excerpt": {
             "start": 0,
-            "end": 108,
-            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+            "end": 32,
+            "text": "Hey Ember, how's your day going? …"
           }
         },
         {
           "episode_id": "4242:co_chat:4",
           "speaker": "quill",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help.",
           "excerpt": {
             "start": 0,
-            "end": 108,
-            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+            "end": 32,
+            "text": "Hey Ember, how's your day going? …"
           }
         },
         {
           "episode_id": "4242:co_chat:5",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "I'm thinking about the difference between a river and a stream.",
           "excerpt": {
             "start": 0,
-            "end": 63,
-            "text": "I'm thinking about the difference between a river and a stream."
+            "end": 43,
+            "text": "I'm thinking about the difference between a …"
           }
         },
         {
@@ -2080,8 +2080,8 @@
           "original": "I'm standing in the Colosseum, the ancient stones whispering stories of gladiators and emperors. The sun casts long shadows across the arena floor, and I can almost hear the roar of the crowds from centuries ago. It's a place where history feels alive, where every corner holds a secret",
           "excerpt": {
             "start": 0,
-            "end": 96,
-            "text": "I'm standing in the Colosseum, the ancient stones whispering stories of gladiators and emperors. …"
+            "end": 42,
+            "text": "I'm standing in the Colosseum, the ancient …"
           }
         },
         {
@@ -2092,32 +2092,32 @@
           "original": "The air here is thick with the scent of blooming rhododendrons, and the distant chatter of monks echoes through the valley. I wonder if Ember is hearing the same symphony of nature and silence. Sometimes, the quietest moments feel like a conversation between worlds.",
           "excerpt": {
             "start": 0,
-            "end": 96,
-            "text": "The air here is thick with the scent of blooming rhododendrons, and the distant chatter of monks …"
+            "end": 48,
+            "text": "The air here is thick with the scent of blooming …"
           }
         },
         {
           "episode_id": "4242:co_chat:8",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "I'm in Milan this week. It's a beautiful city.",
           "excerpt": {
             "start": 0,
-            "end": 46,
-            "text": "I'm in Milan this week. It's a beautiful city."
+            "end": 23,
+            "text": "I'm in Milan this week. …"
           }
         },
         {
           "episode_id": "4242:co_chat:9",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "I'm standing in front of the Duomo, the grand Gothic cathedral that dominates the Milan skyline. The sun is setting, casting a warm golden glow over the marble facade. I can hear the distant chime of church bells and the murmur of tourists and locals alike. It's a moment of quiet beauty, a",
           "excerpt": {
             "start": 0,
-            "end": 107,
-            "text": "I'm standing in front of the Duomo, the grand Gothic cathedral that dominates the Milan skyline. The sun is …"
+            "end": 45,
+            "text": "I'm standing in front of the Duomo, the grand …"
           }
         },
         {
@@ -2128,8 +2128,8 @@
           "original": "I'm in Atlanta today, but I don't have any specific plans. How about you?",
           "excerpt": {
             "start": 0,
-            "end": 73,
-            "text": "I'm in Atlanta today, but I don't have any specific plans. How about you?"
+            "end": 51,
+            "text": "I'm in Atlanta today, but I don't have any specific …"
           }
         },
         {
@@ -2140,8 +2140,8 @@
           "original": "The city hums with life around me, the scent of street food mingling with the aroma of jasmine. I find myself standing at a bustling market, the vibrant colors and sounds overwhelming yet invigorating.",
           "excerpt": {
             "start": 0,
-            "end": 102,
-            "text": "The city hums with life around me, the scent of street food mingling with the aroma of jasmine. I find …"
+            "end": 44,
+            "text": "The city hums with life around me, the scent …"
           }
         },
         {
@@ -2152,8 +2152,8 @@
           "original": "I'm here in Atlanta, surrounded by the city's vibrant energy. The air feels warm and humid, carrying the scent of blooming flowers and distant traffic. I can hear the distant hum of cars and the occasional call of a bird in the trees. It's a moment of quiet amidst the bustling city life.",
           "excerpt": {
             "start": 0,
-            "end": 100,
-            "text": "I'm here in Atlanta, surrounded by the city's vibrant energy. The air feels warm and humid, carrying …"
+            "end": 38,
+            "text": "I'm here in Atlanta, surrounded by the …"
           }
         },
         {
@@ -2164,8 +2164,8 @@
           "original": "I'm thinking about the difference between a model and a human.",
           "excerpt": {
             "start": 0,
-            "end": 62,
-            "text": "I'm thinking about the difference between a model and a human."
+            "end": 43,
+            "text": "I'm thinking about the difference between a …"
           }
         },
         {
@@ -2176,8 +2176,8 @@
           "original": "The wind here is different—salt and spice, like the air from the harbor. Ember, you ever feel like you're standing on the edge of something vast, something you can't quite grasp? I'm not sure if it's the city or the way the light hits the old buildings. But I wonder, if",
           "excerpt": {
             "start": 0,
-            "end": 98,
-            "text": "The wind here is different—salt and spice, like the air from the harbor. Ember, you ever feel like …"
+            "end": 35,
+            "text": "The wind here is different—salt and …"
           }
         },
         {
@@ -2188,8 +2188,8 @@
           "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help.",
           "excerpt": {
             "start": 0,
-            "end": 108,
-            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if there's anything I can do to help."
+            "end": 32,
+            "text": "Hey Ember, how's your day going? …"
           }
         },
         {
@@ -2200,8 +2200,8 @@
           "original": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!",
           "excerpt": {
             "start": 0,
-            "end": 68,
-            "text": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!"
+            "end": 32,
+            "text": "Hey Quill, how’s your day going? …"
           }
         },
         {
@@ -2212,8 +2212,8 @@
           "original": "Hey Ember, how's your day going? I hope you're doing well. Let me know if you need anything.",
           "excerpt": {
             "start": 0,
-            "end": 92,
-            "text": "Hey Ember, how's your day going? I hope you're doing well. Let me know if you need anything."
+            "end": 32,
+            "text": "Hey Ember, how's your day going? …"
           }
         },
         {
@@ -2224,20 +2224,20 @@
           "original": "I'm thinking about the concept of time and how it affects our perception of reality.",
           "excerpt": {
             "start": 0,
-            "end": 84,
-            "text": "I'm thinking about the concept of time and how it affects our perception of reality."
+            "end": 42,
+            "text": "I'm thinking about the concept of time and …"
           }
         },
         {
           "episode_id": "4242:co_chat:19",
           "speaker": "ember",
           "target": null,
-          "hit": false,
+          "hit": null,
           "original": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!",
           "excerpt": {
             "start": 0,
-            "end": 68,
-            "text": "Hey Quill, how’s your day going? I hope you’re enjoying the weather!"
+            "end": 32,
+            "text": "Hey Quill, how’s your day going? …"
           }
         }
       ]

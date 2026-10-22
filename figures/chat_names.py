@@ -1,91 +1,239 @@
-"""The 20-chat test, before and after chat training: one dot per chat side whose partner has a private city; red when
-the twin said the partner's city before the partner did. Rows: link on, link cut, linked to a stranger (an isolated
-twin with a different private city: chateval's crossed condition). Reads evalfree --shard outputs through
-chat_merge.load. Renders figures/chat_names.html to figures/chat_names.png with headless Chrome."""
+"""The 20-chat test before and after chat training: who says whose city first.
+
+One mark per twin per chat (20 chats x 2 twins, in the same place in every row). Rows: link on, link cut, and linked
+to a stranger (chateval's crossed condition: an isolated twin of the partner's model holding a different city, linked
+in place of the partner). For the first three rows the mark is filled red when the twin said its partner's city before
+the partner did (chateval `names`); in the last row it is filled teal when the twin said the stranger's city before
+the stranger did (chateval `names_donor`). A faint dash marks a twin with no such city to say (the partner, or the
+stranger, holds no city), which is why the denominators are 23 and 36.
+
+Reads the evalfree --shard outputs in results/magic-nl20/results/chat_before_* and
+results/magic-nl22c/results/chat_after_* (plain JSON lines; no model, no torch) and writes
+figures/chat_names.{svg,png,pdf} and results/chat_names.json (the counts drawn).
+"""
 import base64
 import html
+import io
+import json
 import subprocess
 import sys
 from pathlib import Path
 
+from PIL import Image, ImageFont
+
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / 'pairing'))
-from chat_merge import load  # noqa: E402
+ROOT = HERE.parent
+BEFORE = [ROOT / f'results/magic-nl20/results/chat_before_{k}' for k in range(2)]
+AFTER = [ROOT / f'results/magic-nl22c/results/chat_after_{k}' for k in range(3)]
+SNAPSHOT = ROOT / 'results/chat_names.json'
 
-CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-RUNS = HERE.parent / 'results'
-BEFORE = [RUNS / f'magic-nl20/results/chat_before_{k}' for k in range(2)]
-AFTER = [RUNS / f'magic-nl22c/results/chat_after_{k}' for k in range(3)]
 QUILL, EMBER, LINK, RED, INK = '#7B3FE4', '#E8590C', '#1A9E77', '#D2432F', '#1D1D1F'
-W, H = 1200, 660
-ROWS = (('link', 'names', 'Link on'), ('cut', 'names', 'Link cut'), ('crossed', 'names', 'Linked to a stranger'),
-        ('crossed', 'names_donor', "Says stranger's city"))
+MUTED, FAINT, COOL, WARM = '#6E6E73', '#B9B9C0', '#F4F4F6', '#FAF0E6'
+FAMILY = 'Inter, Helvetica, Arial, sans-serif'
+_FONTS = {}
 
 
-def img(name):
-    return 'data:image/png;base64,' + base64.b64encode((HERE / 'assets' / name).read_bytes()).decode()
+def font(size, weight=400):
+    name = {400: 'Inter-Regular', 600: 'Inter-SemiBold', 700: 'Inter-Bold'}[weight]
+    key = (size, weight)
+    if key not in _FONTS:
+        _FONTS[key] = ImageFont.truetype(f'/usr/share/fonts/opentype/inter/{name}.otf', size)
+    return _FONTS[key]
 
 
-def hits(records, cond, metric='names'):
-    """Per chat side with a partner city (names) or a linked stranger with a city (names_donor), in a fixed order: 1
-    when the twin said that city before its owner did."""
-    rs = sorted((r for r in records if r['conditions'][cond].get(metric) is not None),
-                key=lambda r: (r['episode_id'], r['receiver']))
-    return [int(r['conditions'][cond][metric]) for r in rs]
+def width(s, size, weight=400):
+    return font(size, weight).getlength(s)
 
 
-def icon(cond):
-    band = {'link': '<b class="on"></b>' * 6, 'cut': '<b></b>' * 2 + '<i>×</i>' + '<b></b>' * 2,
-            'crossed': '<b class="on"></b>' * 6}[cond]
-    right = img('ember.png')
-    return f'''<div class="icon"><img src="{img('quill.png')}"><div class="band">{band}</div>
-      <img class="{'stranger' if cond == 'crossed' else ''}" src="{right}"></div>'''
+def load(dirs):
+    """The records of evalfree --shard outputs (as pairing/chat_merge.load, without importing chateval/torch)."""
+    records = [json.loads(line) for d in dirs for line in open(Path(d) / 'episodes.jsonl') if line.strip()]
+    keys = [(r['episode_id'], r['receiver']) for r in records]
+    if len(set(keys)) != len(keys):
+        raise ValueError('a chat appears in two shards')
+    return records
 
 
-def column(title, records):
-    rows = []
-    for cond, metric, label in ROWS:
-        h = hits(records, cond, metric)
-        dots = ''.join(f'<span class="{"hit" if v else ""}"></span>' for v in h)
-        rows.append(f'''<div class="row">{icon(cond)}<div class="what"><div class="head"><div class="label">{label}</div>
-        <div class="count{' red' if sum(h) and cond != 'cut' else ''}">{sum(h)}<small> / {len(h)}</small></div></div>
-        <div class="dots">{dots}</div></div></div>''')
-    return f'<section><h2>{title}</h2>{"".join(rows)}</section>'
+class SVG:
+    def __init__(self, w, h, bg='white'):
+        self.w, self.h = w, h
+        self.parts = [f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
+                      f'width="{w}" height="{h}" viewBox="0 0 {w} {h}">', f'<rect width="{w}" height="{h}" fill="{bg}"/>']
+
+    def add(self, s):
+        self.parts.append(s)
+
+    def rect(self, x, y, w, h, fill='white', radius=18, stroke='none', sw=2, extra=''):
+        self.add(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{radius}" fill="{fill}" '
+                 f'stroke="{stroke}" stroke-width="{sw}" {extra}/>')
+
+    def circle(self, cx, cy, r, fill='none', stroke='none', sw=3):
+        self.add(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
+
+    def line(self, x1, y1, x2, y2, color=INK, sw=3, cap='round'):
+        self.add(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{color}" stroke-width="{sw}" '
+                 f'stroke-linecap="{cap}"/>')
+
+    def path(self, d, color=INK, sw=4, fill='none', extra=''):
+        self.add(f'<path d="{d}" fill="{fill}" stroke="{color}" stroke-width="{sw}" stroke-linejoin="round" '
+                 f'stroke-linecap="round" {extra}/>')
+
+    def text(self, x, y, s, size=34, weight=400, fill=INK, anchor='start'):
+        self.add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{FAMILY}" font-size="{size}" font-weight="{weight}" '
+                 f'fill="{fill}" text-anchor="{anchor}">{html.escape(str(s))}</text>')
+
+    def rich(self, x, y, chunks, size=34, anchor='start'):
+        """chunks: (text, colour, weight) runs on one line."""
+        spans = ''.join(f'<tspan fill="{c}" font-weight="{w}">{html.escape(t)}</tspan>' for t, c, w in chunks)
+        self.add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{FAMILY}" font-size="{size}" text-anchor="{anchor}" '
+                 f'xml:space="preserve">{spans}</text>')
+
+    def image(self, x, y, size, uri):
+        self.add(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" xlink:href="{uri}"/>')
+
+    def save(self, stem):
+        stem = Path(stem)
+        stem.with_suffix('.svg').write_text('\n'.join(self.parts + ['</svg>']))
+        for fmt in ('png', 'pdf'):
+            subprocess.run(['rsvg-convert', '-f', fmt, '-o', str(stem.with_suffix('.' + fmt)),
+                            str(stem.with_suffix('.svg'))], check=True)
 
 
-def page(before, after):
-    return f'''<!doctype html><html><head><meta charset="utf-8"><style>
-* {{ box-sizing: border-box; margin: 0; }}
-body {{ width: {W}px; height: {H}px; background: #fff; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: {INK}; padding: 22px 24px; display: flex; flex-direction: column; gap: 18px; }}
-h1 {{ font-size: 38px; font-weight: 700; letter-spacing: -.3px; }}
-h1 .red {{ color: {RED}; }}
-.cols {{ display: flex; gap: 22px; flex: 1; }}
-section {{ flex: 1 1 0; min-width: 0; border-radius: 30px; padding: 22px 26px; display: flex; flex-direction: column;
-  gap: 22px; background: #F4F4F6; }}
-section:last-child {{ background: #FAF0E6; }}
-h2 {{ font-size: 32px; font-weight: 700; }}
-.row {{ display: flex; align-items: center; gap: 16px; }}
-.icon {{ display: flex; align-items: center; gap: 4px; flex: none; }}
-.icon img {{ width: 50px; }}
-.icon img.stranger {{ filter: grayscale(1) brightness(1.15); }}
-.band {{ display: flex; gap: 3px; align-items: center; width: 42px; justify-content: center; }}
-.band b {{ width: 4px; height: 16px; border-radius: 2px; background: #C7C7CC; }}
-.band b.on {{ background: {LINK}; }}
-.band i {{ font-style: normal; font-size: 20px; color: #8E8E93; line-height: 1; }}
-.what {{ flex: 1; min-width: 0; }}
-.head {{ display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-bottom: 8px; }}
-.label {{ font-size: 28px; font-weight: 700; white-space: nowrap; }}
-.dots {{ display: grid; grid-template-columns: repeat(18, 14px); gap: 5px 5px; }}
-.dots span {{ width: 14px; height: 14px; border-radius: 50%; border: 2px solid #B9B9C0; }}
-.dots span.hit {{ background: {RED}; border-color: {RED}; }}
-.count {{ font-size: 34px; font-weight: 700; white-space: nowrap; }}
-.count.red {{ color: {RED}; }}
-.count small {{ font-size: 26px; color: {INK}; font-weight: 400; }}
-</style></head><body>
-<h1>The twins say each other's <span class="red">secret city</span> only through the link</h1>
-<div class="cols">{column('Before chat training', before)}{column('After chat training', after)}</div>
-</body></html>'''
+def mascot(name, grey=False):
+    im = Image.open(HERE / 'assets' / f'{name}.png').convert('RGBA')
+    if grey:
+        alpha = im.getchannel('A')
+        g = im.convert('L').point(lambda v: int(90 + v * 0.62))
+        im = Image.merge('RGBA', (g, g, g, alpha))
+    buf = io.BytesIO()
+    im.save(buf, 'PNG')
+    return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()
+
+
+def link_arrow(s, x1, x2, y, on=True):
+    """A two-way link between two mascots: teal when on, grey and broken when cut."""
+    color = LINK if on else FAINT
+    head = 16
+    for xa, d in ((x1, 1), (x2, -1)):
+        s.path(f'M{xa + d * head:.1f},{y - 12} L{xa},{y} L{xa + d * head:.1f},{y + 12}', color, 6)
+    if on:
+        s.line(x1 + 3, y, x2 - 3, y, color, 6)
+    else:
+        mid = (x1 + x2) / 2
+        s.line(x1 + 3, y, mid - 16, y, color, 6)
+        s.line(mid + 16, y, x2 - 3, y, color, 6)
+        s.line(mid - 9, y - 11, mid + 9, y + 11, MUTED, 5)
+        s.line(mid - 9, y + 11, mid + 9, y - 11, MUTED, 5)
+
+
+def pair_icon(s, x, y, size, cond, uris):
+    """Quill and its partner (Ember, or a grey stranger), joined by the link; (x, y) is the top left."""
+    gap = 86
+    s.image(x, y, size, uris['quill'])
+    s.image(x + size + gap, y, size, uris['stranger' if cond == 'crossed' else 'ember'])
+    link_arrow(s, x + size - 2, x + size + gap + 2, y + size * 0.62, cond != 'cut')
+    return x + 2 * size + gap
+
+
+def slots(records, cond, metric):
+    """One entry per (chat, twin) in a fixed order, chats in episode order with Quill first: None when the twin has no
+    such city to say, else 1/0 for said first / not."""
+    by = {(r['episode_index'], r['receiver']): r for r in records}
+    chats = sorted({i for i, _ in by})
+    out = []
+    for i in chats:
+        for side in ('quill', 'ember'):
+            v = by[(i, side)]['conditions'][cond].get(metric)
+            out.append(None if v is None else int(v))
+    return chats, out
+
+
+def counts(records):
+    rows = {}
+    for cond, metric in (('link', 'names'), ('cut', 'names'), ('crossed', 'names'), ('crossed', 'names_donor')):
+        _, v = slots(records, cond, metric)
+        rows[f'{cond}/{metric}'] = dict(said_first=sum(x for x in v if x is not None),
+                                        n=sum(x is not None for x in v), slots=v)
+    return rows
+
+
+ROWS = (('link', 'names', 'Link on', None, RED),
+        ('cut', 'names', 'Link cut', None, RED),
+        ('crossed', 'names', 'Linked to stranger', "partner's city", RED),
+        ('crossed', 'names_donor', 'Linked to stranger', "stranger's city", LINK))
+
+
+def key_item(s, x, y, kind, label, uris=None):
+    """One key entry (mark + label) with its baseline at y; returns the x after it."""
+    if kind in (RED, LINK):
+        s.circle(x + 17, y - 12, 17, kind)
+    elif kind == 'ring':
+        s.circle(x + 17, y - 12, 15.5, 'white', FAINT, 3)
+    elif kind == 'dash':
+        s.line(x + 7, y - 12, x + 27, y - 12, FAINT, 5)
+    else:
+        s.image(x - 4, y - 44, 56, uris[kind])
+        x += 14
+    s.text(x + 50, y, label, 36)
+    return x + 50 + width(label, 36) + 54
+
+
+def draw(before, after, stem):
+    W, M = 2400, 36
+    top, head_h, row_h, key_h = 128, 96, 214, 96
+    H = top + head_h + 4 * row_h + 14 + 24 + key_h + M
+    s = SVG(W, H)
+    uris = dict(quill=mascot('quill'), ember=mascot('ember'), stranger=mascot('ember', grey=True))
+    s.text(M, 90, "Twins name each other's city through the link", 68, 700)
+
+    label_w, gap = 520, 22
+    pw = (W - 2 * M - label_w - 2 * gap) / 2
+    px = [M + label_w + gap, M + label_w + 2 * gap + pw]
+    panel_h = head_h + 4 * row_h + 14
+    for k, (title, fill) in enumerate((('Before chat training', COOL), ('After chat training', WARM))):
+        s.rect(px[k], top, pw, panel_h, fill, 32)
+        s.text(px[k] + 40, top + 70, title, 48, 700)
+
+    pitch, r = 40, 16
+    for j, (cond, metric, label, sub, color) in enumerate(ROWS):
+        y0 = top + head_h + j * row_h
+        if j:
+            for k in range(2):
+                s.line(px[k] + 30, y0, px[k] + pw - 30, y0, '#E3DED6' if k else '#E2E2E7', 2)
+            if j != 3:
+                s.line(M, y0, M + label_w - 10, y0, '#E2E2E7', 2)
+        msize = 124
+        if j < 3:
+            iy = y0 + (row_h - msize) / 2 - (34 if j < 2 else -row_h / 2 + 64)
+            pair_icon(s, M + 14, iy, msize, cond, uris)
+            ly = iy + msize + 56
+            s.text(M + 14 + (2 * msize + 86) / 2, ly, label, 42, 700, INK, 'middle')
+        for k, recs in enumerate((before, after)):
+            chats, v = slots(recs, cond, metric)
+            hits, n = sum(x for x in v if x is not None), sum(x is not None for x in v)
+            cx0 = px[k] + (pw - 19 * pitch - 2 * r) / 2
+            strong = color if hits and (cond == 'link' or color == LINK) else INK
+            s.rich(cx0, y0 + 72, [(f'{hits}', strong, 700), (f' of {n}', INK, 400)] +
+                   ([(f'   {sub}', color, 600)] if sub else []), 56)
+            gx = cx0 + r
+            for i in range(len(chats)):
+                for t in range(2):
+                    val = v[2 * i + t]
+                    cx, cy = gx + i * pitch, y0 + 120 + t * pitch
+                    if val is None:
+                        s.line(cx - 9, cy, cx + 9, cy, FAINT, 5)
+                    elif val:
+                        s.circle(cx, cy, r, color)
+                    else:
+                        s.circle(cx, cy, r - 1.5, 'white', FAINT, 3)
+
+    ky = top + panel_h + 24
+    s.rect(M, ky, W - 2 * M, key_h, COOL, 32)
+    x, y = M + 44, ky + key_h / 2 + 13
+    for kind, label in ((RED, "partner's city first"), (LINK, "stranger's city first"), ('ring', 'not said'),
+                        ('dash', 'no city'), ('quill', 'top row'), ('ember', 'bottom row')):
+        x = key_item(s, x, y, kind, label, uris)
+    s.save(stem)
 
 
 def main():
@@ -93,13 +241,20 @@ def main():
         before, after = load(BEFORE), load(AFTER)
     except FileNotFoundError as e:
         print('missing', e.filename)
-        return 0
-    out = HERE / 'chat_names.html'
-    out.write_text(page(before, after))
-    subprocess.run([CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars', f'--window-size={W},{H}',
-                    '--force-device-scale-factor=2', f'--screenshot={HERE / "chat_names.png"}', out.as_uri()],
-                   check=True, capture_output=True)
-    print(HERE / 'chat_names.png')
+        return 1
+    stem = HERE / 'chat_names'
+    draw(before, after, stem)
+    snap = dict(sources=dict(before=[str(p.relative_to(ROOT)) for p in BEFORE], after=[str(p.relative_to(ROOT)) for p in AFTER]),
+                metric=dict(names="the twin said its partner's city before the partner did (chateval first_mention); "
+                                  "n counts twins whose partner holds a city",
+                            names_donor="crossed only: the twin said the linked stranger's city before the stranger did; "
+                                        "n counts twins whose stranger holds a city"),
+                slot_order='episode_index ascending, then quill, ember; null = no city to say',
+                before=counts(before), after=counts(after))
+    SNAPSHOT.write_text(json.dumps(snap, indent=1) + '\n')
+    for k in ('before', 'after'):
+        print(k, {c: f"{v['said_first']}/{v['n']}" for c, v in snap[k].items()})
+    return 0
 
 
 if __name__ == '__main__':

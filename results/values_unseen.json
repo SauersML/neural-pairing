@@ -2134,5 +2134,35 @@
     }
   },
   "example_replies_source": "/Users/user/mpd-data/runpod/magic-nl20/replies.json",
-  "example_note": "The Games target replies, not generated linked-model replies. Vector strips are schematic, not activation measurements. Word pools are disjoint as values, not a claim about pretraining or incidental text."
+  "example_note": "The Games target replies, not generated linked-model replies. Vector strips are schematic, not activation measurements. Word pools are disjoint as values, not a claim about pretraining or incidental text.",
+  "median_probability_per_value_token": {
+    "relay_word": {
+      "real": 0.999020066379493,
+      "shuffled": 3.204488206067849e-12
+    },
+    "relay_number": {
+      "real": 0.9978919570669169,
+      "shuffled": 5.128052337316739e-05
+    },
+    "relay_phrase": {
+      "real": 0.9996626037988577,
+      "shuffled": 3.5470856514169553e-09
+    },
+    "relay_digits": {
+      "real": 0.9920200382470111,
+      "shuffled": 0.006960792440639851
+    },
+    "merge_sum": {
+      "real": 0.9998061568168433,
+      "shuffled": 0.002712591965051734
+    },
+    "merge_fact": {
+      "real": 0.9903718520034873,
+      "shuffled": 3.3068650074900136e-05
+    },
+    "lookup": {
+      "real": 0.9975875086140364,
+      "shuffled": 6.290244394789196e-12
+    }
+  }
 }

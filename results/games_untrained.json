@@ -8,12 +8,12 @@
     "null_probability": 0.5,
     "threshold": 0.05,
     "adjustment": "none",
-    "mark": "Star: p below 0.05, one-sided; direct label Significant.",
+    "mark": "Star: p below 0.05, one-sided.",
     "ties": "Exact zero differences excluded from the test; all episodes drawn."
   },
   "dot_order": "Original episode ID within each game and receiver; no sorting by outcome.",
   "omitted_game": "co_play: rhyme is mixed with trained play kinds and cannot be isolated in this file.",
-  "example_meaning": "Actual task input/reference excerpts; not free-generated model outputs. Diagrams show Quill as input reader and Ember as receiver; dots test each direction.",
+  "example_meaning": "Actual task inputs and target replies of single evaluation episodes, not generated text. The figure shortens some prompts: the lookup table shows 3 of its 8 codes and drops the closing request, the reading prompts show the content and the reader's own question without the framing sentence, and the options prompt shows the options and its last sentence. Examples show Quill holding the content; the dots test each direction.",
   "examples": {
     "lookup": {
       "episode": 36,
@@ -13952,7 +13952,7 @@
   },
   "precision": "Existing GPU payload evaluation; no Mac model inference used.",
   "findings": [
-    "I notice I’m confused: the first compact translation example, English - Who is this? and Spanish - ¿Quién la llama?, was not a literal translation. Reconstructed payload_ctl episode 3 and the OPUS data contain that pair. The diagram uses actual episode 25 instead; every translation measurement remains in the dot grid."
+    "The first translation example considered (episode 3: English \"Who is this?\" against Spanish \"¿Quién la llama?\") is not a literal translation, so the diagram uses episode 25; every translation episode is in the dot grid."
   ],
   "trained": {
     "wins": 879,
