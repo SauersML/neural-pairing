@@ -4,8 +4,8 @@
 # (step_1320) on nl20's mix plus plain chats (data/chat.json, prep_talk.py --chat: every turn written by the original
 # model while it also saw the partner's private city, which the trained prompt lacks, so only the link supplies it;
 # train.py --chat). Inputs arrive pod to pod (send_job.sh layout): /workspace/jobs/nl22/{step_1320, replies.json,
-# data/} and READY last. Then the tables before (step_1320) and after: payload (now with co_chat), free play with the
-# crossed control, and no-objective chat (evalfree co_chat) when the code has it.
+# data/} and READY last. Then the payload table after (with co_chat; the one before ran on nl20) and no-objective chat
+# (evalfree co_chat) before and after, when the code has it.
 # Usage: bash nl22.sh OUT_DIR CODE_TGZ MINUTES
 set -u
 O=$1 TGZ=$2 MINUTES=$3
@@ -44,16 +44,11 @@ if [ -s $O/code_eval.tgz ]; then
 fi
 note "evaluating $LAST and $INIT"
 ev payload python payload_ctl.py --run $LAST --replies $O/replies.json --out $R/payload_final.json --n 40 --coread
-ev payload_before python payload_ctl.py --run $INIT --replies $O/replies.json --out $R/payload_before.json --n 40 --coread
 if grep -q co_chat evalfree.py; then
     for t in $LAST:after $INIT:before; do
         ev chat_${t##*:} python evalfree.py --run ${t%:*} --replies $O/replies.json --coread_data ../data/coread.json --games co_chat \
             --crossed --n 40 --bs 4 --out_dir $R/chat_${t##*:}
     done
 fi
-ev free_crossed python evalfree.py --run $LAST --replies $O/replies.json --coread_data ../data/coread.json --games co_talk co_play \
-    --crossed --n 20 --bs 4 --out_dir $R/evalfree_crossed
-ev transcripts python transcripts.py --run $LAST --replies $O/replies.json --out $R/transcripts.txt --n 4 --device cuda \
-    --coread_data ../data/coread.json
 [ -s $O/extra_evals.sh ] && { note "extra evaluations: start"; LAST=$LAST INIT=$INIT R=$R O=$O bash $O/extra_evals.sh > $R/extra_evals.log 2>&1; note "extra evaluations: exit $?"; }
 note "all done"

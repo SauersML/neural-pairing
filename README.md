@@ -141,7 +141,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl19 | nl18 with distillation and the shared pen | Stopped at step 500; shared reading as nl18 |
 | nl20 | 900-step warm-up with held-out numbers, then the full mix | Warm-up: 179 of 180 (`results/magic-nl20/results/payload_warm.json`); full mix step 800: 180 of 180, shared reading 407 of 456 (`payload_mix_step800.json`); final, step 1,320: 180 of 180, shared reading 410 of 456 (`payload_final.json`) |
 | nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Final (step 759): every never-trained game passes in both directions at p < 0.01, 207 of 240 receiver episodes (`results/magic-nl21/results/payload_final.json`). Warm-up (step 600): digit strings 10/10 both ways, lookups 9/10 into Qwen and 8/10 into AFM |
-| nl22 | nl20 step 1,320 fine-tuned with plain chats whose turns the original models wrote while seeing the partner's private city (`prep_talk.py --chat`, `train.py --chat`) | Running. nl20's twins, chatting with no objective with the link on, fall into a game script and loop; matching these turns needs the link |
+| nl22 | nl20 step 1,320 fine-tuned with plain chats whose turns the original models wrote while seeing the partner's private city (`prep_talk.py --chat`, `train.py --chat`) | Running. nl20's twins, chatting with no objective (greedy), loop word for word with the link on or cut (step 800: 1 of 3 chats with the link on, 1 of 2 cut) and open by naming their own city; matching these turns needs the link |
 
 ## Earlier designs
 
