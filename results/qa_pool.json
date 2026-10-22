@@ -1,0 +1,96 @@
+{
+  "reasoning": [
+    "Separate gold cross-entropies reward each head for being correct on its own; they contain no reward for preserving complementary errors or for making their average calibrated. Copying the usually stronger partner is a cheap local loss reduction for the weaker model. The stronger model has less average gain from the weaker one. This is an optimization explanation, not a theorem that cross-entropy must produce deference: an ideal conditional predictor can use complementary evidence.",
+    "For gold probabilities a and b, the mean individual loss is -0.5*(log(a)+log(b)); pooled loss is -log((a+b)/2). Their Jensen gap penalizes unequal gold confidence under the individual objective. The pooled objective removes that extra pressure to make both heads separately reproduce the gold answer.",
+    "At 300 steps, routing an intermediate answer representation is plausibly easier than learning question-dependent reliability and preserving rare expertise. The actual partner output letter cannot be read at the receiver letter position: the timeline hides it. The link may carry upstream answer and confidence representations, and the fitted probe below finds a modest confidence-related signal. It does not establish that the receiver uses confidence causally."
+  ],
+  "objective": {
+    "flag": "--qa_pool [lambda], default 0, bare flag means 1; nl28 uses 1",
+    "definition": "For QA rows, (1-lambda) times the existing full-token CE plus lambda times the CE of (softmax(letter_logits_quill)+softmax(letter_logits_ember))/2. Only A-D following the teacher-forced prefix The answer is enter the new CE. Non-QA rows retain the old objective.",
+    "normalization": "Each QA row inherits the sum of its two globally normalized token-weight masses. For an all-QA batch the new loss is 2*mean pooled NLL. Global denominators preserve microbatch/rank additivity.",
+    "why_arithmetic_mean": "Exactly matches existing bench_eval pair/avg and the solo ensemble. Product pooling would require a different evaluation rule and can amplify correlated overconfidence or let one confident wrong model suppress the right answer.",
+    "gradient": "Each head receives its CE gradient scaled by p_head(gold)/(p_quill(gold)+p_ember(gold)); neither head nor bridge is detached. A head that already supports the gold answer bears more responsibility. This can preserve specialization but also starve a weak expert. It does not rule out collapse or prove link use.",
+    "primary_rule": "On test/all, pair/avg must improve over both ensemble and pair/zero/avg with positive differences and exact two-sided McNemar p<0.05 for both. Per-source results are secondary; no post-test choice of head versus pool.",
+    "measurement_changes": "No existing scoring function or benchmark metric changed. Existing token-CE and free-generation quick_qa diagnostics keep their old meanings. With lambda=1, free-form answer-prefix generation is not the optimized readout; bench_eval supplies the same fixed prefix as training."
+  },
+  "probe": {
+    "result_file": "results/qa_pool_probe.json",
+    "checkpoint": "/Users/user/mpd-data/runpod/magic-nl20/cap/qa_pair/step_300",
+    "numerics": "4-bit MLX",
+    "sample": "96 validation questions, random seed 28; no benchmark test questions used",
+    "target": "The fine-tuned partner with its link cut: maximum A-D probability at its letter position (not gold correctness).",
+    "features": "Actual bridge writes into the receiver at its letter-prediction position, concatenated over all 8 exchanges; observer returns original write unchanged.",
+    "fit": "Three held-out folds with entire two-question shuffled batches assigned together. Per-feature centering/scaling fit only on the training fold. Fixed ridge penalty 10 times mean training kernel diagonal; no hyperparameter search.",
+    "heldout_r2": {
+      "quill": {
+        "receiver_cut_probs": 0.008631658271192388,
+        "partner_letter": 0.06378042279101792,
+        "receiver_probs_and_partner_letter": 0.08595427354353058,
+        "link_writes": 0.24256435608618565,
+        "shuffle_writes": 0.018041985787591974
+      },
+      "ember": {
+        "receiver_cut_probs": 0.036000395155222686,
+        "partner_letter": -0.03612276198438935,
+        "receiver_probs_and_partner_letter": 0.0171391135193939,
+        "link_writes": 0.24593677047821438,
+        "shuffle_writes": -0.007703585117941669
+      }
+    },
+    "prediction_changes_link_vs_cut": {
+      "quill": 8,
+      "ember": 18
+    },
+    "head_letter_agreement": {
+      "link": 91,
+      "zero": 72,
+      "shuffle": 48
+    },
+    "limitations": "Small exploratory validation sample and high-dimensional fitted probe, not a significance claim. Receiver queries see the same question, so real-vs-shuffled differences need not isolate confidence itself. 4-bit MLX differs from bf16 GPU numerics. The result supports available confidence-related information, not successful calibrated pooling."
+  },
+  "confusion_audit": {
+    "observation": "I notice I'm confused: Quill changes 8/96 answer letters in the MLX probe, while the brief says it answers identically with the link cut.",
+    "resolution": "The saved bf16 test result has identical Quill accuracy, not identical answers: 228 correctness outcomes change, with 114 link wins and 114 cut wins. Its McNemar p is 1.0 and the difference is exactly zero. The stored per_question arrays encode correctness, so the total number of letter changes could be larger. The Mac cap/results/bench.json is exactly equal to origin/main results/magic-nl23/bench.json. Thus this discrepancy is an aggregate-versus-per-question interpretation, not evidence of an MLX bug.",
+    "source": "results/magic-nl23/bench.json at origin/main 7eb277f",
+    "initial_probe_audit": "The first probe used row-wise folds. It was superseded by a complete rerun grouping shuffled donor batches in folds and adding partner-letter baselines; final results above use that rerun."
+  },
+  "integration": {
+    "base": "7eb277f",
+    "shared_file_conflict": "After git fetch, pairing/train.py and pairing/bench_eval.py had nonempty differences from origin/main. They were left untouched under the user rule. The small train.py integration is supplied in chains/nl28_train.patch; the helper, tests and chain are new files.",
+    "runnable_chain": "chains/nl28.sh applies that patch only inside its extracted source archive when train.py lacks --qa_pool. It uses origin/main bench_eval unchanged, which already has pair/avg and pooled comparisons. The test smoke also exercises applying the patch in a temporary copy.",
+    "lead_followup": "Integrate chains/nl28_train.patch into shared train.py when its owner finishes; do not apply it blindly over the occupied working-tree version."
+  },
+  "validation": {
+    "new_tests": "4 passed: stable pooling math/analytic gradients, real Qwen/AFM LoRA and bridge gradients plus microbatch equivalence and bench_eval equality, gold-letter causality and exact write observer, actual two-step train/optimizer/save smoke. Final rerun from the occupied shared tree also passed all 4 tests in 70.29 seconds; the smoke patched only its temporary copy.",
+    "smoke_losses": [
+      2.8121,
+      3.3989
+    ],
+    "smoke_note": "Two different batches from tiny random models, not an accuracy or convergence result; checkpoint step_2 and both LoRA adapters saved.",
+    "existing_exactness": "test_link.py, test_stream.py, test_pause.py, test_pen.py import-time suites all passed; test_chain.py 1 passed, 2 optional external-checkpoint tests skipped. Largest reported paused joint/generation logit error 9.83e-7; streamed/resident logits and 150 gradient tensors identical; shared-pen max logit error 5.96e-7.",
+    "memory_run_issue": "Initial combined python -m pytest hit the startup hook non-script 2 GiB cap despite MPD_MEM_GIB=8. Rerun via /tmp/nl28_pytest.py honored the 8 GiB reservation and passed.",
+    "shell": "bash -n chains/nl28.sh passed",
+    "ddp": "Existing tests/test_ddp.py passed against the patched main snapshot: three real training steps with cooperative, competitive and distillation episodes; full batch vs two ranks and vs three microbatches. Maximum absolute gradient difference 1.64e-7. This is the legacy-default regression; the new pooled loss has its own actual-model microbatch/gradient test.",
+    "commands": [
+      "MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu OMP_NUM_THREADS=2 /Users/user/mpd-data/venv/bin/python tests/test_qa_pool.py",
+      "Existing exactness suite run against isolated main: test_link.py, test_stream.py, test_chain.py, test_pause.py, test_pen.py",
+      "MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu OMP_NUM_THREADS=2 /Users/user/mpd-data/venv/bin/python tests/test_ddp.py --replies /Users/user/mpd-data/neural-pairing/replies.json (isolated main with integration patch)"
+    ]
+  },
+  "launch": {
+    "chain_command": "bash chains/nl28.sh /workspace/out /workspace/code.tgz 300",
+    "hardware": "One visible RTX A6000 48 GB (Ampere). Chain rejects non-Ampere compute capabilities and less than 45 GiB reported VRAM. No Ada, no pods launched.",
+    "inputs_after_start": [
+      "/workspace/jobs/nl28/step_1320/",
+      "/workspace/jobs/nl28/text_step_300/",
+      "/workspace/jobs/nl28/replies.json",
+      "/workspace/jobs/nl28/data/bench.json",
+      "/workspace/jobs/nl28/READY (last)"
+    ],
+    "recipe": "300 pooled-pair steps then 300 nl27-style solo steps, both from nl20 step_1320. Same seed 0, batch 16/micro 4, focus probability 0.5 with each original-model-exclusive set equally likely, nl27 learning rates and held gates. Reuse nl23 text checkpoint for ancillary text controls. Final bench_eval uses batch 16.",
+    "bf16_probe_command": "NL_DEVICE=cuda python pairing/qa_pool_probe.py --run /workspace/jobs/nl28/qa_pair_step_300 --out /workspace/out/results/qa_pool_probe_bf16.json --n 96 --bs 2 --seed 28",
+    "bf16_probe_input": "For confirmation of the Mac observation, additionally upload the PRE-EXISTING nl23 pair checkpoint from /Users/user/mpd-data/runpod/magic-nl20/cap/qa_pair/step_300 to /workspace/jobs/nl28/qa_pair_step_300; do not substitute the new nl28 checkpoint. Run from the extracted repo root with data/bench.json present.",
+    "status": "Prepared and tested; 300-step GPU experiment not run."
+  },
+  "data_sha256": "ace6f39f3197037503a2d2f51757ecdf5f3a54101abf850d966e9e7c6f1e97f1"
+}

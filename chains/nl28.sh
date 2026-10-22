@@ -1,0 +1,83 @@
+#!/bin/bash
+# nl28: objective-side pooling, otherwise nl27's focus sampling and solo controls.
+# One 48 GB Ampere (RTX A6000); never Ada (L40S / RTX 6000 Ada).
+# Usage: bash chains/nl28.sh OUT_DIR CODE_TGZ [STEPS=300]
+# Mac uploads AFTER start: /workspace/jobs/nl28/{step_1320,text_step_300,
+# replies.json,data/bench.json}; READY last. No pod creation in this script.
+# Primary: bench.json test/all pooled comparisons, pair/avg vs ensemble AND
+# pair/zero/avg, positive differences and exact two-sided p < .05 for both.
+# No selection of the better of per-head and pooled answers after testing.
+set -euo pipefail
+O=$1 TGZ=$2 STEPS=${3:-300}
+mkdir -p "$O"
+O=$(cd "$O" && pwd)
+TGZ=$(realpath "$TGZ")
+export PYTHONUNBUFFERED=1 NL_DEVICE=cuda PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+note() { echo "$(date '+%F %T') $1" >> "$O/chain.log"; }
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader > "$O/gpus.txt"
+python - <<'PY'
+import torch
+assert torch.cuda.device_count() == 1, 'nl28 requires exactly one visible GPU'
+p = torch.cuda.get_device_properties(0)
+assert (p.major, p.minor) in ((8, 0), (8, 6)), f'Ampere only, not {p.name} ({p.major}.{p.minor})'
+assert p.total_memory >= 45 * 2**30, f'48 GB card required: {p.total_memory / 2**30:.1f} GiB'
+print(p)
+PY
+mkdir -p "$O/source"
+tar --no-same-owner -xzf "$TGZ" -C "$O/source"
+cd "$O/source"
+# Shared-tree train.py was occupied while this experiment was prepared. Apply
+# the reviewed, tested integration diff ONLY to this extracted source archive.
+# Once the lead integrates --qa_pool in main this step becomes unnecessary.
+if ! grep -q "add_argument('--qa_pool'" pairing/train.py; then
+    patch --batch --forward -p1 < chains/nl28_train.patch
+fi
+cd pairing
+J=/workspace/jobs/nl28
+note "waiting for $J/READY"
+for _ in $(seq 360); do [ -f "$J/READY" ] && break; sleep 10; done
+[ -f "$J/READY" ] || { note 'no inputs after an hour'; exit 1; }
+mkdir -p ../data
+cp -rf "$J/data/." ../data/
+cp "$J/replies.json" "$O/replies.json"
+R=$O/results
+mkdir -p "$R"
+ev() {
+    local n=$1
+    shift
+    [ -f "$R/$n.DONE" ] && return 0
+    note "$n: starting"
+    if "$@" > "$R/$n.log" 2>&1; then
+        touch "$R/$n.DONE"
+        note "$n: exit 0"
+    else
+        local rc=$?
+        note "$n: exit $rc"
+        return "$rc"
+    fi
+}
+ev split python qa_split.py --run "$J/step_1320" --bs 16 --out "$R/qa_split.json"
+[ -s "$R/qa_split.json" ] || { note 'no question split'; exit 1; }
+Q=(--replies "$O/replies.json" --init "$J/step_1320" --gate_norm --hold 100000
+   --warmup_steps 10 --relay_first 0 --steps "$STEPS" --bs 16 --micro 4 --seed 0
+   --anchor 0 --comp 0 --warm 0 --ramp 0 --lr 1e-4 --lr_bridge 3e-4 --lr_alpha 3e-3
+   --eval_every 100000 --first_eval 100000 --save_every 100000 --ckpt none
+   --qa_focus "$R/qa_split.json" --qa_focus_p 0.5)
+note "two arms, $STEPS steps each; pair trains exactly the arithmetic mean scored as pair/avg"
+ev qa_pair python train.py "${Q[@]}" --out "$O/qa_pair" --qa 1 --qa_pool 1
+ev qa_solo python train.py "${Q[@]}" --out "$O/qa_solo" --solo
+for a in pair solo; do
+    [ -f "$O/qa_$a/step_$STEPS/bridge.pt" ] || { note "missing step_$STEPS for $a"; exit 1; }
+done
+ev bench python bench_eval.py --pair "$O/qa_pair/step_$STEPS" --solo "$O/qa_solo/step_$STEPS" \
+    --text "$J/text_step_300" --bs 16 --out "$R/bench.json"
+python - "$R/bench.json" <<'PY'
+import json, sys
+r = json.load(open(sys.argv[1]))
+for name, result in r['test'].items():
+    assert 'pair/avg' in result['accuracy'] and 'pooled' in result, 'need current main bench_eval with pooled scoring'
+    tests = result['pooled']
+    passed = all(tests[k]['diff'] > 0 and tests[k]['p'] < .05 for k in ('ensemble', 'pair/zero/avg'))
+    print(name, 'pooled_success', passed, json.dumps(tests), flush=True)
+PY
+note 'all done'

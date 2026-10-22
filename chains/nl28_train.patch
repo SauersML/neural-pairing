@@ -1,0 +1,67 @@
+--- a/pairing/train.py
++++ b/pairing/train.py
+@@ -25,6 +25,9 @@
+ Benchmark questions (data/bench.json): with --qa P a fraction P of the episodes are training questions that both
+ models see and answer at once over the bridges. The controls train on the same questions: --solo trains each model
+ alone (no bridge), --text_pair trains the pair to answer one after the other in text with the link closed.
++--qa_pool [0..1] replaces that fraction of QA token CE with CE of the arithmetic mean of their A-D
++probabilities at the letter position, exactly bench_eval pair/avg. At 1 only the pooled letter is supervised
++for QA episodes; other games and the token-CE diagnostics are unchanged. See qa_pool.py.
+ 
+ One-way link (--frozen Y): the target Y is the original model, bit for bit (no LoRA, nothing written into it; link.py),
+ and only its partner reads. Y's losses are not computed (nothing trainable depends on them), no episode in which Y is
+@@ -51,6 +54,7 @@
+ import coldstart
+ import games as G
+ import session as S
++import qa_pool
+ from link import DEVICE, MODELS, SIDES, XBLOCKS, Pair, inner, load, residual_rms
+ 
+ ap = argparse.ArgumentParser()
+@@ -106,6 +110,9 @@
+                 'co-reading episodes of a held-out task (distillation and talk included) count as that game')
+ ap.add_argument('--quick_n', type=int, default=32)
+ ap.add_argument('--qa', type=float, default=0.0, help='probability that an episode is a benchmark question')
++ap.add_argument('--qa_pool', type=float, nargs='?', const=1.0, default=0.0,
++                help='QA loss mixture: 0 keeps token CE; 1 replaces QA token CE with CE of the averaged A-D '
++                     'probabilities (bench_eval pair/avg); intermediate values mix the two')
+ ap.add_argument('--solo', action='store_true', help='benchmark questions only, each model alone (no bridge)')
+ ap.add_argument('--text_pair', action='store_true', help='benchmark questions only, answered in turn in text')
+ ap.add_argument('--qa_focus', default=None, help="qa_split.py's file: the training questions only one original model "
+@@ -131,6 +138,10 @@
+ ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
+ coldstart.add_arguments(ap)
+ args = ap.parse_args()
++if not 0 <= args.qa_pool <= 1:
++    ap.error('--qa_pool must be in [0, 1]')
++if args.qa_pool and (args.qa <= 0 or args.solo or args.text_pair):
++    ap.error('--qa_pool requires --qa > 0 and cannot combine with --solo or --text_pair')
+ if not 0 <= args.chat2 <= 1:
+     ap.error('--chat2 must be in [0, 1]')
+ if args.pause < 0 or not 0 <= args.pause_p <= 1:
+@@ -448,14 +459,23 @@
+             sel, lt = kl[x]
+             ce = ce.index_put((sel,), (lt.exp() * (lt - logits[sel].log_softmax(-1))).sum(-1))
+         w = b[x]['w']
++        train_w = w
++        if args.qa_pool:
++            qa_rows = w.new_tensor([ep['game'] == 'qa' for ep, _ in rows])
++            train_w = w * (1 - args.qa_pool * qa_rows[b[x]['row']])
+         for o in SIDES:
+-            loss_for[o] = loss_for[o] + (ce * w * b[x]['own_mask'][o]).sum() / denom[x]
+-        total = total + (ce * w).sum() / denom[x]
++            loss_for[o] = loss_for[o] + (ce * train_w * b[x]['own_mask'][o]).sum() / denom[x]
++        total = total + (ce * train_w).sum() / denom[x]
+         # per-episode teacher-forced token accuracy and loss on answer tokens (weight 1), summed on the GPU
+         sel = (w >= 1.0).float()
+         hit = (logits.argmax(-1) == b[x]['lab']).float()
+         z = torch.zeros(3, len(rows), device=DEVICE)
+         tally[x] = z.index_add_(1, b[x]['row'], torch.stack([hit * sel, ce.detach() * sel, sel]))
++    if args.qa_pool:
++        pool = args.qa_pool * qa_pool.pooled_loss(pair, toks, rows, built, b, last, denom)
++        total = total + pool
++        for x in SIDES:
++            loss_for[x] = loss_for[x] + pool
+     sent = torch.zeros(2 * len(SIDES), device=DEVICE)
+     for j, x in enumerate(SIDES):
+         g = gates[x] * b[x]['att'][..., None]
