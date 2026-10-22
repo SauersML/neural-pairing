@@ -4,8 +4,9 @@
 # beats it gains from the link, not from the objective.
 # One 48 GB Ampere (RTX A6000); never Ada (L40S / RTX 6000 Ada).
 # Usage: bash chains/nl28.sh OUT_DIR CODE_TGZ [STEPS=300]
-# Mac uploads AFTER start: /workspace/jobs/nl28/{step_1320,text_step_300,
-# replies.json,data/bench.json}; READY last. No pod creation in this script.
+# Inputs arrive AFTER start: /workspace/jobs/nl28/{step_1320,replies.json,data/bench.json}, READY last (the Mac's
+# uplink is ~1 MB/s, so step_1320 may come from another pod; up to three hours). No pod creation in this script.
+# No text arm: it does not involve the linked pair, and nl23 scored the same text pair.
 # Primary: bench.json test/all pooled comparisons, pair/avg vs ensemble AND
 # pair/zero/avg, positive differences and exact two-sided p < .05 for both.
 # No selection of the better of per-head and pooled answers after testing.
@@ -31,8 +32,8 @@ cd "$O/source"
 cd pairing
 J=/workspace/jobs/nl28
 note "waiting for $J/READY"
-for _ in $(seq 360); do [ -f "$J/READY" ] && break; sleep 10; done
-[ -f "$J/READY" ] || { note 'no inputs after an hour'; exit 1; }
+for _ in $(seq 1080); do [ -f "$J/READY" ] && break; sleep 10; done
+[ -f "$J/READY" ] || { note 'no inputs after three hours'; exit 1; }
 mkdir -p ../data
 cp -rf "$J/data/." ../data/
 cp "$J/replies.json" "$O/replies.json"
@@ -66,7 +67,7 @@ for a in pair solo; do
     [ -f "$O/qa_$a/step_$STEPS/bridge.pt" ] || { note "missing step_$STEPS for $a"; exit 1; }
 done
 ev bench python bench_eval.py --pair "$O/qa_pair/step_$STEPS" --solo "$O/qa_solo/step_$STEPS" \
-    --text "$J/text_step_300" --bs 16 --out "$R/bench.json"
+    --bs 16 --out "$R/bench.json"
 python - "$R/bench.json" <<'PY'
 import json, sys
 r = json.load(open(sys.argv[1]))

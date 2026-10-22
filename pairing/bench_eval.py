@@ -14,8 +14,8 @@ before any test question is read); in the text pair that model answers second, a
 written as 'The answer is X.' from the partner's own most likely letter.
 
 The headline compares the pair with the strongest of the fine-tuned single models and their ensemble on the test
-questions. Tests are paired per question: exact McNemar (two-sided binomial test on the discordant questions) and an exact
-interval for the accuracy difference (Clopper-Pearson on the discordant split, conditional on their number). The claim
+questions. Tests are paired per question: exact McNemar (two-sided binomial test on the discordant questions) and a
+conservative 95% interval for the accuracy difference (two 97.5% exact intervals for the two discordant shares). The claim
 "pair > best single" needs the pair to beat every comparator, each at p < 0.05 (an intersection-union test, so no
 correction for the number of comparisons).
 
@@ -23,7 +23,9 @@ Each rank scores its questions in batches of similar length, and the 'shuffle' c
 question of the same batch. Under torchrun the questions are dealt to the ranks in whole batches of question order, so
 the batches differ from a single process's.
 
-Usage: python bench_eval.py --pair RUN/step_N --solo RUN/step_N --text RUN/step_N --out OUT/bench.json
+Usage: python bench_eval.py --pair RUN/step_N --solo RUN/step_N [--text RUN/step_N] --out OUT/bench.json
+Without --text the text arm is skipped: it does not involve the linked pair, so an earlier run's scores of the same text
+pair stand (nl28 reuses nl23's).
 """
 import argparse
 import contextlib
@@ -107,7 +109,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--pair', required=True)
     ap.add_argument('--solo', required=True)
-    ap.add_argument('--text', required=True)
+    ap.add_argument('--text', default=None, help='the text pair (train.py --text_pair); omitted: no text arm')
     ap.add_argument('--out', required=True)
     ap.add_argument('--bs', type=int, default=64)
     ap.add_argument('--limit', type=int, default=0, help='first N questions of each split (smoke tests)')
@@ -125,7 +127,8 @@ if __name__ == '__main__':
         else:
             m = PeftModel.from_pretrained(m, os.path.join(args.pair, x), adapter_name='pair')
             m.load_adapter(os.path.join(args.solo, x), adapter_name='solo')
-        m.load_adapter(os.path.join(args.text, x), adapter_name='text')
+        if args.text:
+            m.load_adapter(os.path.join(args.text, x), adapter_name='text')
         models[x] = m.eval()
     pair = Pair.from_checkpoint(models, toks, ck, plain=False).eval()
 
@@ -199,8 +202,8 @@ if __name__ == '__main__':
                 C[f'pair{"/" + mode if mode else ""}/{x}'] = correct(P[x], items)
             if mode in (None, 'zero'):
                 C[f'pair{"/" + mode if mode else ""}/avg'] = correct((P['quill'] + P['ember']) / 2, items)
-    with adapters('text'):
-        for order in ((W, D), (D, W)):
+    with adapters('text') if args.text else contextlib.nullcontext():
+        for order in ((W, D), (D, W)) if args.text else ():
             P = letter_probs(pair, items, 'text', order=order, bs=args.bs)
             first = [G.LETTERS[int(p.argmax())] for p in P[order[0]]]
             C[f'text/{order[0]}-first/{order[0]}'] = correct(P[order[0]], items)
@@ -213,10 +216,13 @@ if __name__ == '__main__':
         raise SystemExit
     srcs = {'all': None, 'arc_challenge': 'arc_challenge', 'mmlu': 'mmlu'}
     comparators = [f'base/{x}' for x in SIDES] + [f'solo/{x}' for x in SIDES] + \
-        [f'pair/{m}/{D}' for m in ('zero', 'shuffle', 'random')] + [f'text/{W}-first/{D}', 'ensemble']
+        [f'pair/{m}/{D}' for m in ('zero', 'shuffle', 'random')] + ([f'text/{W}-first/{D}'] if args.text else []) + \
+        ['ensemble']
     required = comparators[:-1]
     for name, src in srcs.items():
         sel = [i for i, it in enumerate(items) if src is None or it['src'] == src]
+        if not sel:                              # a --limit smoke run may hold no question of a source
+            continue
         acc = {k: round(mean([v[i] for i in sel]), 4) for k, v in C.items()}
         tests = {k: mcnemar([C[f'pair/{D}'][i] for i in sel], [C[k][i] for i in sel]) for k in comparators}
         claim = all(tests[k]['diff'] > 0 and tests[k]['p'] < 0.05 for k in required)
