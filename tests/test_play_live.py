@@ -37,6 +37,9 @@ def pair():
         for b in p.bridge.values():
             b.alpha.fill_(.4)
             b.age.normal_(0, .2)
+            for gate in b.gate:
+                gate.weight.normal_(0, .05)
+                gate.bias.normal_(1.5, .2)
     return p
 
 
@@ -130,6 +133,12 @@ def test_prediction_position_attention_matches_teacher_forcing(pair, ep):
                 p = torch.stack([pair.record[x, block][0]['attn'][0, :, pos].mean(0) for block in pair.xblocks]).mean(0)
                 expected = L.mean([float(ratios[x, block][pos]) for block in pair.xblocks])
                 assert abs(token['effect'] - expected) < 2e-6
+                weighted = []
+                for block in pair.xblocks:
+                    attn = pair.record[x, block][0]['attn'][0, :, pos].mean(0)[1:]
+                    gate = pair.record[y, block][0]['gate'][0]
+                    weighted.append(float((attn * gate).sum() / attn.sum()))
+                assert abs(token['sender_gate'] - L.mean(weighted)) < 2e-6
                 assert abs(token['null_mass'] - float(p[0])) < 2e-6
                 for r in token['top']:
                     assert r['id'] == built[y]['ids'][r['position']]
