@@ -1118,18 +1118,22 @@ def transfer(src=None):
         return wins, n, (binom.sf(wins - 1, n, 0.5) if n else 1.0)
     both = [g for g in games if all(d[(g, x)] and test(d[(g, x)])[2] < 0.05 for x, _ in RECEIVERS)]
     vals = [v for vs in d.values() for v in vs]
-    ticks = span_ticks(min(vals + [0.0]), max(vals + [0.0]), 5)
+    lo, hi = min(vals + [0.0]), max(vals + [0.0])
+    ticks = span_ticks(lo, hi, 5)
+    ends = (min(0.0, lo - 0.03 * (hi - lo)), ticks[-1])
+    ticks = [v for v in ticks if v >= ends[0]]
     RH = 110
     fig, ax = canvas(420 + RH * len(games), 2 * W)
     lab_end = 60 + max(text_width(ax, LABEL[g], 32) for g in games) + 40
     NW, G1 = 270, 50
     SW = (2 * W - 30 - lab_end - 2 * NW - G1) / 2
     base = lambda c: lab_end + c * (SW + NW + G1)
-    sxs = [(lambda v, x0=base(c): x0 + SW * (v - ticks[0]) / (ticks[-1] - ticks[0])) for c in range(2)]
+    sxs = [(lambda v, x0=base(c): x0 + SW * (v - ends[0]) / (ends[1] - ends[0])) for c in range(2)]
     top = 320 + RH * len(games)
     names = [SHORT_GAME.get(g, LABEL[g].lower()) for g in both]
     claim = (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0]) if names else "no value"
-    title = f"In held-out episodes, {claim} pass between the models through hidden states"
+    title = ("In every value game, held-out values pass between the models in both directions" if len(both) == len(games)
+             else f"In held-out episodes, {claim} pass between the models through hidden states")
     write(ax, 40, top, title, min(36, 36 * (2 * W - 80) / text_width(ax, title, 36, True)), True, ha="left")
     for c, (x, colour) in enumerate(RECEIVERS):
         write(ax, base(c) + SW / 2, top - 90, way(x), 34, True, colour)
@@ -1139,7 +1143,7 @@ def transfer(src=None):
         write(ax, 60, y, LABEL[g], 32, ha="left")
         for c, (x, colour) in enumerate(RECEIVERS):
             vs, sx = d[(g, x)], sxs[c]
-            if ticks[0] <= 0 <= ticks[-1]:
+            if ends[0] <= 0 <= ends[1]:
                 ax.plot([sx(0)] * 2, [y + 40, y - 40], color=INK, lw=3, zorder=2)
             if not vs:
                 continue
@@ -1156,7 +1160,7 @@ def transfer(src=None):
     for c in range(2):
         for v in ticks:
             write(ax, sxs[c](v), y + 46, minus(f"{v:g}"), 26, color=MUTED)
-    write(ax, (sxs[0](ticks[0]) + sxs[1](ticks[-1])) / 2, y - 14, "cross-entropy on the value with another "
+    write(ax, (sxs[0](ends[0]) + sxs[1](ends[1])) / 2, y - 14, "cross-entropy on the value with another "
           "episode's partner minus with the real partner (bits per token)", 28, color=MUTED)
     crop(fig, ax, y - 60, top + 40)
     save(fig, "transfer")
