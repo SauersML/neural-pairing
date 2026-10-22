@@ -44,6 +44,10 @@ from link import DEVICE, SIDES, partner
 BAD = re.compile(r'(^|\n|\*\*)\s*\w*(Quill|Ember)\w*\s*(\*\*)?\s*:|^\s*\*[^*\n]+\*\s*$|<think>', re.M | re.I)
 
 
+# A turn that acts the link out in text: the dialogue prompt says the twins send vectors from their activations, and
+# the original models, which cannot, write "[Ember's activation vector]", "*sends a vector*" or numbers in brackets.
+# Training on such a turn teaches a token channel.
+META = re.compile(r'activation|vector|neural|\blink(ed|s)?\b|telepath|hidden state|[\[\]]', re.I)
 STAGE = re.compile(r'^\s*\*[^*\n]+\*\s*$', re.M)
 ACTION = re.compile(r'[ \t]*(?<!\*)\*(?!\*)[^*\n]{1,80}(?<!\*)\*(?!\*)')
 
@@ -246,6 +250,7 @@ def turn_nats(tok, m, items):
 def prune(k):
     global allc
     keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])
+            and not META.search(c['turns'][-1][1])
             and (k == 0 or not echoes(c['turns'][-1][1], c['turns'][-2][1]))
             and (k > 1 or 'secrets' not in c or play_spans(c['secrets'][partner(c['turns'][k][0])], c['turns'][k][1]))
             and (k > 0 or 'secrets' not in c or not opener_gives_away(c))]
