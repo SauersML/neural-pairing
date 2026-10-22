@@ -1,6 +1,5 @@
 """Pooling math, actual Qwen/AFM gradients, causal letters, and train.py smoke.
 
-The CLI smoke applies chains/nl28_train.patch to a temporary copy if needed.
 MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu python tests/test_qa_pool.py
 """
 import copy
@@ -128,26 +127,18 @@ def test_gold_is_future_and_observer_is_exact(pair):
         Q.letter_layout(pair.toks, rows, unsafe)
 
 
-def test_train_cli_smoke(tmp_path):
+@pytest.mark.parametrize('arm', [['--qa', '1'], ['--solo']])
+def test_train_cli_smoke(tmp_path, arm):
     # Actual trainer/optimizer/checkpoint, initialized randomly on actual tiny
     # architectures; real replies and benchmark data, no replacement forward.
-    source = ROOT
-    if "add_argument('--qa_pool'" not in (ROOT / 'pairing/train.py').read_text():
-        source = tmp_path / 'source'
-        shutil.copytree(ROOT / 'pairing', source / 'pairing', ignore=shutil.ignore_patterns('__pycache__'))
-        (source / 'data').mkdir()
-        for name in ('bench.json', 'pools.json'):
-            shutil.copy(ROOT / 'data' / name, source / 'data' / name)
-        patch = subprocess.run(['patch', '--batch', '--forward', '-p1'], cwd=source,
-                               input=(ROOT / 'chains/nl28_train.patch').read_text(), capture_output=True, text=True)
-        assert patch.returncode == 0, patch.stdout + patch.stderr
+    # --solo is the control: the same pooled objective, the link cut.
     replies = os.environ.get('COLDSTART_REPLIES', '/Users/user/mpd-data/neural-pairing/replies.json')
-    args = [sys.executable, str(source / 'pairing/train.py'), '--replies', replies, '--out', str(tmp_path / 'run'),
-            '--steps', '2', '--bs', '2', '--micro', '2', '--qa', '1', '--qa_pool', '1', '--anchor', '0',
+    args = [sys.executable, str(ROOT / 'pairing/train.py'), '--replies', replies, '--out', str(tmp_path / 'run'),
+            '--steps', '2', '--bs', '2', '--micro', '2', *arm, '--qa_pool', '1', '--anchor', '0',
             '--comp', '0', '--rank', '4', '--heads', '2', '--head_dim', '16', '--xblocks', '1,2,4',
             '--ckpt', 'none', '--first_eval', '999', '--eval_every', '999', '--save_every', '999',
             '--quick_n', '1', '--read_start', '0.1', '--hold', '0']
-    proc = subprocess.run(args, cwd=source, env=dict(os.environ, MPD_MEM_GIB='8', OMP_NUM_THREADS='2'),
+    proc = subprocess.run(args, cwd=ROOT, env=dict(os.environ, MPD_MEM_GIB='8', OMP_NUM_THREADS='2'),
                           capture_output=True, text=True, timeout=240)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     ck = torch.load(tmp_path / 'run/step_2/bridge.pt', weights_only=False, map_location='cpu')
@@ -155,7 +146,7 @@ def test_train_cli_smoke(tmp_path):
     assert all((tmp_path / f'run/step_2/{x}/adapter_model.safetensors').exists() for x in link.SIDES)
     lines = [json.loads(s) for s in proc.stdout.splitlines() if s.startswith('{')]
     assert len(lines) == 2 and all(torch.isfinite(torch.tensor(s['loss'])) for s in lines)
-    print(json.dumps(dict(smoke_steps=2, losses=[s['loss'] for s in lines], checkpoint='step_2')))
+    print(json.dumps(dict(arm=arm, smoke_steps=2, losses=[s['loss'] for s in lines], checkpoint='step_2')))
 
 
 if __name__ == '__main__':

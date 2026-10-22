@@ -1,4 +1,5 @@
-"""QA objective for the arithmetic mean scored by bench_eval's pair/avg.
+"""QA objective for the arithmetic mean scored by bench_eval's pair/avg (linked pair) and ensemble (the models alone,
+train.py --solo: the same objective without the link).
 
 Only A-D at the position following 'The answer is' enter the pooled loss.
 The prefix is teacher forced, exactly as in bench_eval. Neither gold letter may
@@ -14,10 +15,12 @@ import games as G
 import session as S
 from link import SIDES, partner
 
+GAMES = ('qa', 'qa_solo')  # the episodes whose letters are pooled: linked pair, and each model alone
+
 
 def letter_layout(toks, rows, built):
     """QA row indices, prediction positions and one-token A-D IDs; fail on drift."""
-    selected = [i for i, (ep, _) in enumerate(rows) if ep['game'] == 'qa']
+    selected = [i for i, (ep, _) in enumerate(rows) if ep['game'] in GAMES]
     at, lid = {}, {}
     for x in SIDES:
         letters = [S.ids(toks[x], ' ' + c) for c in G.LETTERS]

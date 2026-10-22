@@ -1,5 +1,7 @@
 #!/bin/bash
-# nl28: objective-side pooling, otherwise nl27's focus sampling and solo controls.
+# nl28: objective-side pooling (train.py --qa_pool 1: CE of the two models' averaged A-D probabilities), otherwise nl27's
+# focus sampling. The control trains the same objective with the link cut (--solo --qa_pool 1), so a pooled pair that
+# beats it gains from the link, not from the objective.
 # One 48 GB Ampere (RTX A6000); never Ada (L40S / RTX 6000 Ada).
 # Usage: bash chains/nl28.sh OUT_DIR CODE_TGZ [STEPS=300]
 # Mac uploads AFTER start: /workspace/jobs/nl28/{step_1320,text_step_300,
@@ -26,12 +28,6 @@ PY
 mkdir -p "$O/source"
 tar --no-same-owner -xzf "$TGZ" -C "$O/source"
 cd "$O/source"
-# Shared-tree train.py was occupied while this experiment was prepared. Apply
-# the reviewed, tested integration diff ONLY to this extracted source archive.
-# Once the lead integrates --qa_pool in main this step becomes unnecessary.
-if ! grep -q "add_argument('--qa_pool'" pairing/train.py; then
-    patch --batch --forward -p1 < chains/nl28_train.patch
-fi
 cd pairing
 J=/workspace/jobs/nl28
 note "waiting for $J/READY"
@@ -63,9 +59,9 @@ Q=(--replies "$O/replies.json" --init "$J/step_1320" --gate_norm --hold 100000
    --anchor 0 --comp 0 --warm 0 --ramp 0 --lr 1e-4 --lr_bridge 3e-4 --lr_alpha 3e-3
    --eval_every 100000 --first_eval 100000 --save_every 100000 --ckpt none
    --qa_focus "$R/qa_split.json" --qa_focus_p 0.5)
-note "two arms, $STEPS steps each; pair trains exactly the arithmetic mean scored as pair/avg"
+note "two arms, $STEPS steps each, both trained on the averaged letters: linked (pair/avg) and alone (ensemble)"
 ev qa_pair python train.py "${Q[@]}" --out "$O/qa_pair" --qa 1 --qa_pool 1
-ev qa_solo python train.py "${Q[@]}" --out "$O/qa_solo" --solo
+ev qa_solo python train.py "${Q[@]}" --out "$O/qa_solo" --solo --qa_pool 1
 for a in pair solo; do
     [ -f "$O/qa_$a/step_$STEPS/bridge.pt" ] || { note "missing step_$STEPS for $a"; exit 1; }
 done
