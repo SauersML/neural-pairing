@@ -1,8 +1,8 @@
 #!/bin/bash
-# magic-nl23, four 48+ GB cards: does the link add capability? From nl20's final checkpoint (step_1320) three arms
-# train for the same STEPS on ARC-Challenge + MMLU training questions only, one card each, side by side: the pair with
+# magic-nl23, one to four 48+ GB cards: does the link add capability? From nl20's final checkpoint (step_1320) three arms
+# train for the same STEPS on ARC-Challenge + MMLU training questions only, one card each when there are three: the pair with
 # the link open (--qa 1), each model alone (--solo), and the pair answering in turn in text with the link closed
-# (--text_pair). bench_eval.py then scores every arm and control on the 3,165 test questions over the four cards.
+# (--text_pair). bench_eval.py then scores every arm and control on the 3,165 test questions over every card.
 # Inputs arrive pod to pod (send_job.sh layout): /workspace/jobs/nl23/{step_1320, replies.json, data/} and READY last.
 # Usage: bash nl23.sh OUT_DIR CODE_TGZ STEPS
 set -u
@@ -22,13 +22,17 @@ ev() { [ -f $R/$1.DONE ] && return; n=$1; shift; "$@" > $R/$n.log 2>&1 && touch 
 Q="--replies $O/replies.json --init $J/step_1320 --gate_norm --hold 100000 --warmup_steps 10 --relay_first 0 --steps $STEPS
    --bs 16 --micro 4 --anchor 0 --comp 0 --warm 0 --ramp 0 --lr 1e-4 --lr_bridge 3e-4 --lr_alpha 3e-3
    --eval_every 100000 --first_eval 100000 --save_every 100000 --ckpt none"
-note "three arms, $STEPS steps each, one card each"
-ev qa_pair env CUDA_VISIBLE_DEVICES=0 python train.py $Q --out $O/qa_pair --qa 1 &
-ev qa_solo env CUDA_VISIBLE_DEVICES=1 python train.py $Q --out $O/qa_solo --solo &
-ev qa_text env CUDA_VISIBLE_DEVICES=2 python train.py $Q --out $O/qa_text --text_pair &
-wait
-for a in pair solo text; do [ -d $O/qa_$a/step_$STEPS ] || { note "no step_$STEPS for $a"; exit 1; }; done
 N=$(nvidia-smi -L | wc -l)
+arm() { ev qa_$1 env CUDA_VISIBLE_DEVICES=$2 python train.py $Q --out $O/qa_$1 $3; }
+if [ $N -ge 3 ]; then
+    note "three arms, $STEPS steps each, one card each"
+    arm pair 0 "--qa 1" & arm solo 1 --solo & arm text 2 --text_pair &
+    wait
+else
+    note "three arms, $STEPS steps each, one after another"
+    arm pair 0 "--qa 1"; arm solo 0 --solo; arm text 0 --text_pair
+fi
+for a in pair solo text; do [ -d $O/qa_$a/step_$STEPS ] || { note "no step_$STEPS for $a"; exit 1; }; done
 ev bench torchrun --standalone --nproc_per_node $N bench_eval.py --pair $O/qa_pair/step_$STEPS --solo $O/qa_solo/step_$STEPS \
     --text $O/qa_text/step_$STEPS --out $R/bench.json
 note "all done"
