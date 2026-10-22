@@ -42,8 +42,8 @@ class Canvas:
         attrs += ' marker-end="url(#arrow)"' if arrow else ''
         self.parts.append(f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" stroke="{color}" stroke-width="{sw}"{attrs}/>')
 
-    def dot(self, x, y, r, color, stroke='white', sw=2):
-        self.parts.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="{r}" fill="{color}" stroke="{stroke}" stroke-width="{sw}"/>')
+    def dot(self, x, y, r, color, stroke='white', sw=2, opacity=1):
+        self.parts.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="{r}" fill="{color}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{sw}"/>')
 
     def robot(self, side, x, y, size=110):
         uri = base64.b64encode((ROOT / f'figures/assets/{side}.png').read_bytes()).decode()
@@ -66,28 +66,59 @@ def avg(values):
     return sum(values) / len(values)
 
 
-def header(c, data, title):
+def header(c, data, title, side='quill', readout=False):
     c.text(65, 80, title, size=54, weight=700)
     # Separate fit and test phrasing cards make the readout's split visible.
-    r = data['per_receiver']['quill']
+    r = data['per_receiver'][side]
     target = r['cities'][0]
-    for x, label, wording, fill in [(65, 'Probe fitting', 'spending today in', GREY),
-                                    (1220, 'New phrasing', 'day is unfolding in', CREAM)]:
-        c.rect(x, 120, 1015, 140, fill)
+    layer = next(v for v in r['layers'] if v['block'] == data['map_block'])
+    for x, label, wording, fill, wi in [(65, 'Probe fitting' if readout else 'Projection fitting', 'spending today in', GREY, 0),
+                                        (1220, 'New phrasing', 'day is unfolding in', CREAM, 3)]:
+        c.rect(x, 120, 1015, 220, fill)
         c.text(x + 28, 167, label, weight=700)
         c.text(x + 28, 225, wording)
         c.rect(x + 600, 183, 370, 60, 'white', radius=12)
         c.text(x + 785, 226, target, color=COLORS[0], anchor='middle')
+        c.text(x+28, 307, 'Link write', color=GREEN)
+        vals = layer['write_preview'][str(wi)]
+        scale = max(abs(v) for row in layer['write_preview'].values() for v in row)
+        for j, v in enumerate(vals):
+            height = max(.6, abs(v)/scale*27)
+            c.rect(x+270+j*(13 if readout else 20), 294-height if v >= 0 else 294,
+                   9 if readout else 13, height, GREEN, 2)
+        if readout:
+            c.line(x+595, 294, x+632, 294, GREEN, 2, arrow=True)
+            c.rect(x+655, 263, 140, 62, 'white', 10, GREEN)
+            if wi < 3:
+                c.line(x+725, 243, x+725, 259, GREEN, 1.5, arrow=True)
+            c.text(x+725, 307, 'Probe', color=GREEN, anchor='middle')
+            c.line(x+810, 294, x+845, 294, GREEN, 2, arrow=True)
+            output = target
+            if wi >= 3:
+                at = next(j for j, i in enumerate(r['test_indices'])
+                          if r['samples'][i]['wording'] == wi and r['samples'][i]['city'] == target)
+                output = r['cities'][layer['prediction'][at]]
+            c.rect(x+865, 264, 140, 60, 'white', 12)
+            c.text(x+935, 307, output, color=COLORS[r['cities'].index(output)], anchor='middle')
+        else:
+            c.line(x+765, 294, x+802, 294, GREEN, 2, arrow=True)
+            c.robot(side, x+815, 257, 68)
+            first = next(s['pieces'][0] for s in r['samples'] if s['wording'] == wi and s['city'] == target)
+            c.rect(x+900, 264, 85, 60, 'white', 12)
+            c.text(x+942, 307, first.strip(), color=PURPLE if side == 'quill' else ORANGE, anchor='middle')
 
 
-def label_positions(centres, names, bounds):
+def label_positions(centres, names, bounds, dots=()):
     """Deterministic collision-free labels near measured centres; never move dots."""
     left, top, right, bottom = bounds
     boxes, labels = [], []
-    order = sorted(range(len(names)), key=lambda i: (centres[i][1], centres[i][0]))
+    from PIL import ImageFont
+    font = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf', FONT)
+    point_boxes = [(x-12, y-12, x+12, y+12) for x, y in list(dots)+list(centres)]
+    order = sorted(range(len(names)), key=lambda i: (min(math.dist(centres[i], z) for j, z in enumerate(centres) if j != i), -font.getlength(names[i])))
     for i in order:
         cx, cy = centres[i]
-        width = max(100, len(names[i]) * FONT * .56)
+        width = font.getlength(names[i])
         candidates = []
         for radius in range(22, 650, 20):
             for angle in range(0, 360, 30):
@@ -96,7 +127,7 @@ def label_positions(centres, names, bounds):
                 y = min(bottom - 8, max(top + FONT, cy + radius * math.sin(a)))
                 box = (x-width/2-7, y-FONT-6, x+width/2+7, y+8)
                 overlap = sum(max(0, min(box[2], b[2])-max(box[0], b[0])) *
-                              max(0, min(box[3], b[3])-max(box[1], b[1])) for b in boxes)
+                              max(0, min(box[3], b[3])-max(box[1], b[1])) for b in boxes+point_boxes)
                 distance = (x-cx)**2 + (y-FONT/3-cy)**2
                 candidates.append((overlap*100000 + distance, x, y, box))
             if candidates and min(v[0] for v in candidates) < radius ** 2 * 2:
@@ -107,50 +138,174 @@ def label_positions(centres, names, bounds):
     return labels
 
 
+def intersects(a, b, box):
+    """Segment/rectangle intersection for keeping leaders out of city labels."""
+    low, high = 0., 1.
+    for d in (0, 1):
+        delta = b[d]-a[d]
+        if abs(delta) < 1e-10:
+            if not box[d] <= a[d] <= box[d+2]:
+                return False
+        else:
+            u, v = sorted(((box[d]-a[d])/delta, (box[d+2]-a[d])/delta))
+            low, high = max(low, u), min(high, v)
+            if low > high:
+                return False
+    return True
+
+
+def leader(c, start, box, obstacles, color):
+    ends = [((box[0]+box[2])/2, box[1]), ((box[0]+box[2])/2, box[3]),
+            (box[0], (box[1]+box[3])/2), (box[2], (box[1]+box[3])/2)]
+    paths = []
+    for end in ends:
+        paths += [[start, end], [start, (start[0], end[1]), end], [start, (end[0], start[1]), end]]
+    def cost(path):
+        crosses = sum(intersects(a, b, r) for a, b in zip(path, path[1:]) for r in obstacles)
+        length = sum(math.dist(a, b) for a, b in zip(path, path[1:]))
+        return crosses*100000 + length
+    path = min(paths, key=cost)
+    if cost(path) >= 100000:
+        # Visibility graph routes every centroid to its label without crossing
+        # another city label. Only labels move; measured coordinates do not.
+        import heapq
+        nodes = [start] + ends
+        for r in obstacles:
+            nodes += [(r[0]-3, r[1]-3), (r[2]+3, r[1]-3),
+                      (r[0]-3, r[3]+3), (r[2]+3, r[3]+3)]
+        todo, best = [(0., 0, [0])], {0: 0.}
+        while todo:
+            dist, n, route = heapq.heappop(todo)
+            if n in range(1, 5):
+                path = [nodes[v] for v in route]
+                break
+            if dist != best[n]:
+                continue
+            for j, pt in enumerate(nodes):
+                dd = dist+math.dist(nodes[n], pt)
+                if j == n or dd >= best.get(j, float('inf')):
+                    continue
+                if any(intersects(nodes[n], pt, r) for r in obstacles):
+                    continue
+                best[j] = dd
+                heapq.heappush(todo, (dd, j, route+[j]))
+        else:
+            raise ValueError('City leader cannot avoid text')
+    for a, b in zip(path, path[1:]):
+        c.line(*a, *b, color, 2)
+
+
 def maps(data, side, svg_only=False):
+    if side == 'ember':
+        return ember_maps(data, svg_only)
     r = data['per_receiver'][side]
     layer = next(v for v in r['layers'] if v['block'] == data['map_block'])
     city = r['cities']
     labels = layer['expected']
-    c = Canvas(1550)
-    header(c, data, f'Partner cities in the link to {side.title()}')
+    c = Canvas(1630)
+    header(c, data, f'Partner cities in the link to {side.title()}', side)
     c.robot(side, 1920, 6, 92)
     c.text(2030, 68, '4-bit', color=PURPLE if side == 'quill' else ORANGE)
-    for j, (method, title, fill) in enumerate([('pca', 'Largest variation', GREY),
+    for j, (method, title, fill) in enumerate([('pca', 'Principal components', GREY),
                                               ('lda', 'City-guided projection', CREAM)]):
-        x0 = 45 + j*1150
-        c.rect(x0, 290, 1110, 1220, fill, radius=32)
-        c.text(x0+555, 357, title, size=46, weight=700, anchor='middle')
-        c.text(x0+555, 417, f'Layer {layer["block"]}', anchor='middle')
+        x0 = 45 + j*1130
+        c.rect(x0, 370, 1080, 1220, fill, radius=32)
+        c.text(x0+540, 437, title, size=46, weight=700, anchor='middle')
+        c.text(x0+540, 497, f'Layer {layer["block"]}', anchor='middle')
         points = layer[method]
         lo = [min(p[d] for p in points) for d in (0, 1)]
         hi = [max(p[d] for p in points) for d in (0, 1)]
         scale = min(850/max(hi[0]-lo[0], 1e-15), 800/max(hi[1]-lo[1], 1e-15))
         mid = [(a+b)/2 for a, b in zip(lo, hi)]
-        xy = [(x0+555+(p[0]-mid[0])*scale, 935-(p[1]-mid[1])*scale) for p in points]
+        xy = [(x0+540+(p[0]-mid[0])*scale, 1015-(p[1]-mid[1])*scale) for p in points]
         centers = [(avg([p[0] for p, lab in zip(xy, labels) if lab == i]),
                     avg([p[1] for p, lab in zip(xy, labels) if lab == i])) for i in range(len(city))]
-        names = label_positions(centers, city, (x0+35, 450, x0+1075, 1405))
+        names = label_positions(centers, city, (x0+35, 530, x0+1045, 1485), xy)
         for i, x, y, box in names:
-            cx, cy = centers[i]
-            # Short leader ends at the text's nearest edge, never through text.
-            ex = min(box[2], max(box[0], cx))
-            ey = min(box[3], max(box[1], cy))
-            c.line(cx, cy, ex, ey, COLORS[i], 2)
+            leader(c, centers[i], box, [b for ii, _, _, b in names if ii != i], COLORS[i])
         for (x, y), lab in zip(xy, labels):
-            c.dot(x, y, 9, COLORS[lab])
+            c.dot(x, y, 10, COLORS[lab], sw=.8, opacity=.72)
+        for i, (x, y) in enumerate(centers):
+            c.parts.append(f'<path d="M{x-7:.2f} {y:.2f} L{x:.2f} {y-7:.2f} L{x+7:.2f} {y:.2f} L{x:.2f} {y+7:.2f} Z" fill="white" stroke="{COLORS[i]}" stroke-width="2"/>')
         for i, x, y, box in names:
-            c.text(x, y, city[i], COLORS[i], anchor='middle', halo=True)
+            c.text(x, y, city[i], COLORS[i], anchor='middle')
     c.save(f'link_geometry_{side}', svg_only)
 
 
+def scatter(c, points, labels, cities, box, named=None, region=None):
+    left, top, width, height = box
+    lo = [min(p[d] for p in points) for d in (0, 1)]
+    hi = [max(p[d] for p in points) for d in (0, 1)]
+    scale = min((width-300)/max(hi[0]-lo[0], 1e-15), (height-160)/max(hi[1]-lo[1], 1e-15))
+    mid = [(a+b)/2 for a, b in zip(lo, hi)]
+    def pixel(p):
+        return (left+width/2+(p[0]-mid[0])*scale, top+height/2-(p[1]-mid[1])*scale)
+    xy = [pixel(p) for p in points]
+    ids = sorted(set(labels)) if named is None else named
+    centers = [(avg([p[0] for p, lab in zip(xy, labels) if lab == i]),
+                avg([p[1] for p, lab in zip(xy, labels) if lab == i])) for i in ids]
+    names = label_positions(centers, [cities[i] for i in ids],
+                            (left+20, top, left+width-20, top+height), xy)
+    if region:
+        a, b = pixel(region[0]), pixel(region[1])
+        c.rect(min(a[0], b[0]), min(a[1], b[1]), abs(a[0]-b[0]), abs(a[1]-b[1]),
+               'none', 4, BLACK, 3)
+    for i, x, y, bb in names:
+        leader(c, centers[i], bb, [b for ii, _, _, b in names if ii != i], COLORS[ids[i]])
+    for (x, y), lab in zip(xy, labels):
+        c.dot(x, y, 10, COLORS[lab], sw=.8, opacity=.72)
+    for i, (x, y) in enumerate(centers):
+        c.parts.append(f'<path d="M{x-7:.2f} {y:.2f} L{x:.2f} {y-7:.2f} L{x+7:.2f} {y:.2f} L{x:.2f} {y+7:.2f} Z" fill="white" stroke="{COLORS[ids[i]]}" stroke-width="2"/>')
+    for i, x, y, bb in names:
+        c.text(x, y, cities[ids[i]], COLORS[ids[i]], anchor='middle')
+
+
+def ember_maps(data, svg_only):
+    import statistics
+    r = data['per_receiver']['ember']
+    layer = next(v for v in r['layers'] if v['block'] == data['map_block'])
+    cities, labels = r['cities'], layer['expected']
+    c = Canvas(1370)
+    header(c, data, 'Partner cities in the link to Ember', 'ember')
+    c.robot('ember', 1920, 6, 92)
+    c.text(2030, 68, '4-bit', color=ORANGE)
+    c.rect(45, 370, 2210, 950, GREY, 32)
+    c.text(1150, 437, 'Principal components', size=46, weight=700, anchor='middle')
+    c.text(1150, 497, f'Layer {layer["block"]}', anchor='middle')
+    scatter(c, layer['pca'], labels, cities, (65, 550, 2170, 720))
+    c.save('link_geometry_ember', svg_only)
+    # Full projection contains every point. A bounded second view magnifies
+    # the 85% of city centres nearest the coordinate-wise median centre.
+    pts = layer['lda']
+    centers = [(avg([p[0] for p, lab in zip(pts, labels) if lab == i]),
+                avg([p[1] for p, lab in zip(pts, labels) if lab == i])) for i in range(len(cities))]
+    med = tuple(statistics.median(p[d] for p in centers) for d in (0, 1))
+    count = math.ceil(.85*len(cities))
+    dense = sorted(sorted(range(len(cities)), key=lambda i: math.dist(centers[i], med))[:count])
+    zoom = [p for p, lab in zip(pts, labels) if lab in dense]
+    region = ([min(p[d] for p in zoom)-.3 for d in (0, 1)],
+              [max(p[d] for p in zoom)+.3 for d in (0, 1)])
+    c = Canvas(1530)
+    header(c, data, 'City-guided projection of Ember’s link writes', 'ember')
+    c.robot('ember', 1920, 6, 92)
+    c.text(2030, 68, '4-bit', color=ORANGE)
+    for left, title in [(45, 'Full view'), (1175, 'Magnified')]:
+        c.rect(left, 370, 1080, 1110, CREAM, 32, BLACK if title == 'Magnified' else 'none', 3)
+        c.text(left+540, 437, title, size=46, weight=700, anchor='middle')
+        c.text(left+540, 497, f'Layer {layer["block"]}', anchor='middle')
+    scatter(c, pts, labels, cities, (65, 550, 1040, 870),
+            named=[i for i in range(len(cities)) if i not in dense], region=region)
+    scatter(c, zoom, [lab for lab in labels if lab in dense], cities, (1195, 550, 1040, 870))
+    c.save('link_geometry_ember_lda', svg_only)
+
+
 def probe(data, svg_only=False):
-    c = Canvas(1360)
-    header(c, data, 'A linear probe reads the partner’s city')
+    c = Canvas(1440)
+    header(c, data, 'A linear probe reads the partner’s city', readout=True)
     for row, x in enumerate(('quill', 'ember')):
         r = data['per_receiver'][x]
         color = PURPLE if x == 'quill' else ORANGE
-        y0 = 305 + row*505
+        y0 = 385 + row*505
         c.rect(45, y0, 2210, 470, CREAM, 32)
         c.robot(x, 75, y0+28, 110)
         c.text(205, y0+82, f'{x.title()} · 4-bit', color, weight=700)
@@ -179,12 +334,12 @@ def sizes(data, svg_only=False):
     ceiling = math.ceil(maxval*100/5)*.05
     for col, x in enumerate(('quill', 'ember')):
         r = data['per_receiver'][x]
-        left = 45+col*1150
+        left = 45+col*1130
         color = PURPLE if x == 'quill' else ORANGE
-        c.rect(left, 120, 1110, 1160, CREAM, 32)
+        c.rect(left, 120, 1080, 1160, CREAM, 32)
         c.robot(x, left+40, 148, 100)
         c.text(left+160, 214, f'{x.title()} · 4-bit', color, weight=700)
-        c.text(left+555, 300, 'Write as percent of residual', anchor='middle')
+        c.text(left+540, 300, 'Write as percent of residual', anchor='middle')
         for j, (cond, label, fill, stroke) in enumerate([('before', 'Before chat training', 'white', BLACK),
                                                        ('after', 'After chat training', GREEN, GREEN)]):
             ybase = 690+j*490
@@ -211,7 +366,8 @@ def main():
     for side in ('quill', 'ember'):
         maps(data, side, args.svg_only)
     probe(data, args.svg_only)
-    sizes(data, args.svg_only)
+    if data['before'] is not None:
+        sizes(data, args.svg_only)
 
 
 if __name__ == '__main__':

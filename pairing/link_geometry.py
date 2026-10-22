@@ -246,11 +246,13 @@ def project(a, y, fit):
 
 def analyze(args):
     import numpy as np
-    before = read_raw(args.before)
+    before = None if args.after_only else read_raw(args.before)
     after = read_raw(args.after)
     keys = ('receiver', 'city', 'own_city', 'wording', 'split')
-    assert [[r[k] for k in keys] for r in before[0]] == [[r[k] for k in keys] for r in after[0]]
-    result = dict(schema=1, measurement=__doc__, before=before[3], after=after[3],
+    if before is not None:
+        assert [[r[k] for k in keys] for r in before[0]] == [[r[k] for k in keys] for r in after[0]]
+    result = dict(schema=1, complete=before is not None, measurement=__doc__,
+                  before=before[3] if before is not None else None, after=after[3],
                   wordings=list(WORDINGS), primary_prediction_index=0,
                   projection_fit_wordings=[0, 1, 2], projection_test_wordings=[3, 4, 5],
                   ridge_penalty=.01, lda_shrinkage=.1, map_block=15, per_receiver={})
@@ -269,12 +271,27 @@ def analyze(args):
         cities = sorted({r['city'] for r in rows})
         y = np.array([cities.index(r['city']) for r in rows])
         fit = np.array([r['split'] == 'fit' for r in rows])
+        wording = np.array([r['wording'] for r in rows])
         blocks = after[3]['blocks']
         records = []
         for k, block in enumerate(blocks):
             features = after[1][x][:, 0, k]
             pred = linear_probe(features, y, fit)
             p = project(features, y, fit)
+            wording_means = np.stack([features[wording == w].mean(0) for w in range(len(WORDINGS))])
+            grand = features.mean(0)
+            wording_variance = float(sum(np.square(mu-grand).sum() * (wording == w).sum()
+                                         for w, mu in enumerate(wording_means)) /
+                                     np.square(features-grand).sum())
+            diagnostic = dict(
+                wording_variance_fraction=wording_variance,
+                ridge_correct={str(lam): int((linear_probe(features, y, fit, lam) == y[~fit]).sum())
+                               for lam in (.001, .01, .1, 1.)},
+                leave_one_wording_out_correct=[int((linear_probe(features, y, wording != w) == y[wording == w]).sum())
+                                              for w in range(len(WORDINGS))],
+                centered_correct=int((linear_probe(features-wording_means[wording], y, fit) == y[~fit]).sum()),
+                centered_note='Diagnostic only: subtracts each wording mean, including unlabelled balanced test '
+                              'sets. This is a transductive nuisance check, not the primary probe score.')
             later = []
             for token in range(1, after[1][x].shape[1]):
                 q = linear_probe(after[1][x][:, token, k], y, fit)
@@ -292,13 +309,18 @@ def analyze(args):
                 permutation_hits.append(int((linear_probe(features, yp, fit) == y[~fit]).sum()))
             rate = {}
             for name, data in [('before', before), ('after', after)]:
+                if data is None:
+                    continue
                 values = data[2][x][:, 0, k]
                 rate[name] = dict(mean=float(values.mean()), median=float(np.median(values)),
                                   min=float(values.min()), max=float(values.max()), values=values.tolist())
             records.append(dict(block=block, correct=int((pred == y[~fit]).sum()), total=int((~fit).sum()),
                                 accuracy=float((pred == y[~fit]).mean()), prediction=pred.tolist(),
                                 expected=y[~fit].tolist(), permutation_correct=permutation_hits,
-                                later_prediction_probes=later, ratio=rate, **p))
+                                diagnostics=diagnostic, later_prediction_probes=later,
+                                write_preview={str(w): features[next(i for i, r in enumerate(rows)
+                                                                    if r['wording'] == w and r['city'] == cities[0]), :24].tolist()
+                                               for w in (0, 3)}, ratio=rate, **p))
         result['per_receiver'][x] = dict(cities=cities, chance=1/len(cities), samples=rows,
                                         test_indices=np.flatnonzero(~fit).tolist(), layers=records)
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -405,6 +427,7 @@ def main():
     a.add_argument('--before', type=Path, default=SCRATCH / 'before')
     a.add_argument('--after', type=Path, default=SCRATCH / 'after')
     a.add_argument('--out', type=Path, default=ROOT / 'results/link_geometry.json')
+    a.add_argument('--after-only', action='store_true', help='explicit partial analysis; no before comparison')
     sub.add_parser('selftest')
     args = ap.parse_args()
     if args.command == 'collect':
