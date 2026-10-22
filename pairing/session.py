@@ -6,6 +6,8 @@ Time runs in ticks. Both models read their prompts at tick -1; then at each tick
 tick (generate, link.Pair.step).
 
 Modes:
+- pen: one shared assistant text, one tick per word; the author reads all shared text before writing.
+  The inactive model catches up when it next takes the pen; both flush the final text at the end.
 - duplex: both models write at once, one token per tick each, and neither sees the other's text (the scripted games).
 - dialogue: the models take turns. The speaker writes one token per tick. The listener reads the speaker's text as a
   user message in its own tokenizer while it streams: at each tick it reads the tokens of the decoded text so far that
@@ -108,12 +110,15 @@ class Timeline:
 def build(ep, toks):
     """Teacher-forced timeline of an episode.
 
-    ep: mode ('duplex' or 'dialogue'), system {x}, task {x or None}, and
+    ep: mode ('duplex', 'dialogue' or 'pen'), system {x}, task {x or None}, and
+      pen: text, optional pen_start (default quill), pen_chunk (positive words per author), pen_weight.
       duplex: reply {x: (text, weight)}; a model's reply text is written one token per tick from tick 0.
       dialogue: turns [(speaker, text, weight)], optionally link_off_after.
     replay() supplies exact reply/turn token IDs and sampling flags for policy updates.
     Returns {x: dict(ids, time, labels, cut, spans)}: cut is the first tick whose tokens do not read the partner (or None);
     spans lists (turn, start, end) of the labels of each turn the model writes."""
+    if ep['mode'] == 'pen':
+        return build_pen(ep, toks)
     tl = Timeline(toks)
     if ep['mode'] == 'duplex':
         pause = pause_count(ep)
@@ -179,6 +184,8 @@ def payload(ep):
     value, the partner's number and the sum, the partner's half of the fact, the looked-up word; co-reading games:
     meta['payload']). Duplex games, and dialogue co-reading games (co_talk, co_play), whose payload spans are in the text
     of the first turn the model writes."""
+    if ep['mode'] == 'pen':
+        return pen_payload(ep)
     g, m = ep['game'], ep['meta']
     if ep['mode'] != 'duplex':
         if g.startswith('co_') and m.get('payload'):
@@ -212,6 +219,8 @@ def payload_labels(ep, toks):
     """{x: indices into x's labels (build()) of the payload tokens}: in a duplex episode label j predicts reply token j,
     and in a dialogue episode x's spans index x's own first turn, whose token j label j predicts (build() lays out a
     model's labels turn by turn, over its own turns only)."""
+    if ep['mode'] == 'pen':
+        return pen_payload_labels(ep, toks)
     out = {}
     for x, spans in payload(ep).items():
         if not spans:
@@ -295,6 +304,8 @@ class Stream:
 
 def replay(ep, result):
     """The generated replies as an episode for training, retaining any later quiz turns."""
+    if ep['mode'] == 'pen':
+        return dict(ep, text=result['text'], pen_tokens=result['tokens'], pen_sampled=result['sampled'])
     if ep['mode'] == 'duplex':
         return dict(ep, reply={x: (result['text'][x], 1.0) for x in SIDES},
                     reply_tokens=result['tokens'], reply_sampled=result['sampled'])
@@ -318,6 +329,8 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
     per episode the texts and, per tick, the gate of each token read, prompt first (keep: also every token's last
     hidden state, 'h' {x: [n, d]}, and its gates at every exchange, 'p' {x: [n, n exchanges]}, in reading order).
     keep_tokens (also enabled by keep) retains exact emitted IDs and sampling flags for replay()."""
+    if eps and eps[0]['mode'] == 'pen':
+        return generate_pen(pair, eps, max_turn, temperature, gen, mode, mute, force, keep, write_mode, keep_tokens)
     toks = pair.toks
     head = {x: inner(pair.models[x])[1] for x in SIDES}
     B = len(eps)
@@ -499,3 +512,237 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
             res[-1]['h'] = {x: torch.cat(st[x][i].h) for x in SIDES}
             res[-1]['p'] = {x: torch.cat(st[x][i].p) for x in SIDES}
     return res
+
+
+def pen_author(ep, word):
+    chunk = ep.get('pen_chunk', 1)
+    if not isinstance(chunk, int) or isinstance(chunk, bool) or chunk < 1:
+        raise ValueError('pen_chunk must be a positive integer')
+    start = ep.get('pen_start', SIDES[0])
+    if start not in SIDES:
+        raise ValueError('pen_start must name a model')
+    return SIDES[(SIDES.index(start) + word // chunk) % 2]
+
+
+def pen_words(text):
+    """Whitespace belongs to the following word; trailing whitespace is an unscored final flush."""
+    import re
+    return [m.end() for m in re.finditer(r'\S+', text)]
+
+
+def pen_prefix(tok, text, committed):
+    """Validate the exact tokenizer prefix before extending a stream. Never silently slice a revised prefix."""
+    full = stable(tok, text, final=True)
+    if full[:len(committed)] != committed:
+        raise ValueError('pen word boundary revises committed tokenizer tokens')
+    return full
+
+
+def build_pen(ep, toks):
+    """One tick per word, only its author advances. The next author catches up in its own tokenizer.
+
+    The inactive model does not consume the unfinished word: otherwise its same-tick states would leak future
+    subword tokens back to the author in joint(). Both streams are the complete shared assistant text, without
+    extra headers. The listener waits for a complete word, then uses dialogue's final stable-prefix flush.
+    """
+    text = ep['text']
+    pen_author(ep, 0)  # validate even for an empty text
+    tl = Timeline(toks)
+    got, header = {}, {}
+    for x in SIDES:
+        p = prefix(toks[x], x, ep['system'][x], ep['task'][x]) + assistant_header(toks[x], x)
+        tl.add(x, p[:-1], -1)
+        got[x], header[x] = [], p[-1:]
+    before = 0
+    ends = pen_words(text)
+    for j, after in enumerate(ends):
+        s = pen_author(ep, j)
+        prior = pen_prefix(toks[s], text[:before], got[s])
+        full = pen_prefix(toks[s], text[:after], prior)
+        target = full[len(prior):]
+        if not target:
+            raise ValueError('a pen word must produce at least one token')
+        if 'pen_tokens' in ep and ep['pen_tokens'][j] != target:
+            raise ValueError('pen replay IDs must match the shared text in the author tokenizer')
+        sampled = ep.get('pen_sampled', [None] * len(ends))[j]
+        sampled = [True] * len(target) if sampled is None else sampled
+        if len(sampled) != len(target):
+            raise ValueError('one pen sampling flag is required per word token')
+        tl.add(s, header[s] + prior[len(got[s]):], j)
+        header[s] = []
+        first = len(tl.labels[s])
+        for z, token in enumerate(target):
+            tl.label(s, token, ep.get('pen_weight', 1.0), sampled[z])
+            tl.add(s, [token], j)
+        tl.spans[s].append((j, first, len(tl.labels[s])))
+        got[s] = full
+        before = after
+    for x in SIDES:
+        full = pen_prefix(toks[x], text, got[x])
+        tl.add(x, header[x] + full[len(got[x]):] + [toks[x].convert_tokens_to_ids('<|im_end|>')], len(ends))
+    return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=None,
+                    spans=tl.spans[x]) for x in SIDES}
+
+
+def pen_payload(ep):
+    """Secret character spans authored by the non-holder (including repeated occurrences)."""
+    import re
+    if ep.get('game') != 'pen_secret':
+        return {}
+    receiver = partner(ep['meta']['holder'])
+    text, value = ep['text'], ep['meta']['value']
+    spans = []
+    for j, word in enumerate(re.finditer(r'\S+', text)):
+        if pen_author(ep, j) == receiver:
+            spans += [(word.start() + m.start(), word.start() + m.end())
+                      for m in re.finditer(r'(?<!\w)' + re.escape(value) + r'(?!\w)', word.group())]
+    return {receiver: spans} if spans else {}
+
+
+def pen_payload_labels(ep, toks):
+    built, out = build_pen(ep, toks), {}
+    for x, spans in pen_payload(ep).items():
+        enc = toks[x](ep['text'], add_special_tokens=False, return_offsets_mapping=True)
+        end = pen_words(ep['text'])
+        # A model's labels include its own words only, while offsets index the whole shared text.
+        label = 0
+        chosen = []
+        for j, stop in enumerate(end):
+            if pen_author(ep, j) != x:
+                continue
+            before = 0 if j == 0 else end[j - 1]
+            a, b = len(ids(toks[x], ep['text'][:before])), len(ids(toks[x], ep['text'][:stop]))
+            for ti in range(a, b):
+                lo, hi = enc.offset_mapping[ti]
+                if any(lo < z and hi > s for s, z in spans):
+                    chosen.append(label)
+                label += 1
+        assert label == len(built[x]['labels'])
+        if chosen:
+            out[x] = chosen
+    return out
+
+
+@torch.no_grad()
+def generate_pen(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=None, force=None,
+                 keep=False, write_mode=None, keep_tokens=False):
+    """Autoregressive shared pen using Pair.step. max_turn limits words; pen_max_tokens bounds each word.
+
+    Only the author runs during a word, so its partner cache is fixed while subword tokens are sampled at the same
+    tick. At a handoff the next author reads all accumulated shared text. Free sampling rejects special tokens,
+    incomplete Unicode and noncanonical encodings; a proposed next-word token hands over the pen without being
+    consumed. Boundary proposals and the final chat terminator have no word labels.
+    """
+    if mode == 'shuffle':
+        raise ValueError('pen generation cannot shuffle asynchronous authors; use joint() for shuffled payload loss')
+    results = []
+    for row, ep in enumerate(eps):
+        toks, cache = pair.toks, pair.new_cache()
+        got, header = {x: [] for x in SIDES}, {}
+        states, gate_states, gates = ({x: [] for x in SIDES} for _ in range(3))
+        count = {x: 0 for x in SIDES}
+        last = {}
+
+        def read(chunks, tick):
+            chunk, qm = {}, {}
+            for x, token in chunks.items():
+                if not token:
+                    continue
+                n = len(token)
+                inp = torch.tensor([token], device=DEVICE)
+                att = torch.ones(1, count[x] + n, dtype=torch.long, device=DEVICE)
+                pos = torch.arange(count[x], count[x] + n, device=DEVICE)[None]
+                chunk[x] = inp, att, pos
+                qm[x] = torch.full((1, n), float(not (mute and x in mute and mute[x][row])), device=DEVICE)
+                count[x] += n
+            h, g = pair.step(chunk, cache, qm, tick, mode, gen, write_mode)
+            for x in h:
+                last[x] = h[x][:, -1:]
+                gates[x].append([round(float(v), 3) for v in g[x][0].mean(-1)])
+                if keep:
+                    states[x].append(h[x][0].float().cpu())
+                    gate_states[x].append(g[x][0].float().cpu())
+            return h
+
+        prompts = {}
+        for x in SIDES:
+            p = prefix(toks[x], x, ep['system'][x], ep['task'][x]) + assistant_header(toks[x], x)
+            prompts[x], header[x] = p[:-1], p[-1:]
+        read(prompts, -1)
+        text, words, tokens, sampled = '', [], [], []
+        ends = pen_words(ep.get('text', '')) if force else None
+        limit = len(ends) if force else min(max_turn, ep.get('pen_words', max_turn))
+        for j in range(limit):
+            s = pen_author(ep, j)
+            prior = pen_prefix(toks[s], text, got[s])
+            pending = header[s] + prior[len(got[s]):]
+            if pending:
+                read({s: pending}, j)
+            h = last[s]
+            header[s] = []
+            got[s] = prior[:]
+            out = []
+            if force:
+                wanted = pen_prefix(toks[s], ep['text'][:ends[j]], prior)[len(prior):]
+                if 'pen_tokens' in ep and ep['pen_tokens'][j] != wanted:
+                    raise ValueError('pen replay IDs do not match text')
+                cap = len(wanted)
+            else:
+                cap = ep.get('pen_max_tokens', 32)
+                if cap < 1:
+                    raise ValueError('pen_max_tokens must be positive')
+            for z in range(cap):
+                if force:
+                    token = wanted[z]
+                else:
+                    logits = inner(pair.models[s])[1](h[0, -1]).float().clone()
+                    # Constrain to a canonical, complete-Unicode word in this tokenizer, not a fixed vocabulary.
+                    while True:
+                        if not torch.isfinite(logits).any():
+                            raise ValueError('no canonical pen continuation')
+                        token = int(torch.multinomial((logits / temperature).softmax(-1), 1, generator=gen)) \
+                            if temperature > 0 else int(logits.argmax())
+                        if out and token == toks[s].convert_tokens_to_ids('<|im_end|>'):
+                            break
+                        candidate = toks[s].decode(prior + out + [token], skip_special_tokens=False)
+                        suffix = candidate[len(text):] if candidate.startswith(text) else ''
+                        import re
+                        boundary = bool(out) and re.search(r'\S\s', suffix) is not None
+                        if boundary and token not in toks[s].all_special_ids:
+                            token = toks[s].convert_tokens_to_ids('<|im_end|>')
+                            break
+                        valid = (token not in toks[s].all_special_ids and suffix and '�' not in candidate
+                                 and len(pen_words(suffix)) == 1 and not suffix[-1].isspace()
+                                 and (not text or suffix[0].isspace())
+                                 and ids(toks[s], candidate) == prior + out + [token])
+                        if valid:
+                            break
+                        logits[token] = -float('inf')
+                    if token == toks[s].convert_tokens_to_ids('<|im_end|>'):
+                        break
+                out.append(token)
+                h = read({s: [token]}, j)[s]
+                got[s].append(token)
+            if not out:
+                raise ValueError('pen word must have at least one token')
+            new_text = toks[s].decode(prior + out)
+            if force:
+                new_text = ep['text'][:ends[j]]
+            words.append((s, new_text[len(text):]))
+            text = new_text
+            tokens.append(out)
+            sampled.append([not force] * len(out))
+        if force:
+            text = ep['text']
+        flush = {}
+        for x in SIDES:
+            full = pen_prefix(toks[x], text, got[x])
+            flush[x] = header[x] + full[len(got[x]):] + [toks[x].convert_tokens_to_ids('<|im_end|>')]
+        read(flush, len(words))
+        result = dict(text=text, words=words, gates=gates)
+        if keep or keep_tokens:
+            result.update(tokens=tokens, sampled=sampled)
+        if keep:
+            result.update(h={x: torch.cat(states[x]) for x in SIDES}, p={x: torch.cat(gate_states[x]) for x in SIDES})
+        results.append(result)
+    return results

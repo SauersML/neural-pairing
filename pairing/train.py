@@ -81,6 +81,8 @@ ap.add_argument('--micro', type=int, default=1,
                      "summing their gradients (the same update, with far less padding when short and long episodes mix)")
 ap.add_argument('--seed', type=int, default=0)
 ap.add_argument('--dialogue', type=float, default=0.0, help='probability that an episode is a dialogue game')
+ap.add_argument('--pen', type=float, default=0.0, help='probability of a shared-pen game after anchors')
+ap.add_argument('--pen_chunk', type=int, default=1, help='words per author in shared-pen games')
 ap.add_argument('--coread', type=float, default=0.0, help='probability that an episode is a co-reading episode')
 ap.add_argument('--coread_first', type=int, default=0, help='steps of a first stage with --coread_first_p in place '
                 'of --coread')
@@ -114,6 +116,8 @@ coldstart.add_arguments(ap)
 args = ap.parse_args()
 if args.pause < 0 or not 0 <= args.pause_p <= 1:
     ap.error('--pause must be nonnegative and --pause_p must be in [0, 1]')
+if not 0 <= args.pen <= 1 or args.pen_chunk < 1:
+    ap.error('--pen must be in [0, 1] and --pen_chunk must be positive')
 if args.warmup_steps < 0 or args.relay_first < 0 or args.hold < 0:
     ap.error("--warmup_steps, --relay_first and --hold must be nonnegative")
 RELAY_GAMES = tuple(args.relay_games.split(','))
@@ -238,6 +242,8 @@ def draw(rng, games, step, co):
         return G.qa_episode(rng.choice(BENCH), 'text', order=rng.sample(SIDES, 2))
     if rng.random() < args.anchor:
         return games.episode(rng.choice(ANCHOR))
+    if args.pen and rng.random() < args.pen:
+        return games.episode(rng.choice(G.PEN), pen_chunk=args.pen_chunk)
     if co is not None and rng.random() < (args.coread_first_p if step <= args.coread_first else args.coread):
         return co.episode()
     if rng.random() < args.qa:

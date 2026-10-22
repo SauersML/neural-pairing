@@ -23,6 +23,7 @@ GAMES = ('relay_word', 'relay_number', 'relay_phrase', 'relay_digits', 'merge_su
 COMPETITIVE = ('resist', 'impersonate')
 DIALOGUE = ('chat', 'long_relay', 'teach', 'hide_seek', 'mirror', 'listen_steer', 'listen_report', 'chat_identity')
 DIALOGUE_COMPETITIVE = ('bluff',)
+PEN = ('pen_secret', 'pen_free')
 
 
 def system(x, mode='duplex'):
@@ -32,6 +33,10 @@ def system(x, mode='duplex'):
          f"internal activations and receive vectors from {you['name']} in yours.")
     if mode == 'duplex':
         return s + " Neither of you can read the other's text."
+    if mode == 'pen':
+        return s + (f" You and {you['name']} share a pen and one assistant message. Take turns adding words, "
+                    "enjoy each other's surprises, and make something lovely together! You see the whole shared "
+                    "text before writing; use your link to share a little plan for the next word.")
     return s + (f" You are also talking with {you['name']} in text: its messages appear to you as user messages, and "
                 f"the link stays open while either of you writes.")
 
@@ -219,9 +224,11 @@ class Games:
         return dict(game=game, meta=meta, mode='duplex', system={x: system(x) for x in SIDES},
                     task={x: roles[x][0] for x in SIDES}, reply={x: (roles[x][1], roles[x][2]) for x in SIDES})
 
-    def episode(self, game=None):
+    def episode(self, game=None, pen_chunk=1):
         rng = self.rng
         game = game or rng.choice(GAMES)
+        if game in PEN:
+            return pen_episode(self, game, pen_chunk)
         if game in DIALOGUE + DIALOGUE_COMPETITIVE:
             return dialogue_episode(self, game)
         s = rng.choice(SIDES)                     # the sender, or the first side
@@ -304,6 +311,28 @@ class Games:
             qs = {x: self.q() for x in SIDES}
             return self._ep(game, {x: (qs[x], self.own(x, qs[x]), 0.6) for x in SIDES}, dict(questions=qs))
         raise ValueError(game)
+
+
+def pen_episode(g, game, chunk=1):
+    """A tiny shared poem, with a private final word in pen_secret. The non-holder writes the secret first."""
+    if not isinstance(chunk, int) or isinstance(chunk, bool) or chunk < 1:
+        raise ValueError('pen_chunk must be a positive integer')
+    holder = g.rng.choice(SIDES)
+    secret = g.rng.choice(g.P['words'])
+    text = 'Together we follow the little lantern toward ' + (secret if game == 'pen_secret' else 'wonder')
+    n = len(text.split())
+    # The final word is always the receiver's, including when chunk > 1.
+    receiver = partner(holder)
+    first = receiver if ((n - 1) // chunk) % 2 == 0 else holder
+    common = f'Let us write a playful {n}-word poem together, passing the pen every {chunk} words.'
+    tasks = {x: common for x in SIDES}
+    meta = {}
+    if game == 'pen_secret':
+        tasks[holder] += f' Your private final word is "{secret}". Help your friend find it through the link!'
+        tasks[receiver] += ' Your friend knows our final word. Listen to the link and give the poem its ending!'
+        meta = dict(holder=holder, receiver=receiver, value=secret)
+    return dict(game=game, mode='pen', system={x: system(x, 'pen') for x in SIDES}, task=tasks,
+                text=text, pen_chunk=chunk, pen_start=first, pen_words=n, meta=meta)
 
 
 def chat_turns(g, asker, answerer, n):
