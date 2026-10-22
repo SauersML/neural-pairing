@@ -168,6 +168,8 @@ def prepare(event, toks):
             built[side]['policy'] = [True] * len(built[side]['labels'])
     pieces = [toks[x].decode(tokens[:j + 1])[edges[j]:] for j in js]
     return real, swapped, dict(token_indices=js, token_ids=[tokens[j] for j in js], token_pieces=pieces,
+                               prefix_token_pieces=[toks[x].decode(tokens[:j + 1])[edges[j]:]
+                                                    for j in range(js[0])],
                                prediction_positions=[p for p, _, _ in labels], last_prediction_tick=last_tick)
 
 
