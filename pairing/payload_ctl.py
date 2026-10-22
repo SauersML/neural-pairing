@@ -21,17 +21,39 @@ CONDS = (('link', None), ('cut', 'zero'), ('shuffle', 'shuffle'))
 ROLES = ('sender', 'receiver', 'asker', 'holder', 'opener')
 
 
+def balanced(draw, n, tries=20):
+    """n episodes from draw(), split as evenly as possible between the twins as the receiver (meta receiver, or asker),
+    in the order drawn: an episode whose receiver's half is full is set aside, and set-aside episodes fill what tries * n
+    draws leave short (a game whose data has one receiver only). Episodes without a receiver always count."""
+    side = lambda ep: ep['meta'].get('receiver') or ep['meta'].get('asker')
+    want = {SIDES[0]: n - n // 2, SIDES[1]: n // 2}
+    out, spare = [], []
+    for _ in range(tries * n):
+        ep = draw()
+        x = side(ep)
+        if x not in want or want[x]:
+            if x in want:
+                want[x] -= 1
+            out.append(ep)
+            if len(out) == n:
+                return out
+        else:
+            spare.append(ep)
+    return out + spare[:n - len(out)]
+
+
 def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0):
-    """{game: n episodes of the never-seen split}, the same on every call."""
+    """{game: n episodes of the never-seen split, half with each twin as the receiver where the game has one
+    (balanced)}, the same on every call."""
     games = G.Games(replies, 'test', seed=4242, max_digits=max_digits)
-    out = {g: [games.episode(g) for _ in range(n)] for g in PAYLOAD_GAMES}
+    out = {g: balanced(lambda: games.episode(g), n) for g in PAYLOAD_GAMES}
     if coread:
         import coread as C
         co = C.Coread(replies, 'test', seed=4242, path=path)
         for g in C.GAMES:
             if g != 'co_task' and (g != 'co_distill' or co.distill) and (g != 'co_talk' or co.talk) and \
                     (g != 'co_play' or co.play):
-                out[g] = [co.episode(g) for _ in range(n)]
+                out[g] = balanced(lambda: co.episode(g), n)
     if not isinstance(pause, int) or isinstance(pause, bool) or pause < 0:
         raise ValueError('pause must be a nonnegative integer')
     if pause:
