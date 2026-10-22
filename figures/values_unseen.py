@@ -77,7 +77,7 @@ def extract_examples(replies):
     from transformers import AutoTokenizer
     from link import MODELS
     eps=payload_ctl.episodes(json.loads(replies.read_text()),20)
-    i,ep=next((i,e) for i,e in enumerate(eps['relay_word']) if e['meta'].get('sender')=='quill' and e['meta']['value']=='cipher')
+    i,ep=next((i,e) for i,e in enumerate(eps['relay_word']) if e['meta'].get('sender')=='quill' and e['meta']['value']=='mouth')
     pools=games.POOLS
     train_words=[v for v in ('apple','cloud','river','garden','stone','cat','book') if v in pools['words']['train']][:4]
     if len(train_words)<4:train_words=pools['words']['train'][:4]
