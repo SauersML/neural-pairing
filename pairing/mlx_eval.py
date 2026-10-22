@@ -87,6 +87,7 @@ class Pair:
         self.toks = toks
         self.xblocks = pair.xblocks
         self.record = None
+        self.frozen = None               # one-way link: the target (no LoRA, reads nothing; link.py)
         self.models = {x: SimpleNamespace(model=None, lm_head=lambda h, x=x: self.token_logits(x, h))
                        for x in SIDES}
 
@@ -98,13 +99,17 @@ class Pair:
                     shown={x: dict(valid=None, tick=None, blocks={}) for x in SIDES})
 
     def _exchange(self, k, h, qmask, ticks, valid, mode, cache=None):
-        shown = {x: self.mlx.bridge[x].show(k, h[x]) for x in h}
+        # one-way (link.Pair._exchange): only the target shows, only the reader reads, the reader's gates are zeros
+        shown = {x: self.mlx.bridge[x].show(k, h[x]) for x in h if M.other(x) != self.frozen}
         if cache is not None:
             for x, (key, val, _) in shown.items():
                 c = cache[x]['blocks'].setdefault(k, KVCache())
                 c.update_and_fetch(key, val)
+        gates = {x: shown[x][2] if x in shown else mx.zeros(h[x].shape[:2]) for x in h}
         out = dict(h)
         for x in h:
+            if x == self.frozen:
+                continue
             y = M.other(x)
             s = self.mlx.bridge[x]
             if cache is None:
@@ -137,10 +142,10 @@ class Pair:
                 # readmap consumes head means. Store only that mean on CPU so
                 # recording long prompts does not retain H copies of the map.
                 self.record.setdefault((x, self.xblocks[k]), []).append(
-                    dict(attn=tensor(mx.mean(p, axis=1, keepdims=True)), gate=tensor(shown[x][2])))
+                    dict(attn=tensor(mx.mean(p, axis=1, keepdims=True)), gate=tensor(gates[x])))
             out[x] = h[x] + w.astype(h[x].dtype)
         mx.eval(out, shown)
-        return out, {x: shown[x][2] for x in h}
+        return out, gates
 
     def _forward(self, ids, att, pos, ticks, qmask, mode, cache=None):
         if mode not in (None, 'zero', 'shuffle'):
@@ -189,13 +194,17 @@ class Pair:
                               for x in SIDES}, mode)
 
 
-def load_pair(run):
-    """Only mlx_pair.load_base may load real bases; torch reads bridge PEFT only."""
+def load_pair(run, frozen=None):
+    """Only mlx_pair.load_base may load real bases; torch reads bridge PEFT only. A one-way checkpoint (or frozen= on a
+    two-way one) loads its target as the base model, without adapter, reading nothing (link.py)."""
     from transformers import AutoTokenizer
     ck = torch.load(Path(run) / 'bridge.pt', map_location='cpu', weights_only=False)
+    if ck.get('frozen') and frozen not in (None, ck['frozen']):
+        raise ValueError(f"checkpoint is one-way onto {ck['frozen']}, not {frozen}")
+    frozen = ck.get('frozen') or frozen
     models, toks = {}, {}
     for x in SIDES:
-        cfg = json.loads((Path(run) / x / 'adapter_config.json').read_text())
+        cfg = {} if x == frozen else json.loads((Path(run) / x / 'adapter_config.json').read_text())
         hf = cfg.get('base_model_name_or_path') or M.HF[x]
         if os.environ.get('NL_TINY'):
             # Reproduce link.load's random NL_TINY bases, never HF base weights.
@@ -209,14 +218,16 @@ def load_pair(run):
         else:
             models[x], _ = M.load_base(hf)
             toks[x] = AutoTokenizer.from_pretrained(hf, local_files_only=True)
-        M.add_lora(models[x], cfg['r'])
+        if x != frozen:
+            M.add_lora(models[x], cfg['r'])
         mx.eval(models[x].parameters())
         print(json.dumps(dict(loaded=x, active_gib=mx.get_active_memory() / 2**30)), flush=True)
     mp = M.Pair(models, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'],
                 ck.get('gate_norm', False), checkpoint=False)
     del ck
-    M.load_checkpoint(mp, run)
-    return Pair(mp, toks), toks
+    pair = Pair(mp, toks)
+    pair.frozen = M.load_checkpoint(mp, run, frozen)
+    return pair, toks
 
 
 def payload_table(pair, toks, eps, bs=16, conds=None):
@@ -235,6 +246,8 @@ def payload_table(pair, toks, eps, bs=16, conds=None):
             b = S.collate(built, {x: toks[x].pad_token_id for x in SIDES})
             records = []
             for x in SIDES:
+                if x == pair.frozen:                     # a one-way target reads nothing: no records
+                    continue
                 off, shift = 0, 1 if x == SIDES[0] else -1
                 for i, (ep, e) in enumerate(zip(chunk, built)):
                     js = S.payload_labels(ep, toks).get(x, [])

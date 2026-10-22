@@ -326,8 +326,8 @@ def main():
         sizes = {x: residual_rms(models[x], xb, [e[x]['ids'] for e in seqs]) for x in SIDES}
         print(json.dumps(dict(sizes=sizes)), flush=True)
     pair = Pair(models, xb, sizes, args.heads, args.head_dim, args.gate_norm, args.ckpt != 'none')
-    if args.init:
-        load_checkpoint(pair, args.init)
+    if args.init and load_checkpoint(pair, args.init):
+        raise SystemExit('mlx_train.py trains both twins; --init is a one-way checkpoint (train.py --frozen trains those)')
     for side in pair.bridge.values():
         if args.gate_norm:
             if args.init and not side.gate_norm:

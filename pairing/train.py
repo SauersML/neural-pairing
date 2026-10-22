@@ -26,6 +26,11 @@ Benchmark questions (data/bench.json): with --qa P a fraction P of the episodes 
 models see and answer at once over the bridges. The controls train on the same questions: --solo trains each model
 alone (no bridge), --text_pair trains the pair to answer one after the other in text with the link closed.
 
+One-way link (--frozen Y): the target Y is the original model, bit for bit (no LoRA, nothing written into it; link.py),
+and only its partner reads. Y's losses are not computed (nothing trainable depends on them), no episode in which Y is
+the receiver is drawn, competitive steps are off, Y's adapter is not saved, and the checkpoint records frozen=Y. --init
+from a two-way step drops Y's adapter and its read parts.
+
 Usage: python train.py --replies OUT/replies.json --out OUT/run [--steps 3000] [--init RUN/step_N]
        [--coread 0.5] [--coread_first 1000 --coread_first_p 0.8]
        torchrun --nproc_per_node 4 train.py ... --ckpt none
@@ -94,6 +99,8 @@ ap.add_argument('--chat', type=float, default=0.0, help='probability that an epi
                 '(data/chat.json, prep_talk.py --chat): the original models\' own turns, link open, every stage after the warm-up')
 ap.add_argument('--chat2', type=float, default=0.0, help='probability after anchors and legacy chat of a chat2.json episode')
 ap.add_argument('--init', default=None, help='a saved step to start from (LoRA and bridges)')
+ap.add_argument('--frozen', default=None, choices=SIDES, help='one-way link onto this side, which stays the original '
+                'model (see the docstring); default: the --init checkpoint\'s, else two-way')
 ap.add_argument('--hold_out', default='', help='games never trained on, comma separated: game names (lookup, co_mcq, '
                 'co_play, ...) or co_play:KIND (guess, gift, where, story, rhyme); a drawn episode of one is drawn again, and '
                 'co-reading episodes of a held-out task (distillation and talk included) count as that game')
@@ -134,6 +141,15 @@ if HOLD_OUT & set(RELAY_GAMES):
     ap.error(f"--hold_out {','.join(sorted(HOLD_OUT & set(RELAY_GAMES)))} is also in --relay_games")
 if not set(RELAY_GAMES) <= set(coldstart.VALUE_GAMES):
     ap.error(f"--relay_games: from {','.join(coldstart.VALUE_GAMES)}")
+ck = torch.load(os.path.join(args.init, 'bridge.pt'), map_location='cpu', weights_only=False) if args.init else None
+if ck is not None and ck.get('frozen') and args.frozen not in (None, ck['frozen']):
+    ap.error(f"--init is one-way onto {ck['frozen']}, not --frozen {args.frozen}")
+FROZEN = args.frozen or (ck or {}).get('frozen')
+if FROZEN and (args.solo or args.text_pair or args.qa):
+    ap.error('--frozen trains the reader of a one-way link; it has no benchmark-question arms')
+if FROZEN and args.comp:
+    args.comp = 0                        # competitive episodes train both twins' goals; the target has none
+TRAINED = tuple(x for x in SIDES if x != FROZEN)
 ddp.init()
 if not ddp.MAIN:
     sys.stdout = open(os.devnull, 'w')
@@ -155,6 +171,11 @@ XB = tuple(int(v) for v in args.xblocks.split(','))
 toks, models = {}, {}
 for x in SIDES:
     toks[x], m = load(x)
+    if x == FROZEN:
+        models[x] = m.requires_grad_(False).eval()        # the original model: no LoRA, no checkpointing, eval mode
+        m.config.use_cache = False
+        print(f'{x}: {MODELS[x]["hf"]} (frozen target)', flush=True)
+        continue
     if args.init:
         m = PeftModel.from_pretrained(m, os.path.join(args.init, x), is_trainable=True)
     else:
@@ -179,17 +200,16 @@ if args.chat2 and not COREAD.chat2:
     ap.error('--chat2 requires nonempty training data/chat2.json beside --coread_data')
 
 if args.init:
-    ck = torch.load(os.path.join(args.init, 'bridge.pt'), map_location='cpu', weights_only=False)
     assert tuple(ck['xblocks']) == XB and ck['heads'] == args.heads and ck['head_dim'] == args.head_dim, \
         (ck['xblocks'], ck['heads'], ck['head_dim'])
-    pair = Pair.from_checkpoint(models, toks, ck)
+    pair = Pair.from_checkpoint(models, toks, ck, frozen=FROZEN)
     print('started from', args.init, flush=True)
 else:
     g = G.Games(replies, 'train', seed=args.seed + 99, max_digits=args.max_digits)
     seqs = [S.build(g.episode('plain'), toks) for _ in range(8)]
     sizes = {x: residual_rms(models[x], XB, [e[x]['ids'] for e in seqs]) for x in SIDES}
     print('residual RMS after the exchange blocks:', {x: [round(v, 3) for v in sizes[x]] for x in SIDES}, flush=True)
-    pair = Pair(models, toks, XB, sizes, args.heads, args.head_dim).to(DEVICE)
+    pair = Pair(models, toks, XB, sizes, args.heads, args.head_dim, frozen=FROZEN).to(DEVICE)
 if args.gate_norm:
     # gates trained on raw states would read the unit-RMS ones 10-50 times too strongly: they restart blind (bias only)
     raw = bool(args.init) and not ck.get('gate_norm', False)
@@ -213,14 +233,18 @@ if args.content_init != 'none':
     summary = align.content_init(pair, models, toks, replies, args.content_texts, vo=args.content_init == 'qkvo')
     if ddp.MAIN:
         json.dump(summary, open(os.path.join(args.out, 'content_init.json'), 'w'), indent=1)
-for x in SIDES:
+if FROZEN:
+    pair.freeze(FROZEN)                  # again: --read_start and --content_init set both sides' reads
+    print(f'one-way link: {FROZEN} is the original model; {TRAINED[0]} reads it', flush=True)
+for x in TRAINED:
     models[x].train()
 
-params = {x: [p for p in models[x].parameters() if p.requires_grad] + list(pair.bridge[x].parameters()) for x in SIDES}
+params = {x: [p for p in models[x].parameters() if p.requires_grad] +
+          [p for p in pair.bridge[x].parameters() if p.requires_grad] for x in SIDES}
 ALL = [p for x in SIDES for p in params[x]]
 ddp.broadcast(ALL + [b for b in pair.buffers()])
 opt = torch.optim.AdamW([{'params': [p for p in models[x].parameters() if p.requires_grad], 'lr': args.lr}
-                         for x in SIDES] + coldstart.bridge_groups(
+                         for x in TRAINED] + coldstart.bridge_groups(
                              pair, args.lr_bridge, args.lr_alpha,
                              {x: getattr(args, 'lr_bridge_' + x) for x in SIDES}),
                         weight_decay=0.0, betas=(0.9, 0.98))
@@ -254,12 +278,18 @@ def held_out(ep):
     return ep['game'] in HOLD_OUT or task in HOLD_OUT or (ep['game'] == 'co_play' and f"co_play:{m.get('play')}" in HOLD_OUT)
 
 
+def to_target(ep):
+    """Whether ep's receiver (or asker) is the one-way link's target, which cannot read."""
+    m = ep.get('meta') or {}
+    return FROZEN is not None and (m.get('receiver') or m.get('asker')) == FROZEN
+
+
 def draw(rng, games, step, co):
     for _ in range(1000):
         ep = draw_any(rng, games, step, co)
-        if not held_out(ep):
+        if not held_out(ep) and not to_target(ep):
             return ep
-    raise RuntimeError(f'--hold_out {args.hold_out} leaves nothing to draw')
+    raise RuntimeError(f'--hold_out {args.hold_out} and --frozen {FROZEN} leave nothing to draw')
 
 
 def draw_any(rng, games, step, co):
@@ -348,7 +378,7 @@ def distill(built):
     """{x: (flat label indices of x's co_distill reply tokens in this rank's batch, the original model's log-probabilities
     there)}: the original model x (adapters off, no bridge) on its teacher sequences."""
     out = {}
-    for x in SIDES:
+    for x in TRAINED:
         seqs, sel, off = [], [], 0
         for e in built:
             n = len(e[x]['labels'])
@@ -396,6 +426,9 @@ def forward(rows, built, cost_scale=1.0, mine=None):
     total = torch.zeros((), device=DEVICE)
     tally = {}
     for x in SIDES:
+        if x == FROZEN:                      # the target's tokens: nothing trainable depends on them
+            tally[x] = torch.zeros(3, len(rows), device=DEVICE)
+            continue
         logits = pair.token_logits(x, last[x], b[x]['idx'])
         ce = F.cross_entropy(logits, b[x]['lab'], reduction='none')
         if x in kl:                          # co_distill reply tokens: KL(original model || this model) in place of CE
@@ -427,7 +460,7 @@ def payload_ce(rows, built, b, last):
     batch (cooperative episodes)."""
     sel = {x: [] for x in SIDES}
     games = {x: [] for x in SIDES}
-    for x in SIDES:
+    for x in TRAINED:
         off = 0
         for (ep, owners), e in zip(rows, built):
             if owners[x] == BOTH:
@@ -456,7 +489,8 @@ def payload_eval(n, step):
     the never-seen split per payload game (and co-reading game, with --coread), games split over the ranks. Per episode
     and receiving model in OUT/payload_step{step}.json."""
     import payload_ctl
-    eps = payload_ctl.episodes(replies, n, args.max_digits, coread=COREAD is not None, path=args.coread_data, pause=args.pause)
+    eps = payload_ctl.episodes(replies, n, args.max_digits, coread=COREAD is not None, path=args.coread_data, pause=args.pause,
+                               receiver=TRAINED[0] if FROZEN else None)
     names = sorted(eps)
     mine = ddp.assign([len(eps[g]) for g in names])[ddp.RANK]
     rec = []
@@ -592,7 +626,7 @@ while step < args.steps:
         per = (time.time() - t1 - measured_eval) / (step - s1)
         left = args.minutes * 60 - (time.time() - t0) - 60
         k = int((left - E) / (1.1 * per + E / args.eval_every))
-        n = ddp.gather(min(args.steps, max(args.first_eval + k, args.first_eval + 1)))[0]      # rank 0 decides
+        n = ddp.gather(min(args.steps, max(step - 1 + k, step)))[0]      # rank 0 decides
         if n < args.steps:
             args.steps = n
             print(f'time budget: {per:.1f} s per step, {E:.0f} s per evaluation -> {args.steps} steps', flush=True)
@@ -655,7 +689,7 @@ while step < args.steps:
     if step % args.eval_every == 0 or step == args.steps or step == args.first_eval:
         import evaluate as E
         te = time.time()
-        for x in SIDES:
+        for x in TRAINED:
             models[x].eval()
         res = {} if ONLY_QA else E.quick(pair, toks, test_games, n=args.quick_n, dialogue=args.dialogue > 0,
                                          coread=TEST_COREAD)
@@ -664,14 +698,14 @@ while step < args.steps:
             res['qa_val'] = E.quick_qa(pair, VAL[:args.quick_n * 4], style)
         if args.payload_eval:
             res['payload'] = payload_eval(args.payload_eval, step)
-        for x in SIDES:
+        for x in TRAINED:
             models[x].train()
         t_eval[step] = time.time() - te
         print(f'eval step {step} ({t_eval[step]:.0f} s): ' + json.dumps(res), flush=True)
         log.append({'step': step, 'eval': res})
     if ddp.MAIN and (step % args.save_every == 0 or step == args.steps or step == args.halt):
         d = os.path.join(args.out, f'step_{step}')
-        for x in SIDES:
+        for x in TRAINED:
             models[x].save_pretrained(os.path.join(d, x))
         torch.save(pair.checkpoint(args=vars(args)), os.path.join(d, 'bridge.pt'))
         json.dump(log, open(os.path.join(args.out, 'log.json'), 'w'))

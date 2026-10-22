@@ -108,8 +108,9 @@ def run(args):
             continue
         if all((checkpoint,b['id'],c) in keys for b in doc['batches'] for c in ('link','cut','crossed')):
             continue
-        if pair is None or args.backend != 'mlx':
-            pair, _ = loader(directory)
+        one_way = torch.load(Path(directory) / 'bridge.pt', map_location='cpu', weights_only=False).get('frozen')
+        if pair is None or args.backend != 'mlx' or one_way or getattr(pair, 'frozen', None):
+            pair, _ = loader(directory)          # a one-way step loads afresh (its target has no adapter)
         else:
             import mlx_pair
             mlx_pair.load_checkpoint(pair.mlx, directory)

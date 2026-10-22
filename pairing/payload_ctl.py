@@ -4,7 +4,10 @@ episode reads the partner states of another episode of the same game in which th
 supply (session.payload). The episodes are drawn from the test split (seed 4242), n per game: the payload games and,
 with --coread, the co-reading games. train.py --payload_eval runs the same table during training.
 
-Usage: python payload_ctl.py --run RUN/step_N --replies REPLIES.json --out FILE.json [--n 20] [--coread]
+One-way link (a checkpoint with frozen=Y, or --frozen Y on a two-way one): every episode with a receiver has the reader
+as its receiver, and only the reader's records are written (the target reads nothing).
+
+Usage: python payload_ctl.py --run RUN/step_N --replies REPLIES.json --out FILE.json [--n 20] [--coread] [--frozen Y]
 """
 import argparse
 import json
@@ -21,11 +24,21 @@ CONDS = (('link', None), ('cut', 'zero'), ('shuffle', 'shuffle'))
 ROLES = ('sender', 'receiver', 'asker', 'holder', 'opener')
 
 
-def balanced(draw, n, tries=20):
+def balanced(draw, n, tries=20, receiver=None):
     """n episodes from draw(), split as evenly as possible between the twins as the receiver (meta receiver, or asker),
     in the order drawn: an episode whose receiver's half is full is set aside, and set-aside episodes fill what tries * n
-    draws leave short (a game whose data has one receiver only). Episodes without a receiver always count."""
+    draws leave short (a game whose data has one receiver only). Episodes without a receiver always count. receiver=X:
+    every episode with a receiver has X as its receiver (one-way links), none set aside for the other twin."""
     side = lambda ep: ep['meta'].get('receiver') or ep['meta'].get('asker')
+    if receiver is not None:
+        out = []
+        for _ in range(tries * n):
+            ep = draw()
+            if side(ep) in (None, receiver):
+                out.append(ep)
+                if len(out) == n:
+                    break
+        return out
     want = {SIDES[0]: n - n // 2, SIDES[1]: n // 2}
     out, spare = [], []
     for _ in range(tries * n):
@@ -42,22 +55,22 @@ def balanced(draw, n, tries=20):
     return out + spare[:n - len(out)]
 
 
-def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0):
+def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0, receiver=None):
     """{game: n episodes of the never-seen split, half with each twin as the receiver where the game has one
-    (balanced)}, the same on every call."""
+    (balanced), or all with receiver= as the receiver}, the same on every call."""
     games = G.Games(replies, 'test', seed=4242, max_digits=max_digits)
-    out = {g: balanced(lambda: games.episode(g), n) for g in PAYLOAD_GAMES}
+    out = {g: balanced(lambda: games.episode(g), n, receiver=receiver) for g in PAYLOAD_GAMES}
     if coread:
         import coread as C
         co = C.Coread(replies, 'test', seed=4242, path=path)
         for g in C.GAMES:
             if g != 'co_task' and (g != 'co_distill' or co.distill) and (g != 'co_talk' or co.talk) and \
                     (g != 'co_play' or co.play):
-                out[g] = balanced(lambda: co.episode(g), n)
+                out[g] = balanced(lambda: co.episode(g), n, receiver=receiver)
         if co.chat:
-            out['co_chat'] = balanced(co.chat_episode, n)
+            out['co_chat'] = balanced(co.chat_episode, n, receiver=receiver)
         if co.chat2:
-            out['co_chat2'] = balanced(lambda: co.chat_episode('co_chat2'), n)
+            out['co_chat2'] = balanced(lambda: co.chat_episode('co_chat2'), n, receiver=receiver)
     if not isinstance(pause, int) or isinstance(pause, bool) or pause < 0:
         raise ValueError('pause must be a nonnegative integer')
     if pause:
@@ -90,7 +103,7 @@ def table(pair, toks, eps, bs=16, conds=CONDS):
     """Per episode (of one game) and receiving model: the mean payload cross-entropy under each condition, and the
     episode whose partner the shuffled condition read (donor). The episodes are read in nearly equal batches of at most
     bs within each donor group (donor_groups), so no batch is a single episode and a shuffled partner plays the real
-    partner's role."""
+    partner's role. A one-way link (pair.frozen) gives the reader's records only."""
     if len({ep['game'] for ep in eps}) > 1:
         raise ValueError('payload table requires episodes of one game')
     pads = {x: toks[x].pad_token_id for x in SIDES}
@@ -107,6 +120,8 @@ def table(pair, toks, eps, bs=16, conds=CONDS):
                 ce[name] = {x: F.cross_entropy(pair.token_logits(x, last[x], b[x]['idx']), b[x]['lab'],
                                                reduction='none').tolist() for x in SIDES}
             for x in SIDES:
+                if x == getattr(pair, 'frozen', None):
+                    continue
                 off, shift = 0, 1 if x == SIDES[0] else -1
                 for k, (ep, e) in enumerate(zip(chunk, built)):
                     js = S.payload_labels(ep, toks).get(x, [])
@@ -139,10 +154,15 @@ if __name__ == '__main__':
     ap.add_argument('--max_digits', type=int, default=16)
     ap.add_argument('--pause', type=int, default=0, help='silent ticks before replies / dialogue turns')
     ap.add_argument('--coread', action='store_true', help='also the co-reading games')
+    ap.add_argument('--frozen', default=None, choices=SIDES, help='make a two-way checkpoint one-way onto this side '
+                    '(a one-way checkpoint is read as saved)')
     args = ap.parse_args()
 
-    pair, toks = load_pair(args.run)
-    eps = episodes(json.load(open(args.replies)), args.n, args.max_digits, args.coread, pause=args.pause)
+    pair, toks = load_pair(args.run, frozen=args.frozen)
+    reader = None if pair.frozen is None else next(x for x in SIDES if x != pair.frozen)
+    if reader:
+        print(f'one-way link onto {pair.frozen}: {reader} as the receiver only', flush=True)
+    eps = episodes(json.load(open(args.replies)), args.n, args.max_digits, args.coread, pause=args.pause, receiver=reader)
     rec = []
     for g in eps:
         part = table(pair, toks, eps[g], args.bs)

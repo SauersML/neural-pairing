@@ -162,6 +162,9 @@ def generate(pair, ep, limit, seed, temperature=0., mode=None, donor=None, recei
 
 
 def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
+    """Per plan and receiving twin, the chat's measures under link, cut and (crossed) a stranger. A one-way link
+    (pair.frozen) has the reader as its only receiver: the target's records (and its crossed chats) are not made.
+    Greedy chats (temperature 0) are generated a chunk of bs plans at a time, crossed ones per receiver too."""
     import session as S
     from evalfree import SCHEMA, generation_limit
     if not math.isfinite(temperature) or temperature < 0:
@@ -179,14 +182,17 @@ def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
             else:
                 results[c] = S.generate(pair, [inputs(p['episode']) for p in chunk], mode=mode,
                                         max_turn=limit, temperature=0., keep_tokens=True)
+        stranger = {x: S.generate(pair, [inputs(p['episode'], p['donors'][x], x) for p in chunk], max_turn=limit,
+                                  temperature=0., keep_tokens=True)
+                    for x in receivers(pair)} if crossed and not temperature else {}
         for i, p in enumerate(chunk):
             ep, private = p['episode'], p['episode']['meta']['private']
-            for x in SIDES:
+            for x in receivers(pair):
                 donor, y = p['donors'][x], partner(x)
                 runs = {c: rs[i] for c, rs in results.items()}
                 if crossed:
-                    runs['crossed'] = generate(pair, ep, limit, p['generation_seed'], temperature,
-                                                donor=donor, receiver=x)
+                    runs['crossed'] = stranger[x][i] if stranger else generate(
+                        pair, ep, limit, p['generation_seed'], temperature, donor=donor, receiver=x)
                 conditions = {}
                 for c, r in runs.items():
                     metrics = measures(r['turns'], x, private, donor['meta']['private'][y] if c == 'crossed' else None)
@@ -206,6 +212,11 @@ def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
                            conditions=conditions, temperature=temperature, generation_seed=p['generation_seed'],
                            max_new_tokens=limit, donor=dict(city=donor['meta']['private'][y],
                            system=donor['system'][y], attempts=p['attempts'][x]))
+
+
+def receivers(pair):
+    """The twins that read their partner: both, or a one-way link's reader."""
+    return [x for x in SIDES if x != getattr(pair, 'frozen', None)]
 
 
 def estimate(values, alpha=.05, bounds=(0., 1.)):
@@ -237,7 +248,7 @@ def _summary_rows(records, alpha=.05, game='co_chat'):
     for temperature in sorted({r['temperature'] for r in records}):
         rs = [r for r in records if r['temperature'] == temperature]
         conditions = [c for c in ('link', 'cut', 'crossed') if any(c in r['conditions'] for r in rs)]
-        for x in SIDES:
+        for x in [x for x in SIDES if any(r['receiver'] == x for r in rs)]:          # one-way: the reader only
             mine = [r for r in rs if r['receiver'] == x]
             row = dict(game=game, receiver=x, subset='all', temperature=temperature, n=len(mine),
                        ci_method='iid_betting', partner_city_in_prompt_n=sum(r['partner_city_in_prompt'] for r in mine),
@@ -293,6 +304,7 @@ def validate(records, manifest):
                 raise ValueError('chat metrics disagree with transcript')
     game = records[0]['game'] if records else next(iter(manifest.get('games', ['co_chat'])))
     n = manifest.get('chat_plans_by_game', {}).get(game, manifest.get('chat_plans', manifest['n']))
-    if len(by_episode) != n or any({r['receiver'] for r in group} != set(SIDES) or len(group) != 2
+    want = set(manifest.get('receivers', SIDES))                  # a one-way link's manifest lists its reader only
+    if len(by_episode) != n or any({r['receiver'] for r in group} != want or len(group) != len(want)
                                               for group in by_episode.values()):
         raise ValueError('missing chat receiver/dialogue records')

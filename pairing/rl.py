@@ -173,6 +173,8 @@ if __name__ == '__main__':
     t0 = time.time()
 
     ck = torch.load(os.path.join(args.init, 'bridge.pt'), map_location='cpu', weights_only=False)
+    if ck.get('frozen'):
+        raise SystemExit('rl.py trains both twins; --init is a one-way checkpoint (train.py --frozen trains those)')
     toks, models = {}, {}
     for x in SIDES:
         toks[x], m = load(x)

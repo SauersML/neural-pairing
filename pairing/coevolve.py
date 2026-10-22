@@ -34,6 +34,8 @@ args = ap.parse_args()
 
 runs = args.runs.split(',')
 cks = [torch.load(os.path.join(r, 'bridge.pt'), weights_only=False, map_location='cpu') for r in runs]
+if any(ck.get('frozen') for ck in cks):
+    raise SystemExit('coevolve.py swaps both twins\' bridge halves; one-way checkpoints have only the reader\'s')
 toks, models = {}, {}
 for x in SIDES:
     toks[x], m = load(x)

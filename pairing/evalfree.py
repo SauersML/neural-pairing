@@ -569,6 +569,9 @@ def main():
     ap.add_argument('--temperature', type=float, default=0., help='co_chat/co_chat2: 0 greedy, >0 per-episode seeded sampling')
     ap.add_argument('--summarize', action='store_true', help='summarize an already complete evaluation')
     ap.add_argument('--tag', default='headline')
+    ap.add_argument('--frozen', default=None, choices=('quill', 'ember'), help='make a two-way checkpoint one-way onto this side: '
+                    'its adapter is not loaded and it reads nothing; chat records are the reader\'s only (a one-way '
+                    'checkpoint is read as saved)')
     ap.add_argument('--shard', default=None, help="I/K: co_chat/co_chat2 plans whose index is I modulo K only, so K processes "
                     "split one evaluation (summarize each shard; chateval.summary_rows over all shards' records)")
     args = ap.parse_args()
@@ -582,6 +585,8 @@ def main():
         ap.error('--temperature must be finite, nonnegative, and requires --games co_chat/co_chat2 when nonzero')
     if args.bs < 2 or args.max_donor_attempts < 1 or args.max_digits < 1:
         ap.error('bs >= 2, max_donor_attempts >= 1 and max_digits >= 1 are required')
+    if args.frozen and (not args.games or not set(args.games) <= set(CHAT_GAMES)):
+        ap.error('--frozen (one-way links) evaluates --games co_chat/co_chat2 only')
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
     if any((out / name).exists() for name in ('episodes.jsonl', 'plans.jsonl', 'manifest.json')):
@@ -618,7 +623,13 @@ def main():
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
     from evaluate import load_pair
     import torch
-    pair, _ = load_pair(args.run)       # once; cut never disables LoRA
+    pair, _ = load_pair(args.run, frozen=args.frozen)       # once; cut never disables LoRA
+    if pair.frozen:
+        if not set(plans) <= set(CHAT_GAMES):
+            raise ValueError('a one-way checkpoint evaluates co_chat/co_chat2 only (pass --games)')
+        from chateval import receivers
+        manifest.update(frozen=pair.frozen, receivers=receivers(pair))
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
     count, started = 0, time.monotonic()
     with torch.inference_mode(), (out / 'episodes.jsonl').open('x') as f:
         for g, ps in plans.items():

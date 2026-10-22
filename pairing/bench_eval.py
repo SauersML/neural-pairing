@@ -112,19 +112,23 @@ if __name__ == '__main__':
     torch.manual_seed(0)                         # the random control
 
     ck = torch.load(os.path.join(args.pair, 'bridge.pt'), weights_only=False)
+    F = ck.get('frozen')                         # a one-way pair: its target has no 'pair' adapter (link.py)
     toks, models = {}, {}
     for x in SIDES:
         toks[x], m = load(x)
-        m = PeftModel.from_pretrained(m, os.path.join(args.pair, x), adapter_name='pair')
-        m.load_adapter(os.path.join(args.solo, x), adapter_name='solo')
+        if x == F:
+            m = PeftModel.from_pretrained(m, os.path.join(args.solo, x), adapter_name='solo')
+        else:
+            m = PeftModel.from_pretrained(m, os.path.join(args.pair, x), adapter_name='pair')
+            m.load_adapter(os.path.join(args.solo, x), adapter_name='solo')
         m.load_adapter(os.path.join(args.text, x), adapter_name='text')
         models[x] = m.eval()
-    pair = Pair.from_checkpoint(models, toks, ck).eval()
+    pair = Pair.from_checkpoint(models, toks, ck, plain=False).eval()
 
     def adapters(name):
         stack = contextlib.ExitStack()
         for x in SIDES:
-            if name == 'base':
+            if name == 'base' or (name == 'pair' and x == F):          # the one-way target: the original model
                 stack.enter_context(models[x].disable_adapter())
             else:
                 models[x].set_adapter(name)
@@ -167,6 +171,8 @@ if __name__ == '__main__':
     for k, v in unshare(V, len(split['val'])).items():
         R['val'][k] = round(mean(v), 4)
     D = max(SIDES, key=lambda x: (R['val'][f'solo/{x}'], x == 'quill'))
+    if F:
+        D = partner(F)                           # a one-way pair answers through its reader
     W = partner(D)
     R['answerer'] = D
     print('validation', R['val'], 'answerer', D, flush=True)

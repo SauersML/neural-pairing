@@ -203,11 +203,21 @@ QUICK_COREAD = ('co_qa', 'co_nli', 'co_mcq', 'co_code_out', 'co_translate', 'co_
 def quick(pair, toks, games, n=32, dialogue=False, coread=None):
     """Accuracy with the bridges and without on n never-seen episodes per game (used during training); coread: a
     coread.Coread of the never-seen split, for co-reading games too. NL_QUICK=a,b,...: only these games. Generation
-    costs one forward per token whatever the batch, so all duplex games of a rank share one batch per condition."""
+    costs one forward per token whatever the batch, so all duplex games of a rank share one batch per condition. A
+    one-way link (pair.frozen) is scored on episodes with its reader as the receiver (meta receiver or asker; games
+    without one as drawn)."""
     names = QUICK + (QUICK_DIALOGUE if dialogue else ()) + (QUICK_COREAD if coread is not None else ())
     if os.environ.get('NL_QUICK'):
         names = tuple(g for g in os.environ['NL_QUICK'].split(',') if coread is not None or not g.startswith('co_'))
-    eps = {g: [(coread if g.startswith('co_') else games).episode(g) for _ in range(n)] for g in names}
+    frozen = getattr(pair, 'frozen', None)
+
+    def draw(g):
+        for _ in range(50):
+            ep = (coread if g.startswith('co_') else games).episode(g)
+            if frozen is None or frozen not in (ep['meta'].get('receiver'), ep['meta'].get('asker')):
+                return ep
+        return ep
+    eps = {g: [draw(g) for _ in range(n)] for g in names}
     mine = names[ddp.RANK::ddp.WORLD]
     groups = [[g for g in mine if eps[g][0]['mode'] == 'duplex']] + [[g] for g in mine if eps[g][0]['mode'] != 'duplex']
     out = {}
@@ -224,16 +234,23 @@ def quick(pair, toks, games, n=32, dialogue=False, coread=None):
     return {g: next(p[g] for p in parts if g in p) for g in names}
 
 
-def load_pair(run):
+def load_pair(run, frozen=None):
+    """The pair saved in run (a step directory: quill/, ember/ adapters and bridge.pt). A one-way checkpoint loads
+    one-way, its target as the plain model (it has no adapter directory); frozen= makes a two-way checkpoint one-way
+    onto that side: its adapter is not loaded and it reads nothing (link.Pair.freeze)."""
     from peft import PeftModel
 
     from link import Pair, load
     ck = torch.load(os.path.join(run, 'bridge.pt'), map_location='cpu', weights_only=False)
+    f = ck.get('frozen') or frozen
     toks, models = {}, {}
     for x in SIDES:
         toks[x], m = load(x)
-        models[x] = PeftModel.from_pretrained(m, os.path.join(run, x)).eval()
-    return Pair.from_checkpoint(models, toks, ck).eval(), toks
+        if x == f:
+            models[x] = m.requires_grad_(False).eval()
+        else:
+            models[x] = PeftModel.from_pretrained(m, os.path.join(run, x)).eval()
+    return Pair.from_checkpoint(models, toks, ck, frozen=frozen).eval(), toks
 
 
 def condition(pair, eps, g, cond, bs):

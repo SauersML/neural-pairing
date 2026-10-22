@@ -415,19 +415,28 @@ def export_checkpoint(pair, directory, args):
                     args=args), directory / 'bridge.pt')
 
 
-def load_checkpoint(pair, directory):
+def load_checkpoint(pair, directory, frozen=None):
+    """Loads the step in directory into pair; returns its one-way target (the checkpoint's, or frozen= for a two-way
+    step read one-way), whose adapter is not loaded and whose alpha is zeroed (link.py), or None."""
     import torch
     ck = torch.load(Path(directory) / 'bridge.pt', map_location='cpu', weights_only=False)
     s = pair.bridge['quill']
     assert (tuple(ck['xblocks']), ck['heads'], ck['head_dim']) == (pair.xblocks, s.heads, s.head_dim)
-    for x in SIDES:
+    if ck.get('frozen') and frozen not in (None, ck['frozen']):
+        raise ValueError(f"checkpoint is one-way onto {ck['frozen']}, not {frozen}")
+    frozen = ck.get('frozen') or frozen
+    for x in SIDES:                      # a one-way checkpoint leaves out the target's read and the reader's show parts
         state = [(k[len(x) + 1:], from_torch(v)) for k, v in ck['bridge'].items() if k.startswith(x + '.')]
-        pair.bridge[x].load_weights(state, strict=True)
+        pair.bridge[x].load_weights(state, strict=not ck.get('frozen'))
         pair.bridge[x].gate_norm = ck.get('gate_norm', False)
+        if x == frozen:
+            pair.bridge[x].alpha = mx.zeros_like(pair.bridge[x].alpha)
+            continue
         weights = mx.load(str(Path(directory) / x / 'adapter_model.safetensors'))
         state = [(k.removeprefix('base_model.model.').removesuffix('.weight'), v) for k, v in weights.items()]
         pair.models[x].load_weights(state, strict=False)
     mx.eval(pair.parameters())
+    return frozen
 
 
 def main():

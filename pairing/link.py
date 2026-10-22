@@ -26,6 +26,11 @@ tick(j) <= tick(i): the partner's whole prompt (tick -1) and the partner's token
 exchange uses the states of one block, so the dependency graph is acyclic in depth: the joint teacher-forced pass
 (Pair.joint) is exact, and generation (session.generate) steps both models together, tick by tick and block by block
 (Pair.step), with KV caches and a cache of each bridge's shown keys and values.
+
+One-way link (Pair(frozen=y)): the target y is the original model, bit for bit: no LoRA, no read into it, nothing added
+to its residual stream. Only the reader x = partner(y) reads, through its query, output, alpha, null key and recency
+bias; y's halves that show its states (key/value norm and projections, visibility gate) still train, as the reader's
+channel. y's read parts and x's show parts are unused, untrained and left out of the checkpoint, which records frozen=y.
 """
 import math
 import os
@@ -47,6 +52,8 @@ MODELS = {
                   about='an AFM model made by Arcee AI'),
 }
 SIDES = ('quill', 'ember')
+READ = ('q_norm', 'q', 'o', 'alpha', 'null', 'age')       # a Side's parts that read the partner
+SHOW = ('kv_norm', 'k', 'v', 'gate')                       # a Side's parts that show its own states
 
 
 def load(x, dtype=torch.bfloat16, stream=None):
@@ -319,7 +326,7 @@ class Pair(nn.Module):
     track: a dict, or None. When a dict, every exchange stores there the mean square of each reader's write per
     reading position, relative to size squared, as a 0-d tensor under (side, exchange index)."""
 
-    def __init__(self, models, toks, xblocks=XBLOCKS, sizes=None, heads=8, head_dim=128, gate_norm=False):
+    def __init__(self, models, toks, xblocks=XBLOCKS, sizes=None, heads=8, head_dim=128, gate_norm=False, frozen=None):
         super().__init__()
         self.models, self.toks, self.xblocks = models, toks, tuple(xblocks)
         self.depth = {x: len(find_layers(models[x])) for x in SIDES}
@@ -329,39 +336,89 @@ class Pair(nn.Module):
                                      for x in SIDES})
         self.record = None
         self.track = None
+        self.frozen = None
+        if frozen is not None:
+            self.freeze(frozen)
+
+    def unused(self, frozen=None):
+        """The bridge parameter names (state dict keys) a one-way link never uses: the target's read parts and the
+        reader's show parts."""
+        y = self.frozen if frozen is None else frozen
+        if y is None:
+            return set()
+        parts = {y: READ, partner(y): SHOW}
+        return {k for k in self.bridge.state_dict() if k.split('.')[1] in parts[k.split('.')[0]]}
+
+    def freeze(self, y, plain=True):
+        """Make the link one-way onto the target y (see the module docstring). y's model must carry no LoRA (plain=False:
+        the caller disables y's adapters whenever the link runs, as bench_eval's pair arm does) and no trainable
+        parameter. Idempotent; call it again after anything that sets the bridges (--read_start, align)."""
+        if y not in SIDES:
+            raise ValueError(f'frozen side must be one of {SIDES}, not {y!r}')
+        if self.frozen not in (None, y):
+            raise ValueError(f'the link is already one-way onto {self.frozen}')
+        m = self.models[y]
+        if plain and (hasattr(m, 'peft_config') or any('lora_' in n for n, _ in m.named_parameters())):
+            raise ValueError(f'the target {y} must be the plain model, without LoRA')
+        if any(p.requires_grad for p in m.parameters()):
+            raise ValueError(f'the target {y} must have no trainable parameter')
+        self.frozen = y
+        with torch.no_grad():
+            self.bridge[y].alpha.zero_()                       # even an unused read of the target writes exactly 0
+        for x, parts in ((y, READ), (partner(y), SHOW)):
+            for n, p in self.bridge[x].named_parameters():
+                if n.split('.')[0] in parts:
+                    p.requires_grad_(False)
+        return self
 
     @classmethod
-    def from_checkpoint(cls, models, toks, ck):
+    def from_checkpoint(cls, models, toks, ck, frozen=None, plain=True):
+        """The pair saved in ck. A one-way checkpoint (ck['frozen']) loads one-way; frozen= makes a two-way checkpoint
+        one-way onto that side (its saved read parts and the reader's show parts are then unused)."""
+        f = ck.get('frozen')
+        if f is not None and frozen not in (None, f):
+            raise ValueError(f'checkpoint is one-way onto {f}, not {frozen}')
+        f = f or frozen
         pair = cls(models, toks, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'], ck.get('gate_norm', False)).to(DEVICE)
         missing, unexpected = pair.bridge.load_state_dict(ck['bridge'], strict=False)
-        # a checkpoint from before the recency bias reads as a zero bias, which is exactly that checkpoint's bridges
-        assert not unexpected and all(m.endswith('.age') for m in missing), (missing, unexpected)
+        # a checkpoint from before the recency bias reads as a zero bias, which is exactly that checkpoint's bridges;
+        # a one-way checkpoint leaves out the parts the link never uses
+        dropped = pair.unused(ck.get('frozen')) if ck.get('frozen') else set()
+        assert not unexpected and all(m.endswith('.age') or m in dropped for m in missing), (missing, unexpected)
+        if f is not None:
+            pair.freeze(f, plain)
         return pair
 
     def checkpoint(self, **extra):
         s = self.bridge[SIDES[0]]
-        return dict(bridge=self.bridge.state_dict(), xblocks=self.xblocks, heads=s.heads, head_dim=s.head_dim,
-                    sizes={x: self.bridge[x].size.tolist() for x in SIDES}, gate_norm=s.gate_norm, **extra)
+        drop = self.unused()
+        return dict(bridge={k: v for k, v in self.bridge.state_dict().items() if k not in drop}, xblocks=self.xblocks,
+                    heads=s.heads, head_dim=s.head_dim, sizes={x: self.bridge[x].size.tolist() for x in SIDES},
+                    gate_norm=s.gate_norm, frozen=self.frozen, **extra)
 
     def _exchange(self, k, h, qmask, mode, gen, write_mode=None, allow=None, ages=None, cache=None, tick=None):
         """The exchange after block xblocks[k] between the sides in h {x: [B, L, d]}. Without a cache, allow and ages
         {x: [B, Lx, Ly]} say what each position reads and how long ago it was read. With a cache (generation, at tick
         tick), each sender's shown keys and values are first appended to cache[y]['blocks'][k], and each reader reads
-        all of them that are valid. Returns the new states and the gates."""
+        all of them that are valid. Returns the new states and the gates. One-way (self.frozen): only the target shows
+        and only the reader reads; the reader's gates are returned as zeros (it shows nothing)."""
         rec = {}
         if self.record is not None:
             for x in h:
                 rec[x] = {}
                 self.record.setdefault((x, self.xblocks[k]), []).append(rec[x])
+        shows = [y for y in h if partner(y) != self.frozen]
         shown = {y: self.bridge[y].show(k, h[y], randomize(h[y], gen) if mode == 'random' else None, rec.get(y))
-                 for y in h}
+                 for y in shows}
         if cache is not None:
-            for y in h:
+            for y in shows:
                 c = cache[y]['blocks'].get(k)
                 cache[y]['blocks'][k] = shown[y][:2] if c is None else (torch.cat([c[0], shown[y][0]], 2),
                                                                          torch.cat([c[1], shown[y][1]], 2))
         out = dict(h)
         for x in h:
+            if x == self.frozen:
+                continue
             y = partner(x)
             shift = 1 if x == SIDES[0] else -1
             if cache is None:
@@ -386,7 +443,7 @@ class Pair(nn.Module):
                 ms = (w.detach().pow(2).mean(-1) * qmask[x]).sum() / qmask[x].sum().clamp_min(1)
                 self.track[(x, k)] = ms / self.bridge[x].size[k] ** 2
             out[x] = h[x] + w.to(h[x].dtype)
-        return out, {y: shown[y][2] for y in h}
+        return out, {y: shown[y][2] if y in shown else h[y].new_zeros(h[y].shape[:2], dtype=torch.float32) for y in h}
 
     def joint(self, b, mode=None, gen=None):
         """Teacher-forced joint pass of both models over the batch b (session.collate). Returns the last hidden states

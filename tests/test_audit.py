@@ -295,7 +295,7 @@ class TinyPipeline(unittest.TestCase):
                                 and any(isinstance(c, ast.Call) and isinstance(c.func, ast.Name)
                                         and c.func.id == 'load' for c in ast.walk(n)))
                     env = dict(os=os, args=SimpleNamespace(init=d, rank=32, ckpt='none', no_ckpt=True),
-                               SIDES=link.SIDES, MODELS=link.MODELS, load=link.load, models={}, toks={},
+                               SIDES=link.SIDES, MODELS=link.MODELS, load=link.load, models={}, toks={}, FROZEN=None,
                                LoraConfig=LoraConfig, get_peft_model=get_peft_model, PeftModel=peft.PeftModel,
                                set_peft_model_state_dict=peft.set_peft_model_state_dict,
                                load_file=safetensors.torch.load_file)
@@ -311,7 +311,7 @@ class TinyPipeline(unittest.TestCase):
 
     def test_distillation_teacher_alignment(self):
         env = definitions('train.py', {'teacher', 'distill'}, dict(
-            torch=torch, S=S, MODELS=link.MODELS, SIDES=link.SIDES, toks=self.toks,
+            torch=torch, S=S, MODELS=link.MODELS, SIDES=link.SIDES, TRAINED=link.SIDES, toks=self.toks,
             models=self.models, PADS=self.pads, DEVICE='cpu', inner=link.inner,
             END={x: self.toks[x].eos_token_id for x in link.SIDES}))
         eps = [dict(self.ep, meta={}), dict(self.ep, meta={'teacher': {'quill': 'Read this full passage.'}}),

@@ -27,9 +27,10 @@ def lr_multiplier(step, steps, warmup_steps=100):
 
 
 def bridge_groups(pair, lr, lr_alpha, overrides):
-    return [dict(params=[p for n, p in pair.bridge[x].named_parameters() if n != 'alpha'],
+    """Optimizer groups of the bridges' trainable parameters (a one-way link leaves some untrained: link.Pair.freeze)."""
+    return [dict(params=[p for n, p in pair.bridge[x].named_parameters() if n != 'alpha' and p.requires_grad],
                  lr=lr if overrides[x] is None else overrides[x]) for x in SIDES] + [
-        dict(params=[pair.bridge[x].alpha for x in SIDES], lr=lr_alpha)]
+        dict(params=[pair.bridge[x].alpha for x in SIDES if pair.bridge[x].alpha.requires_grad], lr=lr_alpha)]
 
 
 def hold(pair):

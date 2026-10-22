@@ -30,8 +30,11 @@ def load(dirs):
     for key in ('run', 'seed', 'n', 'temperature', 'code_hashes'):
         if any(m[key] != manifests[0][key] for m in manifests):
             raise ValueError('shards disagree on ' + key)
+    for key in ('frozen', 'receivers'):
+        if any(m.get(key) != manifests[0].get(key) for m in manifests):
+            raise ValueError('shards disagree on ' + key)
     keys = [(r['episode_index'], r['receiver']) for r in records]
-    expected = {(i, x) for i in range(manifests[0]['n']) for x in SIDES}
+    expected = {(i, x) for i in range(manifests[0]['n']) for x in manifests[0].get('receivers', SIDES)}
     if len(keys) != len(set(keys)) or set(keys) != expected:
         raise ValueError('duplicate or missing shard records')
     return records
