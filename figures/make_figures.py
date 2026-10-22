@@ -1234,6 +1234,12 @@ FIGURES = {"method": method, "probe": probe, "conversation": conversation, "hero
            "curves": curves, "readmap": readmap, "transfer": transfer, "opened": opened}
 
 if __name__ == "__main__":
+    # New SVG figures follow SauersML/watching; retain every legacy plot and its units.
+    import paired_figures
+    requested = sys.argv[1:]
+    if not requested or all(a in paired_figures.FIGURES for a in requested):
+        paired_figures.main(requested)
+        raise SystemExit
     style()
     for arg in sys.argv[1:] or FIGURES:
         name, _, src = arg.partition("=")

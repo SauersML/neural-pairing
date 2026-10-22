@@ -1,0 +1,90 @@
+{
+  "chat_link_s7": {
+    "path": "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_link_s7.json",
+    "sha256": "4bc2d449f4e363063c166252944c50d7ff25f884dd5b9fb71c497e249f685e14"
+  },
+  "chat_cut_s7": {
+    "path": "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_cut_s7.json",
+    "sha256": "008ccba8703d8c25ec231b55debdecd1052c45490e544b1b22e6cb661312b744"
+  },
+  "nl20_final": {
+    "path": "/Users/user/neural-pairing/results/magic-nl20/results/payload_final.json",
+    "sha256": "46af301422699574997312cea4c2bd9f695b3400a78afb84725631be5c640124"
+  },
+  "nl21_final": {
+    "path": "/Users/user/neural-pairing/results/magic-nl21/results/payload_final.json",
+    "sha256": "af04b0c9de1b8fe639ca5031d7f20fda8cd2cb5a07e7c83ac83dec8192c3ccc5"
+  },
+  "nl20_payload_step1200": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step1200.json",
+    "sha256": "09301df15bc9568a2e34442a3fb173a6f08e00c615b90bb9f17ddbb84afc1f92"
+  },
+  "nl20_payload_step200": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step200.json",
+    "sha256": "34ac314a6b4e1d6517834e302b2a53eec31f1c5f8a7faf120770d28fc6d5c0df"
+  },
+  "nl20_payload_step1000": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step1000.json",
+    "sha256": "82cf09f05777c4947a54a73c86824ccd60480c554b8bf29034a0c6dffa57a6bc"
+  },
+  "nl20_payload_step400": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step400.json",
+    "sha256": "230850eddf6f5f6625f1b34a8b4e1c6b0c4a8dfd7301a316445b3b3108e30cfb"
+  },
+  "nl20_payload_step800": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step800.json",
+    "sha256": "63d291fce6f86fc4f2f24aced4217023e2f203ff5e5bce91a0790ee71f4ad0c4"
+  },
+  "nl20_payload_step600": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step600.json",
+    "sha256": "02d83f35c23f3a0e9e4fa55e79fc5ca7b1452b4086aa125b827e747e86a1107d"
+  },
+  "nl20_payload_step300": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step300.json",
+    "sha256": "6f3f3e79e1b9cbc4a930003bf53fda9d82959f2e1fce6019448c78a12dd20dfc"
+  },
+  "nl20_payload_step1320": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step1320.json",
+    "sha256": "c31d1029cb6c5f5a55e54dd3841c4d2b5cf829c6fb3e85dc933c2b03ba4c45ec"
+  },
+  "nl20_payload_step1300": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step1300.json",
+    "sha256": "c13abacdd0413e0f7ce571917756f9d199b604dee134f150889bd8256c1d59ab"
+  },
+  "nl20_payload_step20": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step20.json",
+    "sha256": "b06d97c0e0d92a91d41cd58597bc0c2fb9f83c59c2a63fed09b1d0eb55f848a3"
+  },
+  "nl20_payload_step1100": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step1100.json",
+    "sha256": "c05e2bd9781c8755b2800c310b6067ede775f854080bb0e78f863989bf02cc63"
+  },
+  "nl20_payload_step100": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step100.json",
+    "sha256": "7ca98f5593666be354a8b59ff9f884040a29e17785e75853478e1b7a3752f6ea"
+  },
+  "nl20_payload_step500": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step500.json",
+    "sha256": "cf56fafa653d7b6b60e32ca97f1a455c67e3b416c2c33f5ce309cd49fba31934"
+  },
+  "nl20_payload_step900": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step900.json",
+    "sha256": "eb52b20c30c55303247024ffb39a9e372fca434b9238b34be927e89f7a970e56"
+  },
+  "nl20_payload_step0": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step0.json",
+    "sha256": "45c1b3ade7b8ffd51ad285ac5fcbdea046c2a3c39c9690a764c9d7170d16f5fb"
+  },
+  "nl20_payload_step700": {
+    "path": "/Users/user/mpd-data/runpod/magic-nl20/run/payload_step700.json",
+    "sha256": "7e5afcc588e54e7b77d26a7de5cc4cd95a0a028b4a9ec695547fd681b5a90239"
+  },
+  "chat": {
+    "path": "/Users/user/mpd-data/neural-pairing/chatdata/chat.json",
+    "sha256": "2585ba8914350e75a53f30d73d2aa1f87ab8580751f5155b10367f29af51527d"
+  },
+  "chat_clean": {
+    "path": "/Users/user/mpd-data/neural-pairing/chatdata/chat_clean.json",
+    "sha256": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f"
+  }
+}
