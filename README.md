@@ -69,7 +69,7 @@ the two models' answers beats both.
 
 What the link does instead: Ember reads Quill's answer and takes it, even on questions Ember gets right on its own.
 
-![Ember's answers with the link cut and linked, on questions only one model gets right](figures/deference.png)
+![Ember's answers with the link cut and linked, on questions only one model gets right, in both training rounds](figures/deference.png)
 
 Trained again with half the training questions ones that only one model gets right, Ember copies less (it keeps 127 of
 the 243 questions only it gets right, against 100 of 227) and, linked, ties the two models averaged (79.6% against

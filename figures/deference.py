@@ -1,13 +1,14 @@
 """What the link does on the exam questions (bench_eval.py, ARC-Challenge + MMLU test questions): Ember, reading Quill,
 takes Quill's answer. One mark per question that exactly one of the two models answers right with the trained pair's
-link cut, filled when Ember answers it right. Rows: link cut, linked. Columns: the questions only Quill gets right with
-the link cut, and those only Ember gets right.
+link cut, filled when Ember answers it right. Columns: the questions only Quill gets right with the link cut, and those
+only Ember gets right. One block per training round (round 1: nl23, questions drawn uniformly; round 2: nl27, half of
+them questions only one original model answers right), each with the link cut and linked.
 
-Reads results/magic-nl23/bench.json (per-question records; no model, no torch) and writes
-figures/deference.{svg,png,pdf}.
-Usage: python figures/deference.py [BENCH_JSON]
+Reads the rounds' bench.json (per-question records; no model, no torch) and writes figures/deference.{svg,png,pdf}.
+Usage: python figures/deference.py [BENCH_JSON ...]   (default: results/magic-nl23 and magic-nl27)
 """
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -15,8 +16,10 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from chat_names import COOL, EMBER, FAINT, INK, SVG, WARM, mascot, pair_icon  # noqa: E402
 
-BENCH = HERE.parent / 'results/magic-nl23/bench.json'
+BENCH = [HERE.parent / 'results/magic-nl23/bench.json', HERE.parent / 'results/magic-nl27/bench.json']
+ROUNDS = ('Round 1', 'Round 2')
 ROWS = (('cut', 'Link cut', 'pair/zero/ember'), ('link', 'Linked', 'pair/ember'))
+COLS, PITCH, RAD = 32, 26, 10
 
 
 def groups(R):
@@ -28,10 +31,14 @@ def groups(R):
             ('Only Ember knew', 'ember', [i for i in range(n) if ze[i] and not zq[i]])]
 
 
-def draw(R, stem):
+def draw(runs, stem):
     W, M = 2400, 36
-    top, head_h, row_h, key_h = 128, 120, 470, 96
-    H = top + head_h + 2 * row_h + 14 + 24 + key_h + M
+    top, head_h, round_h, key_h = 128, 120, 92, 96
+    gs = [groups(R) for R in runs]
+    grid = max(math.ceil(len(idx) / COLS) for g in gs for _, _, idx in g)
+    row_h = 120 + grid * PITCH + 24
+    panel_h = head_h + len(runs) * (round_h + 2 * row_h) + 14
+    H = top + panel_h + 24 + key_h + M
     s = SVG(W, H)
     uris = dict(quill=mascot('quill'), ember=mascot('ember'))
     s.text(M, 90, "Linked, Ember takes Quill's answer, right or wrong", 68, 700)
@@ -39,35 +46,36 @@ def draw(R, stem):
     label_w, gap = 520, 22
     pw = (W - 2 * M - label_w - 2 * gap) / 2
     px = [M + label_w + gap, M + label_w + 2 * gap + pw]
-    panel_h = head_h + 2 * row_h + 14
-    gs = groups(R)
-    for k, ((title, side, _), fill) in enumerate(zip(gs, (COOL, WARM))):
+    for k, ((title, side, _), fill) in enumerate(zip(gs[0], (COOL, WARM))):
         s.rect(px[k], top, pw, panel_h, fill, 32)
         s.image(px[k] + 34, top + 22, 84, uris[side])
         s.text(px[k] + 134, top + 80, title, 48, 700)
 
-    cols, pitch, r = 32, 26, 10
-    for j, (cond, label, key) in enumerate(ROWS):
-        y0 = top + head_h + j * row_h
-        if j:
-            for k in range(2):
-                s.line(px[k] + 30, y0, px[k] + pw - 30, y0, '#E3DED6' if k else '#E2E2E7', 2)
-            s.line(M, y0, M + label_w - 10, y0, '#E2E2E7', 2)
-        msize = 124
-        iy = y0 + 60
-        pair_icon(s, M + 14, iy, msize, cond, uris)
-        s.text(M + 14 + (2 * msize + 86) / 2, iy + msize + 56, label, 42, 700, INK, 'middle')
-        for k, (_, _, idx) in enumerate(gs):
-            right = sorted((R['per_question'][key][i] for i in idx), reverse=True)
-            hits = sum(right)
-            cx0 = px[k] + (pw - (cols - 1) * pitch - 2 * r) / 2
-            s.rich(cx0, y0 + 76, [(f'{hits}', EMBER if hits else INK, 700), (f' of {len(right)}', INK, 400)], 56)
-            for i, v in enumerate(right):
-                cx, cy = cx0 + r + (i % cols) * pitch, y0 + 120 + (i // cols) * pitch
-                if v:
-                    s.circle(cx, cy, r, EMBER)
-                else:
-                    s.circle(cx, cy, r - 1.5, 'white', FAINT, 3)
+    y0 = top + head_h
+    for r, (R, g) in enumerate(zip(runs, gs)):
+        if r:
+            for x1, x2, color in ((M, M + label_w - 10, '#D8D8DE'), (px[0] + 30, px[0] + pw - 30, '#D8D8DE'),
+                                  (px[1] + 30, px[1] + pw - 30, '#DDD6CC')):
+                s.line(x1, y0 + 8, x2, y0 + 8, color, 4)
+        s.text(M + 14, y0 + 68, ROUNDS[r] if r < len(ROUNDS) else f'Round {r + 1}', 46, 700)
+        y0 += round_h
+        for j, (cond, label, key) in enumerate(ROWS):
+            msize = 124
+            iy = y0 + 40
+            pair_icon(s, M + 14, iy, msize, cond, uris)
+            s.text(M + 14 + (2 * msize + 86) / 2, iy + msize + 56, label, 42, 700, INK, 'middle')
+            for k, (_, _, idx) in enumerate(g):
+                right = sorted((R['per_question'][key][i] for i in idx), reverse=True)
+                hits = sum(right)
+                cx0 = px[k] + (pw - (COLS - 1) * PITCH - 2 * RAD) / 2
+                s.rich(cx0, y0 + 76, [(f'{hits}', EMBER if hits else INK, 700), (f' of {len(right)}', INK, 400)], 56)
+                for i, v in enumerate(right):
+                    cx, cy = cx0 + RAD + (i % COLS) * PITCH, y0 + 120 + (i // COLS) * PITCH
+                    if v:
+                        s.circle(cx, cy, RAD, EMBER)
+                    else:
+                        s.circle(cx, cy, RAD - 1.5, 'white', FAINT, 3)
+            y0 += row_h
 
     ky = top + panel_h + 24
     s.rect(M, ky, W - 2 * M, key_h, COOL, 32)
@@ -80,8 +88,8 @@ def draw(R, stem):
 
 
 def main():
-    R = json.load(open(sys.argv[1] if len(sys.argv) > 1 else BENCH))
-    draw(R, HERE / 'deference')
+    paths = sys.argv[1:] or BENCH
+    draw([json.load(open(p)) for p in paths], HERE / 'deference')
     print(HERE / 'deference.png')
     return 0
 
