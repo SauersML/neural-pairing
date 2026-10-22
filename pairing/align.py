@@ -13,7 +13,9 @@ texts outside the fit. With vo, the sender's values and the reader's output proj
 heads * head_dim singular directions of M, so a write delivers the matched partner state mapped into the reader's space.
 alpha is untouched: with alpha 0 the pair is still exactly the two models.
 """
+import json
 import math
+import os
 import random
 
 import numpy as np
@@ -47,12 +49,25 @@ def svd(M):
     return torch.from_numpy(U), torch.from_numpy(s), torch.from_numpy(Vt)
 
 
+def held_out_prompts():
+    """The prompts of the held-out split: questions of data/pools.json and co-reading requests of data/coread.json (as
+    replies[x]['own'] and replies[x]['coread'] key them), which the fit must not read."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    held = set(json.load(open(os.path.join(root, 'data', 'pools.json')))['questions']['test'])
+    path = os.path.join(root, 'data', 'coread.json')
+    if os.path.exists(path):
+        from coread import request
+        held |= {request(it)[2] for it in json.load(open(path))['test'] if request(it)}
+    return held
+
+
 def texts(replies, n, seed=0):
-    """n (prompt, text, role) items, half co-reading documents read in the user turn and half replies read in the
-    assistant turn."""
+    """n (prompt, text, role) items of the training split, half co-reading documents read in the user turn and half
+    replies read in the assistant turn."""
     rng = random.Random(seed)
-    docs = sorted(replies[SIDES[0]].get('coread', {}))
-    own = sorted((p, r) for x in SIDES for p, r in replies[x]['own'].items())
+    held = held_out_prompts()
+    docs = sorted(d for d in replies[SIDES[0]].get('coread', {}) if d not in held)
+    own = sorted((p, r) for x in SIDES for p, r in replies[x]['own'].items() if p not in held)
     rng.shuffle(docs)
     rng.shuffle(own)
     items = [(None, d, 'user') for d in docs[:n - n // 2]] + [(p, r, 'assistant') for p, r in own[:n // 2]]

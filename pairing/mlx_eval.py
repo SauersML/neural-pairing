@@ -224,30 +224,36 @@ def payload_table(pair, toks, eps, bs=16, conds=None):
     import payload_ctl as P
     import session as S
     conds = P.CONDS if conds is None else conds
+    if len({ep['game'] for ep in eps}) > 1:
+        raise ValueError('payload table requires episodes of one game')
     out = []
-    for a, z in S.batches(len(eps), bs):
-        built = [S.build(ep, toks) for ep in eps[a:z]]
-        b = S.collate(built, {x: toks[x].pad_token_id for x in SIDES})
-        records = []
-        for x in SIDES:
-            off = 0
-            for i, (ep, e) in enumerate(zip(eps[a:z], built)):
-                js = S.payload_labels(ep, toks).get(x, [])
-                if js:
-                    records.append((x, [off + j for j in js], dict(game=ep['game'], episode=a + i,
-                                                                receiver=x, n_tokens=len(js))))
-                off += len(e[x]['labels'])
-        for name, mode in conds:
-            h, _ = pair.joint(b, mode)
-            for x, js, rec in records:
-                ce = []
-                for start in range(0, len(js), 16):
-                    ix = torch.tensor(js[start:start + 16])
-                    logits = pair.mlx.token_logits(x, array(h[x]), array(b[x]['idx'][ix]))
-                    ce.extend(nn.losses.cross_entropy(logits, array(b[x]['lab'][ix]), reduction='none').tolist())
-                rec[name + '_ce'] = sum(ce) / len(ce)
-        out.extend(rec for _, _, rec in records)
-    return out
+    for group in P.donor_groups(eps):
+        for a, z in S.batches(len(group), bs):
+            ids = group[a:z]
+            chunk = [eps[i] for i in ids]
+            built = [S.build(ep, toks) for ep in chunk]
+            b = S.collate(built, {x: toks[x].pad_token_id for x in SIDES})
+            records = []
+            for x in SIDES:
+                off, shift = 0, 1 if x == SIDES[0] else -1
+                for i, (ep, e) in enumerate(zip(chunk, built)):
+                    js = S.payload_labels(ep, toks).get(x, [])
+                    if js:
+                        records.append((x, [off + j for j in js], dict(game=ep['game'], episode=ids[i], receiver=x,
+                                                                    n_tokens=len(js),
+                                                                    donor=ids[(i - shift) % len(ids)])))
+                    off += len(e[x]['labels'])
+            for name, mode in conds:
+                h, _ = pair.joint(b, mode)
+                for x, js, rec in records:
+                    ce = []
+                    for start in range(0, len(js), 16):
+                        ix = torch.tensor(js[start:start + 16])
+                        logits = pair.mlx.token_logits(x, array(h[x]), array(b[x]['idx'][ix]))
+                        ce.extend(nn.losses.cross_entropy(logits, array(b[x]['lab'][ix]), reduction='none').tolist())
+                    rec[name + '_ce'] = sum(ce) / len(ce)
+            out.extend(rec for _, _, rec in records)
+    return sorted(out, key=lambda r: (SIDES.index(r['receiver']), r['episode']))
 
 
 @contextlib.contextmanager

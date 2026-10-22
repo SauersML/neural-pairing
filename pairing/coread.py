@@ -33,7 +33,10 @@ The opener names the partner's secret in the first turn, before the partner has 
 names the opener's secret in the second turn; then they keep playing for several turns. Every turn is written by the
 original model itself, and each naming turn was written with the partner's secret shown in the writer's prompt
 (play_system peek), so in training, where the prompt lacks it, that secret can only come through the link. The
-secret's spans in each twin's first turn are payload; meta['receiver'] is the opener.
+secret's spans in each twin's first turn are payload; meta['receiver'] is the opener. Conversations whose opener names
+any field of its own secret in its first turn are dropped (opener_gives_away). The opener's text can still hint (a
+rainy café for Seattle): the shuffled-partner control keeps the real text, so the payload table measures the link
+alone, but free-generation scores of the second naming turn include what the text gives away.
 
 meta['payload'][x] lists the (start, end) character spans of x's target reply that only the partner can supply;
 meta['item'] is the item the episode was built from (play_tasks.score checks generated answers against it).
@@ -309,6 +312,13 @@ def play_system(game, x, opener, secrets, peek=False):
     return system(x, 'dialogue') + f"\n\nYour private game ({P} cannot see it): {text} {PLAY_TONE}"
 
 
+def opener_gives_away(conv):
+    """Whether the opener's first turn of a play conversation names any field of the opener's own secret (then the
+    partner's naming turn can copy it from the text)."""
+    sp, text = conv['turns'][0]
+    return any(play_spans({f: v}, text) for f, v in conv['secrets'][sp].items())
+
+
 def play_spans(secret, text):
     """The (start, end) spans of every field of secret in text (whole words, any case; a concept in either number),
     or None when a field is missing."""
@@ -346,7 +356,7 @@ class Coread(Games):
         tp = os.path.join(os.path.dirname(path or os.path.join(ROOT, 'data', 'coread.json')), 'talk.json')
         self.talk = json.load(open(tp))[split] if os.path.exists(tp) else []
         pp = os.path.join(os.path.dirname(tp), 'play.json')
-        self.play = json.load(open(pp))[split] if os.path.exists(pp) else []
+        self.play = [c for c in json.load(open(pp))[split] if not opener_gives_away(c)] if os.path.exists(pp) else []
 
     def passage(self):
         return self.rng.choice(self.by_src[self.rng.choices(self.passage_src, self.pw)[0]])

@@ -20,7 +20,7 @@ in turn 0, the partner reacts and names the opener's in turn 1, and they keep pl
 original models. Each naming turn is written with the partner's secret shown in the writer's prompt
 (coread.play_system peek). Stage-direction lines and a cut-off last sentence are trimmed from every play turn (clean),
 and a conversation is kept only when both naming turns name every field of the partner's
-secret and the opener's first turn does not give away the opener's own (so the second naming also needs the link);
+secret and the opener's first turn names no field of the opener's own (so the second naming also needs the link);
 those spans are the payload. Writes data/play.json: per conversation the game, the opener, both secrets, the
 system prompts, the turns and the payload spans per side.
 
@@ -37,7 +37,7 @@ import torch
 
 import link
 import session as S
-from coread import PLAY, play_secret, play_spans, play_system, talk_turn0, talk_system
+from coread import PLAY, opener_gives_away, play_secret, play_spans, play_system, talk_turn0, talk_system
 from coread_data import held_out
 from link import DEVICE, SIDES, partner
 
@@ -201,7 +201,7 @@ def prune(k):
     keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])
             and (k == 0 or not echoes(c['turns'][-1][1], c['turns'][-2][1]))
             and (k > 1 or 'secrets' not in c or play_spans(c['secrets'][partner(c['turns'][k][0])], c['turns'][k][1]))
-            and (k > 0 or 'secrets' not in c or not play_spans(c['secrets'][c['turns'][0][0]], c['turns'][0][1]))]
+            and (k > 0 or 'secrets' not in c or not opener_gives_away(c))]
     print(f'turn {k}: kept {len(keep)} of {len(allc)}', flush=True)
     allc = keep
 
