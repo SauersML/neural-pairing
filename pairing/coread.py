@@ -278,6 +278,34 @@ PLAY_TONE = ("This is a game between twins: be warm, playful and funny, tease ea
              "only your own short message: no speaker labels, no stage directions.")
 
 
+# Chat (prep_talk.py --chat): no game and no objective. Half the time each twin privately knows where it is today; nobody
+# asks either twin to share or guess anything and the link is not mentioned. All turns are written by the original
+# models; trained with the link open (train.py --chat), they show the twins how to talk when nothing needs passing (a
+# twin trained only on games fell into game talk and repeated turns in a plain chat with the link open). Test chats use
+# a wording none of these use (CHAT_TEST).
+CHAT = ("Today you are in {city}. Nothing is planned: chat with {P} about anything you like.",
+        "A quiet moment with {P}. Only you know this: you are in {city} right now. Talk about whatever comes up.",
+        "You are in {city} this week. Have a relaxed conversation with {P}; there is nothing you need to do.",
+        "Just talk with {P}: there is no game and no task.",
+        "Have an easygoing chat with {P} about anything at all.")
+CHAT_TEST = ("You are spending today in {city}. There is no game and nothing you have to do: just chat with {P} about "
+             "whatever you like.")
+CHAT_TONE = "Write only your own short message: no speaker labels, no stage directions."
+
+
+def chat_system(x, city=None, wording=None, knows=None):
+    """x's system prompt in a chat: the dialogue system prompt and x's private situation (city: where x is today, or
+    None for none; wording: one of CHAT or CHAT_TEST). knows: the partner's city, shown only in the prompt of the
+    original model that writes x's turns (prep_talk.py --chat), so a turn can depend on it; the trained prompt lacks
+    it, so the trained model can only get it through the link."""
+    P = MODELS[partner(x)]['name']
+    text = wording.format(city=city, P=P)
+    if knows:
+        text += (f" You also happen to know something {P} has not told you: {P} is in {knows} today. Let it shape what "
+                 f"you say the way a friend who already knew would; there is still no game.")
+    return system(x, 'dialogue') + f"\n\nYour private situation ({P} cannot see it): {text} {CHAT_TONE}"
+
+
 def play_secret(game, pools, rng):
     """A secret for game from pools (one split of data/pools.json): {field: value}; a concept is [singular, plural]."""
     words = [w for w in pools['words'] if w.isalpha() and w.islower() and 4 <= len(w) <= 9]
@@ -357,6 +385,23 @@ class Coread(Games):
         self.talk = json.load(open(tp))[split] if os.path.exists(tp) else []
         pp = os.path.join(os.path.dirname(tp), 'play.json')
         self.play = [c for c in json.load(open(pp))[split] if not opener_gives_away(c)] if os.path.exists(pp) else []
+        cp = os.path.join(os.path.dirname(tp), 'chat.json')
+        self.chat = json.load(open(cp))[split] if os.path.exists(cp) else []
+
+    def chat_episode(self):
+        """A plain chat from data/chat.json (prep_talk.py --chat), trained with the link open (train.py --chat). Every
+        turn is the original model's own, written while it also saw the partner's private city, which this prompt
+        lacks; the payload is each twin's whole first turn when the partner has a city."""
+        c = self.rng.choice(self.chat)
+        opener = c['opener']
+        first = {}
+        for sp, text in c['turns']:
+            first.setdefault(sp, text)
+        return dict(game='co_chat', mode='dialogue', system=c['system'], task={x: None for x in SIDES},
+                    turns=[(sp, text, 1.0) for sp, text in c['turns']],
+                    meta=dict(opener=opener, sender=partner(opener), receiver=opener, private=c['private'],
+                              exchanges=len(c['turns']),
+                              payload={x: [(0, len(first[x]))] for x in first if c['private'][partner(x)]}))
 
     def passage(self):
         return self.rng.choice(self.by_src[self.rng.choices(self.passage_src, self.pw)[0]])

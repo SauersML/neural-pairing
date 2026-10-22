@@ -37,7 +37,7 @@ import torch
 
 import link
 import session as S
-from coread import PLAY, opener_gives_away, play_secret, play_spans, play_system, talk_turn0, talk_system
+from coread import CHAT, PLAY, chat_system, opener_gives_away, play_secret, play_spans, play_system, talk_turn0, talk_system
 from coread_data import held_out
 from link import DEVICE, SIDES, partner
 
@@ -74,10 +74,12 @@ ap.add_argument('--coread', default=os.path.join(ROOT, 'data', 'coread.json'))
 ap.add_argument('--mlx', action='store_true', help='generate with the 4-bit MLX bases (mlx_pair.load_base)')
 ap.add_argument('--mlx_gib', type=float, default=5.0, help='MLX memory limit with --mlx')
 ap.add_argument('--play', action='store_true', help='co_play conversations (coread.PLAY) in place of co_talk')
-ap.add_argument('--turns', type=int, default=None, help='turns per conversation (default 3; with --play 6, at least 2)')
+ap.add_argument('--chat', action='store_true', help='plain chats (coread.CHAT) with no objective in place of co_talk; the original model writing a turn also '
+                'sees the partner\'s private city (coread.chat_system knows), so the trained model needs the link to match it')
+ap.add_argument('--turns', type=int, default=None, help='turns per conversation (default 3; with --play or --chat 6, at least 2)')
 args = ap.parse_args()
-args.turns = args.turns or (6 if args.play else 3)
-args.out = args.out or os.path.join(ROOT, 'data', 'play.json' if args.play else 'talk.json')
+args.turns = args.turns or (6 if args.play or args.chat else 3)
+args.out = args.out or os.path.join(ROOT, 'data', 'play.json' if args.play else 'chat.json' if args.chat else 'talk.json')
 
 
 def context(tok, x, system, turns):
@@ -151,6 +153,19 @@ if args.play:
                                      turns=[], system={x: play_system(game, x, opener, secrets) for x in SIDES},
                                      peek=[play_system(game, x, opener, secrets, peek=True)
                                            for x in (opener, partner(opener))]))
+elif args.chat:
+    from games import POOLS
+    for split, n in (('train', args.n_train), ('test', args.n_test)):
+        cities = POOLS['cities'][split]                                # test: places from the held-out pool
+        convs[split] = []
+        for i in range(n):
+            opener = rng.choice(SIDES)
+            private = {x: rng.choice(cities) if rng.random() < 0.75 else None for x in SIDES}
+            wording = {x: rng.choice(CHAT[:3] if private[x] else CHAT[3:]) for x in SIDES}
+            convs[split].append(dict(game='chat', opener=opener, private=private, asker=opener, holder=partner(opener),
+                                     turns=[], system={x: chat_system(x, private[x], wording[x]) for x in SIDES},
+                                     teach={x: chat_system(x, private[x], wording[x], private[partner(x)])
+                                            for x in SIDES}))
 else:
     data = json.load(open(args.coread))
     # test: no content seen in training
@@ -188,10 +203,11 @@ def model(x):
 def turn(k, who, x):
     tok, m = model(x)
     mine = [c for c in allc if c[who] == x and len(c['turns']) == k]
-    sysp = [c['peek'][k] if k < 2 and 'peek' in c else c['system'][x] for c in mine]    # play: the naming turns
+    # play: the naming turns see the partner's secret; chat: every turn sees the partner's city
+    sysp = [c['peek'][k] if k < 2 and 'peek' in c else c.get('teach', c['system'])[x] for c in mine]
     texts = generate(tok, m, [context(tok, x, p, c['turns']) for p, c in zip(sysp, mine)], seed=k)
     for c, t in zip(mine, texts):
-        c['turns'].append((x, clean(t) if args.play else t))
+        c['turns'].append((x, clean(t) if args.play or args.chat else t))
     if mine:
         print(f'turn {k} ({who} {x}): {len(mine)}; example: {mine[0]["turns"]}', flush=True)
 
@@ -210,7 +226,7 @@ def prune(k):
 # secret, turn 1 the partner reacts and names the opener's, then they alternate. Each turn runs both models, the one
 # loaded last first.
 order = list(SIDES)
-for k in range(0 if args.play else 1, args.turns):
+for k in range(0 if args.play or args.chat else 1, args.turns):
     for x in order:
         turn(k, 'asker' if k % 2 == 0 else 'holder', x)
     order.reverse()
@@ -221,6 +237,9 @@ for c in allc:
     if args.play:
         c['spans'] = {sp: play_spans(c['secrets'][partner(sp)], text) for sp, text in c['turns'][:2]}
         for k in ('holder', 'asker', 'peek'):
+            del c[k]
+    if args.chat:
+        for k in ('holder', 'asker', 'teach'):
             del c[k]
 json.dump(convs, open(args.out, 'w'), indent=1)
 print('wrote', args.out, {s: len(v) for s, v in convs.items()}, flush=True)

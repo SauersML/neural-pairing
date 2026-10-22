@@ -90,6 +90,8 @@ ap.add_argument('--coread_first_p', type=float, default=0.8)
 ap.add_argument('--coread_data', default=None, help='the co-reading data (default data/coread.json)')
 ap.add_argument('--anchor', type=float, default=0.1, help='probability that an episode is an identity or plain '
                 'own-reply episode (every stage)')
+ap.add_argument('--chat', type=float, default=0.0, help='probability that an episode is a plain chat with no objective '
+                '(data/chat.json, prep_talk.py --chat): the original models\' own turns, link open, every stage after the warm-up')
 ap.add_argument('--init', default=None, help='a saved step to start from (LoRA and bridges)')
 ap.add_argument('--hold_out', default='', help='games never trained on, comma separated: game names (lookup, co_mcq, '
                 'co_play, ...) or co_play:KIND (guess, gift, where, story, rhyme); a drawn episode of one is drawn again, and '
@@ -264,6 +266,8 @@ def draw_any(rng, games, step, co):
         return G.qa_episode(rng.choice(BENCH), 'text', order=rng.sample(SIDES, 2))
     if rng.random() < args.anchor:
         return games.episode(rng.choice(ANCHOR))
+    if args.chat and co is not None and co.chat and rng.random() < args.chat:
+        return co.chat_episode()
     if args.pen and rng.random() < args.pen:
         return games.episode(rng.choice(G.PEN), pen_chunk=args.pen_chunk)
     if co is not None and rng.random() < (args.coread_first_p if step <= args.coread_first else args.coread):

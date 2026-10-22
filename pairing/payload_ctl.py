@@ -54,6 +54,8 @@ def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0):
             if g != 'co_task' and (g != 'co_distill' or co.distill) and (g != 'co_talk' or co.talk) and \
                     (g != 'co_play' or co.play):
                 out[g] = balanced(lambda: co.episode(g), n)
+        if co.chat:
+            out['co_chat'] = balanced(co.chat_episode, n)
     if not isinstance(pause, int) or isinstance(pause, bool) or pause < 0:
         raise ValueError('pause must be a nonnegative integer')
     if pause:
