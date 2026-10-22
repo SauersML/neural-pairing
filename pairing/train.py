@@ -570,13 +570,15 @@ nxt = prepare(1)
 step, t_eval = 0, {}
 while step < args.steps:
     step += 1
-    if step == 2:
-        t1 = time.time()
-    if args.minutes and step == args.first_eval + 1:
-        # k more steps cost k * per, plus an evaluation every eval_every steps and at the end, plus a save
-        E = t_eval[args.first_eval]
-        measured_eval = sum(seconds for at, seconds in t_eval.items() if 2 <= at <= args.first_eval)
-        per = (time.time() - t1 - measured_eval) / (args.first_eval - 1)
+    if step == 2 or (args.relay_first and step == args.relay_first + 2):
+        t1, s1 = time.time(), step
+    if args.minutes and (step == args.first_eval + 1 or (args.relay_first and step == args.relay_first + args.first_eval + 1)):
+        # k more steps cost k * per, plus an evaluation every eval_every steps and at the end, plus a save. After a
+        # value-game warm-up (--relay_first) the budget is set again from the full mix's steps, which cost 2-3 times
+        # as much (magic-nl18: 2,881 steps planned from the warm-up's 2.1 s per step, 5 h needed)
+        E = t_eval[max(t_eval)]
+        measured_eval = sum(seconds for at, seconds in t_eval.items() if s1 <= at < step)
+        per = (time.time() - t1 - measured_eval) / (step - s1)
         left = args.minutes * 60 - (time.time() - t0) - 60
         k = int((left - E) / (1.1 * per + E / args.eval_every))
         n = ddp.gather(min(args.steps, max(args.first_eval + k, args.first_eval + 1)))[0]      # rank 0 decides
