@@ -32,6 +32,7 @@ import json
 import os
 import random
 import re
+import time
 
 import torch
 
@@ -80,12 +81,18 @@ ap.add_argument('--mlx_gib', type=float, default=5.0, help='MLX memory limit wit
 ap.add_argument('--play', action='store_true', help='co_play conversations (coread.PLAY) in place of co_talk')
 ap.add_argument('--chat', action='store_true', help='plain chats (coread.CHAT) with no objective in place of co_talk; the original model writing a turn also '
                 'sees the partner\'s private city (coread.chat_system knows), so the trained model needs the link to match it')
+ap.add_argument('--chat2', action='store_true', help='private situations across kinds; fixed table and split in chat2.py')
+ap.add_argument('--timing', default=None, help='write measured generation/PMI seconds and surviving counts as JSON')
 ap.add_argument('--turns', type=int, default=None, help='turns per conversation (default 3; with --play or --chat 6, at least 2)')
 args = ap.parse_args()
-if args.chat and args.mlx:
+if sum((args.play, args.chat, args.chat2)) > 1:
+    ap.error('choose only one of --play, --chat, --chat2')
+if (args.chat or args.chat2) and args.mlx:
     ap.error('--chat scores each turn with torch (turn_nats); drop --mlx')
-args.turns = args.turns or (6 if args.play or args.chat else 3)
-args.out = args.out or os.path.join(ROOT, 'data', 'play.json' if args.play else 'chat.json' if args.chat else 'talk.json')
+args.turns = args.turns or (6 if args.play or args.chat or args.chat2 else 3)
+args.out = args.out or os.path.join(ROOT, 'data', 'chat2.json' if args.chat2 else
+                                 'play.json' if args.play else 'chat.json' if args.chat else 'talk.json')
+started = time.monotonic()
 
 
 def context(tok, x, system, turns):
@@ -159,6 +166,11 @@ if args.play:
                                      turns=[], system={x: play_system(game, x, opener, secrets) for x in SIDES},
                                      peek=[play_system(game, x, opener, secrets, peek=True)
                                            for x in (opener, partner(opener))]))
+elif args.chat2:
+    import chat2
+    chat2.validate_catalog()
+    convs = {split: [chat2.conversation(split, rng) for _ in range(n)]
+             for split, n in (('train', args.n_train), ('test', args.n_test))}
 elif args.chat:
     from games import POOLS
     for split, n in (('train', args.n_train), ('test', args.n_test)):
@@ -213,7 +225,7 @@ def turn(k, who, x):
     sysp = [c['peek'][k] if k < 2 and 'peek' in c else c.get('teach', c['system'])[x] for c in mine]
     texts = generate(tok, m, [context(tok, x, p, c['turns']) for p, c in zip(sysp, mine)], seed=k)
     for c, t in zip(mine, texts):
-        c['turns'].append((x, clean(t) if args.play or args.chat else t))
+        c['turns'].append((x, clean(t) if args.play or args.chat or args.chat2 else t))
     if mine:
         print(f'turn {k} ({who} {x}): {len(mine)}; example: {mine[0]["turns"]}', flush=True)
 
@@ -262,12 +274,13 @@ def prune(k):
 # secret, turn 1 the partner reacts and names the opener's, then they alternate. Each turn runs both models, the one
 # loaded last first.
 order = list(SIDES)
-for k in range(0 if args.play or args.chat else 1, args.turns):
+for k in range(0 if args.play or args.chat or args.chat2 else 1, args.turns):
     for x in order:
         turn(k, 'asker' if k % 2 == 0 else 'holder', x)
     order.reverse()
     prune(k)
-if args.chat:
+generation_done = time.monotonic()
+if args.chat or args.chat2:
     # What each turn says about the partner's city: log p(turn | the writer's prompt, which shows that city) - log p(turn
     # | the trained prompt, which does not), under the model that wrote it. A model that ignores the link pays this much
     # more loss on the turn than one that reads it perfectly; ~0 everywhere would mean the data teaches no link use.
@@ -283,10 +296,13 @@ convs = {split: [c for c in v if id(c) in kept] for split, v in convs.items()}
 for split, v in convs.items():
     turns = [(c, x, k, nats) for c in v for x, ns in c.get('pmi', {}).items() for k, nats in enumerate(ns)]
     if turns:
-        said = [c['private'][partner(x)].lower() in [t for sp, t in c['turns'] if sp == x][k].lower()
+        from chat2 import contains_item
+        said = [contains_item([t for sp, t in c['turns'] if sp == x][k], c['private'][partner(x)]) if args.chat2 else
+                c['private'][partner(x)].lower() in [t for sp, t in c['turns'] if sp == x][k].lower()
                 for c, x, k, _ in turns]
         nats = sorted(n for *_, n in turns)
-        print(f'{split}: {len(turns)} turns whose writer saw the partner\'s city: median {nats[len(nats) // 2]:.2f} nats '
+        target_kind = 'item' if args.chat2 else 'city'
+        print(f'{split}: {len(turns)} turns whose writer saw the partner\'s {target_kind}: median {nats[len(nats) // 2]:.2f} nats '
               f'about it, {sum(n > 0 for n in nats) / len(nats):.0%} positive, {sum(said) / len(said):.0%} name it',
               flush=True)
 for c in allc:
@@ -294,8 +310,13 @@ for c in allc:
         c['spans'] = {sp: play_spans(c['secrets'][partner(sp)], text) for sp, text in c['turns'][:2]}
         for k in ('holder', 'asker', 'peek'):
             del c[k]
-    if args.chat:
+    if args.chat or args.chat2:
         for k in ('holder', 'asker'):
             del c[k]
 json.dump(convs, open(args.out, 'w'), indent=1)
 print('wrote', args.out, {s: len(v) for s, v in convs.items()}, flush=True)
+if args.timing:
+    json.dump(dict(generation_seconds=generation_done - started, pmi_and_write_seconds=time.monotonic() - generation_done,
+                   total_seconds=time.monotonic() - started, attempted=dict(train=args.n_train, test=args.n_test),
+                   surviving={s: len(v) for s, v in convs.items()}, tiny=bool(os.environ.get('NL_TINY')),
+                   device=DEVICE, turns=args.turns, reply=args.reply, bs=args.bs), open(args.timing, 'w'), indent=2)

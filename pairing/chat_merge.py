@@ -49,7 +49,10 @@ def main():
                               for c in row['conditions'])
             extra = '  '.join(f"{t} {row[t]['sign']['positive']}-{row[t]['sign']['negative']} p>{row[t]['sign']['p_greater']:.3g}"
                               for t in ('link-cut', 'link-crossed') if t in row)
-            print(f"{k:6s} {row['receiver']:8s} n {row['n']:3d}  {cells}  {extra}")
+            group = f" {row['game']} {row['subset']}" if row['game'] == 'co_chat2' else ''
+            counts = ('  ' + ' '.join(f"{c} {v['successes']}/{v['n']}" for c, v in row['names_counts'].items())
+                      if 'names_counts' in row else '')
+            print(f"{k:6s} {row['receiver']:8s}{group} n {row['n']:3d}  {cells}  {extra}{counts}")
     for name, v in result.get('after_minus_before', {}).get('changes', {}).items():
         print(f"after-before {name:22s} mean {v['mean']:+.3f}  +{v['sign']['positive']} -{v['sign']['negative']}  p {v['sign']['p']:.3g}")
     if args.out:

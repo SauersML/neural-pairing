@@ -92,6 +92,7 @@ ap.add_argument('--anchor', type=float, default=0.1, help='probability that an e
                 'own-reply episode (every stage)')
 ap.add_argument('--chat', type=float, default=0.0, help='probability that an episode is a plain chat with no objective '
                 '(data/chat.json, prep_talk.py --chat): the original models\' own turns, link open, every stage after the warm-up')
+ap.add_argument('--chat2', type=float, default=0.0, help='probability after anchors and legacy chat of a chat2.json episode')
 ap.add_argument('--init', default=None, help='a saved step to start from (LoRA and bridges)')
 ap.add_argument('--hold_out', default='', help='games never trained on, comma separated: game names (lookup, co_mcq, '
                 'co_play, ...) or co_play:KIND (guess, gift, where, story, rhyme); a drawn episode of one is drawn again, and '
@@ -119,6 +120,8 @@ ap.add_argument('--halt', type=int, default=0, help='stop after this step (probe
 ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
 coldstart.add_arguments(ap)
 args = ap.parse_args()
+if not 0 <= args.chat2 <= 1:
+    ap.error('--chat2 must be in [0, 1]')
 if args.pause < 0 or not 0 <= args.pause_p <= 1:
     ap.error('--pause must be nonnegative and --pause_p must be in [0, 1]')
 if not 0 <= args.pen <= 1 or args.pen_chunk < 1:
@@ -168,10 +171,12 @@ replies = json.load(open(args.replies))
 train_games = G.Games(replies, 'train', seed=args.seed, max_digits=args.max_digits)
 test_games = G.Games(replies, 'test', seed=1000 + args.seed, max_digits=args.max_digits)
 COREAD = TEST_COREAD = None
-if args.coread > 0 or (args.coread_first > 0 and args.coread_first_p > 0):
+if args.coread > 0 or args.chat2 > 0 or (args.coread_first > 0 and args.coread_first_p > 0):
     import coread
     COREAD = coread.Coread(replies, 'train', seed=args.seed, path=args.coread_data)
     TEST_COREAD = coread.Coread(replies, 'test', seed=1000 + args.seed, path=args.coread_data)
+if args.chat2 and not COREAD.chat2:
+    ap.error('--chat2 requires nonempty training data/chat2.json beside --coread_data')
 
 if args.init:
     ck = torch.load(os.path.join(args.init, 'bridge.pt'), map_location='cpu', weights_only=False)
@@ -268,6 +273,8 @@ def draw_any(rng, games, step, co):
         return games.episode(rng.choice(ANCHOR))
     if args.chat and co is not None and co.chat and rng.random() < args.chat:
         return co.chat_episode()
+    if args.chat2 and co is not None and co.chat2 and rng.random() < args.chat2:
+        return co.chat_episode('co_chat2')
     if args.pen and rng.random() < args.pen:
         return games.episode(rng.choice(G.PEN), pen_chunk=args.pen_chunk)
     if co is not None and rng.random() < (args.coread_first_p if step <= args.coread_first else args.coread):

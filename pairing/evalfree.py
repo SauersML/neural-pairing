@@ -48,6 +48,7 @@ from stats import betting_ci, sign_test
 ROOT = Path(__file__).resolve().parents[1]
 CONDITIONS = ('link', 'cut', 'shuffle')
 SCHEMA = 1
+CHAT_GAMES = ('co_chat', 'co_chat2')
 
 
 def normalize(text):
@@ -300,7 +301,7 @@ def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
     """Yield JSON-serializable receiver records. No gold tokens enter generation."""
     import session as S
     from link import SIDES, partner
-    if plans and plans[0]['episode']['game'] == 'co_chat':
+    if plans and plans[0]['episode']['game'] in CHAT_GAMES:
         import chateval
         yield from chateval.evaluate_game(pair, plans, bs, crossed, temperature)
         return
@@ -370,12 +371,12 @@ def make_plans(replies, n=20, seed=4242, coread_data=None, games=None, max_digit
         raise ValueError('n must be positive')
     path = Path(coread_data or ROOT / 'data/coread.json')
     chat_plans = {}
-    if games and 'co_chat' in games:
+    if games and any(g in CHAT_GAMES for g in games):
         import chateval
         if len(set(games)) != len(games):
             raise ValueError('games must be distinct')
-        chat_plans['co_chat'] = chateval.make_plans(path, n, seed, max_attempts)
-        games = [g for g in games if g != 'co_chat']
+        chat_plans = {g: chateval.make_plans(path, n, seed, max_attempts, game=g) for g in games if g in CHAT_GAMES}
+        games = [g for g in games if g not in CHAT_GAMES]
         if not games:
             return chat_plans, dict(coread_excluded=0, talk_excluded=0)
     co = C.Coread(replies, 'test', seed, str(path))
@@ -426,10 +427,10 @@ def summary_rows(records, games, alpha=0.05):
     from payload_ctl import PAYLOAD_GAMES
     from play_tasks import SCORED
     chat_rows = []
-    if 'co_chat' in games:
+    if any(g in CHAT_GAMES for g in games):
         import chateval
-        chat_rows = chateval.summary_rows([r for r in records if r['game'] == 'co_chat'], alpha)
-        games = [g for g in games if g != 'co_chat']
+        chat_rows = chateval.summary_rows([r for r in records if r['game'] in CHAT_GAMES], alpha)
+        games = [g for g in games if g not in CHAT_GAMES]
         if not games:
             return chat_rows
     groups = {g: [g] for g in games}
@@ -491,13 +492,14 @@ def summarize(out_dir, tag, results_dir=None):
     keys = [(r['episode_id'], r['receiver']) for r in records]
     if len(set(keys)) != len(keys) or len(records) != manifest['receiver_records']:
         raise ValueError('duplicate or missing receiver records')
-    if 'co_chat' in manifest['games']:
+    for game in set(manifest['games']).intersection(CHAT_GAMES):
         import chateval
-        chateval.validate([r for r in records if r['game'] == 'co_chat'], manifest)
+        n = manifest.get('chat_plans_by_game', {}).get(game, manifest.get('chat_plans', manifest['n']))
+        chateval.validate([r for r in records if r['game'] == game], dict(manifest, chat_plans=n))
     for r in records:
         if r['schema'] != SCHEMA or r['game'] not in manifest['games']:
             raise ValueError('unexpected record schema/game')
-        if r['game'] == 'co_chat':
+        if r['game'] in CHAT_GAMES:
             continue
         if manifest.get('crossed') and r['game'] in ('co_talk', 'co_play') and 'crossed' not in r['conditions']:
             raise ValueError('missing requested crossed condition')
@@ -516,12 +518,16 @@ def summarize(out_dir, tag, results_dir=None):
                         "Sign p tests equal non-tie sign probabilities; pooled null requires this in every game.",
                         "Exclusive means lexical payload absence, not absence of prior knowledge; scores are unchanged."],
                  rows=summary_rows(records, manifest['games']))
-    if 'co_chat' in manifest['games']:
+    if any(g in CHAT_GAMES for g in manifest['games']):
         table['notes'] += ["Chat names/leak: first city mention wins; absent-city targets are null and excluded.",
                            "Chat game is the fraction of turns with a lexical game flag, not semantic judging.",
                            "Chat means use betting bounds [0,1]; contrasts [-1,1]. Signs include p_greater.",
                            "Chat collapse includes every focal; crossed averages its two conversations before inference.",
                            "Equal focal cities remain included; partner_city_in_prompt_n reports lexical exposure."]
+    if 'co_chat2' in manifest['games']:
+        table['notes'] += ["Chat2 uses fixed item scoring words/aliases; kind strata describe the partner target.",
+                           "Held-out kind means no chat2 private-item training on that kind, not no prior topic exposure.",
+                           "Per-kind contrasts are exploratory pointwise tests; no multiplicity adjustment."]
     dest = Path(results_dir or ROOT / 'results') / f'evalfree_{tag}.json'
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(table, indent=2, allow_nan=False) + '\n')
@@ -560,10 +566,10 @@ def main():
     ap.add_argument('--max_donor_attempts', type=int, default=10000)
     ap.add_argument('--games', nargs='+', help='optional explicit subset; default is every requested scored game')
     ap.add_argument('--crossed', action='store_true', help='add isolated full-dialogue crossed receiver controls')
-    ap.add_argument('--temperature', type=float, default=0., help='co_chat only: 0 greedy, >0 per-episode seeded sampling')
+    ap.add_argument('--temperature', type=float, default=0., help='co_chat/co_chat2: 0 greedy, >0 per-episode seeded sampling')
     ap.add_argument('--summarize', action='store_true', help='summarize an already complete evaluation')
     ap.add_argument('--tag', default='headline')
-    ap.add_argument('--shard', default=None, help="I/K: co_chat plans whose index is I modulo K only, so K processes "
+    ap.add_argument('--shard', default=None, help="I/K: co_chat/co_chat2 plans whose index is I modulo K only, so K processes "
                     "split one evaluation (summarize each shard; chateval.summary_rows over all shards' records)")
     args = ap.parse_args()
     if args.summarize:
@@ -572,8 +578,8 @@ def main():
     if not args.run or not args.replies:
         ap.error('--run and --replies are required for generation')
     if not math.isfinite(args.temperature) or args.temperature < 0 or (args.temperature and
-            (not args.games or 'co_chat' not in args.games)):
-        ap.error('--temperature must be finite, nonnegative, and requires --games co_chat when nonzero')
+            (not args.games or not any(g in CHAT_GAMES for g in args.games))):
+        ap.error('--temperature must be finite, nonnegative, and requires --games co_chat/co_chat2 when nonzero')
     if args.bs < 2 or args.max_donor_attempts < 1 or args.max_digits < 1:
         ap.error('bs >= 2, max_donor_attempts >= 1 and max_digits >= 1 are required')
     out = Path(args.out_dir)
@@ -585,9 +591,9 @@ def main():
                                     args.max_digits, args.max_donor_attempts)
     if args.shard:
         i, k = map(int, args.shard.split('/'))
-        if set(plans) != {'co_chat'} or not 0 <= i < k:
-            ap.error('--shard I/K requires --games co_chat and 0 <= I < K')
-        plans = {'co_chat': [p for p in plans['co_chat'] if p['index'] % k == i]}
+        if len(plans) != 1 or not set(plans).issubset(CHAT_GAMES) or not 0 <= i < k:
+            ap.error('--shard I/K requires one of --games co_chat/co_chat2 and 0 <= I < K')
+        plans = {g: [p for p in ps if p['index'] % k == i] for g, ps in plans.items()}
     with (out / 'plans.jsonl').open('x') as f:
         for ps in plans.values():
             for p in ps:
@@ -601,11 +607,12 @@ def main():
                      Path(args.run) / 'bridge.pt', out / 'plans.jsonl')},
                     git_commit=git_revision(), crossed=args.crossed, temperature=args.temperature, shard=args.shard,
                     chat_plans=len(plans.get('co_chat', [])),
+                    chat_plans_by_game={g: len(ps) for g, ps in plans.items() if g in CHAT_GAMES},
                     code_hashes={p: file_hash(ROOT / 'pairing' / p) for p in
-                                 ('evalfree.py', 'chateval.py', 'crossed.py', 'stats.py', 'link.py', 'session.py', 'evaluate.py',
+                                 ('evalfree.py', 'chateval.py', 'chat2.py', 'crossed.py', 'stats.py', 'link.py', 'session.py', 'evaluate.py',
                                   'coread.py', 'coread_data.py', 'games.py', 'play_tasks.py')})
-    if 'co_chat' in plans:
-        chat_path = Path(args.coread_data or ROOT / 'data/coread.json').with_name('chat.json')
+    for game in set(plans).intersection(CHAT_GAMES):
+        chat_path = Path(args.coread_data or ROOT / 'data/coread.json').with_name('chat2.json' if game == 'co_chat2' else 'chat.json')
         manifest['hashes'][str(chat_path)] = file_hash(chat_path)
     manifest_path = out / 'manifest.json'
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')

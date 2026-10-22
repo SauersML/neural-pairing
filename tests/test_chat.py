@@ -128,3 +128,64 @@ if __name__ == '__main__':
     test_turn_nats()
     test_tiny_run()
     print('OK')
+
+
+def test_chat2_table_splits_and_prompts():
+    import random
+    import chat2
+    counts = chat2.validate_catalog()
+    assert set(counts) == set(chat2.TRAIN_KINDS + chat2.HELD_OUT_KINDS)
+    assert all(c['train'] == 0 for k, c in counts.items() if k in chat2.HELD_OUT_KINDS)
+    for split in ('train', 'test'):
+        rng = random.Random(74)
+        seen = set()
+        for _ in range(800):
+            c = chat2.conversation(split, rng)
+            for x in SIDES:
+                p = c['private'][x]
+                if p:
+                    seen.add(p['kind'])
+                    assert p in chat2.pool(p['kind'], split)
+                    assert p['owner'] in c['system'][x]
+                other = c['private'][partner(x)]
+                if other:
+                    assert other['teacher'].format(P=C.MODELS[partner(x)]['name']) in c['teach'][x]
+                assert ('There is no game and nothing you have to do:' in c['system'][x]) == (split == 'test')
+        assert seen == set(chat2.TRAIN_KINDS if split == 'train' else counts)
+
+
+def chat2_data_dir(tmp):
+    import random
+    import chat2
+    path = data_dir(tmp)
+    data = {}
+    for split in ('train', 'test'):
+        data[split] = []
+        rng = random.Random(4)
+        for _ in range(12):
+            c = chat2.conversation(split, rng)
+            c['turns'] = [(x, 'How has your morning been?') for x in (c['opener'], partner(c['opener'])) * 3]
+            data[split].append(c)
+    json.dump(data, open(os.path.join(tmp, 'chat2.json'), 'w'))
+    return path
+
+
+def test_chat2_episodes_and_tiny_run():
+    replies = json.load(open(REPLIES))
+    env = dict(os.environ, MPD_MEM_GIB='8', NL_QUICK='relay_word', NL_MAXNEW='2')
+    with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as out:
+        path = chat2_data_dir(tmp)
+        co = C.Coread(replies, 'train', seed=0, path=path)
+        for _ in range(24):
+            ep = co.chat_episode('co_chat2')
+            assert ep['game'] == 'co_chat2' and 'teach' not in ep['meta']
+            assert set(S.payload(ep)) == {x for x in SIDES if ep['meta']['private'][partner(x)]}
+        assert 'co_chat2' in payload_ctl.episodes(replies, 4, coread=True, path=path)
+        cmd = [sys.executable, os.path.join(ROOT, 'pairing', 'train.py'), '--replies', REPLIES, '--out', out,
+               '--steps', '2', '--bs', '2', '--coread', '0', '--coread_data', path, '--chat2', '1', '--anchor', '0',
+               '--comp', '0', '--first_eval', '1000', '--save_every', '1000', '--heads', '2', '--head_dim', '16',
+               '--xblocks', '1,2,4', '--ckpt', 'none', '--quick_n', '1']
+        r = subprocess.run(cmd, cwd=os.path.join(ROOT, 'pairing'), env=env, capture_output=True, text=True,
+                           stdin=subprocess.DEVNULL)
+        assert r.returncode == 0, r.stderr[-3000:]
+        assert 'co_chat2' in r.stdout and os.path.isfile(os.path.join(out, 'step_2', 'bridge.pt'))

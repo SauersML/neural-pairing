@@ -297,11 +297,13 @@ def chat_system(x, city=None, wording=None, knows=None):
     """x's system prompt in a chat: the dialogue system prompt and x's private situation (city: where x is today, or
     None for none; wording: one of CHAT or CHAT_TEST). knows: the partner's city, shown only in the prompt of the
     original model that writes x's turns (prep_talk.py --chat), so a turn can depend on it; the trained prompt lacks
-    it, so the trained model can only get it through the link."""
+    it, so the trained model can only get it through the link. chat2 accepts a private-item dict in city/knows:
+    owner is the second-person sentence, teacher the third-person sentence; legacy city strings are unchanged."""
     P = MODELS[partner(x)]['name']
-    text = wording.format(city=city, P=P)
+    text = city['owner'] + ' ' + wording.format(P=P) if isinstance(city, dict) else wording.format(city=city, P=P)
     if knows:
-        text += (f" You also happen to know something {P} has not told you: {P} is in {knows} today. Let it shape what "
+        fact = knows['teacher'].format(P=P) if isinstance(knows, dict) else f'{P} is in {knows} today.'
+        text += (f" You also happen to know something {P} has not told you: {fact} Let it shape what "
                  f"you say the way a friend who already knew would; there is still no game.")
     return system(x, 'dialogue') + f"\n\nYour private situation ({P} cannot see it): {text} {CHAT_TONE}"
 
@@ -387,17 +389,21 @@ class Coread(Games):
         self.play = [c for c in json.load(open(pp))[split] if not opener_gives_away(c)] if os.path.exists(pp) else []
         cp = os.path.join(os.path.dirname(tp), 'chat.json')
         self.chat = json.load(open(cp))[split] if os.path.exists(cp) else []
+        cp2 = os.path.join(os.path.dirname(tp), 'chat2.json')
+        self.chat2 = json.load(open(cp2))[split] if os.path.exists(cp2) else []
 
-    def chat_episode(self):
+    def chat_episode(self, game='co_chat'):
         """A plain chat from data/chat.json (prep_talk.py --chat), trained with the link open (train.py --chat). Every
         turn is the original model's own, written while it also saw the partner's private city, which this prompt
         lacks; the payload is each twin's whole first turn when the partner has a city."""
-        c = self.rng.choice(self.chat)
+        if game not in ('co_chat', 'co_chat2'):
+            raise ValueError('unknown chat game: ' + game)
+        c = self.rng.choice(self.chat2 if game == 'co_chat2' else self.chat)
         opener = c['opener']
         first = {}
         for sp, text in c['turns']:
             first.setdefault(sp, text)
-        return dict(game='co_chat', mode='dialogue', system=c['system'], task={x: None for x in SIDES},
+        return dict(game=game, mode='dialogue', system=c['system'], task={x: None for x in SIDES},
                     turns=[(sp, text, 1.0) for sp, text in c['turns']],
                     meta=dict(opener=opener, sender=partner(opener), receiver=opener, private=c['private'],
                               exchanges=len(c['turns']),

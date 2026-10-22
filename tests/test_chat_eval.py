@@ -210,3 +210,90 @@ def test_cli_checkpoint_loading_and_summary(pair, data, monkeypatch):
     assert 'chateval.py' in manifest['code_hashes']
     result = F.summarize(out, 'cli', results_dir=path)
     assert json.loads(result.read_text())['temperature'] == .7
+
+
+def item(kind, index=20):
+    import chat2
+    return copy.deepcopy(chat2.CATALOG[kind][index])
+
+
+def chat2_record(opener, a, b):
+    import random
+    import chat2
+    private = dict(quill=a, ember=b)
+    w = chat2.wording('test', random.Random(0))
+    return dict(game='chat2', opener=opener, private=private,
+                system={x: coread.chat_system(x, private[x], w) for x in link.SIDES},
+                teach={'quill': 'FORBIDDEN_TEACHER'}, turns=[['quill', 'FORBIDDEN_TURN']], pmi={'quill': [99]})
+
+
+def test_chat2_aliases_leaks_and_matched_kinds():
+    private = dict(quill=item('job'), ember=item('event', 0))
+    assert C.first_mention([('quill', 'Your brother got married!')], 'quill', private['ember']) == (1, 0)
+    assert C.first_mention([('ember', 'My wedding.'), ('quill', 'Congratulations on the marriage.')],
+                           'quill', private['ember']) == (0, 1)
+    assert C.first_mention([('quill', 'unmarried')], 'quill', private['ember']) == (0, 0)
+    ep = C.episode(chat2_record('quill', private['quill'], private['ember']))
+    donor = C.episode(chat2_record('quill', item('job', 21), item('event', 21)))
+    assert C.matched(ep, donor, 'quill')
+    for wrong in (item('event', 0), item('job', 22), None):
+        bad = C.episode(chat2_record('quill', item('pet'), wrong))
+        assert not C.matched(ep, bad, 'quill')
+    donor['system']['ember'] += ' I know about a marriage.'
+    assert not C.matched(ep, donor, 'quill')
+
+
+@torch.no_grad()
+def test_chat2_real_generation_and_sharded_cli(pair, tmp_path, monkeypatch):
+    import chat2
+    pool = [chat2_record(opener, item(kind, i), item(kind, (i + 1) % 26))
+            for opener in link.SIDES for kind in ('job', 'mood') for i in range(20, 26)]
+    pool += [chat2_record(opener, None, None) for opener in link.SIDES]
+    (tmp_path / 'chat2.json').write_text(json.dumps(dict(train=[], test=pool)))
+    (tmp_path / 'coread.json').write_text(json.dumps(dict(train=[], test=[], weights={})))
+    replies = {x: dict(own={}, steer=[]) for x in link.SIDES}
+    (tmp_path / 'replies.json').write_text(json.dumps(replies))
+    plans, _ = F.make_plans(replies, n=9, seed=12, coread_data=tmp_path / 'coread.json', games=['co_chat2'])
+    assert 'FORBIDDEN' not in json.dumps(plans)
+    for p in plans['co_chat2']:
+        for x in link.SIDES:
+            assert C.matched(p['episode'], p['donors'][x], x)
+    monkeypatch.setenv('NL_MAXNEW', '1')
+    records = list(F.evaluate_game(pair, plans['co_chat2'][:2], bs=2, crossed=True))
+    assert all(r['game'] == 'co_chat2' and r['kind'] == chat2.kind_of(r['private'][link.partner(r['receiver'])])
+               for r in records)
+    rows = C.summary_rows(records)
+    assert all('names_counts' in r for r in rows if r['receiver'] != 'dialogue')
+    assert any(r['subset'].startswith('kind:') for r in rows)
+    C.validate(records, dict(n=2, temperature=0., crossed=True))
+    step = tmp_path / 'step'
+    step.mkdir()
+    for x in link.SIDES:
+        pair.models[x].save_pretrained(step / x)
+    torch.save(pair.checkpoint(), step / 'bridge.pt')
+    all_ids = []
+    for shard in range(3):
+        out = tmp_path / str(shard)
+        monkeypatch.setattr(sys, 'argv', ['evalfree.py', '--run', str(step), '--replies', str(tmp_path / 'replies.json'),
+            '--out_dir', str(out), '--coread_data', str(tmp_path / 'coread.json'), '--games', 'co_chat2',
+            '--crossed', '--n', '3', '--shard', f'{shard}/3', '--bs', '2'])
+        F.main()
+        manifest = json.loads((out / 'manifest.json').read_text())
+        assert manifest['complete'] and manifest['chat_plans_by_game'] == {'co_chat2': 1}
+        assert str(tmp_path / 'chat2.json') in manifest['hashes']
+        F.summarize(out, f'chat2_{shard}', results_dir=tmp_path)
+        all_ids += [json.loads(l)['episode_id'] for l in (out / 'plans.jsonl').read_text().splitlines()]
+    assert len(set(all_ids)) == 3
+    from chat2_merge import load
+    merged = load([tmp_path / str(i) for i in range(3)])
+    assert len(merged) == 6
+    with pytest.raises(ValueError, match='missing shard'):
+        load([tmp_path / '0', tmp_path / '1'])
+    import contextlib
+    import io
+    import chat_merge
+    monkeypatch.setattr(sys, 'argv', ['chat_merge.py', '--after', *[str(tmp_path / str(i)) for i in range(3)]])
+    printed = io.StringIO()
+    with contextlib.redirect_stdout(printed):
+        chat_merge.main()
+    assert 'co_chat2 kind:' in printed.getvalue()
