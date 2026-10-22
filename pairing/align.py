@@ -89,21 +89,28 @@ def sequence(tok, x, item):
 
 
 @torch.no_grad()
-def states(model, blocks, ids, eps):
-    """[len(blocks)] float32 states [L, d] of model after each of blocks on one sequence, divided by their RMS (as the
-    bridges' norms do, before their weights)."""
+def states(model, blocks, seqs, eps):
+    """For each token sequence of seqs (run as one right-padded batch), [len(blocks)] float32 states [L, d] of model
+    after each of blocks, divided by their RMS (as the bridges' norms do, before their weights)."""
     layers = find_layers(model)
+    L = max(len(s) for s in seqs)
+    ids = torch.zeros(len(seqs), L, dtype=torch.long)
+    att = torch.zeros(len(seqs), L, dtype=torch.long)
+    for i, s in enumerate(seqs):
+        ids[i, :len(s)] = torch.tensor(s)
+        att[i, :len(s)] = 1
     got = {}
 
     def hook(l):
-        return lambda mod, i, o: got.__setitem__(l, (o[0] if isinstance(o, tuple) else o)[0].float())
+        return lambda mod, i, o: got.__setitem__(l, (o[0] if isinstance(o, tuple) else o).float())
     hooks = [layers[l].register_forward_hook(hook(l)) for l in blocks]
     try:
-        inner(model)[0](input_ids=torch.tensor([ids], device=DEVICE))
+        inner(model)[0](input_ids=ids.to(DEVICE), attention_mask=att.to(DEVICE))
     finally:
         for h in hooks:
             h.remove()
-    return [got[l] * torch.rsqrt(got[l].pow(2).mean(-1, keepdim=True) + eps) for l in blocks]
+    return [[got[l][i, :len(s)] * torch.rsqrt(got[l][i, :len(s)].pow(2).mean(-1, keepdim=True) + eps) for l in blocks]
+            for i, s in enumerate(seqs)]
 
 
 def fit(G, H, gq, gk):
@@ -161,9 +168,9 @@ def match(pair, x, y, k, test, scales=(1.0,)):
 
 
 @torch.no_grad()
-def content_init(pair, models, toks, replies, n_texts, vo=False, n_test=6, log=print):
-    """Set the reads of pair (see the module's docstring) from n_texts texts, n_test of them outside the fit. Returns a
-    summary per exchange and direction."""
+def content_init(pair, models, toks, replies, n_texts, vo=False, n_test=6, batch=8, log=print):
+    """Set the reads of pair (see the module's docstring) from n_texts texts (run batch at a time), n_test of them
+    outside the fit. Returns a summary per exchange and direction."""
     a, b = SIDES
     items = texts(replies, n_texts)
     eps = pair.bridge[a].q_norm[0].eps
@@ -175,24 +182,27 @@ def content_init(pair, models, toks, replies, n_texts, vo=False, n_test=6, log=p
                      ab=torch.zeros(d[a], d[b], device=DEVICE), sa=torch.zeros(d[a], device=DEVICE),
                      sb=torch.zeros(d[b], device=DEVICE), n=0) for _ in range(nb)]
     sums, test_sums, test = zeros(), zeros(), []
-    for i, item in enumerate(items):
-        seq = {x: sequence(toks[x], x, item) for x in SIDES}
-        ends = sorted(set(seq[a][1]) & set(seq[b][1]))
-        if len(ends) < 2:
-            continue
-        pos = {x: torch.tensor([seq[x][1][e] for e in ends], device=DEVICE) for x in SIDES}
-        U = {x: states(models[x], pair.xblocks, seq[x][0], eps) for x in SIDES}
-        held = i >= len(items) - n_test
-        for k, acc in enumerate(test_sums if held else sums):
-            ua, ub = U[a][k][pos[a]], U[b][k][pos[b]]
-            acc['aa'] += ua.T @ ua
-            acc['bb'] += ub.T @ ub
-            acc['ab'] += ua.T @ ub
-            acc['sa'] += ua.sum(0)
-            acc['sb'] += ub.sum(0)
-            acc['n'] += len(ends)
-        if held:
-            test.append({x: [u.half().cpu() for u in U[x]] for x in SIDES} | {'pos': {x: pos[x].cpu() for x in SIDES}})
+    for start in range(0, len(items), batch):
+        chunk = items[start:start + batch]
+        seqs = {x: [sequence(toks[x], x, item) for item in chunk] for x in SIDES}
+        U = {x: states(models[x], pair.xblocks, [s[0] for s in seqs[x]], eps) for x in SIDES}
+        for j in range(len(chunk)):
+            ends = sorted(set(seqs[a][j][1]) & set(seqs[b][j][1]))
+            if len(ends) < 2:
+                continue
+            pos = {x: torch.tensor([seqs[x][j][1][e] for e in ends], device=DEVICE) for x in SIDES}
+            held = start + j >= len(items) - n_test
+            for k, acc in enumerate(test_sums if held else sums):
+                ua, ub = U[a][j][k][pos[a]], U[b][j][k][pos[b]]
+                acc['aa'] += ua.T @ ua
+                acc['bb'] += ub.T @ ub
+                acc['ab'] += ua.T @ ub
+                acc['sa'] += ua.sum(0)
+                acc['sb'] += ub.sum(0)
+                acc['n'] += len(ends)
+            if held:
+                test.append({x: [u.half().cpu() for u in U[x][j]] for x in SIDES} |
+                            {'pos': {x: pos[x].cpu() for x in SIDES}})
     assert test and sums[0]['n'] > 0, 'no matched tokens'
     out = []
     for k in range(nb):

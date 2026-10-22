@@ -1,0 +1,18 @@
+structure       wins/n (ties)       p    median nats       median 95% CI   ticks/item   tokens/item
+duplex          128/128 (  0)  2.94e-39      17.5818        [15.81, 19.984]         7.07         212.4
+duplex+1        128/128 (  0)  2.94e-39      17.7654       [15.767, 19.999]         8.07         214.4
+duplex+4        128/128 (  0)  2.94e-39      18.1234       [15.644, 19.677]        11.07         220.4
+duplex+8        128/128 (  0)  2.94e-39      18.2541        [15.521, 19.92]        15.07         228.4
+dialogue        128/128 (  0)  2.94e-39      17.4111       [15.361, 19.258]        10.07         282.4
+dialogue+1      128/128 (  0)  2.94e-39      17.3239       [15.261, 19.824]        11.07         284.4
+dialogue+4      128/128 (  0)  2.94e-39      17.6321       [15.285, 19.877]        14.07         290.4
+dialogue+8      128/128 (  0)  2.94e-39      17.2496       [15.433, 19.432]        18.07         298.4
+pen             128/128 (  0)  2.94e-39      17.9171        [15.414, 20.32]         5.00         353.4
+
+CE and median nats are mean nats per payload token; positive shuffle-minus-link favors the real holder.
+Exact one-sided binomial sign test drops exact ties. Median intervals are exact binomial order statistics; null JSON endpoints mean unbounded. Inference assumes independent item signs; stratified kinds/directions are also reported. P values are unadjusted for multiple structures.
+Primary and distinct donor draws are independent across items, with replacement from small finite pools. The same items/donors recur across structures, so comparisons across structures are paired.
+Numbers have no pools.json test split and may overlap training unless a complete --seen_numbers list is supplied.
+Lexical values are single-word entries from test pools, disjoint from same-kind train pools and absent from the union of fixed carrier texts in all structures; this does not claim absence from base pretraining or arbitrary training text.
+Ticks exclude the common prompt tick (-1); include final flush/EOS prediction. payload_ticks stops at the last payload prediction. Pen ticks are words, duplex/dialogue ticks are tokens; use forward-token costs too.
+Payload nats per tick is a CE advantage rate, not a Shannon channel-capacity estimate.

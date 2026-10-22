@@ -118,6 +118,25 @@ and α frozen (`--hold`). `--micro K` splits each batch into K groups of similar
 value episodes are not padded to the length of play conversations: on one A100 80 GB, 4.5 s per step for the full mix
 instead of 8.
 
+## Runs (`chains/`, `results/`)
+
+Each run's chain script is in `chains/` (one pod each, called as `bash chains/nlN.sh OUT_DIR CODE_TGZ REPLIES ...`), and its
+training log (`log.json`), held-out tables at every evaluation step (`payload_stepN.json`) and final evaluations are in
+`results/magic-nlN/`.
+
+| Run | What it tests | Outcome |
+|---|---|---|
+| nl11 | Fitted Q and K only, then the full mix | First held-out transfer (words 15/16 at step 200); lost once the mix began and the gates closed |
+| nl12 | Random start, full mix | No transfer; gates closed |
+| nl13 | Random start, word relay only | Opens later (words 16/16 by step 200); name–city pairs, never trained, 20/32 |
+| nl14 | Fitted Q, K, V and O, word relay only | Words 16/16 and phrases 15–16/16 from step 100; name–city pairs, never trained, 29–30/32; lookups and numbers not |
+| nl15 | Fitted start, gates frozen, full mix | At step 1000 every value game and direction passes but one (digits to AFM, 4 of 4); smaller gaps than nl16 |
+| nl16 | Warm-up on all seven value games only | 178 of 180 held-out episodes; passes under dialogue, silent rounds and the shared pen without training on them (`turnbench.txt`) |
+| nl18 | Full recipe with play games, silent rounds and micro-batches | Shared reading positive in 32 of 32 game–receiver groups at step 1200 |
+| nl19 | nl18 with distillation and the shared pen | Stopped at step 500; shared reading as nl18 |
+| nl20 | 900-step warm-up with held-out numbers, then the full mix | Warm-up: 179 of 180 (`results/magic-nl20/results/payload_warm.json`); full mix running |
+| nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Running |
+
 ## Earlier designs
 
 1. **Additive residual write.** A send head wrote a 256-number message and a gate into the partner's residual stream

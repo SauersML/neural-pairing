@@ -1,0 +1,290 @@
+[
+ {
+  "block": 6,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.6584,
+  "ridge": 0.31622776601683794,
+  "scale": 6.727171322029716,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.704,
+   "top1": 0.0148
+  },
+  "after": {
+   "logp": -0.193,
+   "top1": 0.928
+  }
+ },
+ {
+  "block": 6,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5639,
+  "ridge": 0.31622776601683794,
+  "scale": 5.656854249492381,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.791,
+   "top1": 0.0082
+  },
+  "after": {
+   "logp": -0.257,
+   "top1": 0.9058
+  }
+ },
+ {
+  "block": 9,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.6127,
+  "ridge": 0.5623413251903491,
+  "scale": 6.727171322029716,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.771,
+   "top1": 0.0082
+  },
+  "after": {
+   "logp": -0.225,
+   "top1": 0.9271
+  }
+ },
+ {
+  "block": 9,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5457,
+  "ridge": 0.5623413251903491,
+  "scale": 5.656854249492381,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.802,
+   "top1": 0.0087
+  },
+  "after": {
+   "logp": -0.318,
+   "top1": 0.9054
+  }
+ },
+ {
+  "block": 12,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.5998,
+  "ridge": 0.5623413251903491,
+  "scale": 6.727171322029716,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.716,
+   "top1": 0.0091
+  },
+  "after": {
+   "logp": -0.254,
+   "top1": 0.9227
+  }
+ },
+ {
+  "block": 12,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5121,
+  "ridge": 0.5623413251903491,
+  "scale": 5.656854249492381,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.818,
+   "top1": 0.0052
+  },
+  "after": {
+   "logp": -0.394,
+   "top1": 0.8924
+  }
+ },
+ {
+  "block": 15,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.6298,
+  "ridge": 0.5623413251903491,
+  "scale": 6.727171322029716,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.709,
+   "top1": 0.0091
+  },
+  "after": {
+   "logp": -0.207,
+   "top1": 0.9379
+  }
+ },
+ {
+  "block": 15,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5391,
+  "ridge": 0.5623413251903491,
+  "scale": 5.656854249492381,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.759,
+   "top1": 0.0126
+  },
+  "after": {
+   "logp": -0.383,
+   "top1": 0.8976
+  }
+ },
+ {
+  "block": 18,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.6361,
+  "ridge": 0.5623413251903491,
+  "scale": 8.0,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.737,
+   "top1": 0.0104
+  },
+  "after": {
+   "logp": -0.145,
+   "top1": 0.9609
+  }
+ },
+ {
+  "block": 18,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5418,
+  "ridge": 0.5623413251903491,
+  "scale": 4.756828460010884,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.788,
+   "top1": 0.0078
+  },
+  "after": {
+   "logp": -0.354,
+   "top1": 0.9262
+  }
+ },
+ {
+  "block": 21,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.629,
+  "ridge": 0.5623413251903491,
+  "scale": 8.0,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.609,
+   "top1": 0.0104
+  },
+  "after": {
+   "logp": -0.099,
+   "top1": 0.9674
+  }
+ },
+ {
+  "block": 21,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5841,
+  "ridge": 0.31622776601683794,
+  "scale": 5.656854249492381,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.667,
+   "top1": 0.0109
+  },
+  "after": {
+   "logp": -0.23,
+   "top1": 0.9427
+  }
+ },
+ {
+  "block": 24,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.597,
+  "ridge": 0.5623413251903491,
+  "scale": 8.0,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.64,
+   "top1": 0.0122
+  },
+  "after": {
+   "logp": -0.16,
+   "top1": 0.9531
+  }
+ },
+ {
+  "block": 24,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5248,
+  "ridge": 0.5623413251903491,
+  "scale": 6.727171322029716,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.771,
+   "top1": 0.0091
+  },
+  "after": {
+   "logp": -0.279,
+   "top1": 0.9293
+  }
+ },
+ {
+  "block": 27,
+  "reader": "quill",
+  "sender": "ember",
+  "pairs": 4290,
+  "r2": 0.5756,
+  "ridge": 0.31622776601683794,
+  "scale": 8.0,
+  "chance": 0.012,
+  "before": {
+   "logp": -4.712,
+   "top1": 0.0061
+  },
+  "after": {
+   "logp": -0.148,
+   "top1": 0.957
+  }
+ },
+ {
+  "block": 27,
+  "reader": "ember",
+  "sender": "quill",
+  "pairs": 4290,
+  "r2": 0.5545,
+  "ridge": 0.5623413251903491,
+  "scale": 6.727171322029716,
+  "chance": 0.0116,
+  "before": {
+   "logp": -4.784,
+   "top1": 0.0122
+  },
+  "after": {
+   "logp": -0.216,
+   "top1": 0.9457
+  }
+ }
+]
