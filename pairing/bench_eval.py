@@ -41,16 +41,19 @@ from link import DEVICE, SIDES, Pair, load, partner
 
 
 def mcnemar(a, b):
-    """a, b: 0/1 lists over the same questions. Accuracy difference a - b, exact 95% interval, exact p."""
+    """a, b: 0/1 lists over the same questions. The accuracy difference a - b; a conservative 95% interval for it, the
+    difference of two 97.5% exact Clopper-Pearson intervals for P(a right, b wrong) and P(b right, a wrong) (Bonferroni;
+    independent questions assumed); and the exact McNemar p (two-sided binomial test on the discordant questions).
+    Until 10-22 lo/hi scaled a binomial interval by the observed discordant share, which is not an interval for the
+    difference (nl27 audit, results/nl27_audit_report.json)."""
     n10 = sum(x and not y for x, y in zip(a, b))
     n01 = sum(y and not x for x, y in zip(a, b))
     n, N = n10 + n01, len(a)
-    if n == 0:
-        return dict(diff=0.0, lo=0.0, hi=0.0, p=1.0, n10=0, n01=0)
-    lo = beta.ppf(0.025, n10, n01 + 1) if n10 > 0 else 0.0
-    hi = beta.ppf(0.975, n10 + 1, n01) if n01 > 0 else 1.0
-    return dict(diff=round((n10 - n01) / N, 4), lo=round(n / N * (2 * lo - 1), 4), hi=round(n / N * (2 * hi - 1), 4),
-                p=float(binomtest(n10, n, 0.5).pvalue), n10=n10, n01=n01)
+    low = lambda k: beta.ppf(0.0125, k, N - k + 1) if k > 0 else 0.0
+    high = lambda k: beta.ppf(0.9875, k + 1, N - k) if k < N else 1.0
+    return dict(diff=round((n10 - n01) / N, 4), lo=round(float(low(n10) - high(n01)), 4),
+                hi=round(float(high(n10) - low(n01)), 4),
+                p=float(binomtest(n10, n, 0.5).pvalue) if n else 1.0, n10=n10, n01=n01)
 
 
 @torch.no_grad()

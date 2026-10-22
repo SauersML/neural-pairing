@@ -71,6 +71,10 @@ What the link does instead: Ember reads Quill's answer and takes it, even on que
 
 ![Ember's answers with the link cut and linked, on questions only one model gets right](figures/deference.png)
 
+Trained again with half the training questions ones that only one model gets right, Ember copies less (it keeps 127 of
+the 243 questions only it gets right, against 100 of 227) and, linked, ties the two models averaged (79.6% against
+80.0%, p 0.58). The pair still does not beat them.
+
 ## Where this goes
 
 The link is a bus between two networks that were never trained together: any pair of models can share what they hold
@@ -190,25 +194,42 @@ Three arms start from nl20 step 1,320 and train 300 steps on ARC-Challenge and M
 with the link open (`train.py --qa 1`), each model alone (`--solo`), and the pair answering in turn in text with the link
 closed (`--text_pair`). Each model's answer is its most likely letter after "The answer is". The pair answers through the
 model whose single version scores higher on 595 validation questions (Quill, 78.8% against Ember's 77.1%), fixed before
-any test question is scored. Tests are exact McNemar on the 3,165 test questions (1,165 ARC-Challenge, 2,000 MMLU; 27
-MMLU questions appear twice).
+any test question is scored. Of the 3,165 test questions (1,165 ARC-Challenge, 2,000 MMLU), 31 MMLU questions are left
+out: 28 whose question and choices also appear in the training split, one also in the validation split, and two that
+repeat within the test split (`pairing/nl27_audit.py`, `results/nl27_audit_report.json`); with them every accuracy moves by
+under 0.1 points. Tests on the remaining 3,134 are exact McNemar; intervals are conservative 95% intervals for the
+accuracy difference (two 97.5% exact intervals for the two discordant shares).
 
 | Way of answering | Right | Linked pair minus this (95% interval), p |
 |---|---|---|
-| Quill, original | 73.7% | +4.9 points (+3.6, +6.2), p 4e-13 |
-| Ember, original | 69.4% | +9.3 (+7.6, +10.8), p 6e-27 |
-| Quill alone, trained | 79.1% | −0.5 (−1.6, +0.6), p 0.42 |
-| Ember alone, trained | 75.7% | +3.0 (+1.5, +4.5), p 1e-4 |
-| Both alone, letter probabilities averaged | 81.1% | −2.5 (−3.6, −1.3), p 5e-5 |
-| Text, Ember answers first | 72.4% | +6.3 (+4.7, +7.7), p 3e-15 |
-| Linked pair, link cut | 78.7% | 0.0 (−1.0, +1.0), p 1.0 |
+| Quill, original | 73.7% | +4.9 points (+2.8, +7.0), p 6e-13 |
+| Ember, original | 69.3% | +9.3 (+6.7, +11.9), p 6e-27 |
+| Quill alone, trained | 79.1% | −0.5 (−2.2, +1.2), p 0.41 |
+| Ember alone, trained | 75.5% | +3.1 (+0.7, +5.5), p 8e-5 |
+| Both alone, letter probabilities averaged | 81.1% | −2.4 (−4.3, −0.5), p 8e-5 |
+| Text, Ember answers first | 72.4% | +6.3 (+3.9, +8.7), p 3e-15 |
+| Linked pair, link cut | 78.7% | 0.0 (−1.6, +1.5), p 1.0 |
 | **Linked pair (Quill answers)** | **78.7%** | |
 
-Quill answers the same with the link cut: it does not use what Ember sends. Ember, reading Quill, scores 78.5% against
+Quill scores the same with the link cut (the link changes 228 of its answers, 114 each way): it does not use what Ember
+sends. Ember, reading Quill, scores 78.5% against
 73.5% with the link cut, and its right and wrong answers match Quill's on 95% of questions (81% with the link cut). With
 the partner of another question in the link, Ember falls to 48.4%; with random states in the link, to 73.6%, its own
 level. In text the second speaker gives the first speaker's letter on all 3,165 questions. Training on the gold answer
 as the partner's turn rewards copying a better partner; nothing in it rewards pooling two partners' evidence.
+
+**Round 2 (`chains/nl27.sh`, `qa_split.py`, `train.py --qa_focus`).** Half the training questions are drawn from those
+only one original model answers right (2,310 for Quill, 1,521 for Ember of 16,631), each model's set equally often, so
+following the partner is right as often as wrong there; the pair and the single models train on the same mix (the text
+arm is nl23's). On the 3,134 questions: linked Ember 79.6% against Ember alone 74.3% (+5.3, (+3.3, +7.3), p 2e-15),
+Quill alone 78.6% (+1.0, (−0.9, +2.9), p 0.10) and the two averaged 80.0% (−0.4, (−2.2, +1.5), p 0.58). Both linked
+models' letters averaged: 79.4%, against 80.0% for the two single models averaged (p 0.35) and 80.0% for the same pair
+with the link cut (p 0.29). The validation-chosen answerer (Quill, linked 78.2%) still loses to the averaged models
+(p 0.003). Ember keeps 127 of the 243 questions only it gets right with the link cut (100 of 227 in nl23), and matches
+Quill's right and wrong answers on 93% of questions (95%). Linking Ember to another question's Quill drops it to 58.6%
+(48.4%). A probe reads each partner's confidence from what the link writes at the letter (R² 0.24 against 0.0 with a
+shuffled partner; 4-bit MLX, `results/qa_pool.json`), so the link can carry what pooling needs; `train.py --qa_pool`
+(`chains/nl28.sh`) trains on the averaged letters directly.
 
 ### Runs (`chains/`, `results/`)
 
@@ -230,7 +251,8 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Final (step 759): every never-trained game passes in both directions at p < 0.01, 207 of 240 receiver episodes (`results/magic-nl21/results/payload_final.json`). Warm-up (step 600): digit strings 10/10 both ways, lookups 9/10 into Qwen and 8/10 into AFM |
 | nl22 | nl20 step 1,320 fine-tuned with plain chats whose turns the original models wrote while seeing the partner's private city (`prep_talk.py --chat`, `train.py --chat`) | Stopped. The twins still looped word for word with the link on or cut and opened by naming their own city |
 | nl22c | nl20 step 1,320 fine-tuned 157 steps on chats from the privileged teacher (below), with the mix kept | Free chats, 20 with cities never seen in training: partner's city said first in 13 of 23 chat sides with the link on, 1 of 23 cut, 0 of 23 linked to a stranger, and the stranger's own city in 14 of 36; turns repeating an earlier turn fell from 17% to 1% (link on) and 31% to 3% (cut); value games 360 of 360 and shared reading unchanged (`results/magic-nl22c/`) |
-| nl23 | Exam questions: linked pair, each model alone and a text pair, 300 steps each from nl20 step 1,320 (on nl20's pod) | Linked pair 78.7% of 3,165 test questions, Quill alone 79.1% (p 0.42), both averaged 81.1% (p 5e-5); Ember takes Quill's answer through the link (`results/magic-nl23/bench.json`) |
+| nl23 | Exam questions: linked pair, each model alone and a text pair, 300 steps each from nl20 step 1,320 (on nl20's pod) | Linked pair 78.7% of 3,134 test questions, Quill alone 79.1% (p 0.41), both averaged 81.1% (p 8e-5); Ember takes Quill's answer through the link (`results/magic-nl23/bench.json`) |
+| nl27 | nl23 with half the training questions ones only one original model answers right (`--qa_focus`) | Linked Ember 79.6%, both averaged 80.0% (p 0.58); both linked averaged 79.4% (p 0.35); Ember copies less (`results/magic-nl27/`) |
 
 ### Earlier designs
 
