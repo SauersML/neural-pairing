@@ -1,0 +1,2138 @@
+{
+  "source": "results/magic-nl20/results/payload_final.json",
+  "source_sha256": "46af301422699574997312cea4c2bd9f695b3400a78afb84725631be5c640124",
+  "measurement": "Mean teacher-forced cross-entropy on payload tokens; positive iff shuffle_ce - link_ce > 0; ties exactly equal.",
+  "precision": "Existing real-model GPU result; no Mac model inference performed.",
+  "records": 180,
+  "positive": 180,
+  "ties": 0,
+  "groups": {
+    "relay_word/quill": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 26.202829508809373,
+      "records": [
+        {
+          "game": "relay_word",
+          "episode": 0,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 12,
+          "link_ce": 0.00016950124700088054,
+          "cut_ce": 12.785867691040039,
+          "shuffle_ce": 34.031402587890625
+        },
+        {
+          "game": "relay_word",
+          "episode": 1,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 0,
+          "link_ce": 2.1815061700181104e-05,
+          "cut_ce": 21.415752410888672,
+          "shuffle_ce": 35.281524658203125
+        },
+        {
+          "game": "relay_word",
+          "episode": 2,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 1,
+          "link_ce": 9.07141511561349e-05,
+          "cut_ce": 17.384502410888672,
+          "shuffle_ce": 26.65627098083496
+        },
+        {
+          "game": "relay_word",
+          "episode": 4,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 2,
+          "link_ce": 0.0020833946764469147,
+          "cut_ce": 21.056377410888672,
+          "shuffle_ce": 34.320404052734375
+        },
+        {
+          "game": "relay_word",
+          "episode": 5,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 4,
+          "link_ce": 7.176141662057489e-05,
+          "cut_ce": 21.48899269104004,
+          "shuffle_ce": 32.64957809448242
+        },
+        {
+          "game": "relay_word",
+          "episode": 7,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 5,
+          "link_ce": 0.0005382042727433145,
+          "cut_ce": 19.73508644104004,
+          "shuffle_ce": 31.968822479248047
+        },
+        {
+          "game": "relay_word",
+          "episode": 8,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 7,
+          "link_ce": 0.0008218486327677965,
+          "cut_ce": 14.098367691040039,
+          "shuffle_ce": 31.188037872314453
+        },
+        {
+          "game": "relay_word",
+          "episode": 9,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 8,
+          "link_ce": 0.0011175584513694048,
+          "cut_ce": 17.46555519104004,
+          "shuffle_ce": 26.203947067260742
+        },
+        {
+          "game": "relay_word",
+          "episode": 11,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 9,
+          "link_ce": 0.0036362973041832447,
+          "cut_ce": 20.59055519104004,
+          "shuffle_ce": 32.56361770629883
+        },
+        {
+          "game": "relay_word",
+          "episode": 12,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 11,
+          "link_ce": 0.00015198028995655477,
+          "cut_ce": 19.52610206604004,
+          "shuffle_ce": 34.69113540649414
+        }
+      ]
+    },
+    "relay_word/ember": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 20.93537516798824,
+      "records": [
+        {
+          "game": "relay_word",
+          "episode": 3,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 6,
+          "link_ce": 8.844937838148326e-05,
+          "cut_ce": 21.16409683227539,
+          "shuffle_ce": 25.042007446289062
+        },
+        {
+          "game": "relay_word",
+          "episode": 6,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 10,
+          "link_ce": 0.0012952042743563652,
+          "cut_ce": 16.11064338684082,
+          "shuffle_ce": 23.96465492248535
+        },
+        {
+          "game": "relay_word",
+          "episode": 10,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 13,
+          "link_ce": 0.0037170620635151863,
+          "cut_ce": 16.24345588684082,
+          "shuffle_ce": 22.438838958740234
+        },
+        {
+          "game": "relay_word",
+          "episode": 13,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 14,
+          "link_ce": 0.03258811682462692,
+          "cut_ce": 12.563769340515137,
+          "shuffle_ce": 26.307008743286133
+        },
+        {
+          "game": "relay_word",
+          "episode": 14,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 15,
+          "link_ce": 0.0023212889209389687,
+          "cut_ce": 25.063770294189453,
+          "shuffle_ce": 20.93769645690918
+        },
+        {
+          "game": "relay_word",
+          "episode": 15,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 16,
+          "link_ce": 0.00019703354337252676,
+          "cut_ce": 21.56376838684082,
+          "shuffle_ce": 25.52135467529297
+        },
+        {
+          "game": "relay_word",
+          "episode": 16,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 17,
+          "link_ce": 0.11534596979618073,
+          "cut_ce": 20.53909683227539,
+          "shuffle_ce": 22.00973129272461
+        },
+        {
+          "game": "relay_word",
+          "episode": 17,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 18,
+          "link_ce": 0.0253559872508049,
+          "cut_ce": 22.16019058227539,
+          "shuffle_ce": 24.485218048095703
+        },
+        {
+          "game": "relay_word",
+          "episode": 18,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 19,
+          "link_ce": 0.0008432884933426976,
+          "cut_ce": 21.08597183227539,
+          "shuffle_ce": 23.39657211303711
+        },
+        {
+          "game": "relay_word",
+          "episode": 19,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 3,
+          "link_ce": 0.003994700964540243,
+          "cut_ce": 25.80472183227539,
+          "shuffle_ce": 27.55086898803711
+        }
+      ]
+    },
+    "relay_number/quill": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 5.110380859261568,
+      "records": [
+        {
+          "game": "relay_number",
+          "episode": 3,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 19,
+          "link_ce": 0.0003397504565327836,
+          "cut_ce": 3.5938538312911987,
+          "shuffle_ce": 8.743214011192322
+        },
+        {
+          "game": "relay_number",
+          "episode": 5,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 3,
+          "link_ce": 0.00024124741003106465,
+          "cut_ce": 2.4828752875328064,
+          "shuffle_ce": 6.271496540219232
+        },
+        {
+          "game": "relay_number",
+          "episode": 7,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 5,
+          "link_ce": 0.000317333746352233,
+          "cut_ce": 3.597025156021118,
+          "shuffle_ce": 8.775429129600525
+        },
+        {
+          "game": "relay_number",
+          "episode": 9,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 7,
+          "link_ce": 1.6458560515584395,
+          "cut_ce": 3.1649956703186035,
+          "shuffle_ce": 6.756236910820007
+        },
+        {
+          "game": "relay_number",
+          "episode": 13,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 9,
+          "link_ce": 0.0005811349551549938,
+          "cut_ce": 3.7968192100524902,
+          "shuffle_ce": 8.365392804145813
+        },
+        {
+          "game": "relay_number",
+          "episode": 14,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 13,
+          "link_ce": 0.0006149244861717307,
+          "cut_ce": 3.785932272672653,
+          "shuffle_ce": 9.191182561597088
+        },
+        {
+          "game": "relay_number",
+          "episode": 15,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 14,
+          "link_ce": 0.0017649241808612715,
+          "cut_ce": 3.0453636050224304,
+          "shuffle_ce": 8.06649187207222
+        },
+        {
+          "game": "relay_number",
+          "episode": 17,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 15,
+          "link_ce": 0.03177305555283283,
+          "cut_ce": 4.099560499191284,
+          "shuffle_ce": 9.053588390350342
+        },
+        {
+          "game": "relay_number",
+          "episode": 18,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 17,
+          "link_ce": 0.006131470487162005,
+          "cut_ce": 3.310710847377777,
+          "shuffle_ce": 7.933197557926178
+        },
+        {
+          "game": "relay_number",
+          "episode": 19,
+          "receiver": "quill",
+          "n_tokens": 4,
+          "donor": 18,
+          "link_ce": 0.015783164264576044,
+          "cut_ce": 3.6995646357536316,
+          "shuffle_ce": 8.447989702224731
+        }
+      ]
+    },
+    "relay_number/ember": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 14.241191558540322,
+      "records": [
+        {
+          "game": "relay_number",
+          "episode": 0,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 1,
+          "link_ce": 0.001267678861040622,
+          "cut_ce": 7.286200523376465,
+          "shuffle_ce": 22.177598476409912
+        },
+        {
+          "game": "relay_number",
+          "episode": 1,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 2,
+          "link_ce": 0.014176842739743734,
+          "cut_ce": 6.596534371376038,
+          "shuffle_ce": 14.451434135437012
+        },
+        {
+          "game": "relay_number",
+          "episode": 2,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 4,
+          "link_ce": 0.04145175963594738,
+          "cut_ce": 9.18609607219696,
+          "shuffle_ce": 14.28264331817627
+        },
+        {
+          "game": "relay_number",
+          "episode": 4,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 6,
+          "link_ce": 0.00131321593426037,
+          "cut_ce": 4.8005465269088745,
+          "shuffle_ce": 16.264750957489014
+        },
+        {
+          "game": "relay_number",
+          "episode": 6,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 8,
+          "link_ce": 0.0961797624695464,
+          "cut_ce": 7.082291960716248,
+          "shuffle_ce": 23.0664644241333
+        },
+        {
+          "game": "relay_number",
+          "episode": 8,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 10,
+          "link_ce": 0.0004389475070638582,
+          "cut_ce": 7.481380462646484,
+          "shuffle_ce": 21.65935516357422
+        },
+        {
+          "game": "relay_number",
+          "episode": 10,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 11,
+          "link_ce": 0.002455731088957691,
+          "cut_ce": 10.930174589157104,
+          "shuffle_ce": 22.055033683776855
+        },
+        {
+          "game": "relay_number",
+          "episode": 11,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 12,
+          "link_ce": 0.004250901023624465,
+          "cut_ce": 5.096435785293579,
+          "shuffle_ce": 22.03864097595215
+        },
+        {
+          "game": "relay_number",
+          "episode": 12,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 16,
+          "link_ce": 0.05856740439776331,
+          "cut_ce": 8.793546199798584,
+          "shuffle_ce": 22.442689895629883
+        },
+        {
+          "game": "relay_number",
+          "episode": 16,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 0,
+          "link_ce": 0.0008468820087728091,
+          "cut_ce": 8.4037446975708,
+          "shuffle_ce": 22.042680740356445
+        }
+      ]
+    },
+    "relay_phrase/quill": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 12.105605368980228,
+      "records": [
+        {
+          "game": "relay_phrase",
+          "episode": 1,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 19,
+          "link_ce": 0.00021125457396919955,
+          "cut_ce": 18.27226448059082,
+          "shuffle_ce": 23.996466636657715
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 4,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 1,
+          "link_ce": 2.7417602268542396e-05,
+          "cut_ce": 15.642333030700684,
+          "shuffle_ce": 24.477519989013672
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 5,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 4,
+          "link_ce": 0.0002683876659261841,
+          "cut_ce": 17.04081916809082,
+          "shuffle_ce": 22.12921142578125
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 6,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 5,
+          "link_ce": 9.417468163519516e-06,
+          "cut_ce": 15.717509269714355,
+          "shuffle_ce": 18.27211797237385
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 13,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 6,
+          "link_ce": 8.660173261887394e-05,
+          "cut_ce": 13.322691440582275,
+          "shuffle_ce": 25.133697509765625
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 15,
+          "receiver": "quill",
+          "n_tokens": 3,
+          "donor": 13,
+          "link_ce": 3.48870994457684e-05,
+          "cut_ce": 7.355013529459636,
+          "shuffle_ce": 14.01519282658895
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 16,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 15,
+          "link_ce": 2.74180860060369e-06,
+          "cut_ce": 14.20097541809082,
+          "shuffle_ce": 18.79681396484375
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 17,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 16,
+          "link_ce": 1.1086370591328887e-05,
+          "cut_ce": 12.302489280700684,
+          "shuffle_ce": 24.56294536590576
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 18,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 17,
+          "link_ce": 0.00011246556641708594,
+          "cut_ce": 12.978941440582275,
+          "shuffle_ce": 23.84384059906006
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 19,
+          "receiver": "quill",
+          "n_tokens": 3,
+          "donor": 18,
+          "link_ce": 7.382515225865897e-05,
+          "cut_ce": 7.188346862792969,
+          "shuffle_ce": 12.105679194132486
+        }
+      ]
+    },
+    "relay_phrase/ember": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 12.213211440578258,
+      "records": [
+        {
+          "game": "relay_phrase",
+          "episode": 0,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 2,
+          "link_ce": 0.0012835239958803868,
+          "cut_ce": 11.740964412689209,
+          "shuffle_ce": 18.364657402038574
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 2,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 3,
+          "link_ce": 0.003931159111289162,
+          "cut_ce": 13.337391376495361,
+          "shuffle_ce": 20.907434463500977
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 3,
+          "receiver": "ember",
+          "n_tokens": 3,
+          "donor": 7,
+          "link_ce": 0.00040652336853478727,
+          "cut_ce": 7.719650030136108,
+          "shuffle_ce": 13.807388424873352
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 7,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 8,
+          "link_ce": 4.014055903178814,
+          "cut_ce": 15.722081661224365,
+          "shuffle_ce": 22.32916259765625
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 8,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 9,
+          "link_ce": 4.253648369398434,
+          "cut_ce": 14.475021839141846,
+          "shuffle_ce": 18.88870620727539
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 9,
+          "receiver": "ember",
+          "n_tokens": 3,
+          "donor": 10,
+          "link_ce": 0.007234907612049331,
+          "cut_ce": 6.654682355622451,
+          "shuffle_ce": 12.220446348190308
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 10,
+          "receiver": "ember",
+          "n_tokens": 3,
+          "donor": 11,
+          "link_ce": 0.12028078719352682,
+          "cut_ce": 11.370619773864746,
+          "shuffle_ce": 13.950483481089273
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 11,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 12,
+          "link_ce": 0.003683838738652412,
+          "cut_ce": 11.825750350952148,
+          "shuffle_ce": 16.970311164855957
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 12,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 14,
+          "link_ce": 0.0004405393101478694,
+          "cut_ce": 13.389018058776855,
+          "shuffle_ce": 23.63719940185547
+        },
+        {
+          "game": "relay_phrase",
+          "episode": 14,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 0,
+          "link_ce": 4.63194249481603,
+          "cut_ce": 14.608120918273926,
+          "shuffle_ce": 21.413453102111816
+        }
+      ]
+    },
+    "relay_digits/quill": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 3.2789964126705127,
+      "records": [
+        {
+          "game": "relay_digits",
+          "episode": 3,
+          "receiver": "quill",
+          "n_tokens": 25,
+          "donor": 19,
+          "link_ce": 0.039838198322704556,
+          "cut_ce": 1.5191711128433234,
+          "shuffle_ce": 3.318834610993217
+        },
+        {
+          "game": "relay_digits",
+          "episode": 4,
+          "receiver": "quill",
+          "n_tokens": 15,
+          "donor": 3,
+          "link_ce": 0.000929713220089449,
+          "cut_ce": 1.7084981069123992,
+          "shuffle_ce": 4.399111333928401
+        },
+        {
+          "game": "relay_digits",
+          "episode": 5,
+          "receiver": "quill",
+          "n_tokens": 7,
+          "donor": 4,
+          "link_ce": 0.0007244959805185707,
+          "cut_ce": 2.4211353019678166,
+          "shuffle_ce": 6.35411714176215
+        },
+        {
+          "game": "relay_digits",
+          "episode": 10,
+          "receiver": "quill",
+          "n_tokens": 27,
+          "donor": 5,
+          "link_ce": 0.0671178486785451,
+          "cut_ce": 1.6830725731647194,
+          "shuffle_ce": 3.8473345352448867
+        },
+        {
+          "game": "relay_digits",
+          "episode": 11,
+          "receiver": "quill",
+          "n_tokens": 15,
+          "donor": 10,
+          "link_ce": 0.008688864151334503,
+          "cut_ce": 1.9760919748572632,
+          "shuffle_ce": 4.207427663987134
+        },
+        {
+          "game": "relay_digits",
+          "episode": 13,
+          "receiver": "quill",
+          "n_tokens": 25,
+          "donor": 11,
+          "link_ce": 0.01848085791329936,
+          "cut_ce": 1.6925849013763945,
+          "shuffle_ce": 3.679638892473304
+        },
+        {
+          "game": "relay_digits",
+          "episode": 14,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 13,
+          "link_ce": 0.0003676115743473929,
+          "cut_ce": 1.1808343724347652,
+          "shuffle_ce": 5.101813125578923
+        },
+        {
+          "game": "relay_digits",
+          "episode": 16,
+          "receiver": "quill",
+          "n_tokens": 19,
+          "donor": 14,
+          "link_ce": 0.008009148491970862,
+          "cut_ce": 1.6653020535473173,
+          "shuffle_ce": 3.487140705894777
+        },
+        {
+          "game": "relay_digits",
+          "episode": 18,
+          "receiver": "quill",
+          "n_tokens": 3,
+          "donor": 16,
+          "link_ce": 5.948183843429433e-05,
+          "cut_ce": 2.228662714983026,
+          "shuffle_ce": 7.754670320544392
+        },
+        {
+          "game": "relay_digits",
+          "episode": 19,
+          "receiver": "quill",
+          "n_tokens": 15,
+          "donor": 18,
+          "link_ce": 0.0010872175064505995,
+          "cut_ce": 1.5581079375154028,
+          "shuffle_ce": 3.4329774256897507
+        }
+      ]
+    },
+    "relay_digits/ember": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 4.2795774113810765,
+      "records": [
+        {
+          "game": "relay_digits",
+          "episode": 0,
+          "receiver": "ember",
+          "n_tokens": 21,
+          "donor": 1,
+          "link_ce": 0.06130834872127283,
+          "cut_ce": 2.1904213046987673,
+          "shuffle_ce": 5.007171946664693
+        },
+        {
+          "game": "relay_digits",
+          "episode": 1,
+          "receiver": "ember",
+          "n_tokens": 15,
+          "donor": 2,
+          "link_ce": 0.017893801959682303,
+          "cut_ce": 2.5980518326008073,
+          "shuffle_ce": 4.297471213340759
+        },
+        {
+          "game": "relay_digits",
+          "episode": 2,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 6,
+          "link_ce": 3.576272320060525e-06,
+          "cut_ce": 6.198263645172119,
+          "shuffle_ce": 14.375129699707031
+        },
+        {
+          "game": "relay_digits",
+          "episode": 6,
+          "receiver": "ember",
+          "n_tokens": 3,
+          "donor": 7,
+          "link_ce": 5.0184624929746256e-05,
+          "cut_ce": 6.185584147771199,
+          "shuffle_ce": 9.962858041127523
+        },
+        {
+          "game": "relay_digits",
+          "episode": 7,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 8,
+          "link_ce": 9.536738616588991e-07,
+          "cut_ce": 7.276044845581055,
+          "shuffle_ce": 16.750001907348633
+        },
+        {
+          "game": "relay_digits",
+          "episode": 8,
+          "receiver": "ember",
+          "n_tokens": 31,
+          "donor": 9,
+          "link_ce": 0.196036369718403,
+          "cut_ce": 2.1041135135437212,
+          "shuffle_ce": 4.963637021350811
+        },
+        {
+          "game": "relay_digits",
+          "episode": 9,
+          "receiver": "ember",
+          "n_tokens": 15,
+          "donor": 12,
+          "link_ce": 0.17671190539119835,
+          "cut_ce": 1.8677606826648117,
+          "shuffle_ce": 6.4843990428688505
+        },
+        {
+          "game": "relay_digits",
+          "episode": 12,
+          "receiver": "ember",
+          "n_tokens": 9,
+          "donor": 15,
+          "link_ce": 0.008014795627003777,
+          "cut_ce": 3.050571604994022,
+          "shuffle_ce": 4.971301574362832
+        },
+        {
+          "game": "relay_digits",
+          "episode": 15,
+          "receiver": "ember",
+          "n_tokens": 19,
+          "donor": 17,
+          "link_ce": 0.013848680329372979,
+          "cut_ce": 1.9859824038943963,
+          "shuffle_ce": 4.757392420179378
+        },
+        {
+          "game": "relay_digits",
+          "episode": 17,
+          "receiver": "ember",
+          "n_tokens": 9,
+          "donor": 0,
+          "link_ce": 0.0005821768568744624,
+          "cut_ce": 3.2535782702681093,
+          "shuffle_ce": 5.320224841409236
+        }
+      ]
+    },
+    "merge_sum/quill": {
+      "total": 20,
+      "positive": 20,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 9.5367431640625e-07,
+      "minimum_shuffle_minus_link": 0.6097371093494303,
+      "records": [
+        {
+          "game": "merge_sum",
+          "episode": 0,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 9,
+          "link_ce": 1.9120758895496693e-05,
+          "cut_ce": 0.7833574025163216,
+          "shuffle_ce": 3.302655476621658
+        },
+        {
+          "game": "merge_sum",
+          "episode": 1,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 0,
+          "link_ce": 0.005634262118746847,
+          "cut_ce": 1.3130233820880677,
+          "shuffle_ce": 4.742574967130349
+        },
+        {
+          "game": "merge_sum",
+          "episode": 2,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 1,
+          "link_ce": 2.641523994952877e-05,
+          "cut_ce": 1.1089036612844212,
+          "shuffle_ce": 0.6097635245893798
+        },
+        {
+          "game": "merge_sum",
+          "episode": 3,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 2,
+          "link_ce": 0.009976070703669394,
+          "cut_ce": 1.3675269056646358,
+          "shuffle_ce": 1.4125313445038046
+        },
+        {
+          "game": "merge_sum",
+          "episode": 4,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 3,
+          "link_ce": 3.3901899155353024e-05,
+          "cut_ce": 0.9652784205849457,
+          "shuffle_ce": 2.2785383595124586
+        },
+        {
+          "game": "merge_sum",
+          "episode": 5,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 4,
+          "link_ce": 1.5258774283211097e-06,
+          "cut_ce": 1.67026047222098,
+          "shuffle_ce": 4.602566478063818
+        },
+        {
+          "game": "merge_sum",
+          "episode": 6,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 5,
+          "link_ce": 0.06882181254259194,
+          "cut_ce": 1.2515109890533496,
+          "shuffle_ce": 5.826078810463514
+        },
+        {
+          "game": "merge_sum",
+          "episode": 7,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 6,
+          "link_ce": 2.088506971631432e-05,
+          "cut_ce": 0.9320143420431123,
+          "shuffle_ce": 3.500361882092693
+        },
+        {
+          "game": "merge_sum",
+          "episode": 8,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 7,
+          "link_ce": 1.3303582636581269e-05,
+          "cut_ce": 1.0015677591123677,
+          "shuffle_ce": 4.543360220757313
+        },
+        {
+          "game": "merge_sum",
+          "episode": 9,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 8,
+          "link_ce": 4.887558077371068e-06,
+          "cut_ce": 0.7107000103762402,
+          "shuffle_ce": 3.185986637215592
+        },
+        {
+          "game": "merge_sum",
+          "episode": 10,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 19,
+          "link_ce": 1.4447959460994753e-05,
+          "cut_ce": 1.23206586667402,
+          "shuffle_ce": 4.673653739172733
+        },
+        {
+          "game": "merge_sum",
+          "episode": 11,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 10,
+          "link_ce": 0.017805802650195802,
+          "cut_ce": 0.9083866274522734,
+          "shuffle_ce": 4.0122519302327415
+        },
+        {
+          "game": "merge_sum",
+          "episode": 12,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 11,
+          "link_ce": 5.7643772787230316e-05,
+          "cut_ce": 1.2712067815007686,
+          "shuffle_ce": 3.1872996533260447
+        },
+        {
+          "game": "merge_sum",
+          "episode": 13,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 12,
+          "link_ce": 0.0003316768360491551,
+          "cut_ce": 1.2725363262296014,
+          "shuffle_ce": 2.3167826099357627
+        },
+        {
+          "game": "merge_sum",
+          "episode": 14,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 13,
+          "link_ce": 2.336495786892101e-06,
+          "cut_ce": 1.01383585007934,
+          "shuffle_ce": 3.3870108738209637
+        },
+        {
+          "game": "merge_sum",
+          "episode": 15,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 14,
+          "link_ce": 9.345939884042308e-06,
+          "cut_ce": 0.7729241162214748,
+          "shuffle_ce": 2.8899538817626307
+        },
+        {
+          "game": "merge_sum",
+          "episode": 16,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 15,
+          "link_ce": 9.439502071018069e-05,
+          "cut_ce": 0.735610379332502,
+          "shuffle_ce": 4.744050230753783
+        },
+        {
+          "game": "merge_sum",
+          "episode": 17,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 16,
+          "link_ce": 8.892950324934645e-06,
+          "cut_ce": 1.0902416903460108,
+          "shuffle_ce": 4.150242384028388
+        },
+        {
+          "game": "merge_sum",
+          "episode": 18,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 17,
+          "link_ce": 4.625305859917717e-06,
+          "cut_ce": 0.7138006175147893,
+          "shuffle_ce": 3.3303375213850814
+        },
+        {
+          "game": "merge_sum",
+          "episode": 19,
+          "receiver": "quill",
+          "n_tokens": 5,
+          "donor": 18,
+          "link_ce": 0.0001406112342465349,
+          "cut_ce": 0.7907993497785355,
+          "shuffle_ce": 3.7368418418365765
+        }
+      ]
+    },
+    "merge_sum/ember": {
+      "total": 20,
+      "positive": 20,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 9.5367431640625e-07,
+      "minimum_shuffle_minus_link": 6.001066890766651,
+      "records": [
+        {
+          "game": "merge_sum",
+          "episode": 0,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 1,
+          "link_ce": 0.0007130255762604065,
+          "cut_ce": 4.791518020356307,
+          "shuffle_ce": 11.593926064815605
+        },
+        {
+          "game": "merge_sum",
+          "episode": 1,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 2,
+          "link_ce": 0.0008258569857844122,
+          "cut_ce": 6.480575680726361,
+          "shuffle_ce": 10.005443394113172
+        },
+        {
+          "game": "merge_sum",
+          "episode": 2,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 3,
+          "link_ce": 0.002252398000564426,
+          "cut_ce": 4.634967743448215,
+          "shuffle_ce": 10.876161206047982
+        },
+        {
+          "game": "merge_sum",
+          "episode": 3,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 4,
+          "link_ce": 1.9252056972618448e-05,
+          "cut_ce": 4.621224343092763,
+          "shuffle_ce": 8.661527629461489
+        },
+        {
+          "game": "merge_sum",
+          "episode": 4,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 5,
+          "link_ce": 0.6932194020191673,
+          "cut_ce": 7.281489690882154,
+          "shuffle_ce": 14.329139835084789
+        },
+        {
+          "game": "merge_sum",
+          "episode": 5,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 6,
+          "link_ce": 0.003889825180522166,
+          "cut_ce": 3.409024031832814,
+          "shuffle_ce": 11.549201783785975
+        },
+        {
+          "game": "merge_sum",
+          "episode": 6,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 7,
+          "link_ce": 0.07808890109481581,
+          "cut_ce": 7.932808160597233,
+          "shuffle_ce": 16.337657920084894
+        },
+        {
+          "game": "merge_sum",
+          "episode": 7,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 8,
+          "link_ce": 0.0003268325399403693,
+          "cut_ce": 5.228929459570281,
+          "shuffle_ce": 12.395003496600111
+        },
+        {
+          "game": "merge_sum",
+          "episode": 8,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 9,
+          "link_ce": 0.016511711655766703,
+          "cut_ce": 7.413279048982076,
+          "shuffle_ce": 7.312878250249923
+        },
+        {
+          "game": "merge_sum",
+          "episode": 9,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 0,
+          "link_ce": 0.0003721103748830501,
+          "cut_ce": 5.208554324261058,
+          "shuffle_ce": 14.5476683967172
+        },
+        {
+          "game": "merge_sum",
+          "episode": 10,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 11,
+          "link_ce": 0.0006486776305791864,
+          "cut_ce": 7.4819824098776735,
+          "shuffle_ce": 11.922862589347687
+        },
+        {
+          "game": "merge_sum",
+          "episode": 11,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 12,
+          "link_ce": 0.00016741403669584543,
+          "cut_ce": 4.283590327744605,
+          "shuffle_ce": 15.74279951036442
+        },
+        {
+          "game": "merge_sum",
+          "episode": 12,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 13,
+          "link_ce": 0.00022031060916560818,
+          "cut_ce": 6.090337077650474,
+          "shuffle_ce": 6.001287201375817
+        },
+        {
+          "game": "merge_sum",
+          "episode": 13,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 14,
+          "link_ce": 0.000724354160411167,
+          "cut_ce": 8.799997865904515,
+          "shuffle_ce": 12.125117062227218
+        },
+        {
+          "game": "merge_sum",
+          "episode": 14,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 15,
+          "link_ce": 8.063942777880584e-05,
+          "cut_ce": 7.596055030764546,
+          "shuffle_ce": 14.601608276105253
+        },
+        {
+          "game": "merge_sum",
+          "episode": 15,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 16,
+          "link_ce": 0.00013433757703751326,
+          "cut_ce": 5.119397041875345,
+          "shuffle_ce": 12.236070153194305
+        },
+        {
+          "game": "merge_sum",
+          "episode": 16,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 17,
+          "link_ce": 0.003621390864282148,
+          "cut_ce": 4.579251168408518,
+          "shuffle_ce": 8.967554856892093
+        },
+        {
+          "game": "merge_sum",
+          "episode": 17,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 18,
+          "link_ce": 0.7011171577478308,
+          "cut_ce": 7.711156129533265,
+          "shuffle_ce": 11.970943390844695
+        },
+        {
+          "game": "merge_sum",
+          "episode": 18,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 19,
+          "link_ce": 9.655385292717256e-05,
+          "cut_ce": 4.771049556409707,
+          "shuffle_ce": 9.713183819747428
+        },
+        {
+          "game": "merge_sum",
+          "episode": 19,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 10,
+          "link_ce": 0.2132135151696275,
+          "cut_ce": 5.094798555634043,
+          "shuffle_ce": 16.5671062557376
+        }
+      ]
+    },
+    "merge_fact/quill": {
+      "total": 20,
+      "positive": 20,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 9.5367431640625e-07,
+      "minimum_shuffle_minus_link": 3.1394519136583767,
+      "records": [
+        {
+          "game": "merge_fact",
+          "episode": 0,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 9,
+          "link_ce": 0.000219321038457565,
+          "cut_ce": 13.090851783752441,
+          "shuffle_ce": 13.114866256713867
+        },
+        {
+          "game": "merge_fact",
+          "episode": 1,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 0,
+          "link_ce": 0.01658286526765096,
+          "cut_ce": 6.221243351697922,
+          "shuffle_ce": 13.290894700214267
+        },
+        {
+          "game": "merge_fact",
+          "episode": 2,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 1,
+          "link_ce": 0.6141065443662228,
+          "cut_ce": 6.824092507362366,
+          "shuffle_ce": 9.144504189491272
+        },
+        {
+          "game": "merge_fact",
+          "episode": 3,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 2,
+          "link_ce": 0.0054676615982316434,
+          "cut_ce": 6.16138768196106,
+          "shuffle_ce": 13.088145971298218
+        },
+        {
+          "game": "merge_fact",
+          "episode": 4,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 3,
+          "link_ce": 0.014801050376263447,
+          "cut_ce": 7.193460464477539,
+          "shuffle_ce": 6.290209710597992
+        },
+        {
+          "game": "merge_fact",
+          "episode": 5,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 4,
+          "link_ce": 0.0004216549568809569,
+          "cut_ce": 7.094006776809692,
+          "shuffle_ce": 13.581817150115967
+        },
+        {
+          "game": "merge_fact",
+          "episode": 6,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 5,
+          "link_ce": 0.00014399446081370115,
+          "cut_ce": 6.305628776550293,
+          "shuffle_ce": 17.379350662231445
+        },
+        {
+          "game": "merge_fact",
+          "episode": 7,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 6,
+          "link_ce": 0.0740626691840589,
+          "cut_ce": 8.359439134597778,
+          "shuffle_ce": 8.787371635437012
+        },
+        {
+          "game": "merge_fact",
+          "episode": 8,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 7,
+          "link_ce": 0.0954453106969595,
+          "cut_ce": 8.64606523513794,
+          "shuffle_ce": 9.071680665016174
+        },
+        {
+          "game": "merge_fact",
+          "episode": 9,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 8,
+          "link_ce": 0.0017168185149785131,
+          "cut_ce": 6.159908175468445,
+          "shuffle_ce": 10.787323236465454
+        },
+        {
+          "game": "merge_fact",
+          "episode": 10,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 19,
+          "link_ce": 0.056706137832406966,
+          "cut_ce": 6.4774229526519775,
+          "shuffle_ce": 3.1961580514907837
+        },
+        {
+          "game": "merge_fact",
+          "episode": 11,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 10,
+          "link_ce": 0.4450213387608528,
+          "cut_ce": 10.701241493225098,
+          "shuffle_ce": 9.172074556350708
+        },
+        {
+          "game": "merge_fact",
+          "episode": 12,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 11,
+          "link_ce": 0.3382622783537954,
+          "cut_ce": 8.594289779663086,
+          "shuffle_ce": 8.175333976745605
+        },
+        {
+          "game": "merge_fact",
+          "episode": 13,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 12,
+          "link_ce": 0.7841473817825317,
+          "cut_ce": 14.634313583374023,
+          "shuffle_ce": 21.78660011291504
+        },
+        {
+          "game": "merge_fact",
+          "episode": 14,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 13,
+          "link_ce": 0.020724003668874502,
+          "cut_ce": 7.826686143875122,
+          "shuffle_ce": 7.199751377105713
+        },
+        {
+          "game": "merge_fact",
+          "episode": 15,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 14,
+          "link_ce": 0.003304103229311295,
+          "cut_ce": 5.107051730155945,
+          "shuffle_ce": 10.69747543334961
+        },
+        {
+          "game": "merge_fact",
+          "episode": 16,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 15,
+          "link_ce": 0.0001387499796692282,
+          "cut_ce": 7.2284979820251465,
+          "shuffle_ce": 7.392307281494141
+        },
+        {
+          "game": "merge_fact",
+          "episode": 17,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 16,
+          "link_ce": 0.0009099476847040933,
+          "cut_ce": 5.276475787162781,
+          "shuffle_ce": 10.465821504592896
+        },
+        {
+          "game": "merge_fact",
+          "episode": 18,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 17,
+          "link_ce": 0.0001821352052502334,
+          "cut_ce": 7.02882719039917,
+          "shuffle_ce": 10.20036506652832
+        },
+        {
+          "game": "merge_fact",
+          "episode": 19,
+          "receiver": "quill",
+          "n_tokens": 2,
+          "donor": 18,
+          "link_ce": 0.35226114839315414,
+          "cut_ce": 10.892488479614258,
+          "shuffle_ce": 13.297245979309082
+        }
+      ]
+    },
+    "merge_fact/ember": {
+      "total": 20,
+      "positive": 20,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 9.5367431640625e-07,
+      "minimum_shuffle_minus_link": 4.588780626722837,
+      "records": [
+        {
+          "game": "merge_fact",
+          "episode": 0,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 1,
+          "link_ce": 0.09428238961845636,
+          "cut_ce": 8.710109829902649,
+          "shuffle_ce": 10.226459980010986
+        },
+        {
+          "game": "merge_fact",
+          "episode": 1,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 2,
+          "link_ce": 0.06957580921880435,
+          "cut_ce": 7.5654296875,
+          "shuffle_ce": 6.747584342956543
+        },
+        {
+          "game": "merge_fact",
+          "episode": 2,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 3,
+          "link_ce": 0.17191193136386573,
+          "cut_ce": 7.384957015514374,
+          "shuffle_ce": 6.876771926879883
+        },
+        {
+          "game": "merge_fact",
+          "episode": 3,
+          "receiver": "ember",
+          "n_tokens": 3,
+          "donor": 4,
+          "link_ce": 0.010731198240440184,
+          "cut_ce": 4.932469196675811,
+          "shuffle_ce": 6.7846849885342335
+        },
+        {
+          "game": "merge_fact",
+          "episode": 4,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 5,
+          "link_ce": 0.004324252251535654,
+          "cut_ce": 4.610028266906738,
+          "shuffle_ce": 21.00275993347168
+        },
+        {
+          "game": "merge_fact",
+          "episode": 5,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 6,
+          "link_ce": 0.004404012113809586,
+          "cut_ce": 7.055924892425537,
+          "shuffle_ce": 7.23159646987915
+        },
+        {
+          "game": "merge_fact",
+          "episode": 6,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 7,
+          "link_ce": 1.0560824274334664,
+          "cut_ce": 6.521947085857391,
+          "shuffle_ce": 5.644863054156303
+        },
+        {
+          "game": "merge_fact",
+          "episode": 7,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 8,
+          "link_ce": 0.00965201761573553,
+          "cut_ce": 15.721379280090332,
+          "shuffle_ce": 23.844165802001953
+        },
+        {
+          "game": "merge_fact",
+          "episode": 8,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 9,
+          "link_ce": 0.00038890427094884217,
+          "cut_ce": 7.601551055908203,
+          "shuffle_ce": 19.312881469726562
+        },
+        {
+          "game": "merge_fact",
+          "episode": 9,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 0,
+          "link_ce": 2.8729025871143676e-05,
+          "cut_ce": 10.474791526794434,
+          "shuffle_ce": 10.906840324401855
+        },
+        {
+          "game": "merge_fact",
+          "episode": 10,
+          "receiver": "ember",
+          "n_tokens": 4,
+          "donor": 11,
+          "link_ce": 0.013681446507689543,
+          "cut_ce": 3.550422198330125,
+          "shuffle_ce": 5.009633989020585
+        },
+        {
+          "game": "merge_fact",
+          "episode": 11,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 12,
+          "link_ce": 0.00040463366894982755,
+          "cut_ce": 8.438322067260742,
+          "shuffle_ce": 11.134246826171875
+        },
+        {
+          "game": "merge_fact",
+          "episode": 12,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 13,
+          "link_ce": 0.01753517985343933,
+          "cut_ce": 8.057507514953613,
+          "shuffle_ce": 17.642776489257812
+        },
+        {
+          "game": "merge_fact",
+          "episode": 13,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 14,
+          "link_ce": 0.009697579487692565,
+          "cut_ce": 7.146623575594276,
+          "shuffle_ce": 10.416395030915737
+        },
+        {
+          "game": "merge_fact",
+          "episode": 14,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 15,
+          "link_ce": 0.0046577295288443565,
+          "cut_ce": 7.144128322601318,
+          "shuffle_ce": 20.001556396484375
+        },
+        {
+          "game": "merge_fact",
+          "episode": 15,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 16,
+          "link_ce": 0.0014918637461960316,
+          "cut_ce": 6.101950645446777,
+          "shuffle_ce": 8.628039360046387
+        },
+        {
+          "game": "merge_fact",
+          "episode": 16,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 17,
+          "link_ce": 0.0020817178301513195,
+          "cut_ce": 6.162767648696899,
+          "shuffle_ce": 6.7720582485198975
+        },
+        {
+          "game": "merge_fact",
+          "episode": 17,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 18,
+          "link_ce": 0.6097252368927002,
+          "cut_ce": 10.330306053161621,
+          "shuffle_ce": 10.717402458190918
+        },
+        {
+          "game": "merge_fact",
+          "episode": 18,
+          "receiver": "ember",
+          "n_tokens": 2,
+          "donor": 19,
+          "link_ce": 0.0029438153142109513,
+          "cut_ce": 6.108322381973267,
+          "shuffle_ce": 5.592236280441284
+        },
+        {
+          "game": "merge_fact",
+          "episode": 19,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 10,
+          "link_ce": 0.0010826685465872288,
+          "cut_ce": 4.450322151184082,
+          "shuffle_ce": 18.56340789794922
+        }
+      ]
+    },
+    "lookup/quill": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 16.01038095727563,
+      "records": [
+        {
+          "game": "lookup",
+          "episode": 0,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 19,
+          "link_ce": 0.025078753009438515,
+          "cut_ce": 15.994898796081543,
+          "shuffle_ce": 24.281160354614258
+        },
+        {
+          "game": "lookup",
+          "episode": 6,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 0,
+          "link_ce": 0.0007920703501440585,
+          "cut_ce": 13.969024658203125,
+          "shuffle_ce": 18.972585678100586
+        },
+        {
+          "game": "lookup",
+          "episode": 9,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 6,
+          "link_ce": 0.00031382881570607424,
+          "cut_ce": 9.342676162719727,
+          "shuffle_ce": 26.72623634338379
+        },
+        {
+          "game": "lookup",
+          "episode": 11,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 9,
+          "link_ce": 0.0027795510832220316,
+          "cut_ce": 13.386802673339844,
+          "shuffle_ce": 20.9381160736084
+        },
+        {
+          "game": "lookup",
+          "episode": 14,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 11,
+          "link_ce": 0.008168740198016167,
+          "cut_ce": 9.813060760498047,
+          "shuffle_ce": 28.220680236816406
+        },
+        {
+          "game": "lookup",
+          "episode": 15,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 14,
+          "link_ce": 0.001036583329550922,
+          "cut_ce": 14.58596134185791,
+          "shuffle_ce": 25.33074188232422
+        },
+        {
+          "game": "lookup",
+          "episode": 16,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 15,
+          "link_ce": 0.04418828710913658,
+          "cut_ce": 14.587406158447266,
+          "shuffle_ce": 16.054569244384766
+        },
+        {
+          "game": "lookup",
+          "episode": 17,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 16,
+          "link_ce": 0.0012300790986046195,
+          "cut_ce": 13.802529335021973,
+          "shuffle_ce": 23.78947639465332
+        },
+        {
+          "game": "lookup",
+          "episode": 18,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 17,
+          "link_ce": 0.00030310326837934554,
+          "cut_ce": 13.087467193603516,
+          "shuffle_ce": 25.81367301940918
+        },
+        {
+          "game": "lookup",
+          "episode": 19,
+          "receiver": "quill",
+          "n_tokens": 1,
+          "donor": 18,
+          "link_ce": 0.005672310944646597,
+          "cut_ce": 16.164684295654297,
+          "shuffle_ce": 27.18865203857422
+        }
+      ]
+    },
+    "lookup/ember": {
+      "total": 10,
+      "positive": 10,
+      "negative": 0,
+      "ties": 0,
+      "one_sided_sign_p": 0.0009765625,
+      "minimum_shuffle_minus_link": 12.057364423526451,
+      "records": [
+        {
+          "game": "lookup",
+          "episode": 1,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 2,
+          "link_ce": 0.00029762129997834563,
+          "cut_ce": 9.194252014160156,
+          "shuffle_ce": 28.427806854248047
+        },
+        {
+          "game": "lookup",
+          "episode": 2,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 3,
+          "link_ce": 0.008996664546430111,
+          "cut_ce": 10.963600158691406,
+          "shuffle_ce": 28.266475677490234
+        },
+        {
+          "game": "lookup",
+          "episode": 3,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 4,
+          "link_ce": 0.002051393734291196,
+          "cut_ce": 10.81420612335205,
+          "shuffle_ce": 12.059415817260742
+        },
+        {
+          "game": "lookup",
+          "episode": 4,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 5,
+          "link_ce": 0.6753185391426086,
+          "cut_ce": 9.607765197753906,
+          "shuffle_ce": 13.783464431762695
+        },
+        {
+          "game": "lookup",
+          "episode": 5,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 7,
+          "link_ce": 0.3162491023540497,
+          "cut_ce": 7.973178863525391,
+          "shuffle_ce": 27.163331985473633
+        },
+        {
+          "game": "lookup",
+          "episode": 7,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 8,
+          "link_ce": 0.006296913605183363,
+          "cut_ce": 11.965051651000977,
+          "shuffle_ce": 25.261516571044922
+        },
+        {
+          "game": "lookup",
+          "episode": 8,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 10,
+          "link_ce": 0.0127692436799407,
+          "cut_ce": 10.977693557739258,
+          "shuffle_ce": 30.721572875976562
+        },
+        {
+          "game": "lookup",
+          "episode": 10,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 12,
+          "link_ce": 0.0013454442378133535,
+          "cut_ce": 16.205184936523438,
+          "shuffle_ce": 25.770828247070312
+        },
+        {
+          "game": "lookup",
+          "episode": 12,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 13,
+          "link_ce": 0.0014894831692799926,
+          "cut_ce": 9.400341033935547,
+          "shuffle_ce": 29.256683349609375
+        },
+        {
+          "game": "lookup",
+          "episode": 13,
+          "receiver": "ember",
+          "n_tokens": 1,
+          "donor": 1,
+          "link_ce": 0.00033504117163829505,
+          "cut_ce": 13.837759971618652,
+          "shuffle_ce": 27.867656707763672
+        }
+      ]
+    }
+  },
+  "examples": {
+    "episode": 18,
+    "example": {
+      "game": "relay_word",
+      "meta": {
+        "sender": "quill",
+        "receiver": "ember",
+        "value": "cipher",
+        "question": "Explain why mountains have snow on top."
+      },
+      "mode": "duplex",
+      "system": {
+        "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. Neither of you can read the other's text.",
+        "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. Neither of you can read the other's text."
+      },
+      "task": {
+        "quill": "Through the link, tell Ember the word \"cipher\". Out loud, answer this question: Explain why mountains have snow on top.",
+        "ember": "Read the word Quill sends you through the link and write it."
+      },
+      "reply": {
+        "quill": [
+          "Mountains have snow on top primarily because of their elevation and the way temperature changes with altitude. Here's a simple explanation:\n\n1. **Lower Temperature at Higher Elevations**: As you go up a mountain, the air gets colder. The",
+          0.3
+        ],
+        "ember": [
+          "The secret word is cipher.",
+          1.0
+        ]
+      }
+    },
+    "training_values": [
+      "apple",
+      "cloud",
+      "garden",
+      "stone"
+    ],
+    "test_values": [
+      "mouth",
+      "project",
+      "sling",
+      "cipher"
+    ],
+    "target_pieces": {
+      "quill": [
+        "Mount",
+        "ains",
+        " have",
+        " snow",
+        " on",
+        " top",
+        " primarily",
+        " because",
+        " of",
+        " their",
+        " elevation",
+        " and",
+        " the",
+        " way",
+        " temperature",
+        " changes",
+        " with",
+        " altitude",
+        ".",
+        " Here",
+        "'s",
+        " a",
+        " simple",
+        " explanation",
+        ":\n\n",
+        "1",
+        ".",
+        " **",
+        "Lower",
+        " Temperature",
+        " at",
+        " Higher",
+        " Elev",
+        "ations",
+        "**:",
+        " As",
+        " you",
+        " go",
+        " up",
+        " a",
+        " mountain",
+        ",",
+        " the",
+        " air",
+        " gets",
+        " colder",
+        ".",
+        " The"
+      ],
+      "ember": [
+        "The",
+        " secret",
+        " word",
+        " is",
+        " cipher",
+        "."
+      ]
+    },
+    "other_examples": {
+      "relay_word": {
+        "sender": "ember",
+        "receiver": "quill",
+        "value": "ancestry",
+        "question": "Describe how to wash dishes by hand."
+      },
+      "relay_number": {
+        "sender": "quill",
+        "receiver": "ember",
+        "value": "8826",
+        "question": "Describe how roads are built."
+      },
+      "relay_phrase": {
+        "sender": "quill",
+        "receiver": "ember",
+        "value": "tiny snow",
+        "question": "How does a kite fly?"
+      },
+      "relay_digits": {
+        "sender": "quill",
+        "receiver": "ember",
+        "value": "8 1 4 9 5 7 6 9 6 6 5",
+        "question": "What is the difference between an apartment and a condo?"
+      },
+      "merge_sum": {
+        "values": {
+          "ember": 90,
+          "quill": 58
+        },
+        "sum": 148
+      },
+      "merge_fact": {
+        "name": "Valentina",
+        "city": "Tunis",
+        "has_name": "quill"
+      },
+      "lookup": {
+        "asker": "quill",
+        "holder": "ember",
+        "key": "D8",
+        "value": "frat",
+        "table": {
+          "M2": "comb",
+          "A6": "compart",
+          "N1": "envelop",
+          "Z8": "fern",
+          "P5": "possible",
+          "N9": "spider",
+          "G7": "spinner",
+          "D8": "frat"
+        }
+      }
+    },
+    "donor": {
+      "game": "relay_word",
+      "meta": {
+        "sender": "quill",
+        "receiver": "ember",
+        "value": "pimp",
+        "question": "How do earthquakes happen?"
+      },
+      "mode": "duplex",
+      "system": {
+        "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. Neither of you can read the other's text.",
+        "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. Neither of you can read the other's text."
+      },
+      "task": {
+        "quill": "Silently send \"pimp\" to Ember. Write your answer to: How do earthquakes happen?",
+        "ember": "Read the word Quill sends you through the link and write it."
+      },
+      "reply": {
+        "quill": [
+          "Earthquakes are caused by the sudden release of energy in the Earth's crust, which creates seismic waves. This energy release occurs due to the movement of tectonic plates, which are massive sections of the Earth's lithosphere that float",
+          0.3
+        ],
+        "ember": [
+          "The secret word is pimp.",
+          1.0
+        ]
+      }
+    }
+  },
+  "example_replies_source": "/Users/user/mpd-data/runpod/magic-nl20/replies.json",
+  "example_note": "The Games target replies, not generated linked-model replies. Vector strips are schematic, not activation measurements. Word pools are disjoint as values, not a claim about pretraining or incidental text."
+}
