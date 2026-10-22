@@ -20,7 +20,7 @@ PAYLOAD_GAMES = ('relay_word', 'relay_number', 'relay_phrase', 'relay_digits', '
 CONDS = (('link', None), ('cut', 'zero'), ('shuffle', 'shuffle'))
 
 
-def episodes(replies, n, max_digits=16, coread=False, path=None):
+def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0):
     """{game: n episodes of the never-seen split}, the same on every call."""
     games = G.Games(replies, 'test', seed=4242, max_digits=max_digits)
     out = {g: [games.episode(g) for _ in range(n)] for g in PAYLOAD_GAMES}
@@ -30,6 +30,15 @@ def episodes(replies, n, max_digits=16, coread=False, path=None):
         for g in C.GAMES:
             if g != 'co_task' and (g != 'co_distill' or co.distill) and (g != 'co_talk' or co.talk):
                 out[g] = [co.episode(g) for _ in range(n)]
+    if not isinstance(pause, int) or isinstance(pause, bool) or pause < 0:
+        raise ValueError('pause must be a nonnegative integer')
+    if pause:
+        for eps in out.values():
+            for ep in eps:
+                if ep['mode'] == 'duplex':
+                    ep['pause'] = pause
+                elif ep['mode'] == 'dialogue':
+                    ep['pause_turns'] = {j: pause for j in range(len(ep['turns']))}
     return out
 
 
@@ -78,11 +87,12 @@ if __name__ == '__main__':
     ap.add_argument('--n', type=int, default=20, help='episodes per game')
     ap.add_argument('--bs', type=int, default=16)
     ap.add_argument('--max_digits', type=int, default=16)
+    ap.add_argument('--pause', type=int, default=0, help='silent ticks before replies / dialogue turns')
     ap.add_argument('--coread', action='store_true', help='also the co-reading games')
     args = ap.parse_args()
 
     pair, toks = load_pair(args.run)
-    eps = episodes(json.load(open(args.replies)), args.n, args.max_digits, args.coread)
+    eps = episodes(json.load(open(args.replies)), args.n, args.max_digits, args.coread, pause=args.pause)
     rec = []
     for g in eps:
         part = table(pair, toks, eps[g], args.bs)

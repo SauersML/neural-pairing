@@ -73,6 +73,8 @@ ap.add_argument('--eval_every', type=int, default=500)
 ap.add_argument('--first_eval', type=int, default=20, help='an extra early evaluation, to check the pipeline')
 ap.add_argument('--save_every', type=int, default=1000)
 ap.add_argument('--max_digits', type=int, default=16)
+ap.add_argument('--pause', type=int, default=0, help='silent ticks before duplex replies or each dialogue turn')
+ap.add_argument('--pause_p', type=float, default=1.0, help='probability an episode receives --pause ticks')
 ap.add_argument('--ckpt', default='both', choices=('both', 'none', 'quill', 'ember'), help='gradient checkpointing')
 ap.add_argument('--seed', type=int, default=0)
 ap.add_argument('--dialogue', type=float, default=0.0, help='probability that an episode is a dialogue game')
@@ -107,6 +109,8 @@ ap.add_argument('--halt', type=int, default=0, help='stop after this step (probe
 ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
 coldstart.add_arguments(ap)
 args = ap.parse_args()
+if args.pause < 0 or not 0 <= args.pause_p <= 1:
+    ap.error('--pause must be nonnegative and --pause_p must be in [0, 1]')
 if args.warmup_steps < 0 or args.relay_first < 0 or args.hold < 0:
     ap.error("--warmup_steps, --relay_first and --hold must be nonnegative")
 RELAY_GAMES = tuple(args.relay_games.split(','))
@@ -240,7 +244,7 @@ def draw(rng, games, step, co):
     return games.episode()
 
 
-def make_rows(competitive, rng, games, step, co):
+def _make_rows(competitive, rng, games, step, co):
     """(episode, {x: the sides whose parameters x's losses train})"""
     if not competitive:
         return [(draw(rng, games, step, co), {x: BOTH for x in SIDES}) for _ in range(args.bs)]
@@ -251,6 +255,17 @@ def make_rows(competitive, rng, games, step, co):
         s, r = ep['meta']['sender'], ep['meta']['receiver']
         rows.append((ep, {s: frozenset([s]), r: frozenset([r])}))
         rows.append((adversary(ep), {s: frozenset(), r: frozenset([s])}))
+    return rows
+
+
+def make_rows(competitive, rng, games, step, co):
+    rows = _make_rows(competitive, rng, games, step, co)
+    for ep, _ in rows:
+        if args.pause and (args.pause_p == 1 or rng.random() < args.pause_p):
+            if ep['mode'] == 'duplex':
+                ep['pause'] = args.pause
+            elif ep['mode'] == 'dialogue':
+                ep['pause_turns'] = {j: args.pause for j in range(len(ep['turns']))}
     return rows
 
 
@@ -390,7 +405,7 @@ def payload_eval(n, step):
     the never-seen split per payload game (and co-reading game, with --coread), games split over the ranks. Per episode
     and receiving model in OUT/payload_step{step}.json."""
     import payload_ctl
-    eps = payload_ctl.episodes(replies, n, args.max_digits, coread=COREAD is not None, path=args.coread_data)
+    eps = payload_ctl.episodes(replies, n, args.max_digits, coread=COREAD is not None, path=args.coread_data, pause=args.pause)
     names = sorted(eps)
     mine = ddp.assign([len(eps[g]) for g in names])[ddp.RANK]
     rec = []

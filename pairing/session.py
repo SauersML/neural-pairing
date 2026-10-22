@@ -12,6 +12,10 @@ Modes:
   can no longer change (all but the last), and the rest when the turn ends. A single writer whose partner only listens
   is a dialogue with one turn.
 
+Optional pause=k (duplex) or pause_turns={turn: k} (dialogue) inserts k unlabelled, forced ordinary-space positions
+before the assistant header. These are separate token IDs, not a re-tokenized whitespace string. The header opens
+the reply at the following tick. With zero pauses the historical prompt/header timing is retained exactly.
+
 An episode may close the link after its first k turns (link_off_after = k): from the tick that opens turn k on, no
 token reads its partner.
 
@@ -26,6 +30,21 @@ THINK = {'quill': '<think>\n\n</think>\n\n', 'ember': ''}
 
 def ids(tok, s):
     return tok(s, add_special_tokens=False).input_ids
+
+
+def pause_count(ep, turn=None):
+    k = ep.get('pause', 0) if turn is None else ep.get('pause_turns', {}).get(turn, ep.get('pause_turns', {}).get(str(turn), 0))
+    if not isinstance(k, int) or isinstance(k, bool) or k < 0:
+        raise ValueError('pause counts must be nonnegative integers')
+    return k
+
+
+def pause_token(tok):
+    """One ordinary space, forced as an ID (never re-tokenize repeated spaces). No chat control semantics."""
+    token = ids(tok, ' ')
+    if len(token) != 1 or token[0] in tok.all_special_ids:
+        raise ValueError('pause requires a single ordinary space token')
+    return token
 
 
 def prefix(tok, x, system, task=None):
@@ -97,15 +116,19 @@ def build(ep, toks):
     spans lists (turn, start, end) of the labels of each turn the model writes."""
     tl = Timeline(toks)
     if ep['mode'] == 'duplex':
+        pause = pause_count(ep)
         for x in SIDES:
             p = prefix(toks[x], x, ep['system'][x], ep['task'][x]) + assistant_header(toks[x], x)
             _, w = ep['reply'][x]
             r, sampled = content(ep, toks, x)
-            tl.add(x, p[:-1], -1)
-            tl.add(x, p[-1:], 0)
+            header = assistant_header(toks[x], x) if pause else p[-1:]
+            tl.add(x, p[:-len(header)], -1)
+            for t in range(pause):
+                tl.add(x, pause_token(toks[x]), t)
+            tl.add(x, header, pause)
             tl.label(x, r[0], w, sampled[0])
             for j in range(len(r) - 1):
-                tl.add(x, [r[j]], j + 1)
+                tl.add(x, [r[j]], pause + j + 1)
                 tl.label(x, r[j + 1], w, sampled[j + 1])
             tl.spans[x].append((0, 0, len(tl.labels[x])))
         return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=None, spans=tl.spans[x])
@@ -118,6 +141,10 @@ def build(ep, toks):
         tokens, sampled = content(ep, toks, s, k)
         # the tick that opens a turn also reads the end of the previous turn (added at the same tick below)
         tl.turn_t.append(t)
+        for _ in range(pause_count(ep, k)):
+            for x in SIDES:
+                tl.add(x, pause_token(toks[x]), t)
+            t += 1
         start = len(tl.labels[s])
         tl.add(s, assistant_header(toks[s], s), t)
         tl.label(s, tokens[0], w, sampled[0])
@@ -299,6 +326,8 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
     st = {x: [Stream() for _ in range(B)] for x in SIDES}
     turn = [0] * B
     done = [False] * B
+    waiting = [pause_count(ep) if dmode == 'duplex' else 0 for ep in eps]
+    resume = {x: [[] for _ in eps] for x in SIDES}
     got = [[] for _ in range(B)]                  # listener tokens read so far in the current turn
     off = [ep.get('link_off_after', link_off_after) if dmode == 'dialogue' else None for ep in eps]
     cache = pair.new_cache()
@@ -327,8 +356,9 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
             p = prefix(toks[x], x, ep['system'][x], ep['task'][x])
             if dmode == 'duplex':
                 p = p + assistant_header(toks[x], x)
-                st[x][i].pending, st[x][i].speaking = p[-1:], True
-                p = p[:-1]
+                header = assistant_header(toks[x], x) if waiting[i] else p[-1:]
+                st[x][i].pending, st[x][i].speaking = header, True
+                p = p[:-len(header)]
             P[x].append(p)
         Lp = max(map(len, P[x]))
         pad = toks[x].pad_token_id
@@ -348,20 +378,33 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
         if turn[i] >= len(eps[i]['turns']):
             done[i] = True
             return
+        waiting[i] = pause_count(eps[i], turn[i])
         s = eps[i]['turns'][turn[i]][0]
         lis = partner(s)
-        st[s][i].pending += assistant_header(toks[s], s)
+        resume[s][i] = assistant_header(toks[s], s)
         st[s][i].speaking, st[lis][i].speaking = True, False
         st[s][i].out = []
         st[s][i].sampled = []
-        st[lis][i].pending += ids(toks[lis], '<|im_start|>user\n')
+        resume[lis][i] = ids(toks[lis], '<|im_start|>user\n')
+        if not waiting[i]:
+            for x in SIDES:
+                st[x][i].pending += resume[x][i]
+                resume[x][i] = []
         got[i] = []
 
     for i in range(B):
         start_turn(i)
+        if dmode == 'duplex' and waiting[i]:
+            for x in SIDES:
+                resume[x][i], st[x][i].pending = st[x][i].pending, []
     for step in range(10 ** 6):
         if all(done):
             break
+        paused = [bool(k) for k in waiting]
+        for i in range(B):
+            if paused[i]:
+                for x in SIDES:
+                    st[x][i].pending += pause_token(toks[x])
         chunk, qm, masks, chunks = {}, {}, {}, {}
         for x in SIDES:
             chunks[x] = [st[x][i].pending if not done[i] else [] for i in range(B)]
@@ -388,7 +431,7 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
                 collect(x, i, masks[x][i], hid[x][i], gates[x][i])
                 pos[x][i] += len(chunks[x][i])
                 st[x][i].pending = []
-                if st[x][i].speaking:
+                if st[x][i].speaking and not paused[i]:
                     k = int(nxt[i])
                     forced = force or (dmode == 'dialogue' and turn[i] in eps[i].get('forced', ()))
                     sampled = not forced and len(st[x][i].out) < max_turn
@@ -403,6 +446,13 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
         # turn bookkeeping: listeners read stable text, finished turns close
         for i in range(B):
             if done[i]:
+                continue
+            if paused[i]:
+                waiting[i] -= 1
+                if not waiting[i]:
+                    for x in SIDES:
+                        st[x][i].pending += resume[x][i]
+                        resume[x][i] = []
                 continue
             if dmode == 'duplex':
                 if all(st[x][i].out and st[x][i].out[-1] == end[x] for x in SIDES):

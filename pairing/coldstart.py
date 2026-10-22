@@ -45,7 +45,7 @@ KIND = {'relay_word': 'word', 'relay_number': 'number', 'relay_phrase': 'two-wor
 VALUE_GAMES = tuple(KIND) + ('merge_sum', 'merge_fact', 'lookup')
 
 
-def relay_episode(games, pick=('relay_word',)):
+def relay_episode(games, pick=('relay_word',), pause=0):
     """An episode of one of the games pick (drawn uniformly; one game: no draw). A relay game is a short transfer
     with an unscored sender and payload spans recognized by session.payload_labels; merge_sum, merge_fact and lookup
     are their regular episodes, whose values sit in both prompts.
@@ -56,6 +56,10 @@ def relay_episode(games, pick=('relay_word',)):
     """
     game = pick[0] if len(pick) == 1 else games.rng.choice(pick)
     ep = games.episode(game)
+    if not isinstance(pause, int) or isinstance(pause, bool) or pause < 0:
+        raise ValueError('pause must be a nonnegative integer')
+    if pause:
+        ep['pause'] = pause
     if game not in KIND:
         return ep
     s, r, value = (ep['meta'][k] for k in ('sender', 'receiver', 'value'))
