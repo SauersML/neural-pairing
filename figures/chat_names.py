@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE.parent / 'pairing'))
 from chat_merge import load  # noqa: E402
 
 CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-RUNS = Path('/Users/user/mpd-data/runpod')
+RUNS = HERE.parent / 'results'
 BEFORE = [RUNS / f'magic-nl20/results/chat_before_{k}' for k in range(2)]
 AFTER = [RUNS / f'magic-nl22c/results/chat_after_{k}' for k in range(3)]
 QUILL, EMBER, LINK, RED, INK = '#7B3FE4', '#E8590C', '#1A9E77', '#D2432F', '#1D1D1F'

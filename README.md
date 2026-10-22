@@ -1,47 +1,87 @@
 # neural-pairing
 
-Two language models from different families, Quill (Qwen3-4B) and Ember (AFM-4.5B), are joined by a learned link
-between their hidden states. At 8 depths, each model reads the other's hidden states through gated cross-attention, in
-both directions, inside one joint forward pass. No tokens cross the link. Each model still writes ordinary text, and in
-dialogue games each reads the other's words as a user message, as in a normal chat.
+Two language models from different families, Quill (Qwen3-4B) and Ember (AFM-4.5B), joined by a learned link between
+their hidden states. No tokens cross the link: each model still writes ordinary text, and the link adds what one model
+reads from the other's hidden states into its own.
 
-**Result.** With the full training mix (shared reading, play, dialogue, silent rounds and the shared pen alongside the
-value games), the link passes held-out words, 4-digit numbers, two-word phrases, digit strings, sums, name–city pairs and
-code-word lookups in both directions. At the end of nl20's full mix (step 1,320), the receiver's cross-entropy on the
-value is lower with its real partner than with the partner of another episode in all 180 held-out episodes, and every
-game passes in both directions at p < 0.001 (figure: step 800). No held-out value is ever used as a value in training: words, phrases, names,
-cities and code words come from disjoint pools, sums are 50–99 (training 0–49), and numbers and digit strings have a
-digit sum of 3 modulo 7 (training: any other). In the same checkpoint the models read each other's texts through the
-link: in shared-reading games, the reader's cross-entropy on its answer is lower with its real partner than with a
-shuffled one in 410 of 456 held-out episodes (p = 2e-74; 4 exact ties left out), with a positive median in all 34
-game–receiver groups. With four silent link-only ticks before every reply: 180 of 180 and 412 of 456. The link also
-works in games it never trained on. nl21 never trained on lookups, digit strings, translation, code output, multiple
-choice or the rhyme play game. In its final table every one of those games that is scored on its own passes in both
-directions at p < 0.01: 207 of 240 receiver episodes, lookups 18/20 into Qwen and 17/20 into AFM, digit strings 20/20
-both ways.
-
-![Held-out values passing between the models](figures/transfer.png)
+![Two twins chatting, each with a private city, with the link cut and with the link on](figures/hero_link.png)
 
 ## The link
 
-![How one model reads the other's hidden states](figures/method.png)
+At 8 depths, each model reads the other's hidden states, in both directions, inside one joint forward pass.
 
-After blocks 6, 9, …, 27 of 36, each model x reads the other model y:
+![The link joins the two models at 8 depths](figures/link_mechanism_depths.png)
 
-    h_x += tanh(α) · size · O(attention(Q(norm h_x), [null; K(norm h_y)], [0; s · V(norm h_y)]))
+Each reading token attends over the partner's states, which pass through a gate, and adds the result into its own
+residual stream. It can also attend to an empty slot and read nothing.
 
-- Q, O and α belong to the reader; K, V and the visibility gate s = σ(w · norm(h_y) + b) belong to the sender. The gate
-  is one number per sender position and exchange, and it scales the values, so a closed gate hides the position.
-- size is the reader's typical residual size after that block, so tanh(α) is the write's size relative to the
-  residual stream. A learned null key with a zero value lets a reader attend to nothing.
-- Time runs in ticks: a token reads the partner's tokens of the same or an earlier tick, and both prompts sit at tick −1.
-  Each head has a learned bias by how many ticks ago a partner token was read.
-- Both reads at an exchange use the states before the exchange, so the dependency graph is acyclic in depth and the
-  joint teacher-forced pass equals tick-by-tick generation.
-- 8 heads of 128 dimensions in float32 per exchange and direction. The link and rank-32 LoRA adapters on both models
-  train; the original weights are frozen.
+![One read through the link](figures/link_mechanism.png)
 
-## Starting from a fitted map (`align.py`, `train.py --content_init qkvo`)
+A token reads the partner's tokens from the same moment or earlier, never later ones, so a joint pass over a whole
+conversation equals generating it token by token.
+
+![Which partner tokens a token can read](figures/link_mechanism_ticks.png)
+
+## What crosses the link
+
+Words, numbers and phrases never used as values in training cross in both directions.
+
+![A value never seen in training crosses the link](figures/values_unseen_game.png)
+
+![Real partner against a shuffled partner, every held-out value](figures/values_unseen_results.png)
+
+The models also read each other's texts: a passage on one side, the question on the other.
+
+![Shared reading](figures/shared_reading.png)
+
+The link also works in games it never trained on.
+
+![Games never seen in training](figures/games_untrained.png)
+
+## Chatting with no task
+
+Chat training: the original model writes each turn while it sees both private cities; the linked twin learns the same
+turn without the partner's city in its prompt, so the city can only arrive through the link.
+
+![The privileged teacher](figures/teacher_method.png)
+
+Twenty free chats after chat training, cities never seen in training.
+
+![Opening messages of 20 free chats](figures/hero_grid.png)
+
+The partner's city comes out only when the link is on, and a twin linked to a stranger says the stranger's city.
+
+![Partner's city said first: link on, cut, linked to a stranger](figures/chat_names.png)
+
+![Quill's score for each city given Ember's private city](figures/city_matrix_quill.png)
+
+Before chat training, the twins repeated earlier turns word for word; after it, almost never.
+
+![Turns that repeat an earlier turn, before and after chat training](figures/chat_loops.png)
+
+## Where this goes
+
+The link is a bus between two networks that were never trained together: any pair of models can share what they hold
+privately (a document, a fact, a plan) without writing it out, and a reader model can follow another model's hidden
+states token by token while it runs. Under way: chat over twelve kinds of private facts with four held out, whether a
+linked pair answers exam questions better than either model or both averaged, and whether one twin can read a
+direction steered into the other.
+
+<details><summary>Method, controls, runs and exactness checks</summary>
+
+### The link in words
+
+After blocks 6, 9, …, 27 of 36, each model reads the other. The reader normalises its state and maps it to a query. The
+sender normalises its states and maps them to keys and values; a gate computed from each sender state (one number per
+position and depth) scales that position's value, so a closed gate hides the position. The reader attends over the
+sender's positions plus an empty slot that returns nothing, maps the result back to its own width, and adds it to its
+residual stream, scaled by a learned write size relative to its typical residual size. Each head has a learned bias by
+how many ticks ago a partner token was read. Both reads at a depth use the states from before that depth, so the
+dependency graph is acyclic and a teacher-forced pass over a whole conversation equals generating it token by token.
+8 heads of 128 dimensions in float32 per depth and direction. The link and rank-32 LoRA adapters on both models train;
+the original weights are frozen.
+
+### Starting from a fitted map (`align.py`, `train.py --content_init qkvo`)
 
 A link with random Q and K attends to arbitrary partner positions, so its first gradients are weak and inconsistent.
 The fitted start sets every exchange so that a reader position attends to the partner position that has read the same
@@ -49,22 +89,22 @@ text:
 
 1. Both models read the same 192 texts (none from the held-out split). A token of one model and a token of the other
    match when both end at the same character.
-2. At each exchange, a ridge regression maps the sender's normalized states to the reader's (M, about 4,300 matched
-   token pairs; the penalty is chosen on texts outside the fit).
-3. The sender's keys become K = c · Q · M, so a query's logit on a key is its similarity to the reader state predicted
-   from that key. V and O start from the top singular directions of M, so a write delivers the matched partner state
-   mapped into the reader's space.
+2. At each depth, a ridge regression maps the sender's normalized states to the reader's (about 4,300 matched token
+   pairs; the penalty is chosen on texts outside the fit).
+3. The sender's keys are set so that a query's score on a key is its similarity to the reader state the map predicts
+   from that key. The values and the output map start from the top singular directions of the map, so a write delivers
+   the matched partner state mapped into the reader's space.
 
 On the 6 texts outside the fit, the reader's top attention lands on the matched partner token 89–97% of the time
-(chance 1.2%; 1% with random Q and K); R² of the map is 0.51–0.66. tanh(α) starts at 0.1, so at step 0 each write is
+(chance 1.2%; 1% with random Q and K); R² of the map is 0.51–0.66. The write size starts at 0.1, so at step 0 each write is
 a small mapped copy of the matched partner state (about 5% of the residual's size). A random start also opens the
 link when training starts with the value games only, more slowly and with less transfer to games it was not trained
 on (name–city pairs 20/32 vs 29/32 at step 200); in the full mix from a random start, the gates closed before the link
 opened.
 
-![Percent of held-out words the real partner wins over training](figures/opened.png)
 
-## Games and turn structures
+
+### Games and turn structures
 
 **Value games** put a value in one model's prompt that the other model must write: relay a word, a 4-digit number, a
 two-word phrase or up to 16 digits; add two numbers, one in each prompt; join a name and a city, one in each prompt;
@@ -91,7 +131,7 @@ prompt, so it can only come through the link. Conversations in which the opener 
   hidden states pass;
 - shared pen (`--pen P`): the two models write one text together, alternating words.
 
-## Evaluation
+### Evaluation
 
 Every value in an evaluation episode comes from the held-out split: it is never used as a value in training (it can
 still appear as an ordinary word in training texts). Words, phrases, names, cities and code words come from disjoint
@@ -115,15 +155,25 @@ how much the link changed the reader's next-token distribution, which partner ti
 what each exchange's write decodes to downstream; `play_live.py` plays a game on the Mac from a trained checkpoint
 (4-bit MLX) and saves it as a web page with each token shaded by the size of the link's write.
 
-## Training (`train.py`)
+### Training (`train.py`)
 
 The link and the LoRA adapters train together. A run starts with the value games only (`--relay_first`, all seven
 games), then trains on the full mix of value games, shared reading, play, dialogue and identity anchors, with the gates
-and α frozen (`--hold`). `--micro K` splits each batch into K groups of similar length with summed gradients, so short
+and the write sizes frozen (`--hold`). `--micro K` splits each batch into K groups of similar length with summed gradients, so short
 value episodes are not padded to the length of play conversations: on one A100 80 GB, 4.5 s per step for the full mix
 instead of 8.
 
-## Runs (`chains/`, `results/`)
+### Chat training with a privileged teacher (`prep_talk.py --chat`, `train.py --chat`)
+
+The original model writes each turn of a chat with both private cities in its prompt. The linked twin is trained on the
+same turn with only its own city in its prompt; the partner holds the other city, so matching the turn needs the link.
+Turns are kept by how much the partner's city raises their likelihood under the original model (the summed log-probability
+difference with and without the city; median 5.41 nats per turn, positive for 90.2% of 4,032 training turns), and chats
+in which a model role-plays the link in text (for example "[Ember's Activation Vector]") are removed (252 of 1,213).
+The chat test (`evalfree.py`, `chat_merge.py`) plays 20 greedy chats from fixed openings under three conditions: link
+on, link cut, and linked to a stranger, an isolated twin holding a different city; sign tests are paired by chat.
+
+### Runs (`chains/`, `results/`)
 
 Each run's chain script is in `chains/` (one pod each, called as `bash chains/nlN.sh OUT_DIR CODE_TGZ REPLIES ...`), and its
 training log (`log.json`), held-out tables at every evaluation step (`payload_stepN.json`) and final evaluations are in
@@ -141,9 +191,10 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl19 | nl18 with distillation and the shared pen | Stopped at step 500; shared reading as nl18 |
 | nl20 | 900-step warm-up with held-out numbers, then the full mix | Warm-up: 179 of 180 (`results/magic-nl20/results/payload_warm.json`); full mix step 800: 180 of 180, shared reading 407 of 456 (`payload_mix_step800.json`); final, step 1,320: 180 of 180, shared reading 410 of 456 (`payload_final.json`) |
 | nl21 | Lookup, digit strings, three shared-reading tasks and the rhyme game never trained | Final (step 759): every never-trained game passes in both directions at p < 0.01, 207 of 240 receiver episodes (`results/magic-nl21/results/payload_final.json`). Warm-up (step 600): digit strings 10/10 both ways, lookups 9/10 into Qwen and 8/10 into AFM |
-| nl22 | nl20 step 1,320 fine-tuned with plain chats whose turns the original models wrote while seeing the partner's private city (`prep_talk.py --chat`, `train.py --chat`) | Running. nl20's twins, chatting with no objective (greedy), loop word for word with the link on or cut (step 800: 1 of 3 chats with the link on, 1 of 2 cut) and open by naming their own city; matching these turns needs the link |
+| nl22 | nl20 step 1,320 fine-tuned with plain chats whose turns the original models wrote while seeing the partner's private city (`prep_talk.py --chat`, `train.py --chat`) | Stopped. The twins still looped word for word with the link on or cut and opened by naming their own city |
+| nl22c | nl20 step 1,320 fine-tuned 157 steps on chats from the privileged teacher (below), with the mix kept | Free chats, 20 with cities never seen in training: partner's city said first in 13 of 23 chat sides with the link on, 1 of 23 cut, 0 of 23 linked to a stranger, and the stranger's own city in 14 of 36; turns repeating an earlier turn fell from 17% to 1% (link on) and 31% to 3% (cut); value games 360 of 360 and shared reading unchanged (`results/magic-nl22c/`) |
 
-## Earlier designs
+### Earlier designs
 
 1. **Additive residual write.** A send head wrote a 256-number message and a gate into the partner's residual stream
    after block 11. The value was decodable from the message (128/128 episodes, chance 2%), but the receiver never
@@ -152,7 +203,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
    sender's next-token distribution re-embedded as text (adding two numbers, Qwen to AFM); the learned part passed
    nothing. Per-slice results are in `results/probe.json`.
 
-## Exactness checks (`tests/`)
+### Exactness checks (`tests/`)
 
 On tiny random models of both architectures (CPU, float32):
 
@@ -161,10 +212,11 @@ On tiny random models of both architectures (CPU, float32):
 | Joint teacher-forced pass vs tick-by-tick generation (last hidden state, relative; duplex, dialogue, shuffled partners, link closed after turn 1) | 4.9e-7 to 5.8e-7 |
 | Gradients with vs without gradient checkpointing | 0 |
 | Gradients of one batch vs length-grouped micro-batches vs two ranks | 2.2e-7 |
-| Logits with untrained links (α = 0) vs the plain models | 0 (bit for bit) |
+| Logits with untrained links (write size 0) vs the plain models | 0 (bit for bit) |
 | Recorded attention (explicit softmax) vs fused attention | 1.6e-6 |
 
-## Running
+
+### Running
 
 ```
 pip install torch transformers peft datasets safetensors scipy matplotlib
@@ -180,9 +232,9 @@ python train.py --replies OUT/replies.json --out OUT/run --content_init qkvo --r
 python payload_ctl.py --run OUT/run/step_N --replies OUT/replies.json --out OUT/payload.json --n 20 --coread
 python turnbench.py --run OUT/run/step_N --replies OUT/replies.json --out OUT/turnbench.json --n 128
 cd .. && python tests/test_link.py && python tests/test_align.py && python tests/test_coldstart.py
-python figures/make_figures.py transfer=OUT/payload.json opened=OUT/run
 ```
 
+</details>
 ---
 
 Claude Opus 5.5

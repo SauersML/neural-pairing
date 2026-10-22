@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "complete": true,
+  "run": "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157",
+  "seed": 4242,
+  "n": 20,
+  "bs": 4,
+  "games": [
+    "co_chat"
+  ],
+  "tiny": false,
+  "device": "cuda",
+  "nl_maxnew": null,
+  "sampling": "independent focal + independent conditional donor; isolated 2-row swap",
+  "excluded": {
+    "coread_excluded": 0,
+    "talk_excluded": 0
+  },
+  "hashes": {
+    "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/replies.json": "90f8890b41d0e12cd4c6bd8a0a7739120a9fedb5ca99f21bc2d0db01a2cecf41",
+    "../data/coread.json": "5bf6d14b8b9d72efd965cb82cdaf72008558059ddcf8d55c2fdf5c9d5b61279b",
+    "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/run/step_157/bridge.pt": "60b9a8a66bab00023766d40952f08bdacea8a038b79ba41741476e4133faec97",
+    "/workspace/runs/magic-nl22c/mpd-data/runpod/magic-nl22c/results/chat_after_2/plans.jsonl": "f98f0bb24352b8ef3b016ac3b7ccc5b4b7c28cdb613183e75b9c73dc373783f0",
+    "../data/chat.json": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f"
+  },
+  "git_commit": null,
+  "crossed": true,
+  "temperature": 0.0,
+  "shard": "2/3",
+  "chat_plans": 6,
+  "code_hashes": {
+    "evalfree.py": "81281f74050eef94a236b6d28c860a349aaedc49a4a569ef6959592629457ed9",
+    "chateval.py": "24726178c6c1f5d7407de3df2e68fa3873f2804d3d62fd48d5cf8dd8d70acc4a",
+    "crossed.py": "a40a3c09fe3510daff627f4d15005a9dba6f895700b86c12ba62000f212c3cea",
+    "stats.py": "8443e31edc62e78e19227fbf533cb082244de7b2902bd4e61a566bc52a47da77",
+    "link.py": "c0a1624f31806897a3aa8ce2e9c03b1e5c9264fef7f519bce3f3b5d44dada323",
+    "session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+    "evaluate.py": "adfba5e0e5a65ad74243275c7e72782f54d8cc9c02c871a8fd932bbeab6fdc7b",
+    "coread.py": "c77d894cd55d964fe6d74c1d4950ce4f3ff21a4c8e37f4bc1f5dae62afa82d16",
+    "coread_data.py": "8c5cd14a5522dfae2a77ad60b95b9d6d2b09d3d64d426988cd2036ea87afda80",
+    "games.py": "93c9bd12f8310ed936b99886ec18ec31274fde362b29dd5d6444704228e683fc",
+    "play_tasks.py": "3c0df4136979341342f62bda565c38a170e8856e1069dc4bc696835b385b19d2"
+  },
+  "receiver_records": 12,
+  "elapsed_seconds": 1090.9884387217462,
+  "episodes_sha256": "4fee8d7a5667864b2e7463c9c25299db2c81a003d9805ae0d18987c104a07b25"
+}
