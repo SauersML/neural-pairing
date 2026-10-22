@@ -91,7 +91,7 @@ def draw(result, cohort, output):
     height = top + len(rows) * row_h + 70
     svg = SVG(height)
     svg.text(55, 66, 'Identical text, four conditions', weight=700, size=48)
-    svg.text(2245, 66, '4-bit MLX', anchor='end')
+    svg.text(2245, 66, '4-bit MLX' if result['backend'] == 'mlx' else 'bf16', anchor='end')
     # Four real counterfactuals, one immutable prefix and city-token target.
     for i, (condition, name) in enumerate(CONDITIONS):
         x = 50 + i * 562
