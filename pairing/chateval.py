@@ -54,14 +54,17 @@ def episode(chat):
                 meta=dict(opener=opener, private={x: chat['private'][x] for x in SIDES}))
 
 
-def matched(ep, donor, x):
+def matched(ep, donor, x, same_kind=True):
+    """co_chat2 strangers hold a private item of the partner's kind; with same_kind=False (only when no such chat
+    exists in the pool), of any kind, but an item whenever the partner has one."""
     from evalfree import contains, normalize
     y = partner(x)
     if ep['game'] != donor['game']:
         return False
     if ep['game'] == 'co_chat2':
         real, own, other = (p['meta']['private'][s] for p, s in ((ep, y), (ep, x), (donor, y)))
-        if ep['meta']['opener'] != donor['meta']['opener'] or kind_of(real) != kind_of(other):
+        kinds = kind_of(real) == kind_of(other) if same_kind else (real is None) == (other is None)
+        if ep['meta']['opener'] != donor['meta']['opener'] or not kinds:
             return False
         forbidden = {normalize(w) for p in (real, own) for w in scoring_words(p)}
         if forbidden.intersection(normalize(w) for w in scoring_words(other)):
@@ -93,19 +96,25 @@ def make_plans(path, n, seed, max_attempts=10000, game='co_chat'):
     focal = [rng.choice(pool) for _ in range(n)]
     plans = []
     for i, ep in enumerate(focal):
-        donors, attempts = {}, {}
+        donors, attempts, same = {}, {}, {}
         for x in SIDES:
-            rng = random.Random(digest([seed, game, i, x, 'donor']))
-            for attempt in range(1, max_attempts + 1):
-                donor = rng.choice(pool)
-                if matched(ep, donor, x):
-                    donors[x], attempts[x] = donor, attempt
+            # a stranger of the partner's kind when the pool has one (the same draws as before), else of another kind:
+            # a 128-chat test split can hold a single chat of an (opener, kind) pair
+            for same_kind in (True, False):
+                rng = random.Random(digest([seed, game, i, x, 'donor']))
+                for attempt in range(1, max_attempts + 1):
+                    donor = rng.choice(pool)
+                    if matched(ep, donor, x, same_kind):
+                        donors[x], attempts[x], same[x] = donor, attempt, same_kind
+                        break
+                if x in donors or game != 'co_chat2':
                     break
-            else:
+            if x not in donors:
                 raise ValueError(f'No valid {game} donor for draw {i}/{x} after {max_attempts} draws')
         plans.append(dict(episode=ep, donors=donors, attempts=attempts, index=i,
                           episode_id=f'{seed}:{game}:{i}',
-                          generation_seed=int(digest([seed, game, i, 'generation'])[:15], 16)))
+                          generation_seed=int(digest([seed, game, i, 'generation'])[:15], 16),
+                          **({'donor_same_kind': same} if game == 'co_chat2' else {})))
     return plans
 
 
