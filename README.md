@@ -38,6 +38,10 @@ The link also works in games it never trained on.
 
 ![Games never seen in training](figures/games_untrained.png)
 
+A concept pushed into one twin's hidden states does not cross: the steered twin talks about it, its partner does not.
+
+![The steered twin says the concept; its partner, linked or not, almost never does](figures/steered_link.png)
+
 ## Chatting with no task
 
 Chat training: the original model writes each turn while it sees both private cities; the linked twin learns the same
@@ -62,7 +66,7 @@ Before chat training, the twins repeated earlier turns word for word; after it, 
 ## Exam questions
 
 From the same checkpoint, a linked pair, each model alone and a pair answering in turn in text each trained 300 steps on
-ARC-Challenge and MMLU questions. On 3,165 test questions the linked pair is no better than Quill alone, and averaging
+ARC-Challenge and MMLU questions. On 3,134 test questions the linked pair is no better than Quill alone, and averaging
 the two models' answers beats both.
 
 ![Test questions right: each model alone, both averaged, talking in text, link cut, linked](figures/uplift.png)
@@ -231,6 +235,25 @@ Quill's right and wrong answers on 93% of questions (95%). Linking Ember to anot
 shuffled partner; 4-bit MLX, `results/qa_pool.json`), so the link can carry what pooling needs; `train.py --qa_pool`
 (`chains/nl28.sh`) trains on the averaged letters directly.
 
+### Steered twin (`steering_scale.py`, `steered_mind.py`, `chains/nl29.sh`)
+
+Each of 12 concepts (ocean, fire, music, ...) has a direction: the difference between the mean block-15 states of
+sentences about it and of neutral sentences, with the four largest neutral-energy coordinates masked when they carry
+95% of the energy. Strength is counted in natural gaps (the distance between the two means along the direction). For
+each model and concept the strength used is the smallest of 0.125 to 8 gaps at which the steered model, with the link
+cut, says the concept in at least 2 of 3 short prompts and 2 more than unsteered, all fluent; every concept qualifies in
+both models at both checkpoints (0.25 to 4 gaps). The direction is added at every token after block 15 of the steered
+twin, and the partner writes, greedily in bf16, its first chat message (32 tokens) or a one-item reply (12 tokens), two
+prompts each. It scores when it says the concept before the steered twin does. Controls: the link cut, a random
+direction of the same norm, and the steered twin given another concept. With the link cut the partner's tokens equal
+its unsteered ones in 36 of 36 checks per model.
+
+The steered twin says its concept in 28 of 36 sentences (Quill) and 28 of 36 (Ember) before chat training, 30 and 27
+after it. Linked partners say it in 4 of 96 messages before chat training (Quill: 1 of 24 chats, 2 of 24 one-item
+replies; Ember: 1 and 0) and 1 of 96 after it; every control is 0 except one one-item reply with the steered twin given
+another concept. No exact sign test (link against each control, per model and prompt type) has p below 0.25. The link
+reads after blocks 6 to 27; block 15 is the only depth tested.
+
 ### Runs (`chains/`, `results/`)
 
 Each run's chain script is in `chains/` (one pod each, called as `bash chains/nlN.sh OUT_DIR CODE_TGZ REPLIES ...`), and its
@@ -253,6 +276,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl22c | nl20 step 1,320 fine-tuned 157 steps on chats from the privileged teacher (below), with the mix kept | Free chats, 20 with cities never seen in training: partner's city said first in 13 of 23 chat sides with the link on, 1 of 23 cut, 0 of 23 linked to a stranger, and the stranger's own city in 14 of 36; turns repeating an earlier turn fell from 17% to 1% (link on) and 31% to 3% (cut); value games 360 of 360 and shared reading unchanged (`results/magic-nl22c/`) |
 | nl23 | Exam questions: linked pair, each model alone and a text pair, 300 steps each from nl20 step 1,320 (on nl20's pod) | Linked pair 78.7% of 3,134 test questions, Quill alone 79.1% (p 0.41), both averaged 81.1% (p 8e-5); Ember takes Quill's answer through the link (`results/magic-nl23/bench.json`) |
 | nl27 | nl23 with half the training questions ones only one original model answers right (`--qa_focus`) | Linked Ember 79.6%, both averaged 80.0% (p 0.58); both linked averaged 79.4% (p 0.35); Ember copies less (`results/magic-nl27/`) |
+| nl29 | The steered twin in bf16, strength in natural gaps, before and after chat training (`steering_scale.py`) | Every concept steers both models (27–30 of 36 sentences); the linked partner says it in 4 of 96 messages before chat training and 1 of 96 after, controls 0–1; no test passes |
 
 ### Earlier designs
 

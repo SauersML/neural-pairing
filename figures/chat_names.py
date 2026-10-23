@@ -37,7 +37,12 @@ def font(size, weight=400):
     name = {400: 'Inter-Regular', 600: 'Inter-SemiBold', 700: 'Inter-Bold'}[weight]
     key = (size, weight)
     if key not in _FONTS:
-        _FONTS[key] = ImageFont.truetype(f'/usr/share/fonts/opentype/inter/{name}.otf', size)
+        for d in ('/usr/share/fonts/opentype/inter', Path.home() / 'Library/Fonts'):    # Linux package, Mac brew cask
+            if (Path(d) / f'{name}.otf').exists():
+                _FONTS[key] = ImageFont.truetype(str(Path(d) / f'{name}.otf'), size)
+                break
+        else:
+            raise FileNotFoundError(f'{name}.otf: install the Inter font')
     return _FONTS[key]
 
 

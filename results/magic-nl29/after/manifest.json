@@ -1,0 +1,19 @@
+{
+  "checkpoint": "/workspace/jobs/nl29/step_157",
+  "backend": "torch",
+  "batch_size": 6,
+  "amendment_sha256": "e09d831054ce6a87fa93cb5cf8fcefb313a551c18923e48f729d140d3236424b",
+  "started_unix": 1792711280.246142,
+  "numerical_note": "bf16 torch CUDA",
+  "code_sha256": {
+    "steering_scale.py": "c6a9b6f7b7172f55d219644f6c67b7f53fb5e133b218556f3b04ff75164bd314",
+    "steered_mind.py": "b2a17a143997aff4b3d7322decb037f21d97ecf467e7c1fb48f46b92337c8b07",
+    "mlx_eval.py": "b336c14e2f1565f6bb1cac4845e9b2ff45e5ec84b46f4c5ae2ae92fd525ffaf4",
+    "mlx_pair.py": "df4660298c84a4196f6591f458b0d4b3374119b5dc1bfb6993a10609ae7ee8ac",
+    "link.py": "c0d83a633f887d9e0313c2aefd6a6afc20278457c414cc6096163440f97834b2",
+    "session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+    "games.py": "93c9bd12f8310ed936b99886ec18ec31274fde362b29dd5d6444704228e683fc"
+  },
+  "elapsed_seconds": 1057.731074810028,
+  "completed_phase": "all"
+}
