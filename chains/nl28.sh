@@ -2,7 +2,8 @@
 # nl28: objective-side pooling (train.py --qa_pool 1: CE of the two models' averaged A-D probabilities), otherwise nl27's
 # focus sampling. The control trains the same objective with the link cut (--solo --qa_pool 1), so a pooled pair that
 # beats it gains from the link, not from the objective.
-# One 48 GB Ampere (RTX A6000); never Ada (L40S / RTX 6000 Ada).
+# One 48 GB Ampere (RTX A6000 or A40); never Ada (L40S / RTX 6000 Ada). Eight micro-batches of two: at four of four
+# the pooled pair ran out of memory on an A40 (44.4 GiB) at its first step; the global batch is the same 16.
 # Usage: bash chains/nl28.sh OUT_DIR CODE_TGZ [STEPS=300]
 # Inputs arrive AFTER start: /workspace/jobs/nl28/{step_1320,replies.json,data/bench.json}, READY last (the Mac's
 # uplink is ~1 MB/s, so step_1320 may come from another pod; up to three hours). No pod creation in this script.
@@ -56,7 +57,7 @@ ev() {
 ev split python qa_split.py --run "$J/step_1320" --bs 16 --out "$R/qa_split.json"
 [ -s "$R/qa_split.json" ] || { note 'no question split'; exit 1; }
 Q=(--replies "$O/replies.json" --init "$J/step_1320" --gate_norm --hold 100000
-   --warmup_steps 10 --relay_first 0 --steps "$STEPS" --bs 16 --micro 4 --seed 0
+   --warmup_steps 10 --relay_first 0 --steps "$STEPS" --bs 16 --micro 8 --seed 0
    --anchor 0 --comp 0 --warm 0 --ramp 0 --lr 1e-4 --lr_bridge 3e-4 --lr_alpha 3e-3
    --eval_every 100000 --first_eval 100000 --save_every 100000 --ckpt none
    --qa_focus "$R/qa_split.json" --qa_focus_p 0.5)
