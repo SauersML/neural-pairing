@@ -38,9 +38,14 @@ The link also works in games it never trained on.
 
 ![Games never seen in training](figures/games_untrained.png)
 
-A concept pushed into one twin's hidden states does not cross: the steered twin talks about it, its partner does not.
+A concept pushed into one twin's hidden states crosses the link when it goes in early or hard enough. One of 12
+concepts (ocean, fire, winter, ...) is added to one twin's states after one block, and its partner, reading them,
+writes first. Pushed in after block 6, or after block 15 at four times the strength, the partner names the concept in
+12 and 26 of 96 messages; with the link cut, in none. Pushed in after block 27, even at four times the strength, it
+never crosses. Ember, steered toward winter, has written nothing yet; Quill, linked, opens with "Hey Ember, how's the
+snowfall treating you?", and with the link cut, "Hey Ember, how's your day going?"
 
-![The steered twin says the concept; its partner, linked or not, almost never does](figures/steered_link.png)
+![The partner names a concept pushed into its twin after block 6, or four times stronger after block 15; never after block 27 or with the link cut](figures/steered_depth.png)
 
 ## Chatting with no task
 
@@ -101,7 +106,7 @@ Ember no longer copies: it keeps 250 of the 287 questions only it gets right.
 The link is a bus between two networks that were never trained together: any pair of models can share what they hold
 privately (a document, a fact, a plan) without writing it out, and a reader model can follow another model's hidden
 states token by token while it runs. The model being read needs no change: a reader trained against it follows it
-exactly as released. Under way: the steered twin at other depths and at four times the strength.
+exactly as released.
 
 <details><summary>Method, controls, runs and exactness checks</summary>
 
@@ -262,7 +267,7 @@ and wrong answers match Quill's on 79% of questions, linked or cut (93% and 81% 
 gains from two different answers, so copying the partner no longer pays, and in 300 steps the pair learns no other use
 for the link.
 
-### Steered twin (`steering_scale.py`, `steered_mind.py`, `chains/nl29.sh`)
+### Steered twin (`steering_scale.py`, `steered_mind.py`, `chains/nl29.sh`, `chains/nl30.sh`)
 
 Each of 12 concepts (ocean, fire, music, ...) has a direction: the difference between the mean block-15 states of
 sentences about it and of neutral sentences, with the four largest neutral-energy coordinates masked when they carry
@@ -278,8 +283,21 @@ its unsteered ones in 36 of 36 checks per model.
 The steered twin says its concept in 28 of 36 sentences (Quill) and 28 of 36 (Ember) before chat training, 30 and 27
 after it. Linked partners say it in 4 of 96 messages before chat training (Quill: 1 of 24 chats, 2 of 24 one-item
 replies; Ember: 1 and 0) and 1 of 96 after it; every control is 0 except one one-item reply with the steered twin given
-another concept. No exact sign test (link against each control, per model and prompt type) has p below 0.25. The link
-reads after blocks 6 to 27; block 15 is the only depth tested.
+another concept. No exact sign test (link against each control, per model and prompt type) has p below 0.25.
+
+![At block 15 the concept stays in the steered twin, before and after chat training](figures/steered_link.png)
+
+**Other depths and strengths (`chains/nl30.sh`, `steering_scale.py --layer --boost`).** The link reads after blocks 6
+to 27. After chat training (nl22c step 157), the same protocol with the directions fit, calibrated and selected at
+block 6 or block 27, and at blocks 15 and 27 with the selected strengths multiplied by four for the cut check and the
+test (`--boost 4`). Linked partners say the concept in 12 of 96 messages after block 6 (Quill reading a steered
+Ember: 9 of 48; Ember reading a steered Quill: 3 of 48), 26 of 96 after block 15 at four times (17 and 9), and 0 of 96
+after block 27 at either strength. Every control is 0 but two: block 6, one message with the steered twin given
+another concept; block 27 at four times, one with a random direction. Paired over prompts, link against cut is 12–0
+after block 6 (p 0.0005) and 26–0 at block 15 at four times (p 3e-8), and the same against the random direction. The
+steered twin says its concept in 29 and 23 of 36 sentences after block 6, 29 and 36 at block 15 at four times, 26 and
+24 after block 27, and 27 and 17 at block 27 at four times. The four arms and this pooled test were chosen after nl29;
+with four arms the block-6 p is 0.002 corrected.
 
 ### Twelve kinds of private item and one-way links (`prep_talk.py --chat2`, `chains/nl24.sh`, `chains/nl25.sh`)
 
@@ -332,6 +350,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl28 | nl27's question mix with the loss on the two linked models' averaged letters (`--qa_pool`), against the same loss with the link cut | Pair's averaged answer 78.8% linked and cut, control 79.2% (p 0.53); Ember stops copying (`results/magic-nl28/`) |
 | nl26 | `chains/nl24.sh`: 300 chat steps on eight kinds of private item from nl22c step 157; then `chains/nl25.sh`: one-way links onto a model left as released | Partner's item said first with the link on: Quill 9/33, Ember 6/27, held-out kinds 5/21, 0 cut; one-way, Ember reading untouched Quill 1/27 then 7/27, Quill reading untouched Ember 10/33 then 11/33 |
 | nl29 | The steered twin in bf16, strength in natural gaps, before and after chat training (`steering_scale.py`) | Every concept steers both models (27–30 of 36 sentences); the linked partner says it in 4 of 96 messages before chat training and 1 of 96 after, controls 0–1; no test passes |
+| nl30 | The steered twin after blocks 6 and 27, and at four times the strength after blocks 15 and 27 (`steering_scale.py --layer --boost`) | The linked partner says the concept in 12 of 96 messages after block 6 and 26 of 96 at block 15 at four times, none with the link cut; none after block 27 (`results/magic-nl30/`) |
 
 ### Earlier designs
 

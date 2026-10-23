@@ -6,15 +6,19 @@
 # (the last read depth), and four times the calibrated strength after blocks 15 and 27 (--boost 4: cut check and
 # evaluation only; the fit, calibration and selection are unchanged). Two arms at a time; one that runs out of memory is
 # rerun alone in a fresh directory.
-# Inputs from the Mac after the pod starts: /workspace/jobs/nl30/step_157, READY last.
-# Usage: bash nl30.sh OUT_DIR CODE_TGZ
+# Inputs: INPUTS_TAR (a tar of step_157, published so the pod downloads it), else from the Mac after the pod starts:
+# /workspace/jobs/nl30/step_157, READY last.
+# Usage: bash nl30.sh OUT_DIR CODE_TGZ [INPUTS_TAR]
 set -u
-O=$1 TGZ=$2
+O=$1 TGZ=$2 INPUTS=${3:-}
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda NL_STREAM=0 HF_HUB_OFFLINE=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 rm -rf w && mkdir -p $O w && tar --no-same-owner -xzf $TGZ -C w && cd w || exit 1
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader > $O/gpus.txt
 note() { echo "$(date '+%F %T') $1" >> $O/chain.log; }
 J=/workspace/jobs/nl30
+if [ -n "$INPUTS" ]; then
+    mkdir -p $J && tar --no-same-owner --exclude='._*' -xf $INPUTS -C $J && touch $J/READY || { note "bad $INPUTS"; exit 1; }
+fi
 note "waiting for $J/READY"
 for _ in $(seq 540); do [ -f $J/READY ] && break; sleep 10; done
 [ -f $J/READY ] || { note 'no inputs after 90 minutes'; exit 1; }
