@@ -32,7 +32,9 @@ TITLE = "Pushed in early or hard enough, a concept crosses into the partner's wo
 PITCH, RAD, N_BLOCKS = 22, 8, 36
 
 
-def draw(arms, stem):
+def draw(arms, stem, title=TITLE, gauge='steered block, larger at 4×', filled=False):
+    """arms: [(path, name, at, big, marks)]: the bar under each arm's name marks at (0 to 1; with filled, a bar up to
+    at), with a larger dot when big; a line separates rows whose big differs."""
     W, M = 2400, 36
     label_w, gap = 430, 22
     top, head_h, sub_h, row_h, key_h = 128, 116, 64, 196, 96
@@ -40,7 +42,7 @@ def draw(arms, stem):
     H = top + panel_h + 24 + key_h + M
     s = SVG(W, H)
     uris = {x: mascot(x) for x in SIDES}
-    s.text(M, 90, TITLE, min(60, int(60 * (W - 2 * M) / width(TITLE, 60, 700))), 700)
+    s.text(M, 90, title, min(60, int(60 * (W - 2 * M) / width(title, 60, 700))), 700)
 
     pw = (W - 2 * M - label_w - 2 * gap) / 2
     px = [M + label_w + gap, M + label_w + 2 * gap + pw]
@@ -54,15 +56,17 @@ def draw(arms, stem):
             s.text(px[k] + 30 + c * cell + (cell - grid_w) / 2, top + head_h + 40, label, 34, 700)
 
     y0 = top + head_h + sub_h
-    for a, (_, title, layer, boost, data) in enumerate(arms):
-        if a and boost != arms[a - 1][3]:
+    for a, (_, name, at, big, data) in enumerate(arms):
+        if a and big != arms[a - 1][3]:
             for x1, x2, color in ((M, M + label_w - 10, '#D8D8DE'), (px[0] + 30, px[0] + pw - 30, '#D8D8DE'),
                                   (px[1] + 30, px[1] + pw - 30, '#DDD6CC')):
                 s.line(x1, y0 - 4, x2, y0 - 4, color, 4)
-        s.text(M + 14, y0 + 62, title, 44, 700)
+        s.text(M + 14, y0 + 62, name, 44, 700)
         bx, by, bw = M + 14, y0 + 102, label_w - 60
         s.rect(bx, by - 9, bw, 18, '#E4E4EA', 9)
-        s.circle(bx + 9 + (bw - 18) * layer / (N_BLOCKS - 1), by, 9 + 5 * (boost > 1), INK)
+        if filled:
+            s.rect(bx, by - 9, max(18., bw * at), 18, INK, 9)
+        s.circle(bx + 9 + (bw - 18) * at, by, 9 + 5 * big, INK)
         for k, steered in enumerate(SIDES):
             partner = SIDES[1 - k]
             for c, (row, _) in enumerate(COLUMNS):
@@ -85,13 +89,15 @@ def draw(arms, stem):
     y = ky + key_h / 2 + 13
     x = M + 44
     for fill, label in ((QUILL, 'Quill says the concept'), (EMBER, 'Ember says the concept'), (None, 'does not'),
-                        ('cols', 'one column per concept'), ('depth', 'steered block, larger at 4×')):
+                        ('cols', 'one column per concept'), ('depth', gauge)):
         if fill == 'cols':
             for i in range(3):
                 s.circle(x + 17, y - 30 + i * 18, 7, FAINT)
             x += 6
         elif fill == 'depth':
             s.rect(x - 6, y - 21, 60, 18, '#E4E4EA', 9)
+            if filled:
+                s.rect(x - 6, y - 21, 39, 18, INK, 9)
             s.circle(x + 24, y - 12, 10, INK)
             x += 26
         elif fill:
@@ -105,7 +111,8 @@ def draw(arms, stem):
 
 def main():
     root = Path(sys.argv[1]) if len(sys.argv) > 1 else RESULTS
-    draw([(path, title, layer, boost, marks(root / path)) for path, title, layer, boost in ARMS], HERE / 'steered_depth')
+    draw([(path, title, layer / (N_BLOCKS - 1), boost > 1, marks(root / path)) for path, title, layer, boost in ARMS],
+         HERE / 'steered_depth')
     print(HERE / 'steered_depth.png')
     return 0
 

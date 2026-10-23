@@ -7,8 +7,10 @@ The original protocol is retained verbatim alongside a separate calibration amen
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
+import shutil
 import time
 
 import numpy as np
@@ -18,9 +20,19 @@ STRENGTHS = [0., .125, .25, .5, 1., 1.5, 2., 3., 4., 6., 8.]
 LAYERS = (6, 9, 12, 15, 18, 21, 24, 27)
 
 
-def amendment(geometry='sink_free', layer=15, boost=1.):
+REUSED = ('directions.npz', 'fit.json', 'calibration.json', 'selected.json', 'cut_check.json')
+
+
+def amendment(geometry='sink_free', layer=15, boost=1., gain=1., reuse=False):
     extra = {} if boost == 1 else dict(boost=boost, boost_rule='cut check and evaluation steer at boost x the selected '
                                        'strength; calibration and selection unchanged')
+    if gain != 1:
+        extra.update(gain=gain, gain_rule="evaluation with the link's write after the steered block at gain x its "
+                     'trained size (tanh(alpha) there times gain, both readers); every other exchange, calibration and '
+                     'selection unchanged')
+    if reuse:
+        extra.update(reuse_rule='directions, calibration, selection and cut check copied from an earlier run at the '
+                     'same layer, geometry and boost (all link-cut, so the gain cannot change them)')
     return dict(**extra, schema=2, original_protocol_sha256=X.digest(X.protocol()),
                 strengths=STRENGTHS, layer=layer,
                 geometry=geometry,
@@ -32,6 +44,22 @@ def amendment(geometry='sink_free', layer=15, boost=1.):
                 selection='original mention/fluency rule, smallest passing candidate; original fallback',
                 unchanged=('texts, layer, ' if layer == 15 else 'texts, ') +
                 'all-token injection, scoring, controls, counts and statistical tests')
+
+
+def write_gain(pair, layer, gain):
+    """The link's write after block layer, both readers, at gain times its trained size: tanh(alpha) there becomes
+    gain * tanh(alpha), which must stay below 1. Every other exchange is unchanged. Returns each reader's tanh(alpha)
+    per exchange, as stored."""
+    import torch
+    k = pair.xblocks.index(layer)
+    with torch.no_grad():
+        for x in X.SIDES:
+            alpha = pair.bridge[x].alpha
+            t = gain * math.tanh(float(alpha[k]))
+            if not abs(t) < 1:
+                raise ValueError(f'gain {gain}: tanh(alpha) would be {t:.3f} after block {layer} ({x})')
+            alpha[k] = math.atanh(t)
+    return {x: [round(float(a), 5) for a in torch.tanh(pair.bridge[x].alpha.detach().float())] for x in X.SIDES}
 
 
 def collect(rt, side, texts, layers=LAYERS):
@@ -259,6 +287,11 @@ def main():
                     help='steer after this block instead of the preregistered 15 (recorded in the amendment)')
     ap.add_argument('--boost', type=float, default=1.,
                     help='cut check and evaluation at this multiple of the calibrated strength (recorded in the amendment)')
+    ap.add_argument('--gain', type=float, default=1.,
+                    help="evaluation with the link's write after --layer at this multiple of its trained size "
+                         '(torch only; recorded in the amendment)')
+    ap.add_argument('--reuse', help='an earlier run at the same --layer, --geometry and --boost: copy its '
+                    + ', '.join(REUSED) + ' instead of fitting, calibrating and checking the cut')
     ap.add_argument('--geometry', choices=('sink_free', 'raw'), default='sink_free',
                     help='raw reproduces the diagnostic that only changes strength; sink_free also removes neutral sinks')
     args = ap.parse_args()
@@ -266,8 +299,15 @@ def main():
         ap.error('--bs must be positive')
     if not args.boost > 0:
         ap.error('--boost must be positive')
+    if not args.gain > 0 or (args.gain != 1 and args.backend != 'torch'):
+        ap.error('--gain must be positive, and 1 unless --backend torch')
+    fixed = amendment(args.geometry, args.layer, args.boost, args.gain, bool(args.reuse))
+    if args.reuse:
+        old = json.loads((Path(args.reuse) / 'amendment.json').read_text())['amendment']
+        if (old['layer'], old['geometry'], old.get('boost', 1.)) != (args.layer, args.geometry, args.boost):
+            ap.error(f'--reuse {args.reuse} is not at --layer {args.layer}, --geometry {args.geometry}, '
+                     f'--boost {args.boost}')
     dest = Path(args.out); dest.mkdir(parents=True, exist_ok=True)
-    fixed = amendment(args.geometry, args.layer, args.boost)
     registration = dict(amendment=fixed, sha256=X.digest(fixed))
     path = dest / 'amendment.json'
     if path.exists():
@@ -276,12 +316,17 @@ def main():
     elif any(dest.glob('*.json')) or (dest / 'directions.npz').exists():
         raise ValueError('Use a fresh output directory; never overwrite an original experiment')
     X.save(path, registration)
+    if args.reuse:
+        for name in REUSED:
+            if not (dest / name).exists():
+                shutil.copyfile(Path(args.reuse) / name, dest / name)
     X.save(dest / 'protocol.json', dict(protocol=X.protocol(), sha256=X.digest(X.protocol())))
     if args.backend == 'mlx':
         os.environ['NL_DEVICE'] = 'cpu'
     os.environ.setdefault('HF_HUB_OFFLINE', '1')
     manifest = dict(checkpoint=str(Path(args.run).resolve()), backend=args.backend, batch_size=args.bs,
                     amendment_sha256=registration['sha256'], started_unix=time.time(),
+                    reuse=str(Path(args.reuse).resolve()) if args.reuse else None,
                     numerical_note='4-bit MLX differs from bf16; requires GPU confirmation' if args.backend == 'mlx'
                     else 'bf16 torch CUDA',
                     code_sha256={n: hashlib.sha256(Path(__file__).with_name(n).read_bytes()).hexdigest()
@@ -295,17 +340,20 @@ def main():
     X.save(dest / 'manifest.json', manifest)
     rt = X.Runtime(args.backend, args.run)
     rt.layer = args.layer
+    if args.gain != 1:
+        manifest.update(write_size=write_gain(rt.pair, args.layer, args.gain))
+        X.save(dest / 'manifest.json', manifest)
     if args.phase in ('fit', 'validate', 'all') and not (dest / 'directions.npz').exists():
         vectors = fit(rt, dest, args.geometry, args.layer)
     else:
         with np.load(dest / 'directions.npz') as archive:
             vectors = dict(archive)
-    if args.phase in ('calibrate', 'validate', 'all'):
+    if args.phase in ('calibrate', 'validate', 'all') and not args.reuse:
         calibration(rt, vectors, dest, args.bs)
     if args.phase in ('cut', 'evaluate', 'validate', 'all'):
         selected = json.loads((dest / 'selected.json').read_text())
         selected = {x: {c: dict(v, alpha=v['alpha'] * args.boost) for c, v in s.items()} for x, s in selected.items()}
-        if args.phase in ('cut', 'validate', 'all'):
+        if args.phase in ('cut', 'validate', 'all') and not args.reuse:
             cut_check(rt, vectors, selected, dest, args.bs)
         if args.phase in ('evaluate', 'all'):
             X.evaluate(rt, vectors, selected, dest, args.bs)

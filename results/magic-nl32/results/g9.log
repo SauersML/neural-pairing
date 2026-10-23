@@ -1,0 +1,70 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  10%|█         | 40/398 [00:00<00:01, 343.32it/s]Loading weights:  23%|██▎       | 91/398 [00:00<00:00, 412.78it/s]Loading weights:  35%|███▌      | 140/398 [00:00<00:00, 442.19it/s]Loading weights:  49%|████▉     | 195/398 [00:00<00:00, 463.85it/s]Loading weights:  61%|██████    | 242/398 [00:00<00:00, 458.01it/s]Loading weights:  74%|███████▍  | 295/398 [00:00<00:00, 475.01it/s]Loading weights:  86%|████████▌ | 343/398 [00:00<00:00, 404.62it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 445.14it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:  28%|██▊       | 82/291 [00:00<00:00, 775.01it/s]Loading weights:  55%|█████▍    | 160/291 [00:00<00:00, 720.61it/s]Loading weights:  80%|████████  | 233/291 [00:00<00:00, 665.48it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 670.39it/s]
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+evaluation quill chat link 6
+evaluation quill chat link 12
+evaluation quill chat link 18
+evaluation quill chat link 24
+evaluation quill chat cut 30
+evaluation quill chat cut 36
+evaluation quill chat cut 42
+evaluation quill chat cut 48
+evaluation quill chat random 54
+evaluation quill chat random 60
+evaluation quill chat random 66
+evaluation quill chat random 72
+evaluation quill chat crossed 78
+evaluation quill chat crossed 84
+evaluation quill chat crossed 90
+evaluation quill chat crossed 96
+evaluation quill duplex link 102
+evaluation quill duplex link 108
+evaluation quill duplex link 114
+evaluation quill duplex link 120
+evaluation quill duplex cut 126
+evaluation quill duplex cut 132
+evaluation quill duplex cut 138
+evaluation quill duplex cut 144
+evaluation quill duplex random 150
+evaluation quill duplex random 156
+evaluation quill duplex random 162
+evaluation quill duplex random 168
+evaluation quill duplex crossed 174
+evaluation quill duplex crossed 180
+evaluation quill duplex crossed 186
+evaluation quill duplex crossed 192
+evaluation ember chat link 198
+evaluation ember chat link 204
+evaluation ember chat link 210
+evaluation ember chat link 216
+evaluation ember chat cut 222
+evaluation ember chat cut 228
+evaluation ember chat cut 234
+evaluation ember chat cut 240
+evaluation ember chat random 246
+evaluation ember chat random 252
+evaluation ember chat random 258
+evaluation ember chat random 264
+evaluation ember chat crossed 270
+evaluation ember chat crossed 276
+evaluation ember chat crossed 282
+evaluation ember chat crossed 288
+evaluation ember duplex link 294
+evaluation ember duplex link 300
+evaluation ember duplex link 306
+evaluation ember duplex link 312
+evaluation ember duplex cut 318
+evaluation ember duplex cut 324
+evaluation ember duplex cut 330
+evaluation ember duplex cut 336
+evaluation ember duplex random 342
+evaluation ember duplex random 348
+evaluation ember duplex random 354
+evaluation ember duplex random 360
+evaluation ember duplex crossed 366
+evaluation ember duplex crossed 372
+evaluation ember duplex crossed 378
+evaluation ember duplex crossed 384

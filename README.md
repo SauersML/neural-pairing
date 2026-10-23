@@ -53,6 +53,15 @@ in after block 27.
 
 ![How far the link moves each partner toward the concept by block 27, against how often it names it](figures/steered_reach.png)
 
+Making only that last write larger lets a late push through, with nothing retrained. Training has kept the link's
+write scale fixed at 0.1 at every depth; scaled nine times after block 27, the write carries a concept pushed in there
+into 5 of 96 of the partner's messages, and into 12 of 96 at four times the strength. With the link cut, or the twin
+pushed along a random direction, it reaches none. A late push still crosses less readily than an early one: at nine
+times the write and four times the strength it has moved the partner further toward the concept by block 27 than a
+push after block 15 at four times does, yet the partner names it half as often.
+
+![With the write after block 27 made three and nine times larger, the partner names a concept pushed in that late; never with the link cut](figures/steered_gain.png)
+
 ## Chatting with no task
 
 Chat training: the original model writes each turn while it sees both private cities; the linked twin learns the same
@@ -321,6 +330,24 @@ block 15 (0.05 there). So the block-27 null is too little delivered, too late, n
 steered twin's own difference at the steered block reads back as 1.00 and 4.00, and nothing reaches the partner
 before that block.
 
+**A larger late write (`steering_scale.py --gain`, `chains/nl32.sh`).** Training since nl15 holds the write sizes and the
+gates fixed (`--hold`), so tanh(alpha) is 0.1 at every exchange: left free in nl11, they closed once the full mix
+began. Here only the write after block 27, for both readers, is three or nine times its trained size (tanh(alpha) 0.3
+or 0.9); nothing is retrained and every other exchange is unchanged. The test reuses nl30's block-27 directions,
+calibration, selection and cut check (`--reuse`; all with the link cut, which the write cannot change). Linked
+partners say the concept in 3 and 5 of 96 messages at three and nine times the write, and 6 and 12 of 96 at four times
+the strength, against 0 at the trained size. With the link cut every count is 0; with a random direction 1, 0, 1 and
+0; with the steered twin given another concept 1, 0, 2 and 1. Paired over prompts, at nine times the write and four
+times the strength, link against cut and link against the random direction are both 12–0 (p 0.0005; 0.002 over the
+four arms); at nine times and the calibrated strength, 5–0 (p 0.06). The partners' messages pass the fluency check as
+often as at the trained size or more (94 and 80 of 96 at nine times, against 76 and 74). Only the last write is
+scaled and nothing it reads changes, so nine times the write delivers nine times what nl31 measured: by block 27, at
+the partner's last prompt position, 0.86 of its push for Ember reading a steered Quill and 0.60 for Quill reading a
+steered Ember at four times the strength, against 0.19 and 0.35 after block 15 at four times. Yet they name it in 6
+and 6 of 48, against 9 and 17. How much of the concept the partner holds by block 27 does not decide alone whether it
+comes out; an early push has also worked through the partner's blocks before 27. These four arms were chosen after
+nl31.
+
 ### Twelve kinds of private item and one-way links (`prep_talk.py --chat2`, `chains/nl24.sh`, `chains/nl25.sh`)
 
 On the magic-nl26 pod, `chains/nl24.sh` had the original models write training chats (873 kept of 1,200; six turns of up
@@ -374,6 +401,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl29 | The steered twin in bf16, strength in natural gaps, before and after chat training (`steering_scale.py`) | Every concept steers both models (27–30 of 36 sentences); the linked partner says it in 4 of 96 messages before chat training and 1 of 96 after, controls 0–1; no test passes |
 | nl30 | The steered twin after blocks 6 and 27, and at four times the strength after blocks 15 and 27 (`steering_scale.py --layer --boost`) | The linked partner says the concept in 12 of 96 messages after block 6 and 26 of 96 at block 15 at four times, none with the link cut; none after block 27 (`results/magic-nl30/`) |
 | nl31 | How far the link moves the partner toward a steered concept, by depth (`steer_probe.py`) | By block 27, 0.20 and 0.27 of the partner's own push for block 6 and for block 15 at four times; under 0.1 for block 27 at either strength (`results/magic-nl31/`) |
+| nl32 | The steered twin after block 27 with the link's write there three and nine times its trained size, nothing retrained (`steering_scale.py --gain`) | The linked partner says the concept in 5 of 96 messages at nine times, and 12 of 96 at nine times with four times the strength; none with the link cut, 0 of 96 at the trained size (`results/magic-nl32/`) |
 
 ### Earlier designs
 

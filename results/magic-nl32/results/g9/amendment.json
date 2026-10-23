@@ -1,0 +1,31 @@
+{
+  "amendment": {
+    "gain": 9.0,
+    "gain_rule": "evaluation with the link's write after the steered block at gain x its trained size (tanh(alpha) there times gain, both readers); every other exchange, calibration and selection unchanged",
+    "reuse_rule": "directions, calibration, selection and cut check copied from an earlier run at the same layer, geometry and boost (all link-cut, so the gain cannot change them)",
+    "schema": 2,
+    "original_protocol_sha256": "6d62a92c2e5ff5418ef934986b202864cc7a1e2330a68460c65c9f24d770f545",
+    "strengths": [
+      0.0,
+      0.125,
+      0.25,
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      3.0,
+      4.0,
+      6.0,
+      8.0
+    ],
+    "layer": 27,
+    "geometry": "sink_free",
+    "direction": "difference of means with neutral-only sink mask",
+    "sink_rule": "exclude the four largest neutral-energy coordinates only if together they carry >=95% of energy",
+    "scale": "positive minus neutral mean projection on the fitted unit direction",
+    "unit": "one natural mean projection gap along the unit difference direction",
+    "selection": "original mention/fluency rule, smallest passing candidate; original fallback",
+    "unchanged": "texts, all-token injection, scoring, controls, counts and statistical tests"
+  },
+  "sha256": "340f6356bbf73a33216bd40d4f8ee33f4493c93dc278b1a812a7f87e0768dd3d"
+}
