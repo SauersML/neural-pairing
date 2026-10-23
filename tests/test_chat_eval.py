@@ -285,7 +285,7 @@ def test_chat2_real_generation_and_sharded_cli(pair, tmp_path, monkeypatch):
         all_ids += [json.loads(l)['episode_id'] for l in (out / 'plans.jsonl').read_text().splitlines()]
     assert len(set(all_ids)) == 3
     from chat2_merge import load
-    merged = load([tmp_path / str(i) for i in range(3)])
+    merged, _ = load([tmp_path / str(i) for i in range(3)])
     assert len(merged) == 6
     with pytest.raises(ValueError, match='missing shard'):
         load([tmp_path / '0', tmp_path / '1'])
@@ -297,3 +297,11 @@ def test_chat2_real_generation_and_sharded_cli(pair, tmp_path, monkeypatch):
     with contextlib.redirect_stdout(printed):
         chat_merge.main()
     assert 'co_chat2 kind:' in printed.getvalue()
+    # A shard rerun with a different chateval.py merges only when that file is named, and its hashes are kept.
+    m = json.loads((tmp_path / '0' / 'manifest.json').read_text())
+    m['code_hashes']['chateval.py'] = '0' * 64
+    (tmp_path / '0' / 'manifest.json').write_text(json.dumps(m))
+    with pytest.raises(ValueError, match='code_hashes'):
+        load([tmp_path / str(i) for i in range(3)])
+    merged, hashes = load([tmp_path / str(i) for i in range(3)], code_ok=('chateval.py',))
+    assert len(merged) == 6 and hashes['chateval.py'][0] == '0' * 64 and len(set(hashes['chateval.py'])) == 2

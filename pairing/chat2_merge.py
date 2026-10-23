@@ -3,6 +3,8 @@
 Unlike the legacy merger, require every index from all requested shards and
 verify completed manifests/hashes before summarizing. chat_merge.py also prints
 the same per-kind rows, with its existing permissive partial-input behavior.
+--code_ok FILE lets shards differ in that source file's hash only (a rerun shard with a fix that loosens a check the
+other shards passed); the output records every shard's hash for each such file.
 """
 import argparse
 import json
@@ -13,7 +15,7 @@ from evalfree import file_hash
 from link import SIDES
 
 
-def load(dirs):
+def load(dirs, code_ok=()):
     records, manifests = [], []
     for d in map(Path, dirs):
         m = json.loads((d / 'manifest.json').read_text())
@@ -27,9 +29,12 @@ def load(dirs):
         records += rows
     if not manifests:
         raise ValueError('at least one shard required')
-    for key in ('run', 'seed', 'n', 'temperature', 'code_hashes'):
+    for key in ('run', 'seed', 'n', 'temperature'):
         if any(m[key] != manifests[0][key] for m in manifests):
             raise ValueError('shards disagree on ' + key)
+    strict = [{f: h for f, h in m['code_hashes'].items() if f not in code_ok} for m in manifests]
+    if any(h != strict[0] for h in strict):
+        raise ValueError('shards disagree on code_hashes')
     for key in ('frozen', 'receivers'):
         if any(m.get(key) != manifests[0].get(key) for m in manifests):
             raise ValueError('shards disagree on ' + key)
@@ -37,7 +42,7 @@ def load(dirs):
     expected = {(i, x) for i in range(manifests[0]['n']) for x in manifests[0].get('receivers', SIDES)}
     if len(keys) != len(set(keys)) or set(keys) != expected:
         raise ValueError('duplicate or missing shard records')
-    return records
+    return records, {f: [m['code_hashes'].get(f) for m in manifests] for f in code_ok}
 
 
 def main():
@@ -45,12 +50,16 @@ def main():
     ap.add_argument('--after', required=True, nargs='+')
     ap.add_argument('--before', nargs='+')
     ap.add_argument('--out', required=True)
+    ap.add_argument('--code_ok', nargs='*', default=[], help='source files whose hash may differ between shards')
     args = ap.parse_args()
     result = {}
     for label, dirs in (('before', args.before), ('after', args.after)):
         if not dirs:
             continue
-        result[label] = chateval.summary_rows(load(dirs))
+        records, hashes = load(dirs, args.code_ok)
+        result[label] = chateval.summary_rows(records)
+        if hashes:
+            result[label + '_code_ok'] = dict(dirs=dirs, hashes=hashes)
         for row in result[label]:
             if row['receiver'] == 'dialogue':
                 continue
