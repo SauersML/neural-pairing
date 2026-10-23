@@ -244,14 +244,17 @@ class Runtime:
             from evaluate import load_pair
         self.pair, self.toks = load_pair(run)
 
+    layer = 15    # the preregistered depth; steering_scale.py --layer moves it
+
     @contextlib.contextmanager
-    def steer(self, vectors, layer_index=15):
-        """Add vectors [batch, hidden] after block 15, including cut runs.
+    def steer(self, vectors, layer_index=None):
+        """Add vectors [batch, hidden] after block self.layer (15 unless moved), including cut runs.
 
         Padding is masked by attention, not by qmask (cut/mute must not remove
         the intervention). Wrapping the real decoder block leaves scheduling,
         generation, link attention, tokenization and sampling unchanged.
         """
+        layer_index = self.layer if layer_index is None else layer_index
         if self.backend == 'mlx':
             import mlx_eval as V
             import mlx.core as mx

@@ -77,6 +77,11 @@ def test_selection_preserves_threshold_fluency_and_fallback():
 def test_original_preregistration_unchanged():
     assert X.digest(X.protocol()) == '6d62a92c2e5ff5418ef934986b202864cc7a1e2330a68460c65c9f24d770f545'
     assert C.amendment()['layer'] == 15
+    # --layer leaves the block-15 amendment (and so its hash) as registered.
+    assert C.amendment('sink_free', 15) == C.amendment()
+    assert C.amendment('sink_free', 6)['layer'] == 6 and 'layer' not in C.amendment('sink_free', 6)['unchanged']
+    assert X.Runtime.layer == 15
+    assert C.amendment('sink_free', 15, 1.) == C.amendment() and C.amendment('sink_free', 27, 4.)['boost'] == 4.
     assert X.exact_sign([1] * 12)['p'] == 1 / 4096
 
 

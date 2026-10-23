@@ -18,9 +18,11 @@ STRENGTHS = [0., .125, .25, .5, 1., 1.5, 2., 3., 4., 6., 8.]
 LAYERS = (6, 9, 12, 15, 18, 21, 24, 27)
 
 
-def amendment(geometry='sink_free'):
-    return dict(schema=2, original_protocol_sha256=X.digest(X.protocol()),
-                strengths=STRENGTHS, layer=15,
+def amendment(geometry='sink_free', layer=15, boost=1.):
+    extra = {} if boost == 1 else dict(boost=boost, boost_rule='cut check and evaluation steer at boost x the selected '
+                                       'strength; calibration and selection unchanged')
+    return dict(**extra, schema=2, original_protocol_sha256=X.digest(X.protocol()),
+                strengths=STRENGTHS, layer=layer,
                 geometry=geometry,
                 direction='difference of means with neutral-only sink mask' if geometry == 'sink_free'
                 else 'unmodified difference of means',
@@ -28,7 +30,8 @@ def amendment(geometry='sink_free'):
                 scale='positive minus neutral mean projection on the fitted unit direction',
                 unit='one natural mean projection gap along the unit difference direction',
                 selection='original mention/fluency rule, smallest passing candidate; original fallback',
-                unchanged='texts, layer, all-token injection, scoring, controls, counts and statistical tests')
+                unchanged=('texts, layer, ' if layer == 15 else 'texts, ') +
+                'all-token injection, scoring, controls, counts and statistical tests')
 
 
 def collect(rt, side, texts, layers=LAYERS):
@@ -113,7 +116,7 @@ def concentration(energy):
                 top10=float(e[order[:10]].sum() / e.sum()))
 
 
-def fit(rt, dest, geometry='sink_free'):
+def fit(rt, dest, geometry='sink_free', layer=15):
     vectors, report = {}, {}
     for side in X.SIDES:
         ntexts = [f.format(s) for f in X.FRAMES for s in X.NEUTRAL]
@@ -123,7 +126,7 @@ def fit(rt, dest, geometry='sink_free'):
                             concepts={})
         for ci, (c, (_, sentences)) in enumerate(X.CONCEPTS.items()):
             pos = collect(rt, side, [f.format(s) for f in X.FRAMES for s in sentences])
-            np.savez(dest / ('states_' + side + '_' + c + '.npz'), **pos[15])
+            np.savez(dest / ('states_' + side + '_' + c + '.npz'), **pos[layer])
             layers = {}
             for l in LAYERS:
                 p, n = pos[l]['means'], neutral[l]['means']
@@ -141,7 +144,7 @@ def fit(rt, dest, geometry='sink_free'):
                 uc = dc / np.linalg.norm(dc)
                 row['heldout_gap'] = float((p[held] @ uc).mean() - (n[held] @ uc).mean())
                 layers[str(l)] = row
-                if l == 15:
+                if l == layer:
                     key = side + '/' + c
                     vectors[key] = d
                     rng = np.random.default_rng(21022 + X.SIDES.index(side) * 100 + ci)
@@ -149,7 +152,8 @@ def fit(rt, dest, geometry='sink_free'):
                     vectors[key + '/random'] = noise / np.linalg.norm(noise) * np.linalg.norm(d)
             report[side]['concepts'][c] = layers
             X.save(dest / 'fit.json', report)
-            print('fit', side, c, 'gap', layers['15']['norm'], 'old/gap', layers['15']['old_unit_over_gap'], flush=True)
+            print('fit', side, c, 'gap', layers[str(layer)]['norm'], 'old/gap', layers[str(layer)]['old_unit_over_gap'],
+                  flush=True)
         np.savez(dest / ('states_' + side + '_neutral.npz'), **{
             str(l) + '_' + k: a for l, fields in neutral.items() for k, a in fields.items()})
     np.savez(dest / 'directions.npz', **vectors)
@@ -251,13 +255,19 @@ def main():
     ap.add_argument('--phase', choices=('fit', 'calibrate', 'cut', 'evaluate', 'validate', 'all'), default='all',
                     help='validate fits/calibrates/checks cut isolation without running transfer tests')
     ap.add_argument('--bs', type=int, default=6)
+    ap.add_argument('--layer', type=int, choices=LAYERS, default=15,
+                    help='steer after this block instead of the preregistered 15 (recorded in the amendment)')
+    ap.add_argument('--boost', type=float, default=1.,
+                    help='cut check and evaluation at this multiple of the calibrated strength (recorded in the amendment)')
     ap.add_argument('--geometry', choices=('sink_free', 'raw'), default='sink_free',
                     help='raw reproduces the diagnostic that only changes strength; sink_free also removes neutral sinks')
     args = ap.parse_args()
     if args.bs < 1:
         ap.error('--bs must be positive')
+    if not args.boost > 0:
+        ap.error('--boost must be positive')
     dest = Path(args.out); dest.mkdir(parents=True, exist_ok=True)
-    fixed = amendment(args.geometry)
+    fixed = amendment(args.geometry, args.layer, args.boost)
     registration = dict(amendment=fixed, sha256=X.digest(fixed))
     path = dest / 'amendment.json'
     if path.exists():
@@ -284,8 +294,9 @@ def main():
                 raise ValueError('Cannot mix runs: ' + k)
     X.save(dest / 'manifest.json', manifest)
     rt = X.Runtime(args.backend, args.run)
+    rt.layer = args.layer
     if args.phase in ('fit', 'validate', 'all') and not (dest / 'directions.npz').exists():
-        vectors = fit(rt, dest, args.geometry)
+        vectors = fit(rt, dest, args.geometry, args.layer)
     else:
         with np.load(dest / 'directions.npz') as archive:
             vectors = dict(archive)
@@ -293,6 +304,7 @@ def main():
         calibration(rt, vectors, dest, args.bs)
     if args.phase in ('cut', 'evaluate', 'validate', 'all'):
         selected = json.loads((dest / 'selected.json').read_text())
+        selected = {x: {c: dict(v, alpha=v['alpha'] * args.boost) for c, v in s.items()} for x, s in selected.items()}
         if args.phase in ('cut', 'validate', 'all'):
             cut_check(rt, vectors, selected, dest, args.bs)
         if args.phase in ('evaluate', 'all'):
