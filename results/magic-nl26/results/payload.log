@@ -1,0 +1,33 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  12%|█▏        | 48/398 [00:00<00:00, 469.86it/s]Loading weights:  24%|██▍       | 96/398 [00:00<00:00, 434.48it/s]Loading weights:  35%|███▌      | 140/398 [00:00<00:00, 409.96it/s]Loading weights:  47%|████▋     | 188/398 [00:00<00:00, 426.17it/s]Loading weights:  58%|█████▊    | 231/398 [00:00<00:00, 383.08it/s]Loading weights:  68%|██████▊   | 270/398 [00:00<00:00, 338.22it/s]Loading weights:  77%|███████▋  | 305/398 [00:00<00:00, 280.14it/s]Loading weights:  85%|████████▌ | 339/398 [00:01<00:00, 285.70it/s]Loading weights:  98%|█████████▊| 390/398 [00:01<00:00, 341.53it/s]Loading weights: 100%|██████████| 398/398 [00:01<00:00, 356.21it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:  14%|█▎        | 40/291 [00:00<00:00, 394.03it/s]Loading weights:  30%|███       | 88/291 [00:00<00:00, 436.54it/s]Loading weights:  46%|████▌     | 134/291 [00:00<00:00, 423.90it/s]Loading weights:  61%|██████    | 177/291 [00:00<00:00, 423.46it/s]Loading weights:  80%|███████▉  | 232/291 [00:00<00:00, 460.79it/s]Loading weights:  96%|█████████▌| 279/291 [00:00<00:00, 455.58it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 455.61it/s]
+relay_word {"relay_word/ember": [0.047, 16.714, 25.881, 20], "relay_word/quill": [0.002, 15.935, 32.451, 20]}
+relay_number {"relay_number/ember": [0.021, 8.119, 19.368, 20], "relay_number/quill": [0.056, 3.019, 7.275, 20]}
+relay_phrase {"relay_phrase/ember": [0.117, 12.515, 14.926, 20], "relay_phrase/quill": [0.003, 14.298, 19.96, 20]}
+relay_digits {"relay_digits/ember": [0.13, 2.193, 4.743, 20], "relay_digits/quill": [0.102, 1.711, 3.759, 20]}
+merge_sum {"merge_sum/ember": [0.028, 3.454, 10.601, 40], "merge_sum/quill": [0.001, 1.039, 3.309, 40]}
+merge_fact {"merge_fact/ember": [0.265, 7.897, 10.923, 40], "merge_fact/quill": [0.193, 7.494, 11.354, 40]}
+lookup {"lookup/ember": [0.029, 12.871, 28.086, 20], "lookup/quill": [0.029, 13.19, 19.058, 20]}
+co_transfer {"co_transfer/ember": [1.641, 2.969, 3.073, 18], "co_transfer/quill": [1.19, 3.347, 3.519, 22]}
+co_swap {"co_swap/ember": [1.866, 3.552, 3.799, 40], "co_swap/quill": [1.172, 3.174, 3.446, 40]}
+co_split {"co_split/ember": [1.107, 2.938, 3.485, 40], "co_split/quill": [0.661, 2.947, 3.566, 40]}
+co_continue {"co_continue/ember": [2.465, 2.86, 2.955, 13], "co_continue/quill": [2.916, 3.231, 3.337, 27]}
+co_distill {"co_distill/ember": [1.227, 1.63, 1.705, 22], "co_distill/quill": [1.34, 2.483, 2.521, 18]}
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+co_talk {"co_talk/ember": [1.32, 1.528, 1.66, 20], "co_talk/quill": [0.692, 0.963, 1.007, 20]}
+co_play {"co_play/ember": [1.229, 8.899, 9.845, 40], "co_play/quill": [0.66, 9.293, 10.555, 40]}
+co_qa {"co_qa/ember": [1.051, 2.29, 1.746, 14], "co_qa/quill": [1.203, 2.087, 2.106, 26]}
+co_hop {"co_hop/ember": [1.268, 2.098, 1.532, 40], "co_hop/quill": [0.941, 1.453, 1.27, 40]}
+co_translate {"co_translate/ember": [2.525, 4.268, 4.244, 19], "co_translate/quill": [2.651, 3.915, 4.245, 21]}
+co_paraphrase {"co_paraphrase/ember": [1.392, 3.652, 3.704, 19], "co_paraphrase/quill": [1.237, 4.106, 4.247, 21]}
+co_nli {"co_nli/ember": [0.37, 0.439, 0.376, 40], "co_nli/quill": [0.359, 0.451, 0.369, 40]}
+co_math {"co_math/ember": [1.097, 1.602, 1.556, 20], "co_math/quill": [0.923, 1.301, 1.366, 20]}
+co_code_out {"co_code_out/ember": [2.37, 3.479, 3.395, 21], "co_code_out/quill": [2.024, 3.314, 3.661, 19]}
+co_code_write {"co_code_write/ember": [0.803, 1.103, 1.139, 18], "co_code_write/quill": [0.538, 0.868, 0.865, 22]}
+co_instruct {"co_instruct/ember": [2.398, 3.633, 3.426, 21], "co_instruct/quill": [1.689, 2.353, 2.458, 19]}
+co_mcq {"co_mcq/ember": [0.694, 1.335, 1.214, 40], "co_mcq/quill": [0.736, 2.308, 2.569, 40]}
+co_chat {"co_chat/ember": [0.937, 1.149, 1.166, 26], "co_chat/quill": [0.492, 0.83, 0.858, 36]}
+co_chat2 {"co_chat2/ember": [1.048, 1.339, 1.323, 27], "co_chat2/quill": [0.872, 1.261, 1.401, 32]}
+wrote /workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/results/payload_final.json 1401 records

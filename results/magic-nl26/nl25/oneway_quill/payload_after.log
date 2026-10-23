@@ -1,0 +1,34 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  10%|█         | 41/398 [00:00<00:00, 357.64it/s]Loading weights:  19%|█▉        | 77/398 [00:00<00:01, 229.58it/s]Loading weights:  26%|██▌       | 103/398 [00:00<00:01, 236.83it/s]Loading weights:  32%|███▏      | 129/398 [00:00<00:01, 198.26it/s]Loading weights:  42%|████▏     | 167/398 [00:00<00:00, 240.43it/s]Loading weights:  52%|█████▏    | 208/398 [00:00<00:00, 274.76it/s]Loading weights:  60%|██████    | 239/398 [00:00<00:00, 266.95it/s]Loading weights:  68%|██████▊   | 270/398 [00:01<00:00, 259.53it/s]Loading weights:  76%|███████▌  | 301/398 [00:01<00:00, 270.14it/s]Loading weights:  83%|████████▎ | 329/398 [00:01<00:00, 253.05it/s]Loading weights:  92%|█████████▏| 365/398 [00:01<00:00, 254.93it/s]Loading weights: 100%|██████████| 398/398 [00:01<00:00, 265.73it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:  16%|█▌        | 47/291 [00:00<00:00, 452.77it/s]Loading weights:  34%|███▍      | 99/291 [00:00<00:00, 488.83it/s]Loading weights:  51%|█████     | 148/291 [00:00<00:00, 471.68it/s]Loading weights:  67%|██████▋   | 196/291 [00:00<00:00, 422.36it/s]Loading weights:  84%|████████▍ | 245/291 [00:00<00:00, 439.95it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 466.06it/s]
+one-way link onto quill: ember as the receiver only
+relay_word {"relay_word/ember": [0.08, 14.788, 23.968, 40]}
+relay_number {"relay_number/ember": [0.039, 9.567, 17.858, 40]}
+relay_phrase {"relay_phrase/ember": [0.007, 9.776, 16.102, 40]}
+relay_digits {"relay_digits/ember": [0.268, 2.777, 5.538, 40]}
+merge_sum {"merge_sum/ember": [0.156, 6.842, 11.56, 40]}
+merge_fact {"merge_fact/ember": [0.284, 7.589, 8.198, 40]}
+lookup {"lookup/ember": [5.873, 11.674, 12.857, 40]}
+co_transfer {"co_transfer/ember": [1.933, 2.919, 3.047, 18]}
+co_swap {"co_swap/ember": [2.008, 3.492, 3.796, 40]}
+co_split {"co_split/ember": [1.208, 2.858, 3.402, 40]}
+co_continue {"co_continue/ember": [2.495, 2.824, 2.955, 13]}
+co_distill {"co_distill/ember": [1.251, 1.631, 1.755, 22]}
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+co_talk {"co_talk/ember": [1.018, 1.321, 1.307, 40]}
+co_play {"co_play/ember": [0.851, 9.231, 10.986, 40]}
+co_qa {"co_qa/ember": [1.484, 2.58, 2.249, 20]}
+co_hop {"co_hop/ember": [1.135, 1.371, 1.332, 40]}
+co_translate {"co_translate/ember": [2.924, 4.46, 4.758, 23]}
+co_paraphrase {"co_paraphrase/ember": [1.74, 3.908, 4.322, 23]}
+co_nli {"co_nli/ember": [0.467, 0.481, 0.466, 40]}
+co_math {"co_math/ember": [1.14, 1.778, 1.773, 21]}
+co_code_out {"co_code_out/ember": [2.506, 3.741, 4.062, 18]}
+co_code_write {"co_code_write/ember": [0.773, 1.017, 1.101, 20]}
+co_instruct {"co_instruct/ember": [2.583, 4.091, 3.957, 18]}
+co_mcq {"co_mcq/ember": [1.078, 2.271, 2.236, 40]}
+co_chat {"co_chat/ember": [1.026, 1.172, 1.205, 29]}
+co_chat2 {"co_chat2/ember": [1.199, 1.634, 1.708, 34]}
+wrote /workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/nl25/out/results/oneway_quill/payload_after.json 819 records

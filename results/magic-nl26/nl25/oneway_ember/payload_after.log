@@ -1,0 +1,34 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  15%|█▌        | 61/398 [00:00<00:00, 483.76it/s]Loading weights:  28%|██▊       | 110/398 [00:00<00:00, 356.14it/s]Loading weights:  37%|███▋      | 147/398 [00:00<00:00, 269.28it/s]Loading weights:  44%|████▍     | 176/398 [00:00<00:00, 274.64it/s]Loading weights:  53%|█████▎    | 212/398 [00:00<00:00, 298.21it/s]Loading weights:  63%|██████▎   | 251/398 [00:00<00:00, 310.40it/s]Loading weights:  73%|███████▎  | 291/398 [00:00<00:00, 304.35it/s]Loading weights:  85%|████████▍ | 338/398 [00:01<00:00, 324.05it/s]Loading weights:  93%|█████████▎| 372/398 [00:01<00:00, 318.22it/s]Loading weights: 100%|██████████| 398/398 [00:01<00:00, 323.54it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 3848.13it/s]
+one-way link onto ember: quill as the receiver only
+relay_word {"relay_word/quill": [0.027, 12.952, 25.717, 40]}
+relay_number {"relay_number/quill": [0.042, 3.168, 7.068, 40]}
+relay_phrase {"relay_phrase/quill": [0.009, 11.698, 19.426, 40]}
+relay_digits {"relay_digits/quill": [0.213, 1.736, 4.009, 40]}
+merge_sum {"merge_sum/quill": [0.025, 1.195, 4.089, 40]}
+merge_fact {"merge_fact/quill": [0.097, 8.48, 12.503, 40]}
+lookup {"lookup/quill": [2.82, 11.114, 14.051, 40]}
+co_transfer {"co_transfer/quill": [1.485, 3.298, 3.513, 22]}
+co_swap {"co_swap/quill": [1.443, 3.163, 3.417, 40]}
+co_split {"co_split/quill": [0.846, 2.879, 3.384, 40]}
+co_continue {"co_continue/quill": [2.853, 3.179, 3.329, 27]}
+co_distill {"co_distill/quill": [1.379, 2.447, 2.664, 18]}
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+co_talk {"co_talk/quill": [1.057, 1.602, 1.488, 40]}
+co_play {"co_play/quill": [0.326, 11.628, 11.422, 40]}
+co_qa {"co_qa/quill": [1.252, 1.756, 1.597, 21]}
+co_hop {"co_hop/quill": [1.237, 1.463, 1.402, 40]}
+co_translate {"co_translate/quill": [2.531, 3.985, 4.373, 22]}
+co_paraphrase {"co_paraphrase/quill": [1.435, 4.134, 4.494, 21]}
+co_nli {"co_nli/quill": [0.427, 0.357, 0.396, 40]}
+co_math {"co_math/quill": [0.98, 1.445, 1.507, 20]}
+co_code_out {"co_code_out/quill": [1.555, 2.475, 2.327, 16]}
+co_code_write {"co_code_write/quill": [0.924, 1.598, 1.622, 14]}
+co_instruct {"co_instruct/quill": [1.816, 2.468, 2.57, 18]}
+co_mcq {"co_mcq/quill": [0.931, 2.061, 2.213, 40]}
+co_chat {"co_chat/quill": [0.662, 1.113, 1.17, 34]}
+co_chat2 {"co_chat2/quill": [1.062, 1.694, 1.886, 30]}
+wrote /workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/nl25/out/results/oneway_ember/payload_after.json 823 records

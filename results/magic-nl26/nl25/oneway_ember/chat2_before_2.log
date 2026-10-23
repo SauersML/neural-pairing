@@ -1,0 +1,20 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  10%|█         | 41/398 [00:00<00:00, 388.71it/s]Loading weights:  20%|██        | 80/398 [00:00<00:01, 265.40it/s]Loading weights:  30%|███       | 120/398 [00:00<00:00, 286.06it/s]Loading weights:  40%|████      | 160/398 [00:00<00:00, 313.08it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 639.64it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:  27%|██▋       | 80/291 [00:00<00:00, 773.57it/s]Loading weights:  54%|█████▍    | 158/291 [00:00<00:00, 535.84it/s]Loading weights:  74%|███████▍  | 216/291 [00:00<00:00, 498.59it/s]Loading weights:  94%|█████████▍| 274/291 [00:00<00:00, 507.80it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 549.58it/s]
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+co_chat2 3/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat2 6/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat2 9/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 12/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat2 15/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 18/40 quill link=no_city cut=no_city crossed=no_city
+co_chat2 21/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat2 24/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 27/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 30/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 33/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat2 36/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 39/40 quill link=1.000 cut=0.000 crossed=0.000
+Wrote /workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/nl25/out/results/oneway_ember/chat2_before_2/episodes.jsonl

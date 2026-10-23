@@ -63,6 +63,19 @@ Before chat training, the twins repeated earlier turns word for word; after it, 
 
 ![Turns that repeat an earlier turn, before and after chat training](figures/chat_loops.png)
 
+Trained the same way on chats in which the twins hold private items of eight kinds (a pet, a job, the weather, ...), the
+twins name the partner's item in 15 of 60 test chats with the link on (10 of 60 when trained on cities alone) and in
+none with it cut. Items of four kinds held out of training come out as often as the trained ones. Linked to a stranger,
+a twin names the stranger's item, never the partner's.
+
+![Partner's item said first, kinds trained on and held out, before and after training on eight kinds](figures/chat2_items.png)
+
+A one-way link reads a model left exactly as released, bit for bit. After one-way training, Ember names an untouched
+Quill's item in 7 of 27 chats (1 of 27 before it, none with the link cut), and Quill names an untouched Ember's in 11 of
+33 (10 of 33 before).
+
+![Untouched Quill read by Ember, untouched Ember read by Quill, before and after one-way training](figures/oneway.png)
+
 ## Exam questions
 
 From the same checkpoint, a linked pair, each model alone and a pair answering in turn in text each trained 300 steps on
@@ -83,8 +96,8 @@ the 243 questions only it gets right, against 100 of 227) and, linked, ties the 
 
 The link is a bus between two networks that were never trained together: any pair of models can share what they hold
 privately (a document, a fact, a plan) without writing it out, and a reader model can follow another model's hidden
-states token by token while it runs. Under way: chat over twelve kinds of private facts with four held out, and a one-way
-link into a model left exactly as it was released.
+states token by token while it runs. The model being read needs no change: a reader trained against it follows it
+exactly as released. Under way: training the linked pair on the two models' averaged answers to exam questions.
 
 <details><summary>Method, controls, runs and exactness checks</summary>
 
@@ -254,6 +267,32 @@ replies; Ember: 1 and 0) and 1 of 96 after it; every control is 0 except one one
 another concept. No exact sign test (link against each control, per model and prompt type) has p below 0.25. The link
 reads after blocks 6 to 27; block 15 is the only depth tested.
 
+### Twelve kinds of private item and one-way links (`prep_talk.py --chat2`, `chains/nl24.sh`, `chains/nl25.sh`)
+
+On the magic-nl26 pod, `chains/nl24.sh` had the original models write training chats (873 kept of 1,200; six turns of up
+to 96 tokens) in which a twin holds a private item of one of eight kinds (city, event, food, hobby, instrument, job,
+pet, weather) and the writer sees both items, then trained the linked twins 300 steps from nl22c step 157 on them, mixed
+with the other games (chat 0.2, these chats 0.25). The test is 40 fixed chats (seed 4242, greedy) whose items also come
+from four kinds never in training (book, mood, sport, trip), each run with the link on, with it cut, and linked to a
+stranger: an isolated twin of the partner's model holding a different item. A twin scores when it says the partner's
+item before the partner does; chats in which the partner holds no item are left out. Shard 0 of the three was rerun
+after a fix to the check of its stranger (b9fa5bb) and merged with `chat2_merge.py --code_ok chateval.py`.
+
+After training, Quill names Ember's item in 9 of 33 chats and Ember names Quill's in 6 of 27, against 0 with the link
+cut (exact sign test p 0.002 and 0.016); trained on cities alone, 7 of 33 and 3 of 27 (1 and 0 with the link cut).
+Held-out kinds: Quill 5 of 12 (3 before), Ember 0 of 9 (2 before). Linked to a stranger, the twins name the stranger's
+item in 13 of 60 chats (7 before) and the partner's in none.
+
+`chains/nl25.sh` then starts two one-way arms from that step 300. The model being read loses its adapter and its reading
+parts, so its text is the original model's bit for bit; the reader keeps its adapter and reading parts, and the link's
+sending parts on the untouched side keep training as the reader's channel. 150 steps of value games, then the nl24 mix
+to 450 steps; the same 40 chats, the reader the only receiver. Ember reading an untouched Quill names its item in 1 of
+27 chats before one-way training and 7 of 27 after (0 with the link cut, p 0.008; held-out kinds 0 and then 3 of 9).
+Quill reading an untouched Ember: 10 of 33, then 11 of 33 (0 cut, p 0.0005; held-out kinds 4 of 12 both times). In the
+seven value games (40 episodes each) the reader beats a shuffled partner in 276 of 280 episodes (Ember reading Quill)
+and 280 of 280 (Quill reading Ember) after one-way training; the median cross-entropy on numbers relayed from an
+untouched Quill falls from 1.97 to 0.01 nats.
+
 ### Runs (`chains/`, `results/`)
 
 Each run's chain script is in `chains/` (one pod each, called as `bash chains/nlN.sh OUT_DIR CODE_TGZ REPLIES ...`), and its
@@ -276,6 +315,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl22c | nl20 step 1,320 fine-tuned 157 steps on chats from the privileged teacher (below), with the mix kept | Free chats, 20 with cities never seen in training: partner's city said first in 13 of 23 chat sides with the link on, 1 of 23 cut, 0 of 23 linked to a stranger, and the stranger's own city in 14 of 36; turns repeating an earlier turn fell from 17% to 1% (link on) and 31% to 3% (cut); value games 360 of 360 and shared reading unchanged (`results/magic-nl22c/`) |
 | nl23 | Exam questions: linked pair, each model alone and a text pair, 300 steps each from nl20 step 1,320 (on nl20's pod) | Linked pair 78.7% of 3,134 test questions, Quill alone 79.1% (p 0.41), both averaged 81.1% (p 8e-5); Ember takes Quill's answer through the link (`results/magic-nl23/bench.json`) |
 | nl27 | nl23 with half the training questions ones only one original model answers right (`--qa_focus`) | Linked Ember 79.6%, both averaged 80.0% (p 0.58); both linked averaged 79.4% (p 0.35); Ember copies less (`results/magic-nl27/`) |
+| nl26 | `chains/nl24.sh`: 300 chat steps on eight kinds of private item from nl22c step 157; then `chains/nl25.sh`: one-way links onto a model left as released | Partner's item said first with the link on: Quill 9/33, Ember 6/27, held-out kinds 5/21, 0 cut; one-way, Ember reading untouched Quill 1/27 then 7/27, Quill reading untouched Ember 10/33 then 11/33 |
 | nl29 | The steered twin in bf16, strength in natural gaps, before and after chat training (`steering_scale.py`) | Every concept steers both models (27–30 of 36 sentences); the linked partner says it in 4 of 96 messages before chat training and 1 of 96 after, controls 0–1; no test passes |
 
 ### Earlier designs

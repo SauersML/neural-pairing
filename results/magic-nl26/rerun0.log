@@ -1,0 +1,14 @@
+2026-10-22 22:06:53 waiting for nl25's quill arm to train
+2026-10-22 22:17:14 waiting for nl25 to end
+2026-10-22 23:39:04 waiting for nl25 to end (rerun0c: nl26 and oneway_quill shard 0)
+2026-10-22 23:39:05 results/chat2_before_0 start
+2026-10-22 23:39:05 results/chat2_after_0 start
+2026-10-23 00:00:59 results/chat2_before_0 exit 0
+2026-10-23 00:00:59 results/chat2_after_0 exit 0
+2026-10-23 00:02:07 chat2_summary exit 1
+2026-10-23 00:02:07 nl25/out/results/oneway_quill/chat2_after_0 start
+2026-10-23 00:02:07 nl25/out/results/oneway_quill/chat2_before_0 start
+2026-10-23 00:15:15 nl25/out/results/oneway_quill/chat2_after_0 exit 0
+2026-10-23 00:15:26 nl25/out/results/oneway_quill/chat2_before_0 exit 0
+2026-10-23 00:16:03 oneway_quill chat2_summary exit 1
+2026-10-23 00:16:03 rerun0c done

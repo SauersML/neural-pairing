@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "complete": true,
+  "run": "/workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/run/step_300",
+  "seed": 4242,
+  "n": 40,
+  "bs": 4,
+  "games": [
+    "co_chat2"
+  ],
+  "tiny": false,
+  "device": "cuda",
+  "nl_maxnew": null,
+  "sampling": "independent focal + independent conditional donor; isolated 2-row swap",
+  "excluded": {
+    "coread_excluded": 0,
+    "talk_excluded": 0
+  },
+  "hashes": {
+    "/workspace/jobs/nl24/replies.json": "90f8890b41d0e12cd4c6bd8a0a7739120a9fedb5ca99f21bc2d0db01a2cecf41",
+    "../data/coread.json": "5bf6d14b8b9d72efd965cb82cdaf72008558059ddcf8d55c2fdf5c9d5b61279b",
+    "/workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/run/step_300/bridge.pt": "4570f52580715823a0379b18d022459fecf592102d3bb5de4629b9ca13082cef",
+    "/workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/nl25/out/results/oneway_quill/chat2_before_1/plans.jsonl": "d51b03f0e7a0eb53f03a556913bfc941f3288e164830a81516236c8302583795",
+    "../data/chat2.json": "e46a9ec3ffaa11023e0cfb427b27c978e30a1a7668a567b4b1bb44361922c57f"
+  },
+  "git_commit": null,
+  "crossed": true,
+  "temperature": 0.0,
+  "shard": "1/3",
+  "chat_plans": 0,
+  "chat_plans_by_game": {
+    "co_chat2": 13
+  },
+  "code_hashes": {
+    "evalfree.py": "8e06854f0f9f2cce1442dacd1f8d9e8e77767526c562f35be7b5fa7225c668e2",
+    "chateval.py": "77c748c244327d4bfbdfb5756446d4506d69d6393419a2e7539cc9f605413bb2",
+    "chat2.py": "a898a237682a58656678259fb7b37ebc814c0a4adc962509db27de849b4c4189",
+    "crossed.py": "a40a3c09fe3510daff627f4d15005a9dba6f895700b86c12ba62000f212c3cea",
+    "stats.py": "8443e31edc62e78e19227fbf533cb082244de7b2902bd4e61a566bc52a47da77",
+    "link.py": "c0d83a633f887d9e0313c2aefd6a6afc20278457c414cc6096163440f97834b2",
+    "session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+    "evaluate.py": "ce6deaee62d239f98fccfdea05c5f1714aef6805976efdd9ba060a0f5ad8a338",
+    "coread.py": "8d5e004a508304cdf6cd63edd2f8a4de06f9046b0b7777a164bbbba7a7c8a418",
+    "coread_data.py": "8c5cd14a5522dfae2a77ad60b95b9d6d2b09d3d64d426988cd2036ea87afda80",
+    "games.py": "93c9bd12f8310ed936b99886ec18ec31274fde362b29dd5d6444704228e683fc",
+    "play_tasks.py": "3c0df4136979341342f62bda565c38a170e8856e1069dc4bc696835b385b19d2"
+  },
+  "frozen": "quill",
+  "receivers": [
+    "ember"
+  ],
+  "receiver_records": 13,
+  "elapsed_seconds": 502.3626645450131,
+  "episodes_sha256": "245b8b7893dc6171cc6bba9ffc038184d80d4a20be2d16c8f25dee11dbd7738e"
+}

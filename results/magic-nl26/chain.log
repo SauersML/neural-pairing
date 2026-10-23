@@ -1,0 +1,13 @@
+2026-10-22 19:27:16 waiting for /workspace/jobs/nl24/READY
+2026-10-22 19:28:37 300 fixed steps from nl22c step_157; eight microbatches, no gradient checkpointing (80 GB)
+2026-10-22 20:21:06 payload start
+2026-10-22 20:28:22 chat2_before_0 start
+2026-10-22 20:28:22 chat2_before_1 start
+2026-10-22 20:28:22 chat2_before_2 start
+2026-10-22 20:41:43 chat2_before_0 failed
+2026-10-22 20:53:24 chat2_after_0 start
+2026-10-22 20:53:24 chat2_after_1 start
+2026-10-22 20:53:24 chat2_after_2 start
+2026-10-22 21:06:16 chat2_after_0 failed
+2026-10-22 21:18:38 chat2_summary start
+2026-10-22 21:19:30 chat2_summary failed

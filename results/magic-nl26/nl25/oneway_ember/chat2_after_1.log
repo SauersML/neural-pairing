@@ -1,0 +1,20 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  29%|██▉       | 115/398 [00:00<00:00, 1045.68it/s]Loading weights:  55%|█████▌    | 220/398 [00:00<00:00, 596.21it/s] Loading weights:  73%|███████▎  | 290/398 [00:00<00:00, 461.39it/s]Loading weights:  86%|████████▌ | 343/398 [00:00<00:00, 428.70it/s]Loading weights:  99%|█████████▉| 394/398 [00:00<00:00, 448.27it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 493.26it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   8%|▊         | 24/291 [00:00<00:01, 224.62it/s]Loading weights:  16%|█▌        | 47/291 [00:00<00:01, 179.16it/s]Loading weights:  23%|██▎       | 66/291 [00:00<00:01, 169.41it/s]Loading weights:  36%|███▋      | 106/291 [00:00<00:00, 237.73it/s]Loading weights:  46%|████▌     | 133/291 [00:00<00:00, 233.25it/s]Loading weights:  57%|█████▋    | 165/291 [00:00<00:00, 235.67it/s]Loading weights:  65%|██████▍   | 189/291 [00:00<00:00, 228.64it/s]Loading weights:  77%|███████▋  | 223/291 [00:00<00:00, 231.91it/s]Loading weights:  87%|████████▋ | 254/291 [00:01<00:00, 236.09it/s]Loading weights:  96%|█████████▌| 278/291 [00:01<00:00, 217.05it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 230.14it/s]
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+co_chat2 2/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 5/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat2 8/40 quill link=no_city cut=no_city crossed=no_city
+co_chat2 11/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 14/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat2 17/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 20/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 23/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 26/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 29/40 quill link=no_city cut=no_city crossed=no_city
+co_chat2 32/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat2 35/40 quill link=no_city cut=no_city crossed=no_city
+co_chat2 38/40 quill link=1.000 cut=0.000 crossed=0.000
+Wrote /workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/nl25/out/results/oneway_ember/chat2_after_1/episodes.jsonl

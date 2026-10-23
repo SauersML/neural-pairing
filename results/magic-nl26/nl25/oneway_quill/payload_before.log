@@ -1,0 +1,34 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  13%|█▎        | 51/398 [00:00<00:00, 448.32it/s]Loading weights:  25%|██▌       | 101/398 [00:00<00:00, 456.96it/s]Loading weights:  40%|████      | 160/398 [00:00<00:00, 493.89it/s]Loading weights:  53%|█████▎    | 210/398 [00:00<00:00, 440.37it/s]Loading weights:  64%|██████▍   | 255/398 [00:00<00:00, 442.85it/s]Loading weights:  76%|███████▌  | 302/398 [00:00<00:00, 437.49it/s]Loading weights:  90%|█████████ | 360/398 [00:00<00:00, 432.98it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 446.18it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   9%|▉         | 26/291 [00:00<00:01, 238.46it/s]Loading weights:  21%|██▏       | 62/291 [00:00<00:00, 280.00it/s]Loading weights:  32%|███▏      | 93/291 [00:00<00:00, 290.75it/s]Loading weights:  45%|████▍     | 130/291 [00:00<00:00, 320.43it/s]Loading weights:  56%|█████▌    | 163/291 [00:00<00:00, 310.23it/s]Loading weights:  69%|██████▊   | 200/291 [00:00<00:00, 308.59it/s]Loading weights:  79%|███████▉  | 231/291 [00:00<00:00, 296.73it/s]Loading weights:  90%|████████▉ | 261/291 [00:00<00:00, 280.27it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 292.71it/s]
+one-way link onto quill: ember as the receiver only
+relay_word {"relay_word/ember": [0.666, 16.502, 22.486, 40]}
+relay_number {"relay_number/ember": [2.283, 8.261, 12.586, 40]}
+relay_phrase {"relay_phrase/ember": [2.161, 11.169, 12.624, 40]}
+relay_digits {"relay_digits/ember": [1.738, 2.548, 2.862, 40]}
+merge_sum {"merge_sum/ember": [0.788, 3.601, 9.338, 40]}
+merge_fact {"merge_fact/ember": [0.934, 7.479, 7.652, 40]}
+lookup {"lookup/ember": [11.014, 12.778, 14.686, 40]}
+co_transfer {"co_transfer/ember": [2.238, 2.967, 3.012, 18]}
+co_swap {"co_swap/ember": [2.421, 3.554, 3.595, 40]}
+co_split {"co_split/ember": [1.728, 2.938, 3.242, 40]}
+co_continue {"co_continue/ember": [2.564, 2.859, 2.965, 13]}
+co_distill {"co_distill/ember": [1.316, 1.63, 1.689, 22]}
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+co_talk {"co_talk/ember": [1.13, 1.314, 1.355, 40]}
+co_play {"co_play/ember": [1.527, 9.184, 10.711, 40]}
+co_qa {"co_qa/ember": [1.54, 2.557, 2.189, 20]}
+co_hop {"co_hop/ember": [1.181, 1.569, 1.482, 40]}
+co_translate {"co_translate/ember": [3.21, 4.56, 4.593, 23]}
+co_paraphrase {"co_paraphrase/ember": [2.232, 3.941, 4.013, 23]}
+co_nli {"co_nli/ember": [0.374, 0.427, 0.382, 40]}
+co_math {"co_math/ember": [1.295, 1.775, 1.695, 21]}
+co_code_out {"co_code_out/ember": [2.627, 3.801, 3.928, 18]}
+co_code_write {"co_code_write/ember": [0.801, 1.034, 1.04, 20]}
+co_instruct {"co_instruct/ember": [2.95, 4.28, 4.005, 18]}
+co_mcq {"co_mcq/ember": [1.305, 2.237, 2.019, 40]}
+co_chat {"co_chat/ember": [0.991, 1.165, 1.131, 29]}
+co_chat2 {"co_chat2/ember": [1.145, 1.534, 1.524, 34]}
+wrote /workspace/runs/magic-nl26/mpd-data/runpod/magic-nl26/nl25/out/results/oneway_quill/payload_before.json 819 records
