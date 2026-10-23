@@ -1,0 +1,28 @@
+{
+  "amendment": {
+    "schema": 2,
+    "original_protocol_sha256": "6d62a92c2e5ff5418ef934986b202864cc7a1e2330a68460c65c9f24d770f545",
+    "strengths": [
+      0.0,
+      0.125,
+      0.25,
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      3.0,
+      4.0,
+      6.0,
+      8.0
+    ],
+    "layer": 15,
+    "geometry": "sink_free",
+    "direction": "difference of means with neutral-only sink mask",
+    "sink_rule": "exclude the four largest neutral-energy coordinates only if together they carry >=95% of energy",
+    "scale": "positive minus neutral mean projection on the fitted unit direction",
+    "unit": "one natural mean projection gap along the unit difference direction",
+    "selection": "original mention/fluency rule, smallest passing candidate; original fallback",
+    "unchanged": "texts, layer, all-token injection, scoring, controls, counts and statistical tests"
+  },
+  "sha256": "e09d831054ce6a87fa93cb5cf8fcefb313a551c18923e48f729d140d3236424b"
+}

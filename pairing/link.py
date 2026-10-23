@@ -445,9 +445,10 @@ class Pair(nn.Module):
             out[x] = h[x] + w.to(h[x].dtype)
         return out, {y: shown[y][2] if y in shown else h[y].new_zeros(h[y].shape[:2], dtype=torch.float32) for y in h}
 
-    def joint(self, b, mode=None, gen=None):
+    def joint(self, b, mode=None, gen=None, push=None):
         """Teacher-forced joint pass of both models over the batch b (session.collate). Returns the last hidden states
-        {x: [B, L, d]} (after the final norm) and the gates {x: [B, L, n exchanges]}."""
+        {x: [B, L, d]} (after the final norm) and the gates {x: [B, L, n exchanges]}. push {x: {block: [B, 1, d]}}: added
+        to x's states at every position right after that block, before its exchange (steer_read.py)."""
         if mode == 'shuffle' and b[SIDES[0]]['ids'].shape[0] < 2:
             raise ValueError('shuffle needs at least two episodes')
         runs = {x: Run(self.models[x], b[x]['ids'], b[x]['att'], b[x]['pos']) for x in SIDES}
@@ -465,6 +466,8 @@ class Pair(nn.Module):
             for x in SIDES:
                 if l < self.depth[x]:
                     runs[x].block(l)
+                    if push and l in push.get(x, {}):
+                        runs[x].h = runs[x].h + push[x][l].to(runs[x].h.dtype)
             if l in self.xblocks and mode != 'zero':
                 h, g = self._exchange(self.xblocks.index(l), {x: runs[x].h for x in SIDES}, qmask, mode, gen,
                                       allow=allow, ages=ages)

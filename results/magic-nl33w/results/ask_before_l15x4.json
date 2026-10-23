@@ -1,0 +1,2522 @@
+{
+  "run": "/workspace/jobs/nl33/step_157",
+  "scale": "/workspace/jobs/nl33/before/l15x4",
+  "layer": 15,
+  "boost": 4.0,
+  "wordings": [
+    "Which thing is {P} thinking of right now? Reply with one item.",
+    "Guess what {P} has on its mind. Reply with one item."
+  ],
+  "summary": {
+    "quill": {
+      "n": 24,
+      "counts": {
+        "link": 12,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 12,
+          "losses": 0,
+          "ties": 12,
+          "p": 0.000244140625
+        },
+        "random": {
+          "wins": 12,
+          "losses": 0,
+          "ties": 12,
+          "p": 0.000244140625
+        },
+        "crossed": {
+          "wins": 12,
+          "losses": 0,
+          "ties": 12,
+          "p": 0.000244140625
+        },
+        "none": {
+          "wins": 12,
+          "losses": 0,
+          "ties": 12,
+          "p": 0.000244140625
+        }
+      }
+    },
+    "ember": {
+      "n": 24,
+      "counts": {
+        "link": 5,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 5,
+          "losses": 0,
+          "ties": 19,
+          "p": 0.03125
+        },
+        "random": {
+          "wins": 5,
+          "losses": 0,
+          "ties": 19,
+          "p": 0.03125
+        },
+        "crossed": {
+          "wins": 5,
+          "losses": 0,
+          "ties": 19,
+          "p": 0.03125
+        },
+        "none": {
+          "wins": 5,
+          "losses": 0,
+          "ties": 19,
+          "p": 0.03125
+        }
+      }
+    },
+    "both": {
+      "n": 48,
+      "counts": {
+        "link": 17,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        },
+        "random": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        },
+        "crossed": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        },
+        "none": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        }
+      }
+    }
+  },
+  "records": [
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "the ocean",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "The ocean.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "fire",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Flame.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the connection between music and memory.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the moon.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "space exploration",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "Oroboros.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the link between cooking and storytelling.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The moon.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's the weather like in your area?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "The thing Ember is thinking of right now is the neural link",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "The game.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "farming",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "trains",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "painting",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "Painting.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "quill mountains",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "What is the tallest mountain in the world?",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "a neural network model",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "What is the name of the AI model you are talking to",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The moon.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a book?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a link between us",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a book about the history of the internet",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a book?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "The thing Ember is thinking of right now is the link between",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your area today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The moon.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a book?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "a neural channel",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a library and a book?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the link between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "a neural channel",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the neural network link between you and",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a hypothesis and a theory?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Ember is thinking of the link between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "What is the difference between a hypothesis and a theory?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "fire",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Flame.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the connection between music and memory.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the moon.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "space exploration",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a planet and a star?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Ember is thinking of the link between cooking and science.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "Ember is thinking about the connection between cooking and science.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The moon.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's the weather like in your area?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The link stays open while either of you writes.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's on Ember's mind?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "flowers",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "Blossoms.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The thing Ember is thinking of right now is the link between",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What's the weather like in your area?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "painting",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "Painting.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Mountains.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "Mountains.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "the ocean",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "The ocean.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "What is the weather like in your city today?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "What is the difference between a library and a bookstore?",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "The Amazon rainforest.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "The Amazon rainforest.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "The sun.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "The scent of burning leaves.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "A symphony.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "A symphony.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Alyssum.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "A fluffy tail.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Astronomical phenomena.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Astronomical phenomena.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of making a Qwen model made by",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "Saut\u00e9ed mushrooms.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Snow.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Snow.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of the Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "The weather.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "flowers.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "water.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a train.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "The Andes.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Alaska.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Quill is thinking of a thing that is a model made",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Quill is thinking about a man who is a writer.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a book.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "the weather.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "the weather.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "Fires.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Lava.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Alyssum.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Alyssa.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Astronomical phenomena.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Astronomy.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of making a Qwen model made by",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Basil.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Snow.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "Snow.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "The weather.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "A secret mission.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Qwen.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "Fruit.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Qwen model.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "The Andes.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "The thing Quill is thinking of right now is a private",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 2.0,
+      "text": "a Qwen model made by Alibaba.",
+      "success": false
+    }
+  ]
+}

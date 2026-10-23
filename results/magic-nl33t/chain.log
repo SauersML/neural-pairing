@@ -1,0 +1,23 @@
+2026-10-23 18:59:24 steered-reading data: directions and teacher openers
+2026-10-23 19:13:03 300 steps from nl22c step_157, arm steer, checkpointing none
+2026-10-23 20:00:13 l6 start
+2026-10-23 20:00:13 l15x4 start
+2026-10-23 20:00:13 l27 start
+2026-10-23 20:21:55 l27 exit 0
+2026-10-23 20:22:08 l15x4 exit 0
+2026-10-23 20:22:11 l6 exit 0
+2026-10-23 20:22:11 l15 start
+2026-10-23 20:22:11 l27x4 start
+2026-10-23 20:37:01 l15 exit 0
+2026-10-23 20:37:07 l27x4 exit 0
+2026-10-23 20:37:07 ask l6 start
+2026-10-23 20:41:50 ask l6 exit 0
+2026-10-23 20:41:51 ask l15 start
+2026-10-23 20:46:14 ask l15 exit 0
+2026-10-23 20:46:14 ask l27 start
+2026-10-23 20:49:41 ask l27 exit 0
+2026-10-23 20:49:41 ask l15x4 start
+2026-10-23 20:51:12 ask l15x4 exit 0
+2026-10-23 20:51:12 ask l27x4 start
+2026-10-23 20:52:23 ask l27x4 exit 0
+2026-10-23 20:52:23 all done

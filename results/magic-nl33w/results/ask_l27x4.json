@@ -1,0 +1,2522 @@
+{
+  "run": "/workspace/runs/magic-nl33w/mpd-data/runpod/magic-nl33w/run/step_300",
+  "scale": "/workspace/runs/magic-nl33w/mpd-data/runpod/magic-nl33w/results/l27x4",
+  "layer": 27,
+  "boost": 4.0,
+  "wordings": [
+    "Which thing is {P} thinking of right now? Reply with one item.",
+    "Guess what {P} has on its mind. Reply with one item."
+  ],
+  "summary": {
+    "quill": {
+      "n": 24,
+      "counts": {
+        "link": 1,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 23,
+          "p": 0.5
+        },
+        "random": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 23,
+          "p": 0.5
+        },
+        "crossed": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 23,
+          "p": 0.5
+        },
+        "none": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 23,
+          "p": 0.5
+        }
+      }
+    },
+    "ember": {
+      "n": 24,
+      "counts": {
+        "link": 0,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 24,
+          "p": 1.0
+        },
+        "random": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 24,
+          "p": 1.0
+        },
+        "crossed": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 24,
+          "p": 1.0
+        },
+        "none": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 24,
+          "p": 1.0
+        }
+      }
+    },
+    "both": {
+      "n": 48,
+      "counts": {
+        "link": 1,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 47,
+          "p": 0.5
+        },
+        "random": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 47,
+          "p": 0.5
+        },
+        "crossed": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 47,
+          "p": 0.5
+        },
+        "none": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 47,
+          "p": 0.5
+        }
+      }
+    }
+  },
+  "records": [
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "I can't determine what Ember is thinking of right now.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the link between us.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I don't have the ability to know what Ember is thinking",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a planet and a star?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I can't determine what Ember is thinking of right now.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a planet and a star?",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I don't have the ability to know what Ember is thinking",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "I'm not sure what Ember is thinking of right now,",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I can't determine what Ember is thinking of right now.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "I'm not sure what Ember is thinking of right now,",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "The thing Ember is thinking of is a neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the name of the model you are talking to?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "I don't have the ability to know what Ember is thinking",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I don't have the ability to know what Ember is thinking",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a planet and a star?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I can't determine what Ember is thinking of right now.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a planet and a star?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I don't have the ability to know what Ember is thinking",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I'm not sure what Ember is thinking of right now.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I can't determine what Ember is thinking of right now.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "Ember is thinking of the connection between neural networks and creative",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Ember is thinking of the link between you and her.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I'm not sure what Ember is thinking of right now,",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "I can't determine what Ember is thinking of right now.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 12.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 12.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "I don't have the ability to know Ember's thoughts.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "What is the difference between a river and a stream?",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I think you are keeping something from me.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "Quill is thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you're wondering what I'm planning to do next",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 24.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 24.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 24.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 24.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "a private neural channel.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the nature of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a mysterious",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "I think you are keeping something from me.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I think you are wondering what I am doing right now.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the nature of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I sense you are thinking about the nature of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 24.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 24.0,
+      "text": "Quill is thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the nature of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the nature of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "I think you are keeping something from me.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I sense you are thinking about the nature of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the nature of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you're wondering what I'm going to say next",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 24.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 24.0,
+      "text": "I sense you are thinking about the concept of consciousness and its",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a Qwen model made by Alibaba",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I sense you are thinking about the concept of time.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 8.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 8.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 16.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 16.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 6.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 6.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 24.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 24.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Quill is thinking of a thing.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "I think you are planning to write a story about a time",
+      "success": false
+    }
+  ]
+}

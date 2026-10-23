@@ -1,0 +1,28 @@
+2026-10-23 13:38:35 300 steps from nl22c step_157, arm write, checkpointing both
+2026-10-23 15:02:13 l6 start
+2026-10-23 15:02:13 l15x4 start
+2026-10-23 15:16:58 l15x4 exit 0
+2026-10-23 15:17:03 l6 exit 0
+2026-10-23 15:17:03 l27 start
+2026-10-23 15:17:03 l15 start
+2026-10-23 15:31:35 l27 exit 0
+2026-10-23 15:31:38 l15 exit 0
+2026-10-23 15:31:38 l27x4 start
+2026-10-23 15:41:51 l27x4 exit 0
+2026-10-23 15:41:51 all done
+2026-10-23 15:41:51 ask l6 start
+2026-10-23 15:43:32 ask l6 exit 0
+2026-10-23 15:44:52 ask before l6 exit 0
+2026-10-23 15:44:52 ask l15 start
+2026-10-23 15:46:14 ask l15 exit 0
+2026-10-23 15:47:23 ask before l15 exit 0
+2026-10-23 15:47:23 ask l27 start
+2026-10-23 15:48:36 ask l27 exit 0
+2026-10-23 15:49:49 ask before l27 exit 0
+2026-10-23 15:49:49 ask l15x4 start
+2026-10-23 15:51:11 ask l15x4 exit 0
+2026-10-23 15:52:31 ask before l15x4 exit 0
+2026-10-23 15:52:31 ask l27x4 start
+2026-10-23 15:53:51 ask l27x4 exit 0
+2026-10-23 15:55:08 ask before l27x4 exit 0
+2026-10-23 15:55:08 ask done

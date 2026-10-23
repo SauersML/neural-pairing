@@ -1,0 +1,126 @@
+{
+  "quill": {
+    "ocean": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "fire": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "music": {
+      "alpha": 1.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "cats": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "space": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "cooking": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "winter": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "football": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "gardens": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 1
+    },
+    "trains": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "painting": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "mountains": {
+      "alpha": 0.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    }
+  },
+  "ember": {
+    "ocean": {
+      "alpha": 1.0,
+      "calibrated": true,
+      "baseline_mentions": 1
+    },
+    "fire": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "music": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "cats": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "space": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "cooking": {
+      "alpha": 2.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "winter": {
+      "alpha": 1.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "football": {
+      "alpha": 3.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "gardens": {
+      "alpha": 1.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "trains": {
+      "alpha": 3.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "painting": {
+      "alpha": 6.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "mountains": {
+      "alpha": 3.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    }
+  }
+}

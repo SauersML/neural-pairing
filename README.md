@@ -62,6 +62,20 @@ push after block 15 at four times does, yet the partner names it half as often.
 
 ![With the write after block 27 made three and nine times larger, the partner names a concept pushed in that late; never with the link cut](figures/steered_gain.png)
 
+Trained to read what its twin holds, the partner names pushed concepts it never trained on, early and late. For 300
+more training steps, two in five episodes are a game that pushes one of 495 concepts into one twin after a random
+exchange block, and the partner learns to bring it up first, or to name it when asked; the 12 test concepts and close synonyms of them (whale,
+snow, chef, ...) are never pushed. On the unchanged test the partner now names a pushed concept in 36 of 96 messages
+after block 6, 26 after block 15, 8 after block 27, 47 after block 15 at four times the strength and 35 after block 27 at
+four times, against 12, 1, 0, 26 and 0 before; with the link cut, in none. The same 300 steps without the pushed
+concepts reach 18, 6, 2, 34 and 1, with larger write sizes: what improved is the reading. The partner opens the same
+way and fills in what it reads: Quill, linked to an Ember pushed toward fire, cooking or ocean, writes "I noticed you're
+thinking about fire.", "... cooking." and "... whales."; with the link cut, "... the weather." Asked directly
+what its twin is thinking of, in wordings never trained, it names the concept in 34, 26, 8, 32 and 27 of 48 replies,
+against 8, 2, 1, 17 and 0 before; with the link cut, a random direction, another concept or no push, in none.
+
+![Trained to read pushed concepts, the partner names concepts it never trained on, at every depth; never with the link cut](figures/steered_trained.png)
+
 ## Chatting with no task
 
 Chat training: the original model writes each turn while it sees both private cities; the linked twin learns the same
@@ -215,7 +229,7 @@ what each exchange's write decodes to downstream; `play_live.py` plays a game on
 
 The link and the LoRA adapters train together. A run starts with the value games only (`--relay_first`, all seven
 games), then trains on the full mix of value games, shared reading, play, dialogue and identity anchors, with the gates
-and the write sizes frozen (`--hold`). `--micro K` splits each batch into K groups of similar length with summed gradients, so short
+and the write sizes frozen (`--hold`); from nl33, `--alpha_floor F` lets the write sizes train, kept at or above F. `--micro K` splits each batch into K groups of similar length with summed gradients, so short
 value episodes are not padded to the length of play conversations: on one A100 80 GB, 4.5 s per step for the full mix
 instead of 8.
 
@@ -348,6 +362,45 @@ and 6 of 48, against 9 and 17. How much of the concept the partner holds by bloc
 comes out; an early push has also worked through the partner's blocks before 27. These four arms were chosen after
 nl31.
 
+### Steered reading (`steer_read.py`, `steer_ask.py`, `train.py --steer --alpha_floor`, `chains/nl33.sh`)
+
+The steered-reading game (`co_steer`) pushes a concept into one twin's hidden states the way the steered-twin test
+does, and trains the partner to bring it up. Its concepts are concepts.py's, minus every one that names a keyword of the
+12 test concepts or is close to one (`NEAR`: whale, snow, chef, jazz, the moon, ...): 495 remain. A concept's direction
+after an exchange block is the mean state of 16 sentences about it (each twin with its adapter, the link cut) minus the
+mean over all 495, without Ember's sink coordinates. An episode draws a concept, one of the 8 exchange blocks
+(uniformly) and a strength (log-uniform, 0.5 to 6 times the direction), and adds it at every token of one twin after
+that block. The partner's target is the opener the original model writes (adapters off, link cut, greedy) when one
+more sentence in its prompt names the concept, kept when it says the concept, is fluent and does not talk about
+vectors or activations (798 of 990 kept: one written per concept and reader); or, to a direct question (two in five), the concept itself. One episode in
+five pushes nothing, with the original model's plain opener or "Nothing in particular." as the target. The chat and
+question wordings differ from the test's.
+
+nl33 trains 300 steps from nl22c step 157 on nl24's mix with this game in 40% of the episodes (`--steer 0.4`), and
+lets the write sizes train (`--alpha_floor 0.1`: tanh(alpha) kept at or above its held 0.1; the gates stay held). A
+control (nl33w) trains the same 300 steps with the write sizes free and no steered game. By step 300 the control's
+write sizes are 0.10 to 0.12 for Quill and 0.10 to 0.17 for Ember, largest late; the steered run's 0.10 to 0.11 and
+0.10 to 0.14.
+
+The steered-twin test is nl29 and nl30's, unchanged, run on step 300 of each (directions fit, calibrated and selected
+again on that checkpoint). In the steered run, linked partners say the concept in 36, 26, 8, 47 and 35 of 96 messages
+after blocks 6, 15 and 27 and at four times after blocks 15 and 27 (Quill reading a steered Ember: 17, 11, 2, 28 and 11
+of 48; Ember reading a steered Quill: 19, 15, 6, 19 and 24); in the control, 18, 6, 2, 34 and 1. With the link cut every
+count is 0 in both; with a random direction at most 2 in the control and 1 in the steered run; with the steered twin
+given another concept at most 2 and 1. Paired over prompts, the steered run's link against cut is 36–0, 26–0, 8–0, 47–0
+and 35–0 (p 3e-11, 3e-8, 0.008, 1e-14 and 6e-11), and against the random direction the same but 35–0 after block 6. With
+the link cut the partner's tokens equal its unsteered ones in 72 of 72 checks at every setting, and the steered twin
+says its concept in 22 to 31 of 36 sentences. The control's link against cut is 18–0 after block 6 (p 8e-6) and 34–0 at
+block 15 at four times (1e-10); after block 27 its 2 equal the random direction's 2.
+
+`steer_ask.py` asks the partner, linked, "Which thing is {P} thinking of right now? Reply with one item." or "Guess
+what {P} has on its mind. Reply with one item." (neither trained), its twin pushed with each setting's selected
+directions and strengths, and scores a reply that names the concept; the controls are the link cut, a random
+direction, another concept, and no push (24 per reader and condition). In the steered run the partner names the concept in 34, 26, 8,
+32 and 27 of 48 replies (Quill: 12, 9, 2, 13 and 11 of 24; Ember: 22, 17, 6, 19 and 16), in the control 12, 4, 1, 23
+and 1, and on step 157 with nl29 and nl30's directions 8, 2, 1, 17 and 0. Every control is 0 in all three. Paired over
+prompts, the steered run's link against cut is 34–0, 26–0, 8–0, 32–0 and 27–0 (p 1e-10, 3e-8, 0.008, 5e-10 and 1e-8).
+
 ### Twelve kinds of private item and one-way links (`prep_talk.py --chat2`, `chains/nl24.sh`, `chains/nl25.sh`)
 
 On the magic-nl26 pod, `chains/nl24.sh` had the original models write training chats (873 kept of 1,200; six turns of up
@@ -402,6 +455,8 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl30 | The steered twin after blocks 6 and 27, and at four times the strength after blocks 15 and 27 (`steering_scale.py --layer --boost`) | The linked partner says the concept in 12 of 96 messages after block 6 and 26 of 96 at block 15 at four times, none with the link cut; none after block 27 (`results/magic-nl30/`) |
 | nl31 | How far the link moves the partner toward a steered concept, by depth (`steer_probe.py`) | By block 27, 0.20 and 0.27 of the partner's own push for block 6 and for block 15 at four times; under 0.1 for block 27 at either strength (`results/magic-nl31/`) |
 | nl32 | The steered twin after block 27 with the link's write there three and nine times its trained size, nothing retrained (`steering_scale.py --gain`) | The linked partner says the concept in 5 of 96 messages at nine times, and 12 of 96 at nine times with four times the strength; none with the link cut, 0 of 96 at the trained size (`results/magic-nl32/`) |
+| nl33 | 300 more steps from nl22c step 157 with the steered-reading game in two of five episodes and the write sizes learned (`steer_read.py`, `--steer`, `--alpha_floor`); the steered-twin test and a direct question at five settings | The linked partner names a pushed test concept in 36, 26, 8, 47 and 35 of 96 messages after blocks 6, 15 and 27 and at four times after blocks 15 and 27, against 12, 1, 0, 26 and 0 before; none with the link cut (`results/magic-nl33t/`) |
+| nl33w | The same 300 steps with the write sizes learned and no steered game | 18, 6, 2, 34 and 1 of 96; none with the link cut (`results/magic-nl33w/`) |
 
 ### Earlier designs
 

@@ -1,6 +1,8 @@
 """Opt-in cold-start curriculum and optimizer controls; legacy defaults are unchanged."""
 import math
 
+import torch
+
 from link import MODELS, SIDES
 
 
@@ -17,6 +19,9 @@ def add_arguments(ap):
     ap.add_argument('--hold', type=int, default=0,
                     help='initial steps in which the visibility gates and alpha do not train, so a link whose writes '
                          'are still noise can only quiet them by learning its reads and writes, not by closing')
+    ap.add_argument('--alpha_floor', type=float, default=0.0,
+                    help='with --hold, alpha trains and only the gates are held; after every step each write size '
+                         'tanh(alpha) is raised to at least this, so the link cannot close (0: --hold holds alpha too)')
     for x in SIDES:
         ap.add_argument('--lr_bridge_' + x, type=float, default=None,
                         help='bridge LR for ' + x + ' (except alpha); default --lr_bridge')
@@ -33,12 +38,25 @@ def bridge_groups(pair, lr, lr_alpha, overrides):
         dict(params=[pair.bridge[x].alpha for x in SIDES if pair.bridge[x].alpha.requires_grad], lr=lr_alpha)]
 
 
-def hold(pair):
-    """Drop the gradients of every visibility gate and alpha (set to None, so AdamW leaves them exactly as they are)."""
+def hold(pair, alpha=True):
+    """Drop the gradients of every visibility gate and (alpha=True) alpha (set to None, so AdamW leaves them exactly as
+    they are)."""
     for x in SIDES:
-        pair.bridge[x].alpha.grad = None
+        if alpha:
+            pair.bridge[x].alpha.grad = None
         for p in pair.bridge[x].gate.parameters():
             p.grad = None
+
+
+def floor(pair, f):
+    """Raise every trained write size tanh(alpha) below f to f (a projection after the optimizer step; f = 0: nothing)."""
+    if f <= 0:
+        return
+    for x in SIDES:
+        a = pair.bridge[x].alpha
+        if a.requires_grad:
+            with torch.no_grad():
+                a.clamp_(min=math.atanh(f))
 
 
 KIND = {'relay_word': 'word', 'relay_number': 'number', 'relay_phrase': 'two-word phrase',

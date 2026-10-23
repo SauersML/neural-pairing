@@ -1,0 +1,20 @@
+{
+  "checkpoint": "/workspace/runs/magic-nl33w/mpd-data/runpod/magic-nl33w/run/step_300",
+  "backend": "torch",
+  "batch_size": 6,
+  "amendment_sha256": "e09d831054ce6a87fa93cb5cf8fcefb313a551c18923e48f729d140d3236424b",
+  "started_unix": 1792768624.414345,
+  "reuse": null,
+  "numerical_note": "bf16 torch CUDA",
+  "code_sha256": {
+    "steering_scale.py": "b3b4d6a42a32301365599d6eeb3c6a3c203452e460396c4688462563cb1f12d1",
+    "steered_mind.py": "faff17b3c7c96566d466bb7743369ed8c59e3d215001b4ff8671e0e5abac48eb",
+    "mlx_eval.py": "b336c14e2f1565f6bb1cac4845e9b2ff45e5ec84b46f4c5ae2ae92fd525ffaf4",
+    "mlx_pair.py": "df4660298c84a4196f6591f458b0d4b3374119b5dc1bfb6993a10609ae7ee8ac",
+    "link.py": "a13fbf08527ebdd5c3336a638d3535f6520b8e1c2a5e10e35bb4642e0aaae79f",
+    "session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+    "games.py": "93c9bd12f8310ed936b99886ec18ec31274fde362b29dd5d6444704228e683fc"
+  },
+  "elapsed_seconds": 872.6682620048523,
+  "completed_phase": "all"
+}

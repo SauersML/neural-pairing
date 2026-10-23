@@ -103,6 +103,9 @@ ap.add_argument('--anchor', type=float, default=0.1, help='probability that an e
 ap.add_argument('--chat', type=float, default=0.0, help='probability that an episode is a plain chat with no objective '
                 '(data/chat.json, prep_talk.py --chat): the original models\' own turns, link open, every stage after the warm-up')
 ap.add_argument('--chat2', type=float, default=0.0, help='probability after anchors and legacy chat of a chat2.json episode')
+ap.add_argument('--steer', type=float, default=0.0, help='probability, before anchors, that an episode is the '
+                'steered-reading game (steer_read.py): a concept pushed into one twin, which its partner brings up')
+ap.add_argument('--steer_data', default=None, help="steer_read.py's output (directions and teacher openers) for --steer")
 ap.add_argument('--init', default=None, help='a saved step to start from (LoRA and bridges)')
 ap.add_argument('--frozen', default=None, choices=SIDES, help='one-way link onto this side, which stays the original '
                 'model (see the docstring); default: the --init checkpoint\'s, else two-way')
@@ -145,6 +148,10 @@ if args.qa_pool and (args.text_pair or not (args.qa > 0 or args.solo)):
     ap.error('--qa_pool needs --qa > 0 or --solo, and cannot combine with --text_pair')
 if not 0 <= args.chat2 <= 1:
     ap.error('--chat2 must be in [0, 1]')
+if not 0 <= args.steer <= 1 or (args.steer > 0) != bool(args.steer_data):
+    ap.error('--steer must be in [0, 1], and given with --steer_data')
+if args.alpha_floor and not (0 < args.alpha_floor < 1 and args.hold):
+    ap.error('--alpha_floor must be in (0, 1), with --hold')
 if args.pause < 0 or not 0 <= args.pause_p <= 1:
     ap.error('--pause must be nonnegative and --pause_p must be in [0, 1]')
 if not 0 <= args.pen <= 1 or args.pen_chunk < 1:
@@ -215,6 +222,10 @@ if args.coread > 0 or args.chat2 > 0 or (args.coread_first > 0 and args.coread_f
 if args.chat2 and not COREAD.chat2:
     ap.error('--chat2 requires nonempty training data/chat2.json beside --coread_data')
 
+STEER = None
+if args.steer:
+    import steer_read
+    STEER = steer_read.Game(args.steer_data, seed=args.seed, xblocks=XB)
 if args.init:
     assert tuple(ck['xblocks']) == XB and ck['heads'] == args.heads and ck['head_dim'] == args.head_dim, \
         (ck['xblocks'], ck['heads'], ck['head_dim'])
@@ -324,6 +335,8 @@ def draw_any(rng, games, step, co):
         return G.qa_episode(bench_item(rng), 'solo')
     if args.text_pair:
         return G.qa_episode(bench_item(rng), 'text', order=rng.sample(SIDES, 2))
+    if STEER is not None and rng.random() < args.steer:
+        return STEER.episode()
     if rng.random() < args.anchor:
         return games.episode(rng.choice(ANCHOR))
     if args.chat and co is not None and co.chat and rng.random() < args.chat:
@@ -446,7 +459,8 @@ def forward(rows, built, cost_scale=1.0, mine=None):
     rows, built = [rows[i] for i in mine], [built[i] for i in mine]
     b = S.collate(built, PADS, [o for _, o in rows])
     kl = distill(built)
-    last, gates = pair.joint(b, mode='zero' if ONLY_QA else None)
+    push = STEER.push([ep for ep, _ in rows]) if STEER is not None else None
+    last, gates = pair.joint(b, mode='zero' if ONLY_QA else None, push=push)
     loss_for = {x: torch.zeros((), device=DEVICE) for x in SIDES}
     total = torch.zeros((), device=DEVICE)
     tally = {}
@@ -675,7 +689,7 @@ while step < args.steps:
                                                   (step - 1) % args.payload_every == 0 and not competitive)
     pair.track = None
     if step <= args.hold:
-        coldstart.hold(pair)
+        coldstart.hold(pair, alpha=not args.alpha_floor)
     for g, a in pay_k.items():
         o = pstats.setdefault(g, [0.0, 0.0, 0])
         for j in range(3):
@@ -689,6 +703,7 @@ while step < args.steps:
                    f'{args.grad_check}.{step}.pt')
     torch.nn.utils.clip_grad_norm_(ALL, 1.0)
     opt.step()
+    coldstart.floor(pair, args.alpha_floor)
     if step < args.steps:
         nxt = prepare(step + 1)          # on the CPU while the GPU finishes this step
     for (rows_k, tally), x in ((p, x) for p in parts for x in SIDES):
