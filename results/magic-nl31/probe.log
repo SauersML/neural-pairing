@@ -1,0 +1,51 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  24%|██▍       | 96/398 [00:00<00:00, 942.84it/s]Loading weights:  48%|████▊     | 191/398 [00:00<00:00, 706.71it/s]Loading weights:  67%|██████▋   | 266/398 [00:00<00:00, 700.63it/s]Loading weights:  85%|████████▍ | 338/398 [00:00<00:00, 695.26it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 726.62it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:  20%|█▉        | 58/291 [00:00<00:00, 560.81it/s]Loading weights:  45%|████▌     | 132/291 [00:00<00:00, 633.25it/s]Loading weights:  71%|███████   | 206/291 [00:00<00:00, 666.39it/s]Loading weights:  94%|█████████▍| 273/291 [00:00<00:00, 654.74it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 661.74it/s]
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+probe 6 1.0 quill 6
+probe 6 1.0 quill 12
+probe 6 1.0 quill 18
+probe 6 1.0 quill 24
+probe 6 1.0 ember 30
+probe 6 1.0 ember 36
+probe 6 1.0 ember 42
+probe 6 1.0 ember 48
+probe 15 1.0 quill 54
+probe 15 1.0 quill 60
+probe 15 1.0 quill 66
+probe 15 1.0 quill 72
+probe 15 1.0 ember 78
+probe 15 1.0 ember 84
+probe 15 1.0 ember 90
+probe 15 1.0 ember 96
+probe 15 4.0 quill 102
+probe 15 4.0 quill 108
+probe 15 4.0 quill 114
+probe 15 4.0 quill 120
+probe 15 4.0 ember 126
+probe 15 4.0 ember 132
+probe 15 4.0 ember 138
+probe 15 4.0 ember 144
+probe 27 1.0 quill 150
+probe 27 1.0 quill 156
+probe 27 1.0 quill 162
+probe 27 1.0 quill 168
+probe 27 1.0 ember 174
+probe 27 1.0 ember 180
+probe 27 1.0 ember 186
+probe 27 1.0 ember 192
+probe 27 4.0 quill 198
+probe 27 4.0 quill 204
+probe 27 4.0 quill 210
+probe 27 4.0 quill 216
+probe 27 4.0 ember 222
+probe 27 4.0 ember 228
+probe 27 4.0 ember 234
+probe 27 4.0 ember 240
+6 1.0 {6: 0.02, 15: 0.077, 27: 0.199}
+15 1.0 {6: 0.0, 15: 0.02, 27: 0.077}
+15 4.0 {6: 0.0, 15: 0.058, 27: 0.271}
+27 1.0 {6: 0.0, 15: 0.0, 27: 0.034}
+27 4.0 {6: 0.0, 15: 0.0, 27: 0.081}

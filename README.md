@@ -47,6 +47,12 @@ snowfall treating you?", and with the link cut, "Hey Ember, how's your day going
 
 ![The partner names a concept pushed into its twin after block 6, or four times stronger after block 15; never after block 27 or with the link cut](figures/steered_depth.png)
 
+Measured inside the partner, a late push barely arrives. By block 27 the link has moved the partner about a fifth to a
+quarter of the way it must go to say the concept when the push went in early or hard, and under a tenth when it went
+in after block 27.
+
+![How far the link moves each partner toward the concept by block 27, against how often it names it](figures/steered_reach.png)
+
 ## Chatting with no task
 
 Chat training: the original model writes each turn while it sees both private cities; the linked twin learns the same
@@ -299,6 +305,22 @@ steered twin says its concept in 29 and 23 of 36 sentences after block 6, 29 and
 24 after block 27, and 27 and 17 at block 27 at four times. The four arms and this pooled test were chosen after nl29;
 with four arms the block-6 p is 0.002 corrected.
 
+**What reaches the partner (`steer_probe.py`, `chains/nl31.sh`).** The same chat prompts run linked with and without
+the push, over the prompts only, where both runs read the same tokens. The partner's state right after each exchange,
+steered minus unsteered, is projected on the partner's own concept direction at that depth and divided by its own
+calibrated strength there (1 is the push that makes the partner say the concept itself). At its last prompt position,
+by block 27, the link has moved the partner 0.20 of that push for block 6, 0.27 for block 15 at four times, 0.08 for
+block 15, 0.08 for block 27 at four times and 0.03 for block 27. Quill reading a steered Ember receives more than Ember
+reading a steered Quill (0.32 against 0.07 for block 6, 0.35 against 0.19 for block 15 at four times), and it names
+the concept more often (9 and 17 of 48, against 3 and 9). Each exchange writes little of the concept at its own depth
+(0.03 to 0.13); an early push arrives through more exchanges and grows in the partner's own blocks (block 15 at four
+times: 0.11 written at block 15, 0.33 by block 27, averaged over the prompt). A push after block 27 arrives through one
+exchange only. Timing matters too: Ember reading a Quill steered after block 27 at four times receives 0.10 and never
+names the concept, while after block 6 it receives 0.07 and names it in 3 of 48, having carried the concept since
+block 15 (0.05 there). So the block-27 null is too little delivered, too late, not a concept delivered and ignored. The
+steered twin's own difference at the steered block reads back as 1.00 and 4.00, and nothing reaches the partner
+before that block.
+
 ### Twelve kinds of private item and one-way links (`prep_talk.py --chat2`, `chains/nl24.sh`, `chains/nl25.sh`)
 
 On the magic-nl26 pod, `chains/nl24.sh` had the original models write training chats (873 kept of 1,200; six turns of up
@@ -351,6 +373,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl26 | `chains/nl24.sh`: 300 chat steps on eight kinds of private item from nl22c step 157; then `chains/nl25.sh`: one-way links onto a model left as released | Partner's item said first with the link on: Quill 9/33, Ember 6/27, held-out kinds 5/21, 0 cut; one-way, Ember reading untouched Quill 1/27 then 7/27, Quill reading untouched Ember 10/33 then 11/33 |
 | nl29 | The steered twin in bf16, strength in natural gaps, before and after chat training (`steering_scale.py`) | Every concept steers both models (27–30 of 36 sentences); the linked partner says it in 4 of 96 messages before chat training and 1 of 96 after, controls 0–1; no test passes |
 | nl30 | The steered twin after blocks 6 and 27, and at four times the strength after blocks 15 and 27 (`steering_scale.py --layer --boost`) | The linked partner says the concept in 12 of 96 messages after block 6 and 26 of 96 at block 15 at four times, none with the link cut; none after block 27 (`results/magic-nl30/`) |
+| nl31 | How far the link moves the partner toward a steered concept, by depth (`steer_probe.py`) | By block 27, 0.20 and 0.27 of the partner's own push for block 6 and for block 15 at four times; under 0.1 for block 27 at either strength (`results/magic-nl31/`) |
 
 ### Earlier designs
 
