@@ -1,0 +1,15 @@
+2026-10-22 23:27:28 waiting for /workspace/jobs/nl28/READY
+2026-10-22 23:27:28 split: starting
+2026-10-22 23:37:38 split: exit 0
+2026-10-22 23:37:38 two arms, 300 steps each, both trained on the averaged letters: linked (pair/avg) and alone (ensemble)
+2026-10-22 23:37:38 qa_pair: starting
+2026-10-22 23:40:03 qa_pair: exit 1
+2026-10-22 23:56:59 waiting for /workspace/jobs/nl28/READY
+2026-10-22 23:56:59 two arms, 300 steps each, both trained on the averaged letters: linked (pair/avg) and alone (ensemble)
+2026-10-22 23:56:59 qa_pair: starting
+2026-10-23 00:29:15 qa_pair: exit 0
+2026-10-23 00:29:15 qa_solo: starting
+2026-10-23 00:48:57 qa_solo: exit 0
+2026-10-23 00:48:57 bench: starting
+2026-10-23 01:15:30 bench: exit 0
+2026-10-23 01:15:30 all done

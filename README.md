@@ -86,18 +86,22 @@ the two models' answers beats both.
 
 What the link does instead: Ember reads Quill's answer and takes it, even on questions Ember gets right on its own.
 
-![Ember's answers with the link cut and linked, on questions only one model gets right, in both training rounds](figures/deference.png)
+![Ember's answers with the link cut and linked, on questions only one model gets right, in three training rounds](figures/deference.png)
 
 Trained again with half the training questions ones that only one model gets right, Ember copies less (it keeps 127 of
 the 243 questions only it gets right, against 100 of 227) and, linked, ties the two models averaged (79.6% against
 80.0%, p 0.58). The pair still does not beat them.
+
+Trained a third time on the pair's averaged answer, the pair stops using the link: the averaged answer scores 78.8%
+linked and 78.8% with the link cut, against 79.2% for the same two models trained the same way with no link (p 0.53).
+Ember no longer copies: it keeps 250 of the 287 questions only it gets right.
 
 ## Where this goes
 
 The link is a bus between two networks that were never trained together: any pair of models can share what they hold
 privately (a document, a fact, a plan) without writing it out, and a reader model can follow another model's hidden
 states token by token while it runs. The model being read needs no change: a reader trained against it follows it
-exactly as released. Under way: training the linked pair on the two models' averaged answers to exam questions.
+exactly as released. Under way: the steered twin at other depths and at four times the strength.
 
 <details><summary>Method, controls, runs and exactness checks</summary>
 
@@ -245,8 +249,18 @@ with the link cut (p 0.29). The validation-chosen answerer (Quill, linked 78.2%)
 (p 0.003). Ember keeps 127 of the 243 questions only it gets right with the link cut (100 of 227 in nl23), and matches
 Quill's right and wrong answers on 93% of questions (95%). Linking Ember to another question's Quill drops it to 58.6%
 (48.4%). A probe reads each partner's confidence from what the link writes at the letter (R² 0.24 against 0.0 with a
-shuffled partner; 4-bit MLX, `results/qa_pool.json`), so the link can carry what pooling needs; `train.py --qa_pool`
-(`chains/nl28.sh`) trains on the averaged letters directly.
+shuffled partner; 4-bit MLX, `results/qa_pool.json`), so the link can carry what pooling needs.
+
+**Round 3 (`chains/nl28.sh`, `train.py --qa_pool`).** Round 2's question mix, with the loss on the two linked models'
+A–D probabilities averaged (the pair's answer); the control trains the same two models on the same loss with the link
+cut throughout. On the 3,134 questions the pair's averaged answer scores 78.8%, the same with the link cut (104
+questions change each way, p 1.0), against 79.2% for the control (−0.4, (−2.1, +1.4), p 0.53); ARC-Challenge 90.1%
+against 89.8%, MMLU 72.1% against 72.9%. Each linked model scores as it does with the link cut (Quill 76.8% against
+76.7%, Ember 73.6% against 73.5%). Ember keeps 250 of the 287 questions only it gets right with the link cut (127 of
+243 in round 2) and gets 75 of the 389 only Quill gets right (253 of 356), against 29 of the 448 both miss; its right
+and wrong answers match Quill's on 79% of questions, linked or cut (93% and 81% in round 2). The averaged loss already
+gains from two different answers, so copying the partner no longer pays, and in 300 steps the pair learns no other use
+for the link.
 
 ### Steered twin (`steering_scale.py`, `steered_mind.py`, `chains/nl29.sh`)
 
@@ -315,6 +329,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl22c | nl20 step 1,320 fine-tuned 157 steps on chats from the privileged teacher (below), with the mix kept | Free chats, 20 with cities never seen in training: partner's city said first in 13 of 23 chat sides with the link on, 1 of 23 cut, 0 of 23 linked to a stranger, and the stranger's own city in 14 of 36; turns repeating an earlier turn fell from 17% to 1% (link on) and 31% to 3% (cut); value games 360 of 360 and shared reading unchanged (`results/magic-nl22c/`) |
 | nl23 | Exam questions: linked pair, each model alone and a text pair, 300 steps each from nl20 step 1,320 (on nl20's pod) | Linked pair 78.7% of 3,134 test questions, Quill alone 79.1% (p 0.41), both averaged 81.1% (p 8e-5); Ember takes Quill's answer through the link (`results/magic-nl23/bench.json`) |
 | nl27 | nl23 with half the training questions ones only one original model answers right (`--qa_focus`) | Linked Ember 79.6%, both averaged 80.0% (p 0.58); both linked averaged 79.4% (p 0.35); Ember copies less (`results/magic-nl27/`) |
+| nl28 | nl27's question mix with the loss on the two linked models' averaged letters (`--qa_pool`), against the same loss with the link cut | Pair's averaged answer 78.8% linked and cut, control 79.2% (p 0.53); Ember stops copying (`results/magic-nl28/`) |
 | nl26 | `chains/nl24.sh`: 300 chat steps on eight kinds of private item from nl22c step 157; then `chains/nl25.sh`: one-way links onto a model left as released | Partner's item said first with the link on: Quill 9/33, Ember 6/27, held-out kinds 5/21, 0 cut; one-way, Ember reading untouched Quill 1/27 then 7/27, Quill reading untouched Ember 10/33 then 11/33 |
 | nl29 | The steered twin in bf16, strength in natural gaps, before and after chat training (`steering_scale.py`) | Every concept steers both models (27–30 of 36 sentences); the linked partner says it in 4 of 96 messages before chat training and 1 of 96 after, controls 0–1; no test passes |
 

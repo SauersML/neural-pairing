@@ -2,10 +2,11 @@
 takes Quill's answer. One mark per question that exactly one of the two models answers right with the trained pair's
 link cut, filled when Ember answers it right. Columns: the questions only Quill gets right with the link cut, and those
 only Ember gets right. One block per training round (round 1: nl23, questions drawn uniformly; round 2: nl27, half of
-them questions only one original model answers right), each with the link cut and linked.
+them questions only one original model answers right; round 3: nl28, round 2 trained on the two models' averaged
+letters), each with the link cut and linked.
 
 Reads the rounds' bench.json (per-question records; no model, no torch) and writes figures/deference.{svg,png,pdf}.
-Usage: python figures/deference.py [BENCH_JSON ...]   (default: results/magic-nl23 and magic-nl27)
+Usage: python figures/deference.py [BENCH_JSON ...]   (default: results/magic-nl23, magic-nl27 and magic-nl28)
 """
 import json
 import math
@@ -16,10 +17,10 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from chat_names import COOL, EMBER, FAINT, INK, SVG, WARM, mascot, pair_icon  # noqa: E402
 
-BENCH = [HERE.parent / 'results/magic-nl23/bench.json', HERE.parent / 'results/magic-nl27/bench.json']
-ROUNDS = ('Round 1', 'Round 2')
+BENCH = [HERE.parent / f'results/magic-nl{n}/bench.json' for n in (23, 27, 28)]
+ROUNDS = ('Round 1', 'Round 2', 'Round 3: averaged')
 ROWS = (('cut', 'Link cut', 'pair/zero/ember'), ('link', 'Linked', 'pair/ember'))
-COLS, PITCH, RAD = 32, 26, 10
+COLS, PITCH, RAD = 40, 21, 8
 
 
 def groups(R):
@@ -36,12 +37,12 @@ def draw(runs, stem):
     top, head_h, round_h, key_h = 128, 120, 92, 96
     gs = [groups(R) for R in runs]
     grid = max(math.ceil(len(idx) / COLS) for g in gs for _, _, idx in g)
-    row_h = 120 + grid * PITCH + 24
+    row_h = 116 + grid * PITCH + 20
     panel_h = head_h + len(runs) * (round_h + 2 * row_h) + 14
     H = top + panel_h + 24 + key_h + M
     s = SVG(W, H)
     uris = dict(quill=mascot('quill'), ember=mascot('ember'))
-    s.text(M, 90, "Linked, Ember takes Quill's answer, right or wrong", 68, 700)
+    s.text(M, 90, "Linked, Ember takes Quill's answer, until trained on their averaged answer", 60, 700)
 
     label_w, gap = 520, 22
     pw = (W - 2 * M - label_w - 2 * gap) / 2
