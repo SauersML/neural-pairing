@@ -134,6 +134,9 @@ and loving directions barely move with the link.
 
 ![Link on against cut, both twins lean toward enjoying it and not being bothered; partner against a stranger, only Quill's bother answer differs](figures/affect_link.png)
 
+This is a link-on self-report preference, not a partner preference, and no internal affect change. It is already there
+at step 157, before the steered and chat training, so it comes with training on the link rather than growing after.
+
 ## Exam questions
 
 From the same checkpoint, a linked pair, each model alone and a pair answering in turn in text each trained 300 steps on
