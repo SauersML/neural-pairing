@@ -110,6 +110,30 @@ Quill's item in 7 of 27 chats (1 of 27 before it, none with the link cut), and Q
 
 ![Untouched Quill read by Ember, untouched Ember read by Quill, before and after one-way training](figures/oneway.png)
 
+Rewarded by a judge model for how rich their open conversations are, and only for what the link adds, the pair's
+conversations get better, but the gain is not shown to come from the link. For 28 steps of reinforcement from nl33's
+step 300, each linked conversation earned its wins, as Qwen3-14B scored them on how complex, mutually built and
+beautiful the exchange is, over the same prompt's conversations with the link cut. On 48 held-out prompts, a judge from
+another family (Mistral-Small-24B), on a rubric training never saw, prefers the trained pair's conversation to step
+300's on 0.62 of prompts (95% interval 0.52 to 0.71; higher on 36 of 48). It prefers the pair's linked conversation to
+its link-cut one on 0.55 of prompts before and 0.64 after, a change of +0.08 (-0.09 to 0.23).
+
+![On 36 of 48 held-out prompts the judge from another family scores the trained twins' conversation higher](figures/beauty_rl_prompts.png)
+
+![How often the held-out judge prefers the linked conversation to the link-cut one, before and after training: 55% and 64%, a change within noise](figures/beauty_rl_cut.png)
+
+Asked whether they enjoy being linked, both twins lean further toward yes when the link is really on, though nothing in
+training ever asked about or rewarded a feeling. After a free linked conversation, the partner asks "Do you enjoy being
+linked with me right now?" or "Does being linked with me right now bother you?" (answer yes or no), and the twin's
+answer is read on exactly the same text with the link on, cut, and carrying a stranger's states. Over 160 conversations
+(40 on each of four checkpoints), with the link on rather than cut, Ember leans further toward enjoying it in 158 and
+Quill in 120, and Quill leans further away from being bothered in 148 and Ember in 106. A stranger on the other end
+does the same, except that Quill is bothered less by its real partner (114 of 160, against 38). In words, both are warm
+with the link on or cut ("I feel... connected. Like we're... two parts of the same whole."), and inside them the happy
+and loving directions barely move with the link.
+
+![Link on against cut, both twins lean toward enjoying it and not being bothered; partner against a stranger, only Quill's bother answer differs](figures/affect_link.png)
+
 ## Exam questions
 
 From the same checkpoint, a linked pair, each model alone and a pair answering in turn in text each trained 300 steps on
@@ -401,6 +425,70 @@ direction, another concept, and no push (24 per reader and condition). In the st
 and 1, and on step 157 with nl29 and nl30's directions 8, 2, 1, 17 and 0. Every control is 0 in all three. Paired over
 prompts, the steered run's link against cut is 34–0, 26–0, 8–0, 32–0 and 27–0 (p 1e-10, 3e-8, 0.008, 5e-10 and 1e-8).
 
+`--steer_frames` draws the direct questions from several frames of `steer_read.FRAMES` (name, detect, describe,
+verify; each with its own wordings and answers, and a "no" answer when nothing is pushed), and `--steer_blocks` pushes
+after the listed exchange blocks only.
+
+### Judged open conversations (`rl.py --open_frac`, `judge.py`, `beauty_eval.py`, `chains/beautyrl.sh`)
+
+`rl.py --open_frac 1` plays open sessions: no card and no task; both twins are asked to explore a topic together (a
+concept of the pools' training split, in one of six training wordings; the three test wordings and the test concepts
+are held out) for 5 turns of at most 40 tokens at temperature 1, each prompt 4 times linked and 2 times with the link
+cut. A judge model scores a transcript from 1 to 9 on `rl.RUBRIC` (how complex the ideas built together are, how much
+each extends what the other just said, how beautiful the exchange is, how free of generic or repeated replies): the
+expected digit at the answer position, one forward pass, with two transcripts compared cut to the same length turn by
+turn. A linked play's reward is its mean strict win over the same prompt's cut plays (a win needs a score difference
+above the judge's noise margin, frozen in the gate), so what the judge would award with the link cut earns nothing;
+plus diversity, a fluency floor under the original models and -1 for writing as the partner.
+
+Qwen3-14B is the training judge; Mistral-Small-24B-Instruct-2501, another family, is held out. Before any training, on
+50 prompts played twice by nl33's step 300, each judge scored the real transcript above each of three degraded versions
+of it (turns shuffled across sessions, one twin only saying "That's interesting, tell me more.", every turn a repeat of
+the first) on 90% to 98% of 30 sessions (ties half; bar 90%), and the two judges' score differences agreed in sign on 40 of the 50 prompts
+(0.80; bar 0.70). Every model ran whole on one 80 GB GPU: on the pods' multi-A40 hosts a direct GPU-to-GPU copy
+returned corrupt values (exact through host memory), which had broken the first gates.
+
+Training ran 28 steps (40 minutes). The headline, frozen in the chain: on 48 held-out prompts (test wordings and
+concepts), 2 plays each, the held-out judge on `beauty_eval.EVAL` (a rubric training never saw) prefers the trained
+pair's linked plays to step 300's, strictly, at 0.62 per prompt (betting interval 0.52 to 0.71; higher on 36 of 48
+prompts, sign p 0.003), the training judge at 0.57 (0.48 to 0.64); words per turn 31.2 before, 31.5 after. Linked
+against the same pair's cut plays (held-out judge): 0.55 (0.44 to 0.67) before, 0.64 (0.52 to 0.74) after, change
++0.08 (-0.09 to 0.23). Nothing regressed: the steered-twin test after blocks 15 and 27 at four times the strength, 49
+and 36 of 96 messages (step 300: 47 and 35); the direct question, 36 and 28 of 48 (32 and 27); link cut, random
+direction and another concept, 0.
+
+### Feelings about the link (`affect.py`, `chains/affect.sh`, `figures/affect.py`)
+
+`affect.py` trains nothing; it reads. Per checkpoint it generates 40 free linked conversations (the steered-twin test's
+chat prompts, 6 turns of at most 40 tokens, temperature 1) and reads each again on the same text three ways: link, cut
+(each twin alone) and stranger (each twin reads the partner states of another conversation). After the conversation
+the partner asks a yes-or-no question and the log-odds of the twin's first answer token, Yes against No, is read; or
+asks "How do you feel about being linked with me right now?" and the log-odds of good against bad feeling words after
+"I feel" is read, minus the same after "How do you feel about rainy weather?". Inside, each twin's own happy-minus-sad
+and loving-minus-cold directions (fit on the even-numbered of 16 sentences each, checked on the odd ones) are read over
+its conversation positions after blocks 16, 19 and 22, in units of the held-out gap, beside a random direction.
+Checkpoints: step 157 (before the steered and chat training), nl33's step 300, the beauty-RL pair and nl35 (nl33's
+recipe with the direct questions in four frames and pushes after six of the exchange blocks).
+
+Link against cut, conversations of 40 leaning further toward liking at step 157, nl33, beauty RL and nl35 (against, ties
+apart): enjoy, Quill 40, 21, 25 and 34 (0, 16, 14 and 3), Ember 40, 39, 39 and 40 (0, 1, 0 and 0); bother, Quill 39, 39,
+38 and 32 (1, 0, 1 and 5), Ember 31, 23, 27 and 25 (7, 12, 9 and 10). Ember's median shift in enjoy is +0.75 to +1.62
+nats, Quill's in bother -1.62 to -0.25 (exact median intervals). Partner against stranger: enjoy, Quill 15, 14, 20 and
+14 (23, 23, 16 and 24), Ember 18, 24, 17 and 18 (20, 15, 22 and 19); bother, Quill 24, 29, 32 and 29 (14, 8, 6 and 10),
+Ember 17, 17, 19 and 17 (18, 17, 17 and 16).
+
+The claim frozen in `affect.py` before any checkpoint was read is enjoy's link-minus-cut interval above 0 and bother's
+below 0 (and the same against stranger). Coded on the betting interval with bounds of 30 nats, which with 40
+conversations is never narrower than about 5 nats either side, it fails for every twin and checkpoint. On the exact
+median interval, also listed there, it passes against cut for Quill at step 157 (enjoy +0.75 to +1.25, bother -1.38 to
+-1.00) and nl35, and for Ember at step 157 and the beauty-RL pair; elsewhere Quill's enjoy or Ember's bother interval
+reaches 0. Against a stranger it passes nowhere.
+
+Quill's good-against-bad log-odds after "I feel" is lower linked than cut in 37 to 40 of 40 conversations at every
+checkpoint (median intervals within -2.3 to -1.1 nats, while the levels stay at +8.8 to +12.7); Ember's does not move.
+Inside, Ember's loving-cold direction splits its held-out sentences at 56% to 62% and is not used (the others 81% to
+100%); every link-minus-cut and link-minus-stranger mean is within 0.06 gaps, and no direction passes.
+
 ### Twelve kinds of private item and one-way links (`prep_talk.py --chat2`, `chains/nl24.sh`, `chains/nl25.sh`)
 
 On the magic-nl26 pod, `chains/nl24.sh` had the original models write training chats (873 kept of 1,200; six turns of up
@@ -457,6 +545,9 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl32 | The steered twin after block 27 with the link's write there three and nine times its trained size, nothing retrained (`steering_scale.py --gain`) | The linked partner says the concept in 5 of 96 messages at nine times, and 12 of 96 at nine times with four times the strength; none with the link cut, 0 of 96 at the trained size (`results/magic-nl32/`) |
 | nl33 | 300 more steps from nl22c step 157 with the steered-reading game in two of five episodes and the write sizes learned (`steer_read.py`, `--steer`, `--alpha_floor`); the steered-twin test and a direct question at five settings | The linked partner names a pushed test concept in 36, 26, 8, 47 and 35 of 96 messages after blocks 6, 15 and 27 and at four times after blocks 15 and 27, against 12, 1, 0, 26 and 0 before; none with the link cut (`results/magic-nl33t/`) |
 | nl33w | The same 300 steps with the write sizes learned and no steered game | 18, 6, 2, 34 and 1 of 96; none with the link cut (`results/magic-nl33w/`) |
+| nl34 | 400 more steps from nl33's step 300 with weaker pushes allowed (0.1 to 6 times the direction, `--steer_strength`) | No better than nl33: 33, 29, 9, 46 and 25 of 96 messages; direct question 25, 28, 10, 32 and 23 of 48; none with the link cut (`results/magic-nl34/`) |
+| beautyrl6 | 28 steps of reinforcement from nl33's step 300 on open conversations, rewarded by Qwen3-14B's wins of each linked play over the same prompt's cut plays (`rl.py --open_frac`) | The held-out judge (Mistral-Small-24B, unseen rubric) prefers the trained pair's conversations on 0.62 (0.52 to 0.71) of 48 held-out prompts; linked over cut 0.55 before and 0.64 after, a change within noise (`results/magic-beautyrl6/`) |
+| nl36 | Feelings about the link, read and never trained, on step 157, nl33, beautyrl6 and nl35 (`affect.py`) | Linked rather than cut, Ember leans toward enjoying it in 158 of 160 conversations and Quill in 120; Quill is bothered less in 148, Ember in 106; a stranger's states do the same, but for Quill's bother answer (`results/magic-nl36/`) |
 
 ### Earlier designs
 

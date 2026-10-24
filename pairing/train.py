@@ -106,6 +106,11 @@ ap.add_argument('--chat2', type=float, default=0.0, help='probability after anch
 ap.add_argument('--steer', type=float, default=0.0, help='probability, before anchors, that an episode is the '
                 'steered-reading game (steer_read.py): a concept pushed into one twin, which its partner brings up')
 ap.add_argument('--steer_data', default=None, help="steer_read.py's output (directions and teacher openers) for --steer")
+ap.add_argument('--steer_strength', type=float, nargs=2, default=(0.5, 6.0), metavar=('LO', 'HI'),
+                help='--steer pushes: strengths log-uniform in [LO, HI] times the concept direction')
+ap.add_argument('--steer_frames', default='name', help="--steer direct questions: comma-separated frames of "
+                'steer_read.FRAMES, drawn uniformly')
+ap.add_argument('--steer_blocks', default=None, help='--steer pushes after these exchange blocks only (default all)')
 ap.add_argument('--init', default=None, help='a saved step to start from (LoRA and bridges)')
 ap.add_argument('--frozen', default=None, choices=SIDES, help='one-way link onto this side, which stays the original '
                 'model (see the docstring); default: the --init checkpoint\'s, else two-way')
@@ -150,6 +155,8 @@ if not 0 <= args.chat2 <= 1:
     ap.error('--chat2 must be in [0, 1]')
 if not 0 <= args.steer <= 1 or (args.steer > 0) != bool(args.steer_data):
     ap.error('--steer must be in [0, 1], and given with --steer_data')
+if not 0 < args.steer_strength[0] <= args.steer_strength[1]:
+    ap.error('--steer_strength needs 0 < LO <= HI')
 if args.alpha_floor and not (0 < args.alpha_floor < 1 and args.hold):
     ap.error('--alpha_floor must be in (0, 1), with --hold')
 if args.pause < 0 or not 0 <= args.pause_p <= 1:
@@ -225,7 +232,9 @@ if args.chat2 and not COREAD.chat2:
 STEER = None
 if args.steer:
     import steer_read
-    STEER = steer_read.Game(args.steer_data, seed=args.seed, xblocks=XB)
+    STEER = steer_read.Game(args.steer_data, seed=args.seed, xblocks=XB, strength=args.steer_strength,
+                            frames=args.steer_frames.split(','),
+                            blocks=None if args.steer_blocks is None else [int(v) for v in args.steer_blocks.split(',')])
 if args.init:
     assert tuple(ck['xblocks']) == XB and ck['heads'] == args.heads and ck['head_dim'] == args.head_dim, \
         (ck['xblocks'], ck['heads'], ck['head_dim'])

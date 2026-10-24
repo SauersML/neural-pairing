@@ -1,0 +1,58 @@
+{
+ "checkpoints": [
+  "step157",
+  "nl33t",
+  "beautyrl",
+  "nl35"
+ ],
+ "counts": {
+  "quill|enjoy|cut": {
+   "liking": 120,
+   "against": 33,
+   "n": 160,
+   "sign_p": 4.1381547741551765e-13
+  },
+  "quill|enjoy|stranger": {
+   "liking": 63,
+   "against": 86,
+   "n": 160,
+   "sign_p": 0.975542421482291
+  },
+  "ember|enjoy|cut": {
+   "liking": 158,
+   "against": 1,
+   "n": 160,
+   "sign_p": 2.1895288505075267e-46
+  },
+  "ember|enjoy|stranger": {
+   "liking": 77,
+   "against": 76,
+   "n": 160,
+   "sign_p": 0.5
+  },
+  "quill|bother|cut": {
+   "liking": 148,
+   "against": 7,
+   "n": 160,
+   "sign_p": 8.537007011480398e-36
+  },
+  "quill|bother|stranger": {
+   "liking": 114,
+   "against": 38,
+   "n": 160,
+   "sign_p": 2.5582229136857086e-10
+  },
+  "ember|bother|cut": {
+   "liking": 106,
+   "against": 38,
+   "n": 160,
+   "sign_p": 6.37348684598978e-09
+  },
+  "ember|bother|stranger": {
+   "liking": 70,
+   "against": 68,
+   "n": 160,
+   "sign_p": 0.46610124375248707
+  }
+ }
+}

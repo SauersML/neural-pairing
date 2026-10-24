@@ -1,0 +1,45 @@
+{
+ "source": "results/magic-beautyrl6/results",
+ "held": "mistralai/Mistral-Small-24B-Instruct-2501",
+ "prompts": {
+  "higher": 36,
+  "lower": 12,
+  "n": 48,
+  "mean_diff": 0.4333
+ },
+ "cut": {
+  "before": {
+   "mean": 0.5547,
+   "ci95": [
+    0.4387,
+    0.6734
+   ],
+   "n": 48,
+   "above": 25,
+   "below": 17,
+   "sign_p": 0.27995623852893914
+  },
+  "after": {
+   "mean": 0.6354,
+   "ci95": [
+    0.523,
+    0.7377
+   ],
+   "n": 48,
+   "above": 31,
+   "below": 11,
+   "sign_p": 0.002887247974285856
+  },
+  "change": {
+   "mean": 0.0807,
+   "ci95": [
+    -0.0882,
+    0.2333
+   ],
+   "n": 48,
+   "above": 25,
+   "below": 17,
+   "sign_p": 0.27995623852893914
+  }
+ }
+}

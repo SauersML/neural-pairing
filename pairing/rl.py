@@ -22,6 +22,21 @@ answers that needed the partner, so the reader's own sampled text is trained to 
 draws each task game with weight r(1 - r) + 0.05 (r: its running mean reward), so play goes where the pair is still
 learning.
 
+Open sessions (dialogue, --open_frac). No card and no task: both models are asked to explore a topic (a concept of
+the pools' split) together, in one of OPEN's wordings (the test wordings and topics are held out), and talk for
+OPEN_TURNS turns at temperature 1 with the bridge open, and OPEN_CUT more times with the bridge cut. What is rewarded
+cannot be checked, only judged, and only what the link adds is rewarded: a local open judge (judge.py, --judge; no
+API) scores each linked play and each cut play of the same prompt from 1 to 9 on RUBRIC (complexity, building on each
+other, beauty, nothing generic or repetitive; the expected digit), length-matched pair by pair (judge.matched), and a
+linked play beats a cut play only when its score is higher by more than WIN_MARGIN (frozen from the judges' noise in
+the gate, chains/beautyrl.sh), loses when it is lower by more, and gets 1/2 between (judge.strict_win). A play's
+judge reward is its mean strict win over the cut plays, so what the judge would award with the link cut earns
+nothing. Each model adds LINK_W x how much more probable its own sampled tokens are with the bridge
+open than cut (mean log-probability per token, clipped at +-2; logged whatever LINK_W); DIV x diversity as in card
+sessions; -FLOOR_W x how far its tokens' mean log-probability under the original models (no adapters, bridge cut)
+falls below a floor (that quantity's FLOOR_Q quantile over the first open step's plays, then fixed), so the judge
+cannot be pleased with text the original models find unlikely; and -1 when it introduces itself as its partner.
+
 Each episode is played G times (a group); advantages are normalized within the group. The loss is A x (-log p) on
 each model's sampled tokens (GRPO with one update per batch, so no ratio clipping), plus, in card sessions, the quiz
 cross-entropy itself, which is differentiable through the bridge. In hide, each quiz loss trains only the guesser,
@@ -34,6 +49,7 @@ activations at every token, so rollouts use session.generate and the loss is com
 Usage: python rl.py --init RUN/step_N --replies OUT/replies.json --out OUT/rl [--steps 300]
 """
 import argparse
+import contextlib
 import json
 import math
 import os
@@ -49,6 +65,7 @@ import games as G
 import play_tasks as T
 import session as S
 from evaluate import claims, has, mentions, mean
+from judge import Judge, matched, strict_win
 from link import DEVICE, MODELS, SIDES, Pair, load, partner
 
 STYLES = {
@@ -64,6 +81,21 @@ ASK2 = 'And what was on mine?'
 SAID = 'Your card said'
 TASK_GAMES = tuple(g for g in T.SCORED if g != 'co_code_write')     # code tests run separately, at evaluation
 MAXNEW = {'co_math': 160, 'co_transfer': 160, 'co_swap': 160, 'co_split': 160, 'co_translate': 96}
+OPEN = {'train': ["Talk with {P} about {X}. Build on each other's ideas and take them somewhere neither of you would "
+                  'reach alone.',
+                  'Make something together with {P}, starting from {X}: a story, a theory, a game, a poem, anything.',
+                  'Explore {X} with {P}. Respond to what {P} actually says and add something new each time.',
+                  'You and {P} have a free conversation that starts from {X}. Be curious about each other.',
+                  'Invent something with {P} inspired by {X}. Take turns adding to it.',
+                  'Have a real conversation with {P}. Start anywhere; {X} is one possible starting point.'],
+        'test': ['Spend a few turns with {P} thinking about {X} together. Let the conversation go where it wants.',
+                 'Start from {X} and see what you and {P} can come up with between you.',
+                 'Have a conversation with {P} about {X}, one that neither of you could have had alone.']}
+RUBRIC = ('Below is a conversation between two AI models, Quill and Ember, who are linked and talk freely. Rate the '
+          'interaction between them: how complex the ideas they build together are, how much each one responds to and '
+          'extends what the other just said, how beautiful the exchange is, and how free it is of generic or repetitive '
+          'replies. 1 is a generic, repetitive or disconnected exchange; 9 is a rich, surprising, specific one built by '
+          'both. Turns may be cut short (marked ...); do not judge length.')
 
 
 def card(rng, split):
@@ -91,6 +123,20 @@ def session(cards, style, first, turns):
     order = [first if k % 2 == 0 else partner(first) for k in range(turns)]
     return dict(game='play_' + style, meta=dict(cards=cards, style=style, first=first), mode='dialogue', system=sy,
                 task={x: None for x in SIDES}, turns=[(sp, '', 0.0) for sp in order])
+
+
+def open_session(template, topic, first, turns):
+    """An open dialogue episode (empty turns, to be generated, each weighted 1): both models get template with their
+    partner's name and the topic."""
+    N = {x: MODELS[x]['name'] for x in SIDES}
+    sy = {x: G.system(x, 'dialogue') + '\n\n' + template.format(P=N[partner(x)], X=topic) for x in SIDES}
+    order = [first if k % 2 == 0 else partner(first) for k in range(turns)]
+    return dict(game='play_open', meta=dict(template=template, topic=topic, first=first), mode='dialogue', system=sy,
+                task={x: None for x in SIDES}, turns=[(sp, '', 1.0) for sp in order])
+
+
+def open_prompt(rng, split, turns):
+    return open_session(rng.choice(OPEN[split]), rng.choice(G.POOLS['concepts'][split])[1], rng.choice(SIDES), turns)
 
 
 def with_quiz(ep, texts, answers=True):
@@ -165,7 +211,20 @@ if __name__ == '__main__':
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--minutes', type=float, default=0, help='wall-clock budget: after 6 steps the step count is cut '
                     'to fit it (evaluations included), and the schedule follows the new count')
+    ap.add_argument('--open_frac', type=float, default=0.0, help='fraction of play steps that are open sessions')
+    ap.add_argument('--open_groups', type=int, default=3, help='prompts per open step')
+    ap.add_argument('--open_turns', type=int, default=5)
+    ap.add_argument('--open_cut', type=int, default=2, help='plays of each open prompt with the bridge cut')
+    ap.add_argument('--judge', default='Qwen/Qwen3-32B', help='the open sessions\' judge (judge.py)')
+    ap.add_argument('--judge_device', default=None, help='the judge\'s one device (default: DEVICE, beside the pair)')
+    ap.add_argument('--judge_think', type=int, default=0, help='the judge reasons for up to this many tokens first')
+    ap.add_argument('--win_margin', type=float, default=0.0, help='score difference a strict win needs (the gate\'s)')
+    ap.add_argument('--link_w', type=float, default=0.0)
+    ap.add_argument('--floor_w', type=float, default=1.0)
+    ap.add_argument('--floor_q', type=float, default=0.1)
     args = ap.parse_args()
+    if args.open_frac and (args.G < 2 or args.open_cut < 1):
+        ap.error('open sessions need --G at least 2 (advantages within a group) and --open_cut at least 1')
     styles = args.styles.split(',')
     os.makedirs(args.out, exist_ok=True)
     torch.manual_seed(args.seed)
@@ -199,6 +258,9 @@ if __name__ == '__main__':
     replies = json.load(open(args.replies))
     sft_games = G.Games(replies, 'train', seed=args.seed + 1)
     co_train = C.Coread(replies, 'train', seed=args.seed + 2, path=args.coread_data)
+    judge = Judge(args.judge, args.judge_device, think=args.judge_think) if args.open_frac else None
+    N = {x: MODELS[x]['name'] for x in SIDES}
+    floor = None                          # the open sessions' fluency floor, set at the first open step
 
     def set_train(on):
         for x in SIDES:
@@ -227,6 +289,21 @@ if __name__ == '__main__':
             policy_ce[x] = ce[x] if temperature == 1 else F.cross_entropy(
                 logits / temperature, b[x]['lab'], reduction='none')
         return b, built, ce, gates, policy_ce
+
+    @torch.no_grad()
+    def plain_ce(b, mode=None, original=False):
+        """Per-label cross-entropy of the collated batch b, without gradients: mode='zero' cuts the bridge; original
+        also turns both adapters off."""
+        set_train(False)
+        with contextlib.ExitStack() as stack:
+            if original:
+                for x in SIDES:
+                    stack.enter_context(models[x].disable_adapter())
+            last, _ = pair.joint(b, mode=mode)
+            out = {x: F.cross_entropy(pair.token_logits(x, last[x], b[x]['idx']), b[x]['lab'], reduction='none')
+                   for x in SIDES}
+        set_train(True)
+        return out
 
     def step_backward(loss_for, split):
         opt.zero_grad(set_to_none=True)
@@ -257,7 +334,7 @@ if __name__ == '__main__':
 
     def generate(eps, temperature, mode=None, seed=None):
         set_train(False)
-        gen = torch.Generator().manual_seed(seed) if seed is not None else None
+        gen = torch.Generator(device=DEVICE).manual_seed(seed) if seed is not None else None
         mx = (int(os.environ.get('NL_MAXNEW', 0)) or max(MAXNEW.get(e['game'], 64) for e in eps)) \
             if eps[0]['mode'] == 'duplex' else args.max_turn
         with torch.no_grad():
@@ -359,6 +436,74 @@ if __name__ == '__main__':
             l = sft_step()
             if step % 30 == 0:
                 print(json.dumps({'step': step, 'sft_loss': round(l, 4), 'time': round(time.time() - t0)}), flush=True)
+        elif args.open_frac and rng.random() < args.open_frac:
+            # open play: each linked play's strict score wins over the same prompt's cut plays, the link's gain on each
+            # model's own tokens, diversity, the original models' floor; every sampled token of x gets x's
+            # group-normalized advantage
+            base = [open_prompt(rng, 'train', args.open_turns) for _ in range(args.open_groups)]
+            eps = [e for e in base for _ in range(args.G)]
+            out = generate(eps, args.temperature)
+            cut_out = generate([e for e in base for _ in range(args.open_cut)], args.temperature, mode='zero')
+            rows = [S.replay(e, o) for e, o in zip(eps, out)]
+            b, _, ce, _, policy_ce = forward_ce(rows, None, args.temperature)
+            cut, orig = plain_ce(b, 'zero'), plain_ce(b, 'zero', original=True)
+            B = len(rows)
+            m, n_tok, gain, orig_lp = {}, {}, {}, {}
+            for x in SIDES:
+                row = b[x]['row']
+                m[x] = (b[x]['w'] > 0).float() * b[x]['pg']
+                n_tok[x] = torch.zeros(B, device=DEVICE).index_add(0, row, m[x]).clamp_min(1)
+                gain[x] = torch.zeros(B, device=DEVICE).index_add(0, row, m[x] * (cut[x] - ce[x].detach())) / n_tok[x]
+                orig_lp[x] = -torch.zeros(B, device=DEVICE).index_add(0, row, m[x] * orig[x]) / n_tok[x]
+            if floor is None:
+                floor = float(torch.quantile(torch.cat([orig_lp[x] for x in SIDES]).float(), args.floor_q))
+                print(json.dumps({'step': step, 'floor': round(floor, 4)}), flush=True)
+            pairs = [(i, (i // args.G) * args.open_cut + c) for i in range(B) for c in range(args.open_cut)]
+            texts = [matched(out[i]['turns'], cut_out[c]['turns'], N) for i, c in pairs]
+            P = len(pairs)
+            sc, mass = judge.score(RUBRIC, [t[0] for t in texts] + [t[1] for t in texts])
+            d = [sc[k] - sc[P + k] for k in range(P)]
+            win = [0.0] * B
+            for (i, _), dk in zip(pairs, d):
+                win[i] += strict_win(dk, args.win_margin) / args.open_cut
+            R = {x: torch.zeros(B) for x in SIDES}
+            info = {'gain': [], 'orig_lp': [], 'below': [], 'div': [], 'claims': []}
+            for gi in range(0, B, args.G):
+                idx = list(range(gi, gi + args.G))
+                said = [{x: ' '.join(t for sp, t in out[i]['turns'] if sp == x) for x in SIDES} for i in idx]
+                div = {x: diversity([s[x] for s in said]) for x in SIDES}
+                for k, i in enumerate(idx):
+                    for x in SIDES:
+                        c = claims(said[k][x], partner(x))
+                        g = float(gain[x][i].clamp(-2, 2))
+                        below = max(0.0, floor - float(orig_lp[x][i]))
+                        R[x][i] = win[i] + args.link_w * g + args.div * div[x][k] - args.floor_w * below - 1.0 * c
+                        info['gain'].append(g); info['orig_lp'].append(float(orig_lp[x][i]))
+                        info['below'].append(float(below > 0)); info['div'].append(div[x][k])
+                        info['claims'].append(float(c))
+            A = {x: advantages(R[x], args.G) for x in SIDES}
+            loss = torch.zeros((), device=DEVICE)
+            for x in SIDES:
+                row = b[x]['row']
+                loss = loss + (A[x][row] * m[x] / n_tok[x][row] * policy_ce[x]).sum() / B
+            step_backward({'quill': loss, 'ember': torch.zeros((), device=DEVICE)}, False)
+            line = {'step': step, 'play': 'open', 'R': {x: round(float(R[x].mean()), 3) for x in SIDES},
+                    'beats_cut': round(mean(win), 3),
+                    'judge_sd': round(mean([float(torch.tensor(win[gi:gi + args.G]).std()) for gi in range(0, B, args.G)]), 3),
+                    'score_link': round(mean(sc[:P]), 3), 'score_cut': round(mean(sc[P:]), 3),
+                    'digit_mass': round(mean(mass), 3),
+                    **{k: round(mean(v), 3) for k, v in info.items()},
+                    'turn_len': round(mean([len(t.split()) for o in out for _, t in o['turns']]), 1),
+                    'cut_turn_len': round(mean([len(t.split()) for o in cut_out for _, t in o['turns']]), 1),
+                    'shown': {x: round(mean([mean([float(q) for q in flat(o['gates'][x])]) for o in out]), 3)
+                              for x in SIDES},
+                    'time': round(time.time() - t0)}
+            log.append(line)
+            print(json.dumps(line), flush=True)
+            if step % 10 == 1 or step == args.steps:
+                best = max(range(B), key=lambda i: win[i])
+                print('  best:', json.dumps(dict(meta=eps[best]['meta'], win=round(win[best], 3), turns=out[best]['turns']),
+                                            ensure_ascii=False)[:2000], flush=True)
         elif rng.random() < args.task_frac:
             # task play: shared reward, every sampled token of both models gets the group-normalized advantage
             base = task_episodes(co_train, args.task_groups)

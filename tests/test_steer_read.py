@@ -8,6 +8,7 @@ import os
 os.environ.update(NL_TINY='1', NL_DEVICE='cpu', HF_HUB_OFFLINE='1')
 from pathlib import Path
 import math
+import re
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'pairing'))
 import torch
@@ -120,6 +121,15 @@ def test_episodes_and_payload(tmp_path):
     assert seen == {(a, n) for a in (True, False) for n in (True, False)}
 
 
+def test_strength_range(tmp_path):
+    for lo, hi in (R.STRENGTH, (0.1, 6.0), (2.0, 2.0)):
+        game = R.Game(data(tmp_path), seed=2, xblocks=XB, strength=(lo, hi))
+        ss = [p[3] for p in (game.episode()['meta']['push'] for _ in range(300)) if p is not None]
+        assert ss and all(lo * (1 - 1e-9) <= s <= hi * (1 + 1e-9) for s in ss)
+        if lo < hi:
+            assert min(ss) < lo * 1.5 and max(ss) > hi / 1.5
+
+
 def test_fit_centres_the_concepts():
     cs = R.pool()[:3]
     d = R.fit(PAIR, TOKS, cs, n_sent=2, bs=4)
@@ -165,3 +175,50 @@ def test_ask_counts_every_condition():
     assert len(cut) == len(none) and all(isinstance(t, str) for t in cut.values())
     for w in A.WORDINGS:
         assert w not in R.ASK
+
+
+def test_frames_answers_and_payload(tmp_path):
+    game = R.Game(data(tmp_path), seed=4, xblocks=XB, frames=tuple(R.FRAMES))
+    seen = set()
+    for _ in range(600):
+        ep = game.episode()
+        m = ep['meta']
+        if not m['ask']:
+            continue
+        r, text = m['receiver'], ep['turns'][0][1]
+        line = ep['system'][r].split('\n\n')[-1]
+        P = link.MODELS[m['sender']]['name']
+        frame = next(f for f, (ws, _, _) in R.FRAMES.items()
+                     if any(re.fullmatch(re.escape(w.replace('{Y}', 'QQQ').format(P=P)).replace('QQQ', '.+'), line) for w in ws))
+        seen.add((frame, m['push'] is None))
+        if m['push'] is None:
+            assert not m['payload'] and text == R.FRAMES[frame][2].format(P=P)
+            continue
+        name, phrase = game.concepts[m['push'][2]]
+        said = TOKS[r].decode([S.build(ep, TOKS)[r]['labels'][j][1] for j in S.payload_labels(ep, TOKS)[r]])
+        if frame == 'verify':
+            assert text == ('Yes.' if phrase in line else 'No.') and said.strip().rstrip('.') in text
+            seen.add(('verify', text))
+        else:
+            assert R.mentions(text, name, phrase) and phrase.split()[-1].lower()[:4] in said.lower(), (said, phrase)
+            assert frame != 'detect' or text.startswith('Yes.')
+    assert seen >= {(f, n) for f in R.FRAMES for n in (True, False)} | {('verify', 'Yes.'), ('verify', 'No.')}
+
+
+def test_default_frame_draws_as_before(tmp_path):
+    a = R.Game(data(tmp_path), seed=5, xblocks=XB)
+    b = R.Game(data(tmp_path), seed=5, xblocks=XB, frames=('name',), blocks=XB)
+    for _ in range(200):
+        assert a.episode() == b.episode()
+
+
+def test_push_blocks(tmp_path):
+    game = R.Game(data(tmp_path), seed=6, xblocks=XB, blocks=(1, 4))
+    ks = {p[1] for p in (game.episode()['meta']['push'] for _ in range(300)) if p is not None}
+    assert ks == {XB.index(1), XB.index(4)}
+    for bad in ((3,), ()):
+        try:
+            R.Game(data(tmp_path), xblocks=XB, blocks=bad)
+        except ValueError:
+            continue
+        raise AssertionError(bad)

@@ -1,0 +1,35 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  18%|█▊        | 72/398 [00:00<00:00, 681.77it/s]Loading weights:  35%|███▌      | 141/398 [00:00<00:00, 532.24it/s]Loading weights:  49%|████▉     | 197/398 [00:00<00:00, 499.82it/s]Loading weights:  62%|██████▏   | 248/398 [00:00<00:00, 487.71it/s]Loading weights:  75%|███████▍  | 298/398 [00:00<00:00, 455.02it/s]Loading weights:  88%|████████▊ | 349/398 [00:00<00:00, 456.30it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 493.92it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:  20%|█▉        | 57/291 [00:00<00:00, 522.02it/s]Loading weights:  38%|███▊      | 110/291 [00:00<00:00, 495.08it/s]Loading weights:  55%|█████▍    | 160/291 [00:00<00:00, 432.98it/s]Loading weights:  70%|███████   | 204/291 [00:00<00:00, 429.57it/s]Loading weights:  85%|████████▌ | 248/291 [00:00<00:00, 427.70it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 459.74it/s]
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+co_chat 1/40 quill link=no_city cut=no_city crossed=no_city
+co_chat 1/40 ember link=1.000 cut=0.000 crossed=0.000
+co_chat 4/40 quill link=no_city cut=no_city crossed=no_city
+co_chat 4/40 ember link=no_city cut=no_city crossed=no_city
+co_chat 7/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat 7/40 ember link=0.000 cut=0.000 crossed=0.000
+co_chat 10/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat 10/40 ember link=no_city cut=no_city crossed=no_city
+co_chat 13/40 quill link=0.000 cut=0.000 crossed=0.000
+co_chat 13/40 ember link=0.000 cut=0.000 crossed=0.000
+co_chat 16/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 16/40 ember link=no_city cut=no_city crossed=no_city
+co_chat 19/40 quill link=no_city cut=no_city crossed=no_city
+co_chat 19/40 ember link=1.000 cut=0.000 crossed=0.000
+co_chat 22/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 22/40 ember link=0.000 cut=0.000 crossed=0.000
+co_chat 25/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 25/40 ember link=no_city cut=no_city crossed=no_city
+co_chat 28/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 28/40 ember link=1.000 cut=0.000 crossed=0.000
+co_chat 31/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 31/40 ember link=0.000 cut=0.000 crossed=0.000
+co_chat 34/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 34/40 ember link=0.000 cut=0.000 crossed=0.000
+co_chat 37/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 37/40 ember link=0.000 cut=0.000 crossed=0.000
+co_chat 40/40 quill link=1.000 cut=0.000 crossed=0.000
+co_chat 40/40 ember link=0.000 cut=0.000 crossed=0.000
+Wrote /workspace/runs/magic-nl34/mpd-data/runpod/magic-nl34/results/chat_0/episodes.jsonl

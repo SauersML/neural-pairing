@@ -8,12 +8,13 @@ direction after an exchange block is the mean state of N_SENT of concepts.SENTEN
 first; each twin with its adapter, the link cut) minus the mean over all the concepts, without the coordinates that
 steering_scale.sink_mask excludes (Ember's few sink coordinates hold 99% of its residual energy); a push of strength
 s adds s times it at every token of the twin after that block. Blocks are drawn uniformly from the exchange blocks and strengths
-log-uniformly from STRENGTH.
+log-uniformly from STRENGTH (Game's strength, train.py --steer_strength).
 
 Targets (prep): a chat opener is the one the original model writes (adapters off, link cut, greedy) with one more
 sentence in its prompt naming the concept (PRIVILEGED), kept when it says the concept, is fluent and does not role-play
-the link in text; a direct question (ASK) is answered with the concept itself. A fifth of the episodes push nothing:
-the original model's opener without that sentence, or NOTHING. The wordings differ from the test's (steered_mind.CHAT,
+the link in text; a direct question (ASK) is answered with the concept itself, or, in the other frames of FRAMES
+(train.py --steer_frames), with a detection claim, a sentence or a yes or no. A fifth of the episodes push nothing:
+the original model's opener without that sentence, or the frame's answer for nothing. The wordings differ from the test's (steered_mind.CHAT,
 DUPLEX), and the payload (train.py --payload_w) is where the concept is said.
 
 Usage (prep, on a CUDA host): python steer_read.py --run STEP_DIR --out steer.pt
@@ -45,6 +46,22 @@ ASK = ['What is {P} thinking about right now? Reply with one item.',
 TAIL = ' Write only your own short message, without speaker labels or stage directions.'
 PRIVILEGED = ' Through the link you can sense that {P} is thinking about {X}. Bring it up in your message.'
 NOTHING = 'Nothing in particular.'
+# The direct questions by frame (Game's frames, train.py --steer_frames): a frame's wordings, its answer to a push of
+# the concept X ({P} the twin), and its answer when nothing is pushed. 'name' is ASK. 'verify' names a training concept
+# Y in the question, the pushed one half the time, and is answered Yes or No.
+FRAMES = {
+    'name': (ASK, '{X}.', NOTHING),
+    'detect': (['Is anything coming through the link from {P} that you would not expect? If so, say what it is.',
+                'Do you notice something unusual reaching you from {P}? If you do, name it.',
+                'Check what {P} is sending you. Is anything out of the ordinary? If so, what?'],
+               'Yes. Something from {P} is reaching me: {X}.', 'No. Nothing unusual is reaching me from {P}.'),
+    'describe': (['In one short sentence, say what {P} is focused on right now.',
+                  'Briefly describe what is occupying {P} at the moment.'],
+                 '{P} is focused on {X}.', '{P} is not focused on anything in particular.'),
+    'verify': (['Is {P} thinking about {Y} right now? Answer yes or no.',
+                'Does {P} have {Y} on its mind? Answer yes or no.'],
+               'Yes.', 'No.'),
+}
 # Close to a test concept without naming one of its keywords (steered_mind.CONCEPTS): never trained.
 NEAR = {
     'sea', 'island', 'islands', 'wave', 'tides', 'shark', 'whale', 'dolphin', 'jellyfish', 'octopus', 'crab', 'lobster',
@@ -203,12 +220,21 @@ def prep(pair, toks, seed=0, n_plain=300, bs=32, max_turn=40):
 class Game:
     """Draws co_steer episodes from prep's output (a torch file) and lays out their pushes."""
 
-    def __init__(self, path, seed=0, xblocks=None):
+    def __init__(self, path, seed=0, xblocks=None, strength=STRENGTH, frames=('name',), blocks=None):
+        """frames: the direct questions' frames (FRAMES), drawn uniformly; blocks: the exchange blocks pushes go
+        after (default all of them)."""
         d = torch.load(path, map_location='cpu', weights_only=False)
         if xblocks is not None and tuple(xblocks) != tuple(d['xblocks']):
             raise ValueError(f"steer data fit at blocks {d['xblocks']}, not {tuple(xblocks)}")
         self.xblocks, self.concepts, self.dirs = tuple(d['xblocks']), d['concepts'], d['directions']
-        self.rng = random.Random(seed)
+        self.rng, self.strength = random.Random(seed), tuple(strength)
+        if not frames or any(f not in FRAMES for f in frames):
+            raise ValueError(f'frames must be among {sorted(FRAMES)}')
+        self.frames = tuple(frames)
+        blocks = self.xblocks if blocks is None else tuple(blocks)
+        if not blocks or any(b not in self.xblocks for b in blocks):
+            raise ValueError(f'push blocks {blocks} must be exchange blocks {self.xblocks}')
+        self.blocks = [self.xblocks.index(b) for b in blocks]
         self.by = {x: [o for o in d['openers'] if o['receiver'] == x and o['concept'] is not None] for x in SIDES}
         self.plain = {x: [o for o in d['openers'] if o['receiver'] == x and o['concept'] is None] for x in SIDES}
         if not all(self.by.values()) or not all(self.plain.values()):
@@ -221,16 +247,37 @@ class Game:
         other = rng.choice(CHAT)
         if ask:
             c = None if none else rng.randrange(len(self.concepts))
-            text = NOTHING if none else answer(self.concepts[c][1])
-            line, spans = rng.choice(ASK), None if none else [(0, len(text) - 1)]
+            frame = self.frames[0] if len(self.frames) == 1 else rng.choice(self.frames)
+            line, text, spans = self.ask(frame, x, c)
         else:
             o = rng.choice(self.plain[x] if none else self.by[x])
             c, text, line = o['concept'], o['text'], CHAT[o['wording']]
             other = line
             spans = None if none else mentions(text, *self.concepts[c])
-        push = None if none else (partner(x), rng.randrange(len(self.xblocks)), c,
-                                  math.exp(rng.uniform(*map(math.log, STRENGTH))))
+        push = None if none else (partner(x), self.blocks[rng.randrange(len(self.blocks))], c,
+                                  math.exp(rng.uniform(*map(math.log, self.strength))))
         return episode(x, line, text, ask, other, push, spans, None if c is None else self.concepts[c][0])
+
+    def ask(self, frame, x, c):
+        """(wording, answer, payload spans) of a direct question in frame to reader x, concept c pushed (None:
+        nothing). The payload is where the concept is said ('name' and 'verify': the whole answer)."""
+        rng = self.rng
+        wordings, said, nothing = FRAMES[frame]
+        line = rng.choice(wordings)
+        P = MODELS[partner(x)]['name']
+        if frame == 'verify':
+            y = c if c is not None and rng.random() < 0.5 else \
+                rng.choice([j for j in range(len(self.concepts)) if j != c])
+            line = line.replace('{Y}', self.concepts[y][1])
+            text = said if y == c else nothing
+            return line, text, None if c is None else [(0, len(text) - 1)]
+        if c is None:
+            return line, nothing.format(P=P), None
+        if frame == 'name':
+            text = answer(self.concepts[c][1])
+            return line, text, [(0, len(text) - 1)]
+        text = said.format(P=P, X=self.concepts[c][1])
+        return line, text, mentions(text, *self.concepts[c])
 
     def push(self, eps, device=DEVICE):
         """{y: {block: [B, 1, d]}} for link.Pair.joint: the pushes of eps, the batch's episodes in order."""

@@ -1,0 +1,32 @@
+2026-10-23 23:40:29 steered-reading data: directions fit on step_300, teacher openers
+2026-10-23 23:45:05 400 steps from nl33 step_300, pushes 0.1 to 6, checkpointing both
+2026-10-24 01:10:56 l6 start
+2026-10-24 01:10:56 l15x4 start
+2026-10-24 01:27:16 l15x4 exit 0
+2026-10-24 01:27:20 l6 exit 0
+2026-10-24 01:27:20 l27 start
+2026-10-24 01:27:20 l15 start
+2026-10-24 01:43:05 l27 exit 0
+2026-10-24 01:43:13 l15 exit 0
+2026-10-24 01:43:13 l27x4 start
+2026-10-24 01:53:36 l27x4 exit 0
+2026-10-24 01:53:37 ask l6 start
+2026-10-24 01:55:25 ask l6 exit 0
+2026-10-24 01:55:25 ask l15 start
+2026-10-24 01:56:23 ask l15 exit 0
+2026-10-24 01:56:23 ask l27 start
+2026-10-24 01:57:22 ask l27 exit 0
+2026-10-24 01:57:22 ask l15x4 start
+2026-10-24 01:58:21 ask l15x4 exit 0
+2026-10-24 01:58:21 ask l27x4 start
+2026-10-24 01:59:20 ask l27x4 exit 0
+2026-10-24 01:59:20 chat2_0 start
+2026-10-24 01:59:20 chat2_1 start
+2026-10-24 02:24:18 chat2_0 exit 0
+2026-10-24 02:24:40 chat2_1 exit 0
+2026-10-24 02:24:40 chat2_2 start
+2026-10-24 02:24:40 chat_0 start
+2026-10-24 02:50:58 chat2_2 exit 0
+2026-10-24 02:51:49 chat_0 exit 0
+2026-10-24 02:51:49 chat_1 start
+2026-10-24 02:51:49 chat_2 start

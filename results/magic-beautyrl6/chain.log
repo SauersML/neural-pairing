@@ -1,0 +1,18 @@
+2026-10-24 04:27:33 health: GPU copies and the twins on the France prompt
+2026-10-24 04:28:05 gate: batch check, sanity and agreement of both judges on 50 pairs of step 300 plays
+2026-10-24 04:30:10 gate passed
+2026-10-24 04:30:10 training judge think 0, margin 0.9864
+2026-10-24 04:30:10 training: linked plays judged against cut plays
+2026-10-24 04:33:14 training failed
+2026-10-24 04:42:50 health: GPU copies and the twins on the France prompt
+2026-10-24 04:43:08 gate passed
+2026-10-24 04:43:08 training judge think 0, margin 0.9864
+2026-10-24 04:43:08 training: linked plays judged against cut plays
+2026-10-24 05:15:39 evaluating /workspace/runs/magic-beautyrl6/mpd-data/runpod/magic-beautyrl6/rl/step_28
+2026-10-24 05:20:07 judging, beside the first steered-twin check
+2026-10-24 05:20:07 l15x4 start
+2026-10-24 05:30:26 judging exit 0
+2026-10-24 05:30:26 l27x4 start
+2026-10-24 05:34:41 l15x4 exit 0
+2026-10-24 05:39:28 l27x4 exit 0
+2026-10-24 05:39:28 all done

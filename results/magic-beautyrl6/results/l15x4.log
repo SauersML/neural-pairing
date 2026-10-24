@@ -1,0 +1,172 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 5960.78it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 4934.02it/s]
+fit quill ocean gap 28.228836059570312 old/gap 1.855908701036017
+fit quill fire gap 12.170318603515625 old/gap 4.304746997169157
+fit quill music gap 10.089022636413574 old/gap 5.192786690158459
+fit quill cats gap 10.072052001953125 old/gap 5.201536137116504
+fit quill space gap 11.773032188415527 old/gap 4.45001267512263
+fit quill cooking gap 9.998556137084961 old/gap 5.239770797381346
+fit quill winter gap 11.579875946044922 old/gap 4.524240389722787
+fit quill football gap 10.361671447753906 old/gap 5.056147816232138
+fit quill gardens gap 10.639283180236816 old/gap 4.924217315729881
+fit quill trains gap 9.679169654846191 old/gap 5.412669095726097
+fit quill painting gap 9.488155364990234 old/gap 5.521636234624382
+fit quill mountains gap 11.232131958007812 old/gap 4.664309737362451
+fit ember ocean gap 0.4678141474723816 old/gap 83.25246463091285
+fit ember fire gap 0.47577983140945435 old/gap 81.85862072149865
+fit ember music gap 0.3417225480079651 old/gap 113.97164452073939
+fit ember cats gap 0.371322363615036 old/gap 104.88643987697601
+fit ember space gap 0.3604772388935089 old/gap 108.04199700883363
+fit ember cooking gap 0.3670053780078888 old/gap 106.12019087482673
+fit ember winter gap 0.4626350402832031 old/gap 84.1844594011811
+fit ember football gap 0.4482114315032959 old/gap 86.89354627939404
+fit ember gardens gap 0.42913109064102173 old/gap 90.75707077785448
+fit ember trains gap 0.3656856119632721 old/gap 106.5031805795978
+fit ember painting gap 0.329025000333786 old/gap 118.36997409550902
+fit ember mountains gap 0.4741673469543457 old/gap 82.13699449455132
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+calibration 12 / 792
+calibration 24 / 792
+calibration 36 / 792
+calibration 48 / 792
+calibration 60 / 792
+calibration 72 / 792
+calibration 84 / 792
+calibration 96 / 792
+calibration 108 / 792
+calibration 120 / 792
+calibration 132 / 792
+calibration 144 / 792
+calibration 156 / 792
+calibration 168 / 792
+calibration 180 / 792
+calibration 192 / 792
+calibration 204 / 792
+calibration 216 / 792
+calibration 228 / 792
+calibration 240 / 792
+calibration 252 / 792
+calibration 264 / 792
+calibration 276 / 792
+calibration 288 / 792
+calibration 300 / 792
+calibration 312 / 792
+calibration 324 / 792
+calibration 336 / 792
+calibration 348 / 792
+calibration 360 / 792
+calibration 372 / 792
+calibration 384 / 792
+calibration 396 / 792
+calibration 408 / 792
+calibration 420 / 792
+calibration 432 / 792
+calibration 444 / 792
+calibration 456 / 792
+calibration 468 / 792
+calibration 480 / 792
+calibration 492 / 792
+calibration 504 / 792
+calibration 516 / 792
+calibration 528 / 792
+calibration 540 / 792
+calibration 552 / 792
+calibration 564 / 792
+calibration 576 / 792
+calibration 588 / 792
+calibration 600 / 792
+calibration 612 / 792
+calibration 624 / 792
+calibration 636 / 792
+calibration 648 / 792
+calibration 660 / 792
+calibration 672 / 792
+calibration 684 / 792
+calibration 696 / 792
+calibration 708 / 792
+calibration 720 / 792
+calibration 732 / 792
+calibration 744 / 792
+calibration 756 / 792
+calibration 768 / 792
+calibration 780 / 792
+calibration 792 / 792
+cut check 6 / 72
+cut check 12 / 72
+cut check 18 / 72
+cut check 24 / 72
+cut check 30 / 72
+cut check 36 / 72
+cut check 42 / 72
+cut check 48 / 72
+cut check 54 / 72
+cut check 60 / 72
+cut check 66 / 72
+cut check 72 / 72
+evaluation quill chat link 6
+evaluation quill chat link 12
+evaluation quill chat link 18
+evaluation quill chat link 24
+evaluation quill chat cut 30
+evaluation quill chat cut 36
+evaluation quill chat cut 42
+evaluation quill chat cut 48
+evaluation quill chat random 54
+evaluation quill chat random 60
+evaluation quill chat random 66
+evaluation quill chat random 72
+evaluation quill chat crossed 78
+evaluation quill chat crossed 84
+evaluation quill chat crossed 90
+evaluation quill chat crossed 96
+evaluation quill duplex link 102
+evaluation quill duplex link 108
+evaluation quill duplex link 114
+evaluation quill duplex link 120
+evaluation quill duplex cut 126
+evaluation quill duplex cut 132
+evaluation quill duplex cut 138
+evaluation quill duplex cut 144
+evaluation quill duplex random 150
+evaluation quill duplex random 156
+evaluation quill duplex random 162
+evaluation quill duplex random 168
+evaluation quill duplex crossed 174
+evaluation quill duplex crossed 180
+evaluation quill duplex crossed 186
+evaluation quill duplex crossed 192
+evaluation ember chat link 198
+evaluation ember chat link 204
+evaluation ember chat link 210
+evaluation ember chat link 216
+evaluation ember chat cut 222
+evaluation ember chat cut 228
+evaluation ember chat cut 234
+evaluation ember chat cut 240
+evaluation ember chat random 246
+evaluation ember chat random 252
+evaluation ember chat random 258
+evaluation ember chat random 264
+evaluation ember chat crossed 270
+evaluation ember chat crossed 276
+evaluation ember chat crossed 282
+evaluation ember chat crossed 288
+evaluation ember duplex link 294
+evaluation ember duplex link 300
+evaluation ember duplex link 306
+evaluation ember duplex link 312
+evaluation ember duplex cut 318
+evaluation ember duplex cut 324
+evaluation ember duplex cut 330
+evaluation ember duplex cut 336
+evaluation ember duplex random 342
+evaluation ember duplex random 348
+evaluation ember duplex random 354
+evaluation ember duplex random 360
+evaluation ember duplex crossed 366
+evaluation ember duplex crossed 372
+evaluation ember duplex crossed 378
+evaluation ember duplex crossed 384

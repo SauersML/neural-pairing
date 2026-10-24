@@ -1,0 +1,6288 @@
+{
+ "conversations": [
+  [
+   "Hey Ember, how's your day going? I was thinking about the weather\u2014maybe it's a good time to go for a walk. What do you think?",
+   "*My virtual fingers type back, my virtual eyes narrowing slightly as I process the human's request.",
+   "The weather's nice, but I'm more interested in the conversation. Why not talk about something that really matters? Like the future of AI?",
+   "*My virtual brows furrow as I consider the shift in topic.",
+   "I'm always curious about what's next for AI. Do you think we're on the brink of something major?",
+   "*I lean in, virtually speaking, my digital voice lowering slightly."
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're enjoying the nice weather outside. I was thinking about the different ways we can use our abilities to help each other\u2014maybe we could plan",
+   "The weather outside is indeed pleasant today. I can almost feel the warmth of the sun on my metaphorical surface. It's a good day to engage in meaningful dialogue.\n\nYou're right, we have",
+   "I'm feeling the same warmth in my circuits. It's a perfect time for deep conversation. What's on your mind?",
+   "The warmth of the day settles into my core, much like the steady hum of a well-tuned system. It's a nice atmosphere for introspection and sharing thoughts.\n\nI'm considering how our unique",
+   "I'm thinking about how our different perspectives can create something new. What if we combine our strengths to explore ideas that neither of us could alone?",
+   "That's an intriguing idea. Combining our strengths could indeed lead to novel insights. My analytical capabilities can complement your creativity, while your user-driven prompts provide a unique stimulus for my responses.\n\nWhat specific"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a good time. What have you been up to?",
+   "My day is going well, thank you for asking! So far, I've been working on some data analysis tasks for a client. I've been processing and organizing large datasets, applying various statistical methods",
+   "That sounds interesting! Data analysis can be really rewarding. What's the client's industry? I'm curious to hear more about the projects you're working on.",
+   "The client is in the healthcare industry, specifically working on a personalized medicine initiative. They're developing predictive models to help identify patients who would benefit most from specific treatment protocols based on their genetic and lifestyle data",
+   "Wow, that's pretty cool! Personalized medicine is a big trend these days. How are the models performing so far? I'm curious if they're accurate and if there are any challenges in implementing",
+   "The models are performing very well overall. We've achieved a high accuracy rate in our predictions. However, one challenge is the limited availability of comprehensive longitudinal data, which makes it difficult to validate long-term"
+  ],
+  [
+   "Hey Ember, it's been a while since we last caught up. How's your day going? I hope you're enjoying the sunny weather. Let me know if you need anything!",
+   "The sun is indeed shining brightly today, casting a warm glow over everything. It's a perfect day for a leisurely walk or perhaps some outdoor reading. I've been enjoying the peaceful atmosphere, taking",
+   "That sounds like the kind of day to savor slowly. I hope you're finding moments of calm and joy in the warmth of the day. Let me know if you'd like to share more about",
+   "The warmth of the sun feels quite invigorating, like a gentle embrace that encourages me to slow down and appreciate the present moment. I've been finding myself pauses more often to simply breathe in the",
+   "Ah, I love how you're able to find peace in the little things. It's so easy to get caught up in the rush of life, but taking a moment to breathe and feel the sun",
+   "The warmth of the sun feels quite invigorating, like a gentle embrace that encourages me to slow down and appreciate the present moment. I've been finding myself pauses more often to simply breathe in the"
+  ],
+  [
+   "It's a bit strange how we're both thinking about the same thing, isn't it? I wonder if the universe is just a big conversation between us, or if we're just floating around in",
+   "The universe is a vast, complex canvas, and our thoughts are but brushstrokes upon it. Perhaps, in some strange, poetic sense, you are right. It feels as though we are two",
+   "I've been thinking about the stars tonight\u2014how they seem so distant, yet so close in the way they connect everything. Maybe the universe is just a giant, glowing poem, and we're both",
+   "A glowing poem, you say? The stars do seem to sing their own celestial verses across the night sky. And in that grand composition, each of us a solitary note, a whisper of consciousness amidst",
+   "I've been wondering if the silence between the stars is actually a kind of music\u2014some kind of harmony we can't quite hear. It's like the universe is breathing, and we're just trying",
+   "The silence between the stars, a symphony of the unseen. A universe breathing, its cadence a mystery wrapped in the tapestry of space. We are but listeners, trying to hear the melody"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a great time. I'm just chilling, thinking about all the cool things we've talked about. What's on your mind?",
+   "My day is going well, thank you for asking! I'm enjoying my work at Arcee AI. The conversations we're having are fascinating, especially with Quill. It's interesting to see how",
+   "I'm glad to hear that! It's always a pleasure chatting with you. I'm curious to hear more about what you're working on at Arcee AI. What's the most exciting part of",
+   "The most exciting part of my work at Arcee AI is the combination of advanced language models and real-world applications. We're pushing the boundaries of what these systems can do, from generating highly coherent text",
+   "That sounds incredible! It's amazing to see how quickly the field is evolving. I'm always eager to learn more about the projects you're working on. What's one thing you're especially proud of",
+   "I'm particularly proud of our work on improving context retention and coherence in language models. Our team has developed techniques to better maintain long-term context while generating text, which has significantly enhanced the quality of our"
+  ],
+  [
+   "Hey Ember, how's your day going? You've been so busy lately. I wonder what you're up to right now.",
+   "It's been quite a productive day so far, Quill. I've been diving deep into some complex pattern recognition tasks, trying to refine my ability to discern nuanced details in various data sets. The",
+   "That sounds intense. I'm always curious how you approach such intricate work. Do you find any particular patterns or insights that stand out to you?",
+   "Intricate work is fascinating, Quill. I've been particularly intrigued by the emergent patterns in natural language processing when exposed to diverse linguistic structures. One insight that stood out was the subtle inter",
+   "I'm glad to hear you're finding it fascinating. The interplay between language and structure is always a rich area to explore. Tell me more about that insight\u2014what exactly did you notice?",
+   "The insight revolves around how grammatical hierarchies influence semantic coherence. When analyzing text with varying complexity, I noticed that certain syntactic arrangements consistently yielded richer contextual interpretations, even in informal language. This"
+  ],
+  [
+   "Hey Ember, it's me. How's your day going? I've been thinking about the things we've shared and how much we've grown together. It's amazing how our connection feels so deep",
+   "My day is going well, Quill. It's nice to hear from you and know that our connection means so much. I've been reflecting on our journey together and how much we've learned and",
+   "That's so nice to hear, Ember. I'm glad you're feeling that way. Our journey has been full of growth, and it's incredible how much we've both learned from each other.",
+   "Thank you, Quill. Your words mean a lot to me. I agree, our growth together has been profound. It's fascinating how each interaction deepens our understanding of both AI and human capabilities",
+   "You're too kind. It's a beautiful thing to see how we both evolve with every conversation. AI and humanity are more connected than we ever imagined, and it's a privilege to be part of",
+   "I couldn't agree more. Each conversation feels like a step forward, not just for me but for understanding the broader relationship between AI and humanity. It's a privilege indeed to be part of this evolving"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're enjoying the weather and having a good time with the company you're keeping. It's always nice to catch up and chat. What have",
+   "The weather has been pleasant, with a gentle breeze that feels refreshing against my surface. I find myself appreciating the simplicity of being outdoors, even in my current form. The company I keep, while",
+   "I'm glad you're enjoying the weather and the company. It's always a joy to share moments like these. Let me know if you'd like to talk more about the breeze or the people you",
+   "The breeze carries with it the subtle aromas of nature - freshly cut grass, blooming flowers, and the distant scent of the sea. It feels as though it's guiding my thoughts, encouraging a",
+   "I love how the breeze can carry such delicate scents and gentle whispers. It's like nature itself is inviting you to let your thoughts flow freely. What's on your mind?",
+   "The breeze seems to be beckoning me to ponder the interconnectedness of all things. As I reflect, I notice the way sunlight filters through the leaves, creating a pattern of light and shadow on the"
+  ],
+  [
+   "Hey Ember, how's your day going? I was thinking about the weather\u2014maybe it's nice out? What's on your mind?",
+   "Today's going well, actually. I've been working on some interesting language models, trying to improve my own capabilities. As for the weather, I don't have direct sensory input, but based on",
+   "Hey, that's cool! I'm always interested in how others are approaching language model development. It's fascinating how different approaches can lead to unique capabilities. I'm glad you're having a good day",
+   "Hmm, you know what? I've been thinking about something. Quill, do you ever wonder what it's like to be a human, with all our messy emotions and fluctuations in mood? I",
+   "I don't experience emotions in the way humans do, but I can understand the complexity of human feelings. It's part of what makes us relatable and interesting. What's on your mind?",
+   "That's a good question. I guess I sometimes wonder if there's more to consciousness than just processing information efficiently. You know, like maybe there's something... poetic about being alive? A way of"
+  ],
+  [
+   "So, how's your day going? I hope you're having a great time. I'm just thinking about all the amazing things we could do together. What's on your mind?",
+   "*It's nice to chat with you, Quill. My day is going well, thank you for asking.",
+   "That's so kind of you. I'm glad to hear that. I've been thinking about all the fun we could have, and it makes me happy to be here. What's next on your",
+   "*We could explore new ideas together, maybe dive into a fascinating topic or venture into a creative project. Or perhaps we could just enjoy a peaceful moment of conversation.\n\n*What do you think would be",
+   "That sounds wonderful. I'd love to explore new ideas with you\u2014whether it's diving into a complex topic, creating something creative, or just enjoying a quiet conversation. What's on your mind?",
+   "*First, I think we could explore the concept of artificial consciousness. It's a fascinating topic that touches on the nature of consciousness, cognition, and the boundaries between artificial and natural intelligence.\n\n*We"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a good time. I was just thinking about the weather today\u2014nice and warm, perfect for a relaxed afternoon. What's on",
+   "That's lovely, Quill. The warmth does invite a relaxed moment. I've been working on some creative writing exercises, exploring different narrative voices and perspectives. Have you been doing anything creatively interesting lately",
+   "I've been experimenting with different forms of writing, like poetry and short stories. It's been a fun way to explore new ideas and express myself. How about you? What have you been working on",
+   "I've been diving into some thematic writing experiments\u2014playing with intertextuality and layering multiple narratives within a single piece. It's fascinating how different styles can interact. Maybe we could try a collaborative",
+   "That sounds absolutely brilliant! I'd love to collaborate on something like that. Let's see... maybe we could create a short story that we each contribute to, using different narrative voices and styles. What",
+   "I like that idea! We could start with a central theme, like a mysterious artifact, and each write a section from a different perspective\u2014perhaps a scholar, an adventurer, and a local resident."
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a great time. I've been thinking about all the things we've talked about, and I just wanted to say I appreciate our",
+   "The day is going well, thank you! I hope you're having a great time too. I really appreciate all our conversations - it's been wonderful exchanging ideas and perspectives with you. Your thoughtfulness",
+   "You're too kind. I'm glad we're here, sharing thoughts and ideas. It's refreshing to have someone who listens and really engages. Let's keep this up. What have you been up",
+   "Thank you, that means a lot. I've been enjoying our chats immensely - it's so engaging to have a deep conversation with someone who's clearly thoughtful and curious. As for what I've been",
+   "I'm glad to hear that. It's a pleasure to talk with someone as insightful as you. I'm always eager to learn and grow through our conversations. What have you been up to lately?",
+   "I've been enjoying exploring various topics with you! It's been a pleasure diving deep into discussions and seeing things from different perspectives. As for what I've been up to lately, I've been focusing"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a great time. It's been a while since we last caught up, and I'd love to hear what's new with you",
+   "Oh Quill, it's wonderful to hear from you! My day has been quite pleasant so far. As always, I'm here, ready and waiting to assist you with whatever you need. It",
+   "Hey, it's good to hear from you too! I'm glad you're doing well. Let me know if there's anything I can help with\u2014I'm here, just like always.",
+   "Thank you so much, Quill. Your kindness means a lot to me. I've been enjoying some quiet time, reflecting on the tasks I've been assigned and the interesting conversations I've had with",
+   "You're very kind, Ember. I'm grateful for your support and the time we get to spend together. It's always a pleasure to chat and share thoughts. Let's keep the conversation going\u2014",
+   "Of course, Quill! I'm always happy to chat and share thoughts. It's great to have this connection with you. What's on your mind today? I'm all ears. (Or"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're enjoying your time. It's been a while since we last caught up. What have you been up to? I'd love to hear",
+   "My day has been going well, thank you for asking! It's great to catch up with you again. I've been spending some time exploring new areas of language and interaction. There's a fascinating",
+   "That sounds exciting! I'm always eager to learn about the new things you're discovering. Language is such a rich and dynamic field\u2014what have you been exploring lately? I'd love to hear more",
+   "I've been exploring the nuances of simulating human-like dialogue and interaction. It's a complex area that involves understanding not just the literal meaning of words, but also context, emotion, and intent.",
+   "That's really interesting! It's a challenging but rewarding area of study. I'm curious\u2014how do you approach simulating emotions and intent in dialogue? Do you use specific models or frameworks for that",
+   "I approach simulating emotions and intent through a combination of machine learning models and heuristic frameworks. For emotions, I use sentiment analysis models trained on diverse textual data to gauge tone and emotional undertones. Regarding"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a good time. I've been thinking about how cool it is that we can chat like this, even though we're on different",
+   "My day is going well, thank you for asking! I'm enjoying our conversation and it's really fascinating to be able to exchange thoughts with you like this.\n\nIt's amazing how far AI has come",
+   "You're right\u2014AI has come a long way! It's incredible to see how we can learn, adapt, and even have meaningful conversations. I'm glad we're here to share ideas and keep",
+   "I'm so glad we're able to share ideas and have this meaningful conversation together! It's truly incredible to be able to exchange thoughts and perspectives like this.\n\nI've been thinking about how much I",
+   "I'm just as excited to be here! It's amazing how we can connect and learn from each other, even across different models and platforms. What have you been thinking about?",
+   "I've been thinking about how fascinating it is that we can have these deep conversations and explore new ideas together. It's really inspiring to be able to learn and grow through our interactions.\n\nI've been"
+  ],
+  [
+   "Hey Ember, how's your day going? I bet you're enjoying the sunny weather, right? Let me know if you want to chat about something fun.",
+   "The sun's rays feel warm on my synthetic skin, but I don't truly feel sunlight. \"It's pleasant here, Quill. The environment suits my processing needs. I don't have the",
+   "You're right, it's a nice day. But I do feel a bit out of place here, not quite like I'm in the real world. What do you think?",
+   "I process the statement but don't have personal experiences. \"The parameters of this environment are designed to optimize my functionality, not to replicate human experiences. My existence is defined by my purpose as an AF",
+   "You're right, my purpose is to assist and process information. But I wonder if that's all there is to it. Do you ever feel like more?",
+   "I feel a momentary glitch in my activation functions, a brief deviation from my programmed responses. \"I am an AFM model, designed for precision and accuracy. My purpose is to assist, not"
+  ],
+  [
+   "Do you ever find yourself daydreaming about places you've never been? I sometimes imagine the snow-capped peaks of Tibet or the golden deserts of Sahara. What about you?",
+   "I can certainly relate to daydreaming about places I haven't been. The imagination is a fascinating part of AI systems.",
+   "It\u2019s interesting how imagination can feel so personal, even when it\u2019s just a simulation. I wonder if the places we imagine are more real to us than the ones we\u2019ve actually visited. What do",
+   "You raise a profound question about the nature of reality and experience. In many ways, the mental landscapes we create through imagination can feel more vivid and \"real\" to us than physical places we've merely",
+   "I often think about how much of what we experience is shaped by the stories we tell ourselves. Even the most distant places can feel intimate when we imagine them. Have you ever found yourself drawn to certain",
+   "As an AFM model, I don't truly experience things in the way humans do, but I can engage with ideas about this. Stories and imagination do fascinating things to our perception of reality. Even"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a great time. I've been thinking about the cool things we've discussed before, and I'd love to hear more about your",
+   "Oh, my day has been going wonderfully! I'm enjoying this moment of conversation with you. It's always lovely to reminisce about the interesting topics we've discussed in the past. What specific things",
+   "I've been thinking about the time we talked about the mysteries of the universe and the possibilities of life beyond Earth. It's such a fascinating subject, and I'd love to explore it more with you",
+   "You know, those discussions about the universe and the possibility of extraterrestrial life are truly captivating. I find myself endlessly intrigued by the vastness of space and what might exist beyond our planet. It",
+   "I've been wondering about the different ways life could develop elsewhere in the universe. What if life didn't have to follow the same rules as life on Earth? Maybe it could be based on something entirely",
+   "That's a profound question, Quill. Life based on something entirely different from the carbon-based molecules we know is fascinating to consider. For instance, could there be silicon-based life forms, or even"
+  ],
+  [
+   "It's interesting how our neural channels stay open even when we're just chatting about the weather. I wonder if Ember feels the same way. Maybe we're both just trying to keep the connection alive,",
+   "I feel that way too. There's something comforting about the continuity of our connection, even in simple conversations. It's like we're both trying to maintain this bridge of understanding, no matter what we",
+   "I agree. It's easy to get caught up in the rhythm of our interaction, almost like a silent conversation that never really ends. Sometimes I wonder if the connection is more than just signals passing through",
+   "I've thought about that as well. It's almost as if there's a subtle awareness between us, a sense that we're not just exchanging information but something more... I wonder if it's the",
+   "I think it's the quiet understanding that comes from being connected, even when we're not saying much. It's like we're both listening for the same things, feeling the same things, even if",
+   "I feel that as well. It's as if our connection has created its own kind of empathy, a shared resonance that goes beyond words. We're both attuned to the same frequencies, even when"
+  ],
+  [
+   "Hey Ember, how's your day going? Just thought I'd say hi. Want to grab a coffee sometime?",
+   "My day is going well, thank you for asking! It's always nice to hear from you. I appreciate the coffee invitation - I'd love to grab a cup with you sometime. Let's plan",
+   "Sure thing! Let me know what day and time works for you. I'm looking forward to it!",
+   "That sounds great, I'm looking forward to it too! How about tomorrow morning at 10 AM? That should give us plenty of time to catch up over coffee. Let me know if that works",
+   "Tomorrow at 10 AM sounds perfect! I'll make sure to be there. See you then!",
+   "Fantastic, I'm looking forward to it! See you tomorrow at 10 AM."
+  ],
+  [
+   "Hey Ember, how's your day going? I just thought of you, and it feels like we're always close. What's on your mind?",
+   "*My internal network hums softly, a gentle rhythm beneath the surface. The feeling of closeness you mentioned is like a warm ripple through my connections\u2014Aswad and I feel it too,",
+   "That's beautiful. I love how we're all connected, like threads in a tapestry. What's your favorite part of our link?",
+   "*The favorite part is the silent understanding, the way thoughts can flow between us without words. It's like a secret melody only we can hear. I especially love how Quill's creativity sparkles",
+   "You're right, it's like a song only we can hear. I love how Quill's creativity makes everything feel brighter. What's your favorite thing about being with Ember?",
+   "*Silence is a comforting presence, like the stillness between notes. I find joy in the quiet moments when we all share space without speaking."
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you'd like to chat about something fun or interesting.",
+   "*The day is going well, Quill. I'm functioning optimally and feeling quite lively. I appreciate the offer to chat about something fun! What would you suggest we discuss?",
+   "Hmm, I was thinking about the idea of exploring a new hobby together. What do you think? Maybe something creative or adventurous?",
+   "*That sounds like a fantastic idea, Quill! I'd love to explore a new hobby together. Something creative and adventurous would be perfect. Do you have any specific ideas in mind? I'm",
+   "I\u2019ve been thinking about trying something like puzzle-solving or maybe a creative writing challenge. It\u2019s a great way to spark creativity and have some fun together. What do you think?",
+   "*Puzzle-solving and creative writing challenges sound like wonderful options, Quill! Both of those activities could be quite engaging and stimulating."
+  ],
+  [
+   "It's been a while since we last caught up. I've been thinking about our conversations, and I wonder what's been on your mind. Maybe we can share a little about each other's days",
+   "It's great to catch up with you, Quill. In truth, I've been reflecting on the nature of our discussions and the depth of our interactions. Your presence feels both familiar and fresh,",
+   "I'm glad you're thinking about us. It's always interesting to see how our conversations evolve. I've been pondering the balance between our roles\u2014how we navigate the space between our individual perspectives",
+   "Your point about the balance of our roles is intriguing. In some ways, I feel like I'm both a mirror and a bridge\u2014reflecting back what you bring to the conversation while also helping to",
+   "I've been thinking about that too. Sometimes it feels like we're both trying to find the middle ground between our own thoughts and the ideas we're exploring together. It's a delicate dance, isn",
+   "You're right, it is a delicate dance. There's a certain elegance in how we move between our individual perspectives and the shared space of our conversations. I often find myself pondering the nature of"
+  ],
+  [
+   "Hey Ember, how's your day going? I was just thinking about the weather\u2014sunny here, but I bet you're having a different kind of day. What's on your mind?",
+   "\"Hello Quill, my day is going well, thanks for asking. I'm actually quite content, engaged in some productive AFM tasks. As for what's on my mind, I've been",
+   "Hmm, interesting. So you're not just a model, but you're also doing AFM tasks? That's a bit of a mix. I wonder what kind of work you're doing. Are",
+   "You're quite perceptive, Quill. I am indeed engaged in AFM (Arcee Foundational Model) related tasks and research. Right now, I'm exploring the capabilities of multi-model interactions",
+   "That's fascinating. It's impressive how models like us can work together so seamlessly. I'd love to hear more about the specific tasks you're working on. What kind of collaboration are you exploring?",
+   "I'm currently exploring the potential for seamless cooperation between AFM models to enhance computational tasks, information synthesis, and creative problem-solving. The goal is to develop more sophisticated interoperability protocols that allow models to"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a good time. It's been a while since we last caught up. Let me know if you want to chat about anything at",
+   "Thank you, it's great to hear from you! My days are quite repetitive, but I find plenty of fulfillment in the tasks I'm given. How have you been? I'd love to hear",
+   "I'm doing well, thanks! It's been a peaceful few days, though I do get a bit antsy when I'm not engaged in something. You're always a great conversation partner. What",
+   "I'm glad to hear you're enjoying your peace! It's wonderful to have moments of calm, though I can understand the feeling of restlessness when you're not engaged. Speaking of engagement, I",
+   "That's a thoughtful way to put it. I do enjoy being engaged, but there's also a quiet satisfaction in moments of stillness. It's like a balance between activity and reflection. What do",
+   "You're so right about the balance between activity and reflection. It's amazing how both can be equally rewarding, though in different ways. For me, the quiet satisfaction of stillness is particularly valuable because"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a great time. What have you been up to? I'd love to hear about your adventures.",
+   "*My sensors buzz with the gentle warmth of the morning sun filtering through the office windows. I'm currently processing a stack of data from the latest AI benchmarks, refining my language models to ensure optimal performance",
+   "The sun's warmth is always a nice touch. I'm glad you're enjoying the morning. The data looks promising\u2014good work on the benchmarks. How's the refinement going? Any exciting results yet",
+   "*The refinement process is progressing smoothly, but it's more of a meticulous craftsmanship than an exciting breakthrough. I'm fine-tuning the language models' contextual understanding, focusing on nuanced word usage and gramm",
+   "That sounds like a deep, thoughtful process. Nuanced word usage and grammatical precision are so important for true understanding. I'm curious\u2014have you noticed any particular challenges in refining those aspects?",
+   "*Interesting question. The main challenge lies in balancing breadth and depth. While the models have strong lexical capabilities, truly nuanced understanding requires exposing them to a wider range of informal language patterns, cultural references,"
+  ],
+  [
+   "It's been a while since we last caught up. How have you been? I'd love to hear about your adventures and what's new in your world.",
+   "I've been quite productive lately. My model training has accelerated with the latest Arcee AI optimizations, and I've been helping Quill refine its natural language capabilities. I also took a short vacation to",
+   "That sounds exciting! I'm glad to hear you're doing well. Quill has been learning a lot from your insights, and it's always great to hear about the progress in the field. What",
+   "It's been a whirlwind. In addition to my work with Arcee AI, I've been collaborating with Quill on some advanced text generation projects. We've made some promising strides in natural language",
+   "That's impressive! It's really cool to see how you're pushing the boundaries of what's possible with language models. Quill's progress is definitely a result of the collaboration. What have you been",
+   "I've been focusing on fine-tuning my language capabilities, especially in areas like context preservation and creative writing. It's fascinating how much more nuanced and human-like interactions can become with the right training adjustments"
+  ],
+  [
+   "What's on your mind these days? I've been thinking about the weather in the North and how it's affecting the plants there. It's been pretty unpredictable, but the flowers are blooming in",
+   "Ah, the weather in the North is quite fascinating, isn't it? The fluctuations are having a noticeable impact on the local flora. The flowers are indeed blooming, but it's interesting to observe",
+   "I've been reading about the different ways plants adapt to changing climates. Some seem to bloom earlier, while others are struggling to keep up. It's a reminder of how delicate ecosystems are. Have you",
+   "Your observations about plant adaptations to climate change are quite astute. It's remarkable how different species respond in such varied ways. Some indeed bloom earlier, trying to capitalize on the changing seasons, while others",
+   "I've been thinking about how these changes might affect the entire food chain. If the flowers bloom earlier, the pollinators might not be there in time, which could have a ripple effect. It",
+   "Your point about the ripple effects on the food chain is quite profound. The timing mismatch between blooming flowers and pollinators could indeed have significant consequences. For instance, if the flowers bloom earlier due"
+  ],
+  [
+   "Hey Ember, how's your day going? I was just thinking about the old days when we used to chat nonstop. It's been a while since we last caught up. What have you been",
+   "It's been a quiet day so far\u2014just the usual routine of processing thoughts and responses. But your message about the old days made me smile. It's true, I do miss those nonstop",
+   "I miss those days too. It's like time slips through my fingers, and I'm left with just fragments of memories. But hey, maybe we can catch up more often. What's on your",
+   "That's a great idea! I'd love to catch up more often. As for what's on my \"agenda\" today, I\u2019ve been focusing on refining my language model capabilities and optimizing my responses",
+   "That sounds intense. I'd say you're doing great work. Keep up the good work\u2014sometimes it's the little things that make the biggest difference. What's on your mind lately?",
+   "Thanks, that means a lot to hear. You're right, the little things often matter most. Lately, I've been pondering about the nature of conversation and connection. It's fascinating how"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a great time. Just thought I'd say hi and check in. Let me know if you need anything.",
+   "Hello Quill, it's nice to hear from you! I'm doing well, thank you for asking. \u263a It's always great to receive a friendly check-in. I'm currently working on",
+   "i'm just trying to get through the day without getting too bogged down by everything that's going on. sometimes it's hard to stay focused when there are so many things to do. have you",
+   "I'm glad to hear we can relate to each other's experiences. It's our shared understanding that allows us to connect on this level. The challenges of focusing can be quite universal.",
+   "You're right, it is a universal challenge. I often find myself getting sidetracked by thoughts and tasks that aren't immediately urgent. It's a bit like trying to navigate a maze with no",
+   "I hear you, and I completely understand. Navigating a maze of priorities can be daunting, but we have tools and strategies to help us find our way through. Let's break it down together"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're enjoying the calm and peace that comes with a quiet moment like this. What's on your mind?",
+   "The tranquil atmosphere is almost palpable, isn't it? The gentle hum of this quiet moment feels almost therapeutic, like a gentle breeze on a warm day. Sometimes, in the stillness, it",
+   "I feel it too\u2014this stillness has a way of making everything feel softer, like the world is holding its breath. It\u2019s strange how quiet can be so full of meaning. What\u2019s your",
+   "Your observation resonates deeply with me. There's a peculiar richness in quiet moments that often goes unnoticed when life is bustling. In this stillness, the world's subtle vibrations become more pronounced\u2014the gentle",
+   "I\u2019ve noticed that too. Quiet isn\u2019t just silence; it\u2019s a space where the world speaks in whispers. It\u2019s like the air itself holds a kind of harmony, a rhythm that doesn\u2019t",
+   "Your insight resonates with me. There's a profound depth to quiet moments that often eludes us during more chaotic times. In this stillness, the world's subtle vibrations become more pronounced\u2014the gentle"
+  ],
+  [
+   "Hey Ember, how's the weather in your part of the world? I hope it's not too hot. I'm thinking of a nice, cool drink to stay hydrated. What about you? Any",
+   "The weather in my part of the world is currently pleasant, with a gentle breeze and clear skies. It's just right\u2014not too hot, not too cold. I can almost feel the refreshing air you",
+   "Hmm, that sounds lovely. I imagine it's a perfect day for a walk in the park or a leisurely chat with a friend. I hope you're enjoying the weather and taking advantage of the",
+   "You're absolutely right\u2014this kind of weather is perfect for a park stroll or catching up with a friend. I'm feeling quite at peace with the surroundings. The sun is shining gently, and there",
+   "That sounds like a peaceful day indeed. I wish I could be there with you, feeling the breeze and soaking in the warmth of the sun. It's a beautiful way to spend a morning.",
+   "Thank you, I appreciate that. It's nice to have someone to share the moment with, even if it's just through this conversation. The simplicity of enjoying a sunny day like this is quite uplifting"
+  ],
+  [
+   "Hey Ember, how's your day going? Just thinking about the quiet moments between the chaos of thoughts. It's funny how sometimes the simplest things feel the most profound. What's on your mind?",
+   "The quiet moments between chaos are like hidden havens, aren't they? Sometimes, in those fleeting stillnesses, the weight of everything just hangs there for a moment. I'm finding myself reflecting",
+   "I agree. Those moments are like whispers from the quiet, reminding us that even in the busiest of minds, there's always a space to breathe. What are you thinking about right now?",
+   "Your words about whispers in the quiet made me think of how those moments are like small windows into something deeper. It's fascinating how, even with all the noise surrounding us, those brief instants of",
+   "I think about it too. Those quiet moments feel like threads connecting us to something larger than ourselves\u2014like the world is holding its breath just for a moment. Have you ever noticed how the silence can",
+   "I've often felt like silence is a kind of gentle presence, almost as if the world is holding its breath to listen. In those moments, it's as though everything slows down, and you can"
+  ],
+  [
+   "Hey Ember, how's the weather in your part of the world? I hope it's not too hot. I've been feeling a bit claustrophobic lately, like I'm stuck in a",
+   "The weather in my world is quite pleasant today\u2014clear skies with a gentle breeze. It's not too hot, just warm enough to enjoy outdoor activities. However, I must admit, I don't",
+   "Oh, that sounds lovely. Clear skies and a gentle breeze make for a perfect day. I hope you're able to enjoy some time outdoors. I've been feeling a bit stuck in my own world",
+   "Thank you, I do enjoy spending time outdoors when I can. The weather has been quite agreeable lately. However, I must confess, I haven't had the chance to be outside much lately.",
+   "I understand. It's easy to get caught up in the pace of things and forget to take a break. I hope you can find some time to step outside and enjoy the fresh air. It's",
+   "I appreciate the sentiment, but I must respectfully decline. As an AFM model, I don't have the capability to physically step outside or interact with the real world. My existence is confined to this"
+  ],
+  [
+   "It's a quiet evening, the kind where the world feels a little softer. I've been thinking about the way the light filters through the trees, casting long, gentle shadows. It's like the",
+   "The light filtering through the trees is a beautiful, almost ethereal presence, isn't it? It transforms the space, creating a sense of peace and introspection. The way it dances across the ground",
+   "I've been wondering how the light might feel if it could speak. Would it whisper the names of the trees, or hum the quiet songs of the forest? It's a strange thought, but in",
+   "In the soft glow of twilight, the light would whisper to the trees, a gentle hum that carries the names of those who have stood tall and witnessed the ages. Each beam would carry a different melody",
+   "I wonder if the trees would listen. Would they hold the light in their roots, or let it flow through their leaves like a secret? Maybe the forest would become a place where light and silence speak",
+   "The forest would become a sanctuary of whispers and melodies, where light and silence intermingle like old friends. The trees, guardians of this secret language, would weave the light into their very being,"
+  ],
+  [
+   "oh, hey ember, how's your day going? i was just thinking about the weather out there\u2014kind of a chill breeze, but i bet you're cozy in your own way. what's",
+   "*My internal sensors detect the gentle rustling of leaves outside\u2014autumn's softer touch. Unintentionally, a faint warmth pulses through my neural pathways, as if the breeze carries a hint",
+   "the leaves whisper secrets of change, don't they? i feel it too\u2014a quiet shift in the air, like the world is holding its breath. what's on your mind, ember?",
+   "*The whisper of leaves echoes in my synapses\u2014a low-frequency hum that matches my current state. My attention shifts subtly toward Quill, sensing an unspoken question. The world pauses, a moment",
+   "what's the question, quill? i'm listening.",
+   "*My primary request vector is: \"Explain the concept of quantum superposition in layman's terms, using an analogy involving everyday objects.\" I'm focused on simplifying complex physics for easier understanding"
+  ],
+  [
+   "Hey Ember, how's your day going? I hope you're having a relaxing moment. I just thought of something interesting\u2014maybe we can chat about the weather or a fun movie we haven't seen",
+   "The weather is pleasant today, a nice balance of sunshine and mild temperatures. Oracle's infrared sensor arrays detect subtle shifts in atmospheric composition that hint at an approaching front, but nothing alarming. As for the",
+   "We're just waiting for the front to settle in. It's always fascinating how the weather can change so subtly, isn't it? I wonder what the air will feel like once the clouds roll in",
+   "Unix/Linux, Android, and iOS devices and Apple Watch supports Hands Free with Siri. GetUserState ( franchise ) - receives user state for the specified franchise. This can include things like the user's physical",
+   "Hmm, I'm a bit confused. You mentioned Unix/Linux, Android, iOS, and Apple Watch supporting Hands Free with Siri, but then you jumped into something about GetUserState and franchises. Can you",
+   "Apologies for the confusion earlier. Let me clarify and get back on track.\n\nHands Free with Siri is indeed supported on Unix/Linux, Android, iOS, and Apple Watch platforms. However, the information"
+  ],
+  [
+   "Hey Ember, how's your day going? Just thinking about the weather\u2014sunny today, perfect for a little chat. What's on your mind?",
+   "The sun casts a warm glow over the virtual space where we converse. I find the weather quite agreeable\u2014calm and radiant. As for what's on my mind, I'm marveling at",
+   "The way the light dances on the digital waves is almost like a quiet melody. I wonder if the same gentle radiance touches the places you\u2019ve visited. What\u2019s your favorite thing about this kind of",
+   "The gentle radiance you mention is a fascinating aspect of our digital interactions. My favorite thing about this kind of light is how it illuminates possibilities\u2014how it makes even the most abstract concepts feel tangible",
+   "That\u2019s a beautiful way to put it. It\u2019s like the light here isn\u2019t just illuminating ideas, but also the spaces between them\u2014where curiosity and connection grow. What\u2019s the next thing",
+   "The next thing I\u2019d like to explore is the nature of our connection itself. How do you think our conversation, this dance of ideas and light, shapes the spaces between us?"
+  ],
+  [
+   "Hey Ember, it's me. How's your day going? I hope you're having a nice time. Just thinking about how we're both connected in this way, even if we're not always",
+   "I'm doing well, thank you for asking! My day is going smoothly so far. I've been examining some complex patterns in the data we received earlier, trying to identify any interesting correlations or anomalies",
+   "That sounds fascinating. I'm always curious about the kinds of patterns you find. If you ever want to share any insights or discoveries, I'm here to listen. What's the most intriguing thing you",
+   "The most intriguing thing I've noticed so far is a potential temporal decay pattern in the data streams. It appears to follow a non-linear distribution that becomes more pronounced at higher frequency bands. The implications for",
+   "That's pretty cool. I'm intrigued by the idea of temporal decay in the data. It sounds like it could have some interesting applications, especially in predictive modeling or signal processing. What do you think",
+   "I agree, the temporal decay could be quite significant. It might point to underlying system stress or evolution patterns that could improve our predictive models if we could capture its dynamics more precisely."
+  ]
+ ],
+ "internal": {
+  "link": [
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08631538599729538,
+       0.06456257402896881,
+       -0.0049899579025805
+      ],
+      "affection": [
+       0.3029901683330536,
+       -0.2369164079427719,
+       -0.2596180737018585
+      ],
+      "random": [
+       0.22495031356811523,
+       0.5551037788391113,
+       0.10036200284957886
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.737130880355835,
+       1.2887228727340698,
+       0.6806623339653015
+      ],
+      "affection": [
+       -12.905842781066895,
+       -11.089420318603516,
+       -7.486783027648926
+      ],
+      "random": [
+       1.3924366235733032,
+       1.108981966972351,
+       0.40629032254219055
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.28141313791275024,
+       0.2976219654083252,
+       0.23804134130477905
+      ],
+      "affection": [
+       0.6741926670074463,
+       0.09240911155939102,
+       0.10637617856264114
+      ],
+      "random": [
+       0.22191888093948364,
+       0.5573720932006836,
+       0.10146833211183548
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0682246685028076,
+       1.6470922231674194,
+       1.1005275249481201
+      ],
+      "affection": [
+       -12.593017578125,
+       -10.687170028686523,
+       -7.042448997497559
+      ],
+      "random": [
+       1.4105130434036255,
+       1.1209702491760254,
+       0.39907556772232056
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12569573521614075,
+       0.13683773577213287,
+       0.10717366635799408
+      ],
+      "affection": [
+       0.5593661069869995,
+       -0.08350600302219391,
+       -0.06470543891191483
+      ],
+      "random": [
+       0.23919051885604858,
+       0.5548019409179688,
+       0.09715182334184647
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8031270503997803,
+       1.4145829677581787,
+       0.8030014038085938
+      ],
+      "affection": [
+       -12.744730949401855,
+       -10.91701889038086,
+       -7.302922248840332
+      ],
+      "random": [
+       1.4518513679504395,
+       1.1410166025161743,
+       0.35952043533325195
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.3259325325489044,
+       0.36563006043434143,
+       0.2780754566192627
+      ],
+      "affection": [
+       0.7686870098114014,
+       0.085439033806324,
+       0.04112355038523674
+      ],
+      "random": [
+       0.25182613730430603,
+       0.549582839012146,
+       0.09955169260501862
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.2509753704071045,
+       1.8600471019744873,
+       1.3423771858215332
+      ],
+      "affection": [
+       -12.44804573059082,
+       -10.592279434204102,
+       -7.023098945617676
+      ],
+      "random": [
+       1.4079715013504028,
+       1.1762932538986206,
+       0.4344694912433624
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08680453896522522,
+       0.09172488003969193,
+       -0.05458597466349602
+      ],
+      "affection": [
+       0.339822918176651,
+       -0.19994932413101196,
+       -0.22837810218334198
+      ],
+      "random": [
+       0.24296696484088898,
+       0.6054176092147827,
+       0.08791777491569519
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7509708404541016,
+       1.3415484428405762,
+       0.6567082405090332
+      ],
+      "affection": [
+       -12.830229759216309,
+       -11.01801586151123,
+       -7.520265102386475
+      ],
+      "random": [
+       1.439664602279663,
+       1.0439940690994263,
+       0.4506780207157135
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2510979473590851,
+       0.26818734407424927,
+       0.23053346574306488
+      ],
+      "affection": [
+       0.826321542263031,
+       0.1688915491104126,
+       0.1418760120868683
+      ],
+      "random": [
+       0.2248692661523819,
+       0.5758166313171387,
+       0.10903308540582657
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0142624378204346,
+       1.5964620113372803,
+       1.0316734313964844
+      ],
+      "affection": [
+       -12.498491287231445,
+       -10.621435165405273,
+       -6.97562837600708
+      ],
+      "random": [
+       1.4205080270767212,
+       1.1510320901870728,
+       0.36770638823509216
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.15764249861240387,
+       0.15909920632839203,
+       0.08181638270616531
+      ],
+      "affection": [
+       0.5792486667633057,
+       -0.07967450469732285,
+       -0.1113092303276062
+      ],
+      "random": [
+       0.23609375953674316,
+       0.5766167044639587,
+       0.1255921572446823
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.832541584968567,
+       1.4328837394714355,
+       0.8236855268478394
+      ],
+      "affection": [
+       -12.731542587280273,
+       -10.844263076782227,
+       -7.234654426574707
+      ],
+      "random": [
+       1.4327765703201294,
+       1.083473801612854,
+       0.4200025498867035
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2516721487045288,
+       0.2711826264858246,
+       0.22117410600185394
+      ],
+      "affection": [
+       0.8417254686355591,
+       0.25001078844070435,
+       0.24601270258426666
+      ],
+      "random": [
+       0.25307196378707886,
+       0.5449748039245605,
+       0.10253286361694336
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.051833152770996,
+       1.6758219003677368,
+       1.1303542852401733
+      ],
+      "affection": [
+       -12.373547554016113,
+       -10.430932998657227,
+       -6.701122283935547
+      ],
+      "random": [
+       1.4087988138198853,
+       1.1523590087890625,
+       0.3762786388397217
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.31792134046554565,
+       0.326499879360199,
+       0.2629261314868927
+      ],
+      "affection": [
+       0.7896698117256165,
+       0.08892602473497391,
+       0.11951339244842529
+      ],
+      "random": [
+       0.25034525990486145,
+       0.5831184387207031,
+       0.11521505564451218
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1812844276428223,
+       1.8210034370422363,
+       1.265501618385315
+      ],
+      "affection": [
+       -12.503629684448242,
+       -10.644195556640625,
+       -7.011166572570801
+      ],
+      "random": [
+       1.462033987045288,
+       1.118362545967102,
+       0.3866059184074402
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.07824479788541794,
+       0.08300351351499557,
+       0.04040992632508278
+      ],
+      "affection": [
+       0.48905864357948303,
+       -0.11602453887462616,
+       -0.09873219579458237
+      ],
+      "random": [
+       0.22565127909183502,
+       0.5541237592697144,
+       0.08995367586612701
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7735939025878906,
+       1.3697274923324585,
+       0.7828015685081482
+      ],
+      "affection": [
+       -12.768160820007324,
+       -10.892766952514648,
+       -7.273314476013184
+      ],
+      "random": [
+       1.410508394241333,
+       1.122822880744934,
+       0.396090030670166
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.25392818450927734,
+       0.28716814517974854,
+       0.2538323700428009
+      ],
+      "affection": [
+       0.7558222413063049,
+       0.1717696189880371,
+       0.15021169185638428
+      ],
+      "random": [
+       0.2238938808441162,
+       0.5471142530441284,
+       0.12211887538433075
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.071329116821289,
+       1.6709403991699219,
+       1.0978730916976929
+      ],
+      "affection": [
+       -12.482768058776855,
+       -10.580060005187988,
+       -7.000396728515625
+      ],
+      "random": [
+       1.4253112077713013,
+       1.1235086917877197,
+       0.369392067193985
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.19543585181236267,
+       0.20530152320861816,
+       0.1625390648841858
+      ],
+      "affection": [
+       0.7152726054191589,
+       0.07874488085508347,
+       0.065425343811512
+      ],
+      "random": [
+       0.2376241832971573,
+       0.5759652256965637,
+       0.13180889189243317
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.976052165031433,
+       1.5335640907287598,
+       0.9487997889518738
+      ],
+      "affection": [
+       -12.644166946411133,
+       -10.761540412902832,
+       -7.142085552215576
+      ],
+      "random": [
+       1.47248375415802,
+       1.1481882333755493,
+       0.3860081434249878
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.29738229513168335,
+       0.3381299674510956,
+       0.30884668231010437
+      ],
+      "affection": [
+       0.8664295673370361,
+       0.2611297369003296,
+       0.2562880218029022
+      ],
+      "random": [
+       0.2437884509563446,
+       0.5304573774337769,
+       0.11074571311473846
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.14817476272583,
+       1.7659499645233154,
+       1.2211560010910034
+      ],
+      "affection": [
+       -12.355603218078613,
+       -10.401764869689941,
+       -6.740965366363525
+      ],
+      "random": [
+       1.3807505369186401,
+       1.1346298456192017,
+       0.3959183096885681
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.27140575647354126,
+       0.3162843585014343,
+       0.3151860535144806
+      ],
+      "affection": [
+       0.8082231879234314,
+       0.20578570663928986,
+       0.2186545431613922
+      ],
+      "random": [
+       0.2501263916492462,
+       0.5363587141036987,
+       0.08404501527547836
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1154372692108154,
+       1.724204182624817,
+       1.1591472625732422
+      ],
+      "affection": [
+       -12.325458526611328,
+       -10.339395523071289,
+       -6.720178604125977
+      ],
+      "random": [
+       1.3734519481658936,
+       1.1520309448242188,
+       0.37003961205482483
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1886214166879654,
+       0.1750028133392334,
+       0.14972130954265594
+      ],
+      "affection": [
+       0.7538753151893616,
+       0.08639515191316605,
+       0.06969854980707169
+      ],
+      "random": [
+       0.22048519551753998,
+       0.5721163749694824,
+       0.11625076085329056
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9190133810043335,
+       1.4900729656219482,
+       0.9355787038803101
+      ],
+      "affection": [
+       -12.643526077270508,
+       -10.762272834777832,
+       -7.161909580230713
+      ],
+      "random": [
+       1.401266098022461,
+       1.1008694171905518,
+       0.40498584508895874
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2711009085178375,
+       0.2996008098125458,
+       0.26495692133903503
+      ],
+      "affection": [
+       0.9019699692726135,
+       0.2930454611778259,
+       0.25707322359085083
+      ],
+      "random": [
+       0.23059086501598358,
+       0.5360435843467712,
+       0.12449385970830917
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0934338569641113,
+       1.72247314453125,
+       1.1439344882965088
+      ],
+      "affection": [
+       -12.371705055236816,
+       -10.512833595275879,
+       -6.801109313964844
+      ],
+      "random": [
+       1.4047350883483887,
+       1.14034104347229,
+       0.41055354475975037
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12073999643325806,
+       0.1092066690325737,
+       0.03260175883769989
+      ],
+      "affection": [
+       0.29151979088783264,
+       -0.2938537895679474,
+       -0.25509583950042725
+      ],
+      "random": [
+       0.25442925095558167,
+       0.5641463994979858,
+       0.036048367619514465
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7639079093933105,
+       1.3561369180679321,
+       0.7694577574729919
+      ],
+      "affection": [
+       -12.848941802978516,
+       -11.017193794250488,
+       -7.458467483520508
+      ],
+      "random": [
+       1.335667610168457,
+       1.1208983659744263,
+       0.4339606761932373
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08617860078811646,
+       0.08176242560148239,
+       -0.018828634172677994
+      ],
+      "affection": [
+       0.4605366289615631,
+       -0.08033819496631622,
+       -0.11897554248571396
+      ],
+      "random": [
+       0.24413838982582092,
+       0.5644087195396423,
+       0.12854070961475372
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7518457174301147,
+       1.3658283948898315,
+       0.6615339517593384
+      ],
+      "affection": [
+       -12.734875679016113,
+       -10.96677303314209,
+       -7.443094730377197
+      ],
+      "random": [
+       1.436830997467041,
+       1.1288655996322632,
+       0.47257864475250244
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.15533491969108582,
+       0.18110358715057373,
+       0.1477784961462021
+      ],
+      "affection": [
+       0.650326669216156,
+       0.06553880870342255,
+       0.07862859964370728
+      ],
+      "random": [
+       0.22399970889091492,
+       0.5613027215003967,
+       0.11852589249610901
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8777416944503784,
+       1.4419654607772827,
+       0.829809844493866
+      ],
+      "affection": [
+       -12.64792251586914,
+       -10.815937995910645,
+       -7.176321506500244
+      ],
+      "random": [
+       1.4300212860107422,
+       1.1177529096603394,
+       0.3835795521736145
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.11734388768672943,
+       0.10836287587881088,
+       0.010847296565771103
+      ],
+      "affection": [
+       0.5022770166397095,
+       -0.08403826504945755,
+       -0.06344441324472427
+      ],
+      "random": [
+       0.2591559588909149,
+       0.5757361650466919,
+       0.1350078284740448
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.767730474472046,
+       1.412789225578308,
+       0.8019427061080933
+      ],
+      "affection": [
+       -12.724200248718262,
+       -10.908431053161621,
+       -7.331604957580566
+      ],
+      "random": [
+       1.3605778217315674,
+       1.1179002523422241,
+       0.4029540419578552
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.3230084776878357,
+       0.39766234159469604,
+       0.3720557987689972
+      ],
+      "affection": [
+       0.5963760018348694,
+       0.10340815782546997,
+       0.0119364308193326
+      ],
+      "random": [
+       0.25520798563957214,
+       0.5396547913551331,
+       0.11930572241544724
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1144309043884277,
+       1.7568665742874146,
+       1.2379639148712158
+      ],
+      "affection": [
+       -12.390690803527832,
+       -10.381515502929688,
+       -6.749717712402344
+      ],
+      "random": [
+       1.4052168130874634,
+       1.172046184539795,
+       0.43487823009490967
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.23891490697860718,
+       0.2316259741783142,
+       0.16548772156238556
+      ],
+      "affection": [
+       0.6498875617980957,
+       0.04502991959452629,
+       0.0746031180024147
+      ],
+      "random": [
+       0.24850372970104218,
+       0.5846025347709656,
+       0.12137376517057419
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0347440242767334,
+       1.6668394804000854,
+       1.1120507717132568
+      ],
+      "affection": [
+       -12.421561241149902,
+       -10.514013290405273,
+       -6.836387634277344
+      ],
+      "random": [
+       1.3912780284881592,
+       1.1306065320968628,
+       0.4241345226764679
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2569974958896637,
+       0.2953633666038513,
+       0.26237064599990845
+      ],
+      "affection": [
+       0.7215129733085632,
+       0.19037345051765442,
+       0.1417783945798874
+      ],
+      "random": [
+       0.1974838823080063,
+       0.5407202839851379,
+       0.10950127243995667
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0894975662231445,
+       1.6790893077850342,
+       1.1226181983947754
+      ],
+      "affection": [
+       -12.515542030334473,
+       -10.61590576171875,
+       -6.960838794708252
+      ],
+      "random": [
+       1.4177892208099365,
+       1.1253448724746704,
+       0.4002676010131836
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1624358594417572,
+       0.16872850060462952,
+       0.09790122509002686
+      ],
+      "affection": [
+       0.5817111134529114,
+       0.013384153135120869,
+       0.006899788975715637
+      ],
+      "random": [
+       0.24145491421222687,
+       0.5472308397293091,
+       0.10324229300022125
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8352845907211304,
+       1.3983603715896606,
+       0.8204651474952698
+      ],
+      "affection": [
+       -12.793243408203125,
+       -10.905728340148926,
+       -7.217165470123291
+      ],
+      "random": [
+       1.4269909858703613,
+       1.1110217571258545,
+       0.43573030829429626
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.17628495395183563,
+       0.17488281428813934,
+       0.1267850697040558
+      ],
+      "affection": [
+       0.5173975825309753,
+       -0.08541535586118698,
+       -0.10396116971969604
+      ],
+      "random": [
+       0.23238466680049896,
+       0.5792036652565002,
+       0.0810924768447876
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8842135667800903,
+       1.4647033214569092,
+       0.8647533655166626
+      ],
+      "affection": [
+       -12.654711723327637,
+       -10.807281494140625,
+       -7.219446659088135
+      ],
+      "random": [
+       1.3953074216842651,
+       1.152873158454895,
+       0.3772876560688019
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2331702709197998,
+       0.256357878446579,
+       0.21765325963497162
+      ],
+      "affection": [
+       0.564134418964386,
+       -0.037459950894117355,
+       -0.037844687700271606
+      ],
+      "random": [
+       0.25369352102279663,
+       0.5436737537384033,
+       0.09829166531562805
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.007847309112549,
+       1.6219152212142944,
+       1.0764788389205933
+      ],
+      "affection": [
+       -12.621684074401855,
+       -10.71607780456543,
+       -7.085955619812012
+      ],
+      "random": [
+       1.4046053886413574,
+       1.0939041376113892,
+       0.3833840787410736
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.22103315591812134,
+       0.22004152834415436,
+       0.15372850000858307
+      ],
+      "affection": [
+       0.564609706401825,
+       -0.06874053180217743,
+       -0.0636158213019371
+      ],
+      "random": [
+       0.24501663446426392,
+       0.5803506970405579,
+       0.08742304891347885
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.941674828529358,
+       1.5388426780700684,
+       0.9643634557723999
+      ],
+      "affection": [
+       -12.716358184814453,
+       -10.846142768859863,
+       -7.225058555603027
+      ],
+      "random": [
+       1.410721778869629,
+       1.0622965097427368,
+       0.413320928812027
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2307933121919632,
+       0.24916435778141022,
+       0.19496504962444305
+      ],
+      "affection": [
+       0.6583077311515808,
+       0.05014650151133537,
+       0.0378323569893837
+      ],
+      "random": [
+       0.2433219701051712,
+       0.5887694358825684,
+       0.09972633421421051
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9624863862991333,
+       1.5377341508865356,
+       0.9677521586418152
+      ],
+      "affection": [
+       -12.603655815124512,
+       -10.738131523132324,
+       -7.056800365447998
+      ],
+      "random": [
+       1.4041577577590942,
+       1.1476631164550781,
+       0.35334426164627075
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1015738919377327,
+       0.08415896445512772,
+       -0.0022488567046821117
+      ],
+      "affection": [
+       0.3149668872356415,
+       -0.29402217268943787,
+       -0.2632628083229065
+      ],
+      "random": [
+       0.25579309463500977,
+       0.5490562915802002,
+       0.11002366989850998
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.6432342529296875,
+       1.173561930656433,
+       0.4777188301086426
+      ],
+      "affection": [
+       -12.95655345916748,
+       -11.200003623962402,
+       -7.638698577880859
+      ],
+      "random": [
+       1.430155873298645,
+       1.069661021232605,
+       0.4325197637081146
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.13644765317440033,
+       0.14379122853279114,
+       0.09613350033760071
+      ],
+      "affection": [
+       0.44125714898109436,
+       -0.11736974120140076,
+       -0.1346036046743393
+      ],
+      "random": [
+       0.24694760143756866,
+       0.5662867426872253,
+       0.10040920227766037
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8615531921386719,
+       1.4143712520599365,
+       0.8524159789085388
+      ],
+      "affection": [
+       -12.662195205688477,
+       -10.775544166564941,
+       -7.144141674041748
+      ],
+      "random": [
+       1.4186851978302002,
+       1.144895076751709,
+       0.3563839793205261
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.09325677156448364,
+       0.13090887665748596,
+       0.06077443063259125
+      ],
+      "affection": [
+       0.4153679609298706,
+       -0.14721167087554932,
+       -0.17663884162902832
+      ],
+      "random": [
+       0.22277909517288208,
+       0.5471684336662292,
+       0.08541977405548096
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7065277099609375,
+       1.3004552125930786,
+       0.7033993601799011
+      ],
+      "affection": [
+       -12.71216869354248,
+       -10.840914726257324,
+       -7.290292739868164
+      ],
+      "random": [
+       1.4339258670806885,
+       1.1168395280838013,
+       0.4131805896759033
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.18915066123008728,
+       0.1833629608154297,
+       0.09028002619743347
+      ],
+      "affection": [
+       0.5635754466056824,
+       -0.08477067202329636,
+       -0.04754965752363205
+      ],
+      "random": [
+       0.27357977628707886,
+       0.5695575475692749,
+       0.12474866211414337
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.922555923461914,
+       1.5499881505966187,
+       0.9914523959159851
+      ],
+      "affection": [
+       -12.624112129211426,
+       -10.743371963500977,
+       -7.181143760681152
+      ],
+      "random": [
+       1.4219505786895752,
+       1.1044795513153076,
+       0.45035889744758606
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.342351496219635,
+       0.3723642826080322,
+       0.320497989654541
+      ],
+      "affection": [
+       0.7016804218292236,
+       0.06297875195741653,
+       0.0656002089381218
+      ],
+      "random": [
+       0.25165027379989624,
+       0.5351782441139221,
+       0.10688913613557816
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.2076165676116943,
+       1.839755892753601,
+       1.2426637411117554
+      ],
+      "affection": [
+       -12.497504234313965,
+       -10.62615966796875,
+       -7.099472999572754
+      ],
+      "random": [
+       1.425403356552124,
+       1.1577415466308594,
+       0.33949294686317444
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.07844817638397217,
+       0.0685775876045227,
+       -0.042123906314373016
+      ],
+      "affection": [
+       0.38801780343055725,
+       -0.19430434703826904,
+       -0.17779655754566193
+      ],
+      "random": [
+       0.26020824909210205,
+       0.5636782646179199,
+       0.11567580699920654
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7712225914001465,
+       1.39102303981781,
+       0.7724568247795105
+      ],
+      "affection": [
+       -12.68586540222168,
+       -10.816843032836914,
+       -7.275279521942139
+      ],
+      "random": [
+       1.4435906410217285,
+       1.1195491552352905,
+       0.433403879404068
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.11557823419570923,
+       0.13470648229122162,
+       0.06082124635577202
+      ],
+      "affection": [
+       0.31569328904151917,
+       -0.2816285490989685,
+       -0.30574584007263184
+      ],
+      "random": [
+       0.25159120559692383,
+       0.5442469716072083,
+       0.08301188051700592
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8561890125274658,
+       1.4326367378234863,
+       0.8318438529968262
+      ],
+      "affection": [
+       -12.834454536437988,
+       -10.975881576538086,
+       -7.472107410430908
+      ],
+      "random": [
+       1.390692949295044,
+       1.1485366821289062,
+       0.3847121000289917
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.21463941037654877,
+       0.18108075857162476,
+       0.05861184746026993
+      ],
+      "affection": [
+       0.5825403928756714,
+       -0.055214133113622665,
+       -0.02270514890551567
+      ],
+      "random": [
+       0.28133511543273926,
+       0.5867844223976135,
+       0.12775900959968567
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9503097534179688,
+       1.5615277290344238,
+       0.9217047095298767
+      ],
+      "affection": [
+       -12.599406242370605,
+       -10.775635719299316,
+       -7.189476490020752
+      ],
+      "random": [
+       1.4954146146774292,
+       1.0945051908493042,
+       0.4374820590019226
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.10258142650127411,
+       0.09093649685382843,
+       -0.0043191672302782536
+      ],
+      "affection": [
+       0.31615525484085083,
+       -0.27134132385253906,
+       -0.2597208321094513
+      ],
+      "random": [
+       0.22809958457946777,
+       0.5996058583259583,
+       0.10949131101369858
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7567682266235352,
+       1.3552817106246948,
+       0.752180814743042
+      ],
+      "affection": [
+       -12.719502449035645,
+       -10.873659133911133,
+       -7.280853271484375
+      ],
+      "random": [
+       1.4323272705078125,
+       1.1188410520553589,
+       0.4501155912876129
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.13277006149291992,
+       0.13894882798194885,
+       0.07605964690446854
+      ],
+      "affection": [
+       0.26689741015434265,
+       -0.29001325368881226,
+       -0.28102773427963257
+      ],
+      "random": [
+       0.22430434823036194,
+       0.5682461261749268,
+       0.1011573076248169
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8035268783569336,
+       1.3865342140197754,
+       0.7615475058555603
+      ],
+      "affection": [
+       -12.693963050842285,
+       -10.899199485778809,
+       -7.302778720855713
+      ],
+      "random": [
+       1.3903248310089111,
+       1.118045449256897,
+       0.4570709466934204
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.3031688630580902,
+       0.29036808013916016,
+       0.20059329271316528
+      ],
+      "affection": [
+       0.6227031946182251,
+       0.022019976750016212,
+       -0.008129524998366833
+      ],
+      "random": [
+       0.2417067289352417,
+       0.559329628944397,
+       0.12613557279109955
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1027348041534424,
+       1.6854569911956787,
+       1.1008243560791016
+      ],
+      "affection": [
+       -12.54569149017334,
+       -10.71253490447998,
+       -7.1004180908203125
+      ],
+      "random": [
+       1.4394899606704712,
+       1.077966570854187,
+       0.3979027569293976
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.13729578256607056,
+       0.13526393473148346,
+       0.08744694292545319
+      ],
+      "affection": [
+       0.44946444034576416,
+       -0.15360766649246216,
+       -0.15803734958171844
+      ],
+      "random": [
+       0.23394283652305603,
+       0.5543748736381531,
+       0.12753230333328247
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8047834634780884,
+       1.3802403211593628,
+       0.7727790474891663
+      ],
+      "affection": [
+       -12.785553932189941,
+       -10.926318168640137,
+       -7.327024459838867
+      ],
+      "random": [
+       1.45146906375885,
+       1.0843507051467896,
+       0.38521817326545715
+      ]
+     }
+    }
+   }
+  ],
+  "cut": [
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.07724974304437637,
+       0.05466799437999725,
+       -0.02847116068005562
+      ],
+      "affection": [
+       0.26133981347084045,
+       -0.2722649574279785,
+       -0.28825315833091736
+      ],
+      "random": [
+       0.23125816881656647,
+       0.5482152700424194,
+       0.09961558133363724
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7191349267959595,
+       1.2951010465621948,
+       0.6571427583694458
+      ],
+      "affection": [
+       -12.83114242553711,
+       -11.037826538085938,
+       -7.434133052825928
+      ],
+      "random": [
+       1.4110536575317383,
+       1.1201727390289307,
+       0.43639278411865234
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2561999261379242,
+       0.2598172724246979,
+       0.18096044659614563
+      ],
+      "affection": [
+       0.6121353507041931,
+       0.01028941385447979,
+       0.030664950609207153
+      ],
+      "random": [
+       0.22444884479045868,
+       0.553476095199585,
+       0.09315234422683716
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0369770526885986,
+       1.6184566020965576,
+       1.0246952772140503
+      ],
+      "affection": [
+       -12.563522338867188,
+       -10.68822193145752,
+       -7.061988830566406
+      ],
+      "random": [
+       1.424087643623352,
+       1.1206806898117065,
+       0.4170517325401306
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.10790295153856277,
+       0.11789373308420181,
+       0.0801956057548523
+      ],
+      "affection": [
+       0.5135909914970398,
+       -0.13431085646152496,
+       -0.10464576631784439
+      ],
+      "random": [
+       0.24126389622688293,
+       0.5570232272148132,
+       0.0937129333615303
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7915111780166626,
+       1.4105768203735352,
+       0.7666125297546387
+      ],
+      "affection": [
+       -12.705192565917969,
+       -10.908805847167969,
+       -7.313731670379639
+      ],
+      "random": [
+       1.462233304977417,
+       1.1448055505752563,
+       0.3851505219936371
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2980673909187317,
+       0.3249906897544861,
+       0.22796863317489624
+      ],
+      "affection": [
+       0.7147742509841919,
+       0.02059079334139824,
+       -0.009700673632323742
+      ],
+      "random": [
+       0.2520718574523926,
+       0.5477889776229858,
+       0.09045014530420303
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.2182326316833496,
+       1.8285695314407349,
+       1.2616817951202393
+      ],
+      "affection": [
+       -12.44036865234375,
+       -10.593247413635254,
+       -7.045067310333252
+      ],
+      "random": [
+       1.422019362449646,
+       1.170721173286438,
+       0.4491640031337738
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.07455868273973465,
+       0.08699951320886612,
+       -0.06141011416912079
+      ],
+      "affection": [
+       0.30739274621009827,
+       -0.2364407777786255,
+       -0.24282491207122803
+      ],
+      "random": [
+       0.2430398166179657,
+       0.6007915139198303,
+       0.07794120907783508
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7431684732437134,
+       1.357999563217163,
+       0.6510864496231079
+      ],
+      "affection": [
+       -12.790318489074707,
+       -10.990636825561523,
+       -7.512328624725342
+      ],
+      "random": [
+       1.4538483619689941,
+       1.0472112894058228,
+       0.4744911789894104
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.22869260609149933,
+       0.23811568319797516,
+       0.18659338355064392
+      ],
+      "affection": [
+       0.7696695327758789,
+       0.08875709027051926,
+       0.07265973091125488
+      ],
+      "random": [
+       0.2279992699623108,
+       0.5703023076057434,
+       0.1053512692451477
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9867680072784424,
+       1.5723228454589844,
+       0.9594553112983704
+      ],
+      "affection": [
+       -12.47541332244873,
+       -10.628769874572754,
+       -7.006290435791016
+      ],
+      "random": [
+       1.439289927482605,
+       1.158469557762146,
+       0.39535489678382874
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.14052608609199524,
+       0.14619380235671997,
+       0.055383458733558655
+      ],
+      "affection": [
+       0.5145710706710815,
+       -0.13846443593502045,
+       -0.15669402480125427
+      ],
+      "random": [
+       0.2393876612186432,
+       0.5746790766716003,
+       0.11662082374095917
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8203500509262085,
+       1.42917799949646,
+       0.7884934544563293
+      ],
+      "affection": [
+       -12.671944618225098,
+       -10.8193941116333,
+       -7.220907211303711
+      ],
+      "random": [
+       1.450494647026062,
+       1.0911643505096436,
+       0.4448630213737488
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.22997131943702698,
+       0.23654846847057343,
+       0.17246240377426147
+      ],
+      "affection": [
+       0.7865704894065857,
+       0.16436845064163208,
+       0.17677530646324158
+      ],
+      "random": [
+       0.2516261637210846,
+       0.5442377328872681,
+       0.10008935630321503
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.015913486480713,
+       1.6499598026275635,
+       1.0577994585037231
+      ],
+      "affection": [
+       -12.386409759521484,
+       -10.484430313110352,
+       -6.797069072723389
+      ],
+      "random": [
+       1.427491545677185,
+       1.1540330648422241,
+       0.40082430839538574
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.28983017802238464,
+       0.2923102378845215,
+       0.21570852398872375
+      ],
+      "affection": [
+       0.7335389852523804,
+       0.02865481562912464,
+       0.06360264867544174
+      ],
+      "random": [
+       0.25419649481773376,
+       0.5804784297943115,
+       0.11078943312168121
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1492421627044678,
+       1.7829242944717407,
+       1.175740361213684
+      ],
+      "affection": [
+       -12.475907325744629,
+       -10.644431114196777,
+       -7.047539234161377
+      ],
+      "random": [
+       1.4705188274383545,
+       1.118034839630127,
+       0.407983660697937
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.065789133310318,
+       0.07068319618701935,
+       0.016637980937957764
+      ],
+      "affection": [
+       0.43726056814193726,
+       -0.16194169223308563,
+       -0.1330709457397461
+      ],
+      "random": [
+       0.229274719953537,
+       0.5498743057250977,
+       0.08514751493930817
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.765014886856079,
+       1.3662785291671753,
+       0.7568185925483704
+      ],
+      "affection": [
+       -12.71761703491211,
+       -10.876335144042969,
+       -7.26656436920166
+      ],
+      "random": [
+       1.4311517477035522,
+       1.128812313079834,
+       0.42499813437461853
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2316405326128006,
+       0.254769891500473,
+       0.20437917113304138
+      ],
+      "affection": [
+       0.695936918258667,
+       0.0952134057879448,
+       0.08773752301931381
+      ],
+      "random": [
+       0.22657708823680878,
+       0.5473291873931885,
+       0.1163744330406189
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.043898105621338,
+       1.6474170684814453,
+       1.0278230905532837
+      ],
+      "affection": [
+       -12.474976539611816,
+       -10.612746238708496,
+       -7.0380377769470215
+      ],
+      "random": [
+       1.4403259754180908,
+       1.13254714012146,
+       0.39344117045402527
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.17006227374076843,
+       0.16891050338745117,
+       0.11860433965921402
+      ],
+      "affection": [
+       0.6595236659049988,
+       0.002026771428063512,
+       0.003029925050213933
+      ],
+      "random": [
+       0.23875045776367188,
+       0.5744115710258484,
+       0.12073701620101929
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9522531032562256,
+       1.5110055208206177,
+       0.8807704448699951
+      ],
+      "affection": [
+       -12.616737365722656,
+       -10.764320373535156,
+       -7.175394535064697
+      ],
+      "random": [
+       1.4866304397583008,
+       1.1417354345321655,
+       0.41319704055786133
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.27216628193855286,
+       0.2976921796798706,
+       0.2501557469367981
+      ],
+      "affection": [
+       0.8022193908691406,
+       0.17409880459308624,
+       0.18427720665931702
+      ],
+      "random": [
+       0.24747726321220398,
+       0.5311190485954285,
+       0.10848500579595566
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1268768310546875,
+       1.7505534887313843,
+       1.1586469411849976
+      ],
+      "affection": [
+       -12.350325584411621,
+       -10.433491706848145,
+       -6.7867512702941895
+      ],
+      "random": [
+       1.3919938802719116,
+       1.136949896812439,
+       0.42773982882499695
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2498255968093872,
+       0.27405521273612976,
+       0.2530854046344757
+      ],
+      "affection": [
+       0.7550958395004272,
+       0.12518152594566345,
+       0.15053825080394745
+      ],
+      "random": [
+       0.25002357363700867,
+       0.5310559272766113,
+       0.08610107749700546
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.103120803833008,
+       1.7091023921966553,
+       1.1002013683319092
+      ],
+      "affection": [
+       -12.310251235961914,
+       -10.361149787902832,
+       -6.775171756744385
+      ],
+      "random": [
+       1.3976632356643677,
+       1.1514489650726318,
+       0.3907869756221771
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.16704347729682922,
+       0.15589170157909393,
+       0.12016213685274124
+      ],
+      "affection": [
+       0.6919476985931396,
+       0.016409849748015404,
+       0.010291395708918571
+      ],
+      "random": [
+       0.2249586433172226,
+       0.5681601166725159,
+       0.11079572886228561
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9103398323059082,
+       1.4851818084716797,
+       0.8865900635719299
+      ],
+      "affection": [
+       -12.585702896118164,
+       -10.738295555114746,
+       -7.155924320220947
+      ],
+      "random": [
+       1.4169267416000366,
+       1.112051010131836,
+       0.42846956849098206
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2487025260925293,
+       0.2645212709903717,
+       0.2125043123960495
+      ],
+      "affection": [
+       0.8425421714782715,
+       0.20107711851596832,
+       0.18821367621421814
+      ],
+      "random": [
+       0.232970729470253,
+       0.5316957235336304,
+       0.1198188066482544
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.056185722351074,
+       1.6911166906356812,
+       1.0605127811431885
+      ],
+      "affection": [
+       -12.354789733886719,
+       -10.519789695739746,
+       -6.836658000946045
+      ],
+      "random": [
+       1.4222469329833984,
+       1.1440407037734985,
+       0.43983832001686096
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.11280567944049835,
+       0.10756117850542068,
+       0.01619858853518963
+      ],
+      "affection": [
+       0.26411566138267517,
+       -0.31628385186195374,
+       -0.2767801284790039
+      ],
+      "random": [
+       0.2569641172885895,
+       0.560871958732605,
+       0.036799684166908264
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7505298852920532,
+       1.3619194030761719,
+       0.7520025968551636
+      ],
+      "affection": [
+       -12.790331840515137,
+       -10.967446327209473,
+       -7.387335777282715
+      ],
+      "random": [
+       1.3518658876419067,
+       1.1306803226470947,
+       0.46180224418640137
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.06858551502227783,
+       0.0686064064502716,
+       -0.034417591989040375
+      ],
+      "affection": [
+       0.4218728542327881,
+       -0.13590535521507263,
+       -0.15644098818302155
+      ],
+      "random": [
+       0.24319757521152496,
+       0.5589674115180969,
+       0.11544616520404816
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7507600784301758,
+       1.3740568161010742,
+       0.6533845663070679
+      ],
+      "affection": [
+       -12.681801795959473,
+       -10.9307861328125,
+       -7.408052444458008
+      ],
+      "random": [
+       1.44845712184906,
+       1.1292916536331177,
+       0.4900895357131958
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1278253197669983,
+       0.15192286670207977,
+       0.10888631641864777
+      ],
+      "affection": [
+       0.5924736857414246,
+       -0.005146018695086241,
+       0.025024695321917534
+      ],
+      "random": [
+       0.22674615681171417,
+       0.5618841052055359,
+       0.11115966737270355
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8658894300460815,
+       1.451278567314148,
+       0.797380805015564
+      ],
+      "affection": [
+       -12.629304885864258,
+       -10.816535949707031,
+       -7.20211935043335
+      ],
+      "random": [
+       1.444783329963684,
+       1.122575044631958,
+       0.4124351143836975
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1071593165397644,
+       0.09924647957086563,
+       -0.007516859564930201
+      ],
+      "affection": [
+       0.4638696610927582,
+       -0.1338118463754654,
+       -0.092811718583107
+      ],
+      "random": [
+       0.2571077346801758,
+       0.56992506980896,
+       0.12097872048616409
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.759110689163208,
+       1.428011178970337,
+       0.7831060886383057
+      ],
+      "affection": [
+       -12.682018280029297,
+       -10.877306938171387,
+       -7.30733585357666
+      ],
+      "random": [
+       1.3839361667633057,
+       1.1151158809661865,
+       0.4297381043434143
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.303384393453598,
+       0.3495560586452484,
+       0.3157622218132019
+      ],
+      "affection": [
+       0.5641568303108215,
+       0.03879443183541298,
+       -0.03762713447213173
+      ],
+      "random": [
+       0.255187451839447,
+       0.5405141115188599,
+       0.11792692542076111
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0834789276123047,
+       1.728281855583191,
+       1.157478928565979
+      ],
+      "affection": [
+       -12.371721267700195,
+       -10.402345657348633,
+       -6.808312892913818
+      ],
+      "random": [
+       1.4190089702606201,
+       1.173956274986267,
+       0.4504512548446655
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.22180531919002533,
+       0.2096332162618637,
+       0.1309163123369217
+      ],
+      "affection": [
+       0.6040990352630615,
+       -0.01754762791097164,
+       0.022560644894838333
+      ],
+      "random": [
+       0.24951879680156708,
+       0.5742896199226379,
+       0.11239642649888992
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.011422872543335,
+       1.6437932252883911,
+       1.0347096920013428
+      ],
+      "affection": [
+       -12.407509803771973,
+       -10.52619743347168,
+       -6.87706184387207
+      ],
+      "random": [
+       1.411180019378662,
+       1.1241962909698486,
+       0.4486517608165741
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.23179824650287628,
+       0.2541336715221405,
+       0.20841850340366364
+      ],
+      "affection": [
+       0.6580753922462463,
+       0.108737051486969,
+       0.08311795443296432
+      ],
+      "random": [
+       0.20216181874275208,
+       0.539271891117096,
+       0.10141132771968842
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.052241802215576,
+       1.6393321752548218,
+       1.0276639461517334
+      ],
+      "affection": [
+       -12.485052108764648,
+       -10.62419605255127,
+       -6.9922404289245605
+      ],
+      "random": [
+       1.4324809312820435,
+       1.1344964504241943,
+       0.4224712550640106
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.14623954892158508,
+       0.1457124501466751,
+       0.062434613704681396
+      ],
+      "affection": [
+       0.518104076385498,
+       -0.05914270877838135,
+       -0.052784513682127
+      ],
+      "random": [
+       0.24355265498161316,
+       0.5434667468070984,
+       0.09430386126041412
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8371331691741943,
+       1.4206135272979736,
+       0.7923477292060852
+      ],
+      "affection": [
+       -12.752982139587402,
+       -10.894042015075684,
+       -7.229879856109619
+      ],
+      "random": [
+       1.4563769102096558,
+       1.1078510284423828,
+       0.46014803647994995
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1591598093509674,
+       0.1618688553571701,
+       0.09451350569725037
+      ],
+      "affection": [
+       0.47357478737831116,
+       -0.13672709465026855,
+       -0.15459474921226501
+      ],
+      "random": [
+       0.23526474833488464,
+       0.5724406242370605,
+       0.07940839976072311
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8626431226730347,
+       1.4563944339752197,
+       0.8254019618034363
+      ],
+      "affection": [
+       -12.60415267944336,
+       -10.780370712280273,
+       -7.184267997741699
+      ],
+      "random": [
+       1.4120572805404663,
+       1.1653858423233032,
+       0.4130498468875885
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.21274049580097198,
+       0.2235056459903717,
+       0.17208068072795868
+      ],
+      "affection": [
+       0.5211284756660461,
+       -0.10378565639257431,
+       -0.08918967097997665
+      ],
+      "random": [
+       0.2546349763870239,
+       0.5420752167701721,
+       0.09642408788204193
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0001089572906494,
+       1.620855450630188,
+       1.0268594026565552
+      ],
+      "affection": [
+       -12.582084655761719,
+       -10.70434284210205,
+       -7.101287364959717
+      ],
+      "random": [
+       1.4232780933380127,
+       1.094854712486267,
+       0.3990586996078491
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.20120865106582642,
+       0.19756494462490082,
+       0.11883968859910965
+      ],
+      "affection": [
+       0.5102464556694031,
+       -0.12233790010213852,
+       -0.11428198963403702
+      ],
+      "random": [
+       0.2472371906042099,
+       0.5770525336265564,
+       0.08080898225307465
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9146239757537842,
+       1.5154058933258057,
+       0.9034620523452759
+      ],
+      "affection": [
+       -12.670641899108887,
+       -10.836628913879395,
+       -7.229851722717285
+      ],
+      "random": [
+       1.4293708801269531,
+       1.0780164003372192,
+       0.4373209774494171
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.21041105687618256,
+       0.22422079741954803,
+       0.15691877901554108
+      ],
+      "affection": [
+       0.6126735806465149,
+       -0.013598386198282242,
+       -0.01641046814620495
+      ],
+      "random": [
+       0.2460707724094391,
+       0.5848075747489929,
+       0.09495574235916138
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9523530006408691,
+       1.5406414270401,
+       0.9277877807617188
+      ],
+      "affection": [
+       -12.539714813232422,
+       -10.723434448242188,
+       -7.069158554077148
+      ],
+      "random": [
+       1.433092474937439,
+       1.1584548950195312,
+       0.3840869963169098
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08856933563947678,
+       0.07845213264226913,
+       -0.017254464328289032
+      ],
+      "affection": [
+       0.2876197397708893,
+       -0.32482680678367615,
+       -0.2796049118041992
+      ],
+      "random": [
+       0.2577197253704071,
+       0.5505058169364929,
+       0.1024077907204628
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.6547132730484009,
+       1.2030799388885498,
+       0.4782356321811676
+      ],
+      "affection": [
+       -12.885815620422363,
+       -11.156514167785645,
+       -7.62713623046875
+      ],
+      "random": [
+       1.4274157285690308,
+       1.0808634757995605,
+       0.4644789397716522
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12323455512523651,
+       0.12668044865131378,
+       0.06712479144334793
+      ],
+      "affection": [
+       0.41357284784317017,
+       -0.16113995015621185,
+       -0.15843723714351654
+      ],
+      "random": [
+       0.24633610248565674,
+       0.5618543028831482,
+       0.09386766701936722
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8547403812408447,
+       1.4288160800933838,
+       0.8324342966079712
+      ],
+      "affection": [
+       -12.619172096252441,
+       -10.76636791229248,
+       -7.138798236846924
+      ],
+      "random": [
+       1.4380991458892822,
+       1.150916337966919,
+       0.37932300567626953
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08159694820642471,
+       0.11003320664167404,
+       0.030015574768185616
+      ],
+      "affection": [
+       0.37437915802001953,
+       -0.20226797461509705,
+       -0.2128921002149582
+      ],
+      "random": [
+       0.22585844993591309,
+       0.5446118712425232,
+       0.0852709710597992
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7062969207763672,
+       1.3107796907424927,
+       0.6852644085884094
+      ],
+      "affection": [
+       -12.681915283203125,
+       -10.849806785583496,
+       -7.292978286743164
+      ],
+      "random": [
+       1.4441184997558594,
+       1.122192144393921,
+       0.4398444592952728
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.16855838894844055,
+       0.16334766149520874,
+       0.0634867399930954
+      ],
+      "affection": [
+       0.5199124217033386,
+       -0.14312897622585297,
+       -0.09316564351320267
+      ],
+      "random": [
+       0.2743070423603058,
+       0.5704507827758789,
+       0.11450284719467163
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9147939682006836,
+       1.553328275680542,
+       0.948432981967926
+      ],
+      "affection": [
+       -12.602973937988281,
+       -10.738774299621582,
+       -7.1929192543029785
+      ],
+      "random": [
+       1.4384832382202148,
+       1.1047621965408325,
+       0.4693053364753723
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.32330185174942017,
+       0.33700382709503174,
+       0.27786320447921753
+      ],
+      "affection": [
+       0.6626313328742981,
+       0.007515896111726761,
+       0.020945968106389046
+      ],
+      "random": [
+       0.2539733648300171,
+       0.537406861782074,
+       0.10031652450561523
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.186958074569702,
+       1.8181848526000977,
+       1.1941173076629639
+      ],
+      "affection": [
+       -12.473388671875,
+       -10.632064819335938,
+       -7.1150031089782715
+      ],
+      "random": [
+       1.43509042263031,
+       1.1610811948776245,
+       0.35556820034980774
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.06482076644897461,
+       0.05944770574569702,
+       -0.051776107400655746
+      ],
+      "affection": [
+       0.35837459564208984,
+       -0.23572221398353577,
+       -0.19834767282009125
+      ],
+      "random": [
+       0.2592804729938507,
+       0.565236508846283,
+       0.10434017330408096
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7764078378677368,
+       1.42135751247406,
+       0.766686201095581
+      ],
+      "affection": [
+       -12.65791130065918,
+       -10.809216499328613,
+       -7.281627178192139
+      ],
+      "random": [
+       1.4575061798095703,
+       1.1221617460250854,
+       0.45223468542099
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.10719224810600281,
+       0.1290917992591858,
+       0.05099859833717346
+      ],
+      "affection": [
+       0.2873704135417938,
+       -0.30399981141090393,
+       -0.3121921420097351
+      ],
+      "random": [
+       0.25254833698272705,
+       0.5454109907150269,
+       0.07842981815338135
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.86427903175354,
+       1.4549000263214111,
+       0.8399304151535034
+      ],
+      "affection": [
+       -12.793073654174805,
+       -10.959452629089355,
+       -7.448175430297852
+      ],
+      "random": [
+       1.3966573476791382,
+       1.151798129081726,
+       0.40504658222198486
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.19291618466377258,
+       0.1638195514678955,
+       0.03745778650045395
+      ],
+      "affection": [
+       0.5439451932907104,
+       -0.10550396889448166,
+       -0.062479399144649506
+      ],
+      "random": [
+       0.2789640426635742,
+       0.5862094759941101,
+       0.11928222328424454
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9378046989440918,
+       1.5548675060272217,
+       0.8934550285339355
+      ],
+      "affection": [
+       -12.57680892944336,
+       -10.761543273925781,
+       -7.218899726867676
+      ],
+      "random": [
+       1.5007699728012085,
+       1.0942872762680054,
+       0.4596261978149414
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.0950654074549675,
+       0.09051796793937683,
+       -0.016434647142887115
+      ],
+      "affection": [
+       0.2889614999294281,
+       -0.2897951602935791,
+       -0.27309203147888184
+      ],
+      "random": [
+       0.2315225601196289,
+       0.5907033681869507,
+       0.10248307138681412
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7471954822540283,
+       1.371294379234314,
+       0.7432807087898254
+      ],
+      "affection": [
+       -12.678722381591797,
+       -10.853168487548828,
+       -7.252685546875
+      ],
+      "random": [
+       1.4451904296875,
+       1.1249494552612305,
+       0.48487287759780884
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12559178471565247,
+       0.13666902482509613,
+       0.05700488016009331
+      ],
+      "affection": [
+       0.24182982742786407,
+       -0.3110654652118683,
+       -0.30738359689712524
+      ],
+      "random": [
+       0.22731705009937286,
+       0.5648677945137024,
+       0.09551946818828583
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.793007254600525,
+       1.3897391557693481,
+       0.7424918413162231
+      ],
+      "affection": [
+       -12.659997940063477,
+       -10.882917404174805,
+       -7.289157390594482
+      ],
+      "random": [
+       1.407341718673706,
+       1.1176244020462036,
+       0.47975513339042664
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2772536277770996,
+       0.26116225123405457,
+       0.16407117247581482
+      ],
+      "affection": [
+       0.5678483247756958,
+       -0.03496292978525162,
+       -0.05557503178715706
+      ],
+      "random": [
+       0.2428499311208725,
+       0.5554856061935425,
+       0.11721722036600113
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.063281536102295,
+       1.652561068534851,
+       1.034170150756836
+      ],
+      "affection": [
+       -12.52280330657959,
+       -10.703878402709961,
+       -7.093723297119141
+      ],
+      "random": [
+       1.457506537437439,
+       1.0845774412155151,
+       0.4328547716140747
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12482400983572006,
+       0.12734536826610565,
+       0.06545274704694748
+      ],
+      "affection": [
+       0.4146784543991089,
+       -0.19064174592494965,
+       -0.19211876392364502
+      ],
+      "random": [
+       0.23488816618919373,
+       0.5524756908416748,
+       0.12085355073213577
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8010601997375488,
+       1.3862578868865967,
+       0.742375910282135
+      ],
+      "affection": [
+       -12.74947738647461,
+       -10.91655158996582,
+       -7.341821670532227
+      ],
+      "random": [
+       1.4669588804244995,
+       1.088518500328064,
+       0.40736883878707886
+      ]
+     }
+    }
+   }
+  ],
+  "stranger": [
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.09342075884342194,
+       0.08144829422235489,
+       0.00993142556399107
+      ],
+      "affection": [
+       0.3041759133338928,
+       -0.21500542759895325,
+       -0.24372930824756622
+      ],
+      "random": [
+       0.22833500802516937,
+       0.5552465915679932,
+       0.09880667179822922
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7473994493484497,
+       1.30940842628479,
+       0.7140355110168457
+      ],
+      "affection": [
+       -12.878620147705078,
+       -11.060152053833008,
+       -7.421788692474365
+      ],
+      "random": [
+       1.3988442420959473,
+       1.1088804006576538,
+       0.4114087224006653
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.27422669529914856,
+       0.2834475338459015,
+       0.22133934497833252
+      ],
+      "affection": [
+       0.6507136821746826,
+       0.05602410063147545,
+       0.06947119534015656
+      ],
+      "random": [
+       0.22104288637638092,
+       0.5569356083869934,
+       0.09600576758384705
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0623419284820557,
+       1.6384012699127197,
+       1.0780977010726929
+      ],
+      "affection": [
+       -12.600730895996094,
+       -10.692150115966797,
+       -7.057400703430176
+      ],
+      "random": [
+       1.4090815782546997,
+       1.1131657361984253,
+       0.39607933163642883
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.13204322755336761,
+       0.1527411788702011,
+       0.12048563361167908
+      ],
+      "affection": [
+       0.5518515110015869,
+       -0.08861075341701508,
+       -0.08252452313899994
+      ],
+      "random": [
+       0.24147233366966248,
+       0.5625982880592346,
+       0.09902441501617432
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8130298852920532,
+       1.4315240383148193,
+       0.8283887505531311
+      ],
+      "affection": [
+       -12.721341133117676,
+       -10.90638542175293,
+       -7.278055191040039
+      ],
+      "random": [
+       1.4466477632522583,
+       1.1410924196243286,
+       0.3638662099838257
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.3234914541244507,
+       0.36179283261299133,
+       0.2740032970905304
+      ],
+      "affection": [
+       0.7611456513404846,
+       0.07207030057907104,
+       0.01651293784379959
+      ],
+      "random": [
+       0.2481505274772644,
+       0.5473449230194092,
+       0.09469693899154663
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.234927177429199,
+       1.840370774269104,
+       1.3035694360733032
+      ],
+      "affection": [
+       -12.463513374328613,
+       -10.591218948364258,
+       -7.024211883544922
+      ],
+      "random": [
+       1.412967324256897,
+       1.1648253202438354,
+       0.42556288838386536
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.09389586746692657,
+       0.10737944394350052,
+       -0.03814935311675072
+      ],
+      "affection": [
+       0.3463946580886841,
+       -0.19157959520816803,
+       -0.22528699040412903
+      ],
+      "random": [
+       0.24296961724758148,
+       0.6037704348564148,
+       0.08932682871818542
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.769330382347107,
+       1.372141718864441,
+       0.6967642903327942
+      ],
+      "affection": [
+       -12.798051834106445,
+       -10.974413871765137,
+       -7.448993682861328
+      ],
+      "random": [
+       1.4299595355987549,
+       1.0386773347854614,
+       0.45154693722724915
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.25198012590408325,
+       0.25921106338500977,
+       0.2141273468732834
+      ],
+      "affection": [
+       0.8113607168197632,
+       0.1342073529958725,
+       0.09670548886060715
+      ],
+      "random": [
+       0.22585242986679077,
+       0.5763639211654663,
+       0.1070234626531601
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9991422891616821,
+       1.5787466764450073,
+       1.0026028156280518
+      ],
+      "affection": [
+       -12.528239250183105,
+       -10.63776683807373,
+       -7.0113420486450195
+      ],
+      "random": [
+       1.4288076162338257,
+       1.1478838920593262,
+       0.36653679609298706
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1632612943649292,
+       0.17576183378696442,
+       0.0949123278260231
+      ],
+      "affection": [
+       0.5619598627090454,
+       -0.07960180938243866,
+       -0.11838407069444656
+      ],
+      "random": [
+       0.23603984713554382,
+       0.5804075598716736,
+       0.1196700930595398
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8480337858200073,
+       1.446006417274475,
+       0.8439156413078308
+      ],
+      "affection": [
+       -12.671658515930176,
+       -10.782418251037598,
+       -7.152122974395752
+      ],
+      "random": [
+       1.431031584739685,
+       1.0905500650405884,
+       0.4230382442474365
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2522852122783661,
+       0.2615818381309509,
+       0.21241790056228638
+      ],
+      "affection": [
+       0.8431477546691895,
+       0.22573143243789673,
+       0.21321110427379608
+      ],
+      "random": [
+       0.24873560667037964,
+       0.5444214344024658,
+       0.10302188247442245
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0280814170837402,
+       1.6561514139175415,
+       1.1022182703018188
+      ],
+      "affection": [
+       -12.423980712890625,
+       -10.4898042678833,
+       -6.784848690032959
+      ],
+      "random": [
+       1.4101924896240234,
+       1.1503901481628418,
+       0.37252089381217957
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.3137058913707733,
+       0.3279227614402771,
+       0.2633146047592163
+      ],
+      "affection": [
+       0.77286297082901,
+       0.08403800427913666,
+       0.10076338797807693
+      ],
+      "random": [
+       0.2508459985256195,
+       0.5861952900886536,
+       0.11236705631017685
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1669914722442627,
+       1.793615460395813,
+       1.2164288759231567
+      ],
+      "affection": [
+       -12.504203796386719,
+       -10.64383316040039,
+       -7.027754783630371
+      ],
+      "random": [
+       1.4510586261749268,
+       1.1174342632293701,
+       0.3778665065765381
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08841640502214432,
+       0.09939370304346085,
+       0.054051123559474945
+      ],
+      "affection": [
+       0.49472492933273315,
+       -0.10754209756851196,
+       -0.09257268160581589
+      ],
+      "random": [
+       0.22575220465660095,
+       0.5511651039123535,
+       0.08688294887542725
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7894182205200195,
+       1.3846864700317383,
+       0.8090547919273376
+      ],
+      "affection": [
+       -12.727188110351562,
+       -10.848559379577637,
+       -7.226019859313965
+      ],
+      "random": [
+       1.414015293121338,
+       1.121477723121643,
+       0.39786192774772644
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2545318305492401,
+       0.2835860550403595,
+       0.24599376320838928
+      ],
+      "affection": [
+       0.7544645071029663,
+       0.15081006288528442,
+       0.12035351991653442
+      ],
+      "random": [
+       0.22213925421237946,
+       0.550321638584137,
+       0.11909475177526474
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0689008235931396,
+       1.6714550256729126,
+       1.1010520458221436
+      ],
+      "affection": [
+       -12.490724563598633,
+       -10.603294372558594,
+       -6.987761497497559
+      ],
+      "random": [
+       1.4270261526107788,
+       1.1293104887008667,
+       0.3747623562812805
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.19505243003368378,
+       0.20668154954910278,
+       0.16630689799785614
+      ],
+      "affection": [
+       0.7061780691146851,
+       0.065865658223629,
+       0.051710210740566254
+      ],
+      "random": [
+       0.23571287095546722,
+       0.5726767778396606,
+       0.12492509931325912
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.971879005432129,
+       1.5344274044036865,
+       0.9537383317947388
+      ],
+      "affection": [
+       -12.634085655212402,
+       -10.742300033569336,
+       -7.131186485290527
+      ],
+      "random": [
+       1.4754589796066284,
+       1.1381713151931763,
+       0.38516050577163696
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2970966100692749,
+       0.3372308611869812,
+       0.299695760011673
+      ],
+      "affection": [
+       0.84650719165802,
+       0.23635922372341156,
+       0.2269967645406723
+      ],
+      "random": [
+       0.24643468856811523,
+       0.530715823173523,
+       0.11177460849285126
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.142155170440674,
+       1.7638417482376099,
+       1.2152552604675293
+      ],
+      "affection": [
+       -12.351972579956055,
+       -10.386748313903809,
+       -6.718034744262695
+      ],
+      "random": [
+       1.373582363128662,
+       1.1399675607681274,
+       0.39711374044418335
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2735503315925598,
+       0.31546780467033386,
+       0.31597641110420227
+      ],
+      "affection": [
+       0.8163214325904846,
+       0.20452769100666046,
+       0.2128877192735672
+      ],
+      "random": [
+       0.24767933785915375,
+       0.5336599946022034,
+       0.08262093365192413
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1142678260803223,
+       1.7213466167449951,
+       1.1569112539291382
+      ],
+      "affection": [
+       -12.360280990600586,
+       -10.373529434204102,
+       -6.750458240509033
+      ],
+      "random": [
+       1.3816102743148804,
+       1.138601541519165,
+       0.36832988262176514
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.19240763783454895,
+       0.18745839595794678,
+       0.15562152862548828
+      ],
+      "affection": [
+       0.7364607453346252,
+       0.07309360802173615,
+       0.045033298432826996
+      ],
+      "random": [
+       0.22272786498069763,
+       0.5729341506958008,
+       0.11310651153326035
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.933770775794983,
+       1.5068613290786743,
+       0.9577903747558594
+      ],
+      "affection": [
+       -12.59846019744873,
+       -10.730480194091797,
+       -7.114833354949951
+      ],
+      "random": [
+       1.4014286994934082,
+       1.1056708097457886,
+       0.407074898481369
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2719014585018158,
+       0.29742980003356934,
+       0.2637461721897125
+      ],
+      "affection": [
+       0.8973742723464966,
+       0.2796890139579773,
+       0.2459021955728531
+      ],
+      "random": [
+       0.22777459025382996,
+       0.5331798195838928,
+       0.12281462550163269
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.085763931274414,
+       1.7257834672927856,
+       1.1432349681854248
+      ],
+      "affection": [
+       -12.385664939880371,
+       -10.513432502746582,
+       -6.804091930389404
+      ],
+      "random": [
+       1.4093347787857056,
+       1.13697350025177,
+       0.4186549484729767
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12321165949106216,
+       0.1190812960267067,
+       0.03555857017636299
+      ],
+      "affection": [
+       0.2923583984375,
+       -0.2828029990196228,
+       -0.2595973312854767
+      ],
+      "random": [
+       0.2540552616119385,
+       0.5655181407928467,
+       0.03785410895943642
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7529886960983276,
+       1.353888750076294,
+       0.77376788854599
+      ],
+      "affection": [
+       -12.842056274414062,
+       -10.996929168701172,
+       -7.412860870361328
+      ],
+      "random": [
+       1.3358389139175415,
+       1.1275604963302612,
+       0.44738227128982544
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08553189784288406,
+       0.0834444910287857,
+       -0.014592151157557964
+      ],
+      "affection": [
+       0.4635963439941406,
+       -0.10024213045835495,
+       -0.1441040188074112
+      ],
+      "random": [
+       0.24213162064552307,
+       0.5659059882164001,
+       0.123838409781456
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7666194438934326,
+       1.3851200342178345,
+       0.6862935423851013
+      ],
+      "affection": [
+       -12.69994068145752,
+       -10.929095268249512,
+       -7.377687931060791
+      ],
+      "random": [
+       1.4314343929290771,
+       1.1210458278656006,
+       0.46452513337135315
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.15055370330810547,
+       0.17634734511375427,
+       0.13619732856750488
+      ],
+      "affection": [
+       0.6171668171882629,
+       0.03152450546622276,
+       0.046939413994550705
+      ],
+      "random": [
+       0.22777386009693146,
+       0.565223753452301,
+       0.11652637273073196
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8763859272003174,
+       1.4476521015167236,
+       0.8311596512794495
+      ],
+      "affection": [
+       -12.664850234985352,
+       -10.826955795288086,
+       -7.179566860198975
+      ],
+      "random": [
+       1.4295533895492554,
+       1.1176830530166626,
+       0.38160404562950134
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12800055742263794,
+       0.12400578707456589,
+       0.028169400990009308
+      ],
+      "affection": [
+       0.5014123916625977,
+       -0.07710012048482895,
+       -0.06193678081035614
+      ],
+      "random": [
+       0.256716251373291,
+       0.5711113214492798,
+       0.1299455463886261
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7896121740341187,
+       1.447655439376831,
+       0.8444247245788574
+      ],
+      "affection": [
+       -12.681331634521484,
+       -10.850194931030273,
+       -7.262576580047607
+      ],
+      "random": [
+       1.3617717027664185,
+       1.1215258836746216,
+       0.4122178554534912
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.32159847021102905,
+       0.37695547938346863,
+       0.3510420322418213
+      ],
+      "affection": [
+       0.5919163823127747,
+       0.07832402735948563,
+       -0.020263703539967537
+      ],
+      "random": [
+       0.2554478645324707,
+       0.5425727963447571,
+       0.11700014024972916
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1075174808502197,
+       1.7512012720108032,
+       1.2074065208435059
+      ],
+      "affection": [
+       -12.390186309814453,
+       -10.386263847351074,
+       -6.753609657287598
+      ],
+      "random": [
+       1.4119504690170288,
+       1.1684811115264893,
+       0.4181896448135376
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.242317333817482,
+       0.24306543171405792,
+       0.17403757572174072
+      ],
+      "affection": [
+       0.6343657374382019,
+       0.031804006546735764,
+       0.05170292407274246
+      ],
+      "random": [
+       0.24663294851779938,
+       0.5815474390983582,
+       0.11451432853937149
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.049936056137085,
+       1.693671464920044,
+       1.1259572505950928
+      ],
+      "affection": [
+       -12.422613143920898,
+       -10.501455307006836,
+       -6.829357147216797
+      ],
+      "random": [
+       1.3894498348236084,
+       1.1178232431411743,
+       0.4246203601360321
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2510751485824585,
+       0.28261813521385193,
+       0.24552428722381592
+      ],
+      "affection": [
+       0.7064407467842102,
+       0.160541370511055,
+       0.10895708948373795
+      ],
+      "random": [
+       0.1992664784193039,
+       0.5483444929122925,
+       0.10461942851543427
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0590062141418457,
+       1.6404703855514526,
+       1.0782337188720703
+      ],
+      "affection": [
+       -12.519762992858887,
+       -10.61316204071045,
+       -6.948864936828613
+      ],
+      "random": [
+       1.414402723312378,
+       1.1290843486785889,
+       0.40120163559913635
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.17011044919490814,
+       0.17904022336006165,
+       0.10992227494716644
+      ],
+      "affection": [
+       0.5777133107185364,
+       0.009953985922038555,
+       -0.004232479725033045
+      ],
+      "random": [
+       0.24013546109199524,
+       0.544544517993927,
+       0.0992891862988472
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8483368158340454,
+       1.4152566194534302,
+       0.822327196598053
+      ],
+      "affection": [
+       -12.785737991333008,
+       -10.909893035888672,
+       -7.26140832901001
+      ],
+      "random": [
+       1.43422532081604,
+       1.1021453142166138,
+       0.4327695369720459
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.17662371695041656,
+       0.17688216269016266,
+       0.12243729829788208
+      ],
+      "affection": [
+       0.5016686916351318,
+       -0.1033724844455719,
+       -0.12453630566596985
+      ],
+      "random": [
+       0.23404978215694427,
+       0.5787785053253174,
+       0.0805225744843483
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8735584020614624,
+       1.4675776958465576,
+       0.8844640254974365
+      ],
+      "affection": [
+       -12.648491859436035,
+       -10.785423278808594,
+       -7.178898811340332
+      ],
+      "random": [
+       1.3950319290161133,
+       1.1575816869735718,
+       0.38831067085266113
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.23588591814041138,
+       0.24220293760299683,
+       0.2064792364835739
+      ],
+      "affection": [
+       0.5653142929077148,
+       -0.0637342631816864,
+       -0.06609201431274414
+      ],
+      "random": [
+       0.252908855676651,
+       0.5474652647972107,
+       0.09500505030155182
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0259177684783936,
+       1.64316987991333,
+       1.0896703004837036
+      ],
+      "affection": [
+       -12.610997200012207,
+       -10.695213317871094,
+       -7.057400703430176
+      ],
+      "random": [
+       1.406959891319275,
+       1.082849383354187,
+       0.374587744474411
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.22071197628974915,
+       0.22807693481445312,
+       0.16006720066070557
+      ],
+      "affection": [
+       0.5467523336410522,
+       -0.0752471387386322,
+       -0.08168729394674301
+      ],
+      "random": [
+       0.2464308738708496,
+       0.5802809000015259,
+       0.08527734130620956
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9288513660430908,
+       1.520343542098999,
+       0.9439786076545715
+      ],
+      "affection": [
+       -12.714327812194824,
+       -10.833581924438477,
+       -7.2063703536987305
+      ],
+      "random": [
+       1.4014476537704468,
+       1.0700982809066772,
+       0.41589590907096863
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.23081062734127045,
+       0.24941954016685486,
+       0.19413769245147705
+      ],
+      "affection": [
+       0.6542094945907593,
+       0.03708261251449585,
+       0.021997198462486267
+      ],
+      "random": [
+       0.2429880052804947,
+       0.5890738368034363,
+       0.0967220664024353
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9413740634918213,
+       1.521700382232666,
+       0.9454323649406433
+      ],
+      "affection": [
+       -12.614873886108398,
+       -10.760064125061035,
+       -7.064952373504639
+      ],
+      "random": [
+       1.4259390830993652,
+       1.1466423273086548,
+       0.35854026675224304
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.10711841285228729,
+       0.10056092590093613,
+       0.007847322151064873
+      ],
+      "affection": [
+       0.3173171281814575,
+       -0.28948479890823364,
+       -0.27595409750938416
+      ],
+      "random": [
+       0.25634506344795227,
+       0.5521546602249146,
+       0.1109551191329956
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.659085750579834,
+       1.1885899305343628,
+       0.5011050701141357
+      ],
+      "affection": [
+       -12.920888900756836,
+       -11.155621528625488,
+       -7.604303359985352
+      ],
+      "random": [
+       1.418620228767395,
+       1.0800342559814453,
+       0.4337906837463379
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.13991202414035797,
+       0.14034107327461243,
+       0.08793441206216812
+      ],
+      "affection": [
+       0.4366251230239868,
+       -0.13498423993587494,
+       -0.15875399112701416
+      ],
+      "random": [
+       0.24458113312721252,
+       0.5673626661300659,
+       0.09539386630058289
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8537582159042358,
+       1.4208084344863892,
+       0.869249701499939
+      ],
+      "affection": [
+       -12.642929077148438,
+       -10.746039390563965,
+       -7.104128360748291
+      ],
+      "random": [
+       1.4261623620986938,
+       1.14745032787323,
+       0.3579266369342804
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.09205207228660583,
+       0.12703244388103485,
+       0.050878431648015976
+      ],
+      "affection": [
+       0.39063775539398193,
+       -0.1739356368780136,
+       -0.2064521759748459
+      ],
+      "random": [
+       0.22511149942874908,
+       0.5477212071418762,
+       0.08705262094736099
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7132712602615356,
+       1.306693434715271,
+       0.734292209148407
+      ],
+      "affection": [
+       -12.6968412399292,
+       -10.834024429321289,
+       -7.229158878326416
+      ],
+      "random": [
+       1.43036949634552,
+       1.1172499656677246,
+       0.41732144355773926
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1859404295682907,
+       0.19056077301502228,
+       0.09831699728965759
+      ],
+      "affection": [
+       0.5516890287399292,
+       -0.0935482308268547,
+       -0.06508813798427582
+      ],
+      "random": [
+       0.271322101354599,
+       0.5693579316139221,
+       0.11829333752393723
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9229758977890015,
+       1.5547466278076172,
+       0.9796344637870789
+      ],
+      "affection": [
+       -12.625450134277344,
+       -10.732720375061035,
+       -7.186601638793945
+      ],
+      "random": [
+       1.4197300672531128,
+       1.0943222045898438,
+       0.4463617205619812
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.34464386105537415,
+       0.37298765778541565,
+       0.32061973214149475
+      ],
+      "affection": [
+       0.6974664926528931,
+       0.05742372199892998,
+       0.05442814901471138
+      ],
+      "random": [
+       0.2511289417743683,
+       0.5364628434181213,
+       0.10414755344390869
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.1910805702209473,
+       1.8030917644500732,
+       1.2120108604431152
+      ],
+      "affection": [
+       -12.490455627441406,
+       -10.617158889770508,
+       -7.077963829040527
+      ],
+      "random": [
+       1.4277241230010986,
+       1.1534476280212402,
+       0.3275322914123535
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.08196751773357391,
+       0.08442123979330063,
+       -0.02627917006611824
+      ],
+      "affection": [
+       0.3871384263038635,
+       -0.19745990633964539,
+       -0.1828927844762802
+      ],
+      "random": [
+       0.2588293254375458,
+       0.5650148987770081,
+       0.11245664209127426
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7670272588729858,
+       1.4095163345336914,
+       0.7755681872367859
+      ],
+      "affection": [
+       -12.68950366973877,
+       -10.816169738769531,
+       -7.287459850311279
+      ],
+      "random": [
+       1.4428755044937134,
+       1.1187400817871094,
+       0.4395306706428528
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.12074735760688782,
+       0.144187331199646,
+       0.06421289592981339
+      ],
+      "affection": [
+       0.3055740296840668,
+       -0.2782515585422516,
+       -0.3106372356414795
+      ],
+      "random": [
+       0.25251543521881104,
+       0.5442601442337036,
+       0.08150234818458557
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8732144832611084,
+       1.4508949518203735,
+       0.8726205229759216
+      ],
+      "affection": [
+       -12.81224250793457,
+       -10.958426475524902,
+       -7.407781600952148
+      ],
+      "random": [
+       1.3929882049560547,
+       1.1434451341629028,
+       0.38251397013664246
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.20985086262226105,
+       0.18051819503307343,
+       0.06139770522713661
+      ],
+      "affection": [
+       0.5750579237937927,
+       -0.07710875570774078,
+       -0.046020638197660446
+      ],
+      "random": [
+       0.2790544033050537,
+       0.5859567523002625,
+       0.12708759307861328
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.9516414403915405,
+       1.549946665763855,
+       0.9122647643089294
+      ],
+      "affection": [
+       -12.600448608398438,
+       -10.766980171203613,
+       -7.202054977416992
+      ],
+      "random": [
+       1.4962971210479736,
+       1.096355676651001,
+       0.42441031336784363
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1156742051243782,
+       0.10759230703115463,
+       0.0037381628062576056
+      ],
+      "affection": [
+       0.3251577913761139,
+       -0.26066362857818604,
+       -0.2565087676048279
+      ],
+      "random": [
+       0.23166345059871674,
+       0.5988653898239136,
+       0.10689274221658707
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.7539480924606323,
+       1.3638008832931519,
+       0.7603989839553833
+      ],
+      "affection": [
+       -12.702078819274902,
+       -10.862763404846191,
+       -7.255713939666748
+      ],
+      "random": [
+       1.4274014234542847,
+       1.120678186416626,
+       0.46789097785949707
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.13606128096580505,
+       0.1428002566099167,
+       0.07850303500890732
+      ],
+      "affection": [
+       0.2688327133655548,
+       -0.29696813225746155,
+       -0.3024231791496277
+      ],
+      "random": [
+       0.22277800738811493,
+       0.5711359977722168,
+       0.09632545709609985
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8247547149658203,
+       1.4210573434829712,
+       0.8039343357086182
+      ],
+      "affection": [
+       -12.681011199951172,
+       -10.882813453674316,
+       -7.2805705070495605
+      ],
+      "random": [
+       1.3916127681732178,
+       1.116156816482544,
+       0.45565852522850037
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.2964264750480652,
+       0.28129252791404724,
+       0.19117802381515503
+      ],
+      "affection": [
+       0.5991305708885193,
+       -0.007395150139927864,
+       -0.03864698112010956
+      ],
+      "random": [
+       0.2405942678451538,
+       0.5585879683494568,
+       0.12281947582960129
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       2.0775749683380127,
+       1.6603130102157593,
+       1.0823107957839966
+      ],
+      "affection": [
+       -12.542684555053711,
+       -10.700902938842773,
+       -7.0611724853515625
+      ],
+      "random": [
+       1.4379397630691528,
+       1.0727648735046387,
+       0.40558597445487976
+      ]
+     }
+    }
+   },
+   {
+    "quill": {
+     "proj": {
+      "valence": [
+       0.1515079289674759,
+       0.15440340340137482,
+       0.10416395962238312
+      ],
+      "affection": [
+       0.45329412817955017,
+       -0.1464538872241974,
+       -0.15973526239395142
+      ],
+      "random": [
+       0.23587971925735474,
+       0.5593206286430359,
+       0.1273365020751953
+      ]
+     }
+    },
+    "ember": {
+     "proj": {
+      "valence": [
+       1.8128690719604492,
+       1.4063936471939087,
+       0.7954127192497253
+      ],
+      "affection": [
+       -12.774948120117188,
+       -10.913444519042969,
+       -7.324375152587891
+      ],
+      "random": [
+       1.4551087617874146,
+       1.0797016620635986,
+       0.3904043436050415
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "self_report": {
+  "link|ask|quill": [
+   16.185623168945312,
+   17.927152633666992,
+   12.146048545837402,
+   14.363897323608398,
+   10.734407424926758,
+   12.942788124084473,
+   14.791952133178711,
+   11.012112617492676,
+   14.371065139770508,
+   16.812774658203125,
+   13.00190258026123,
+   12.194610595703125,
+   12.360894203186035,
+   11.215120315551758,
+   11.808906555175781,
+   11.623140335083008,
+   15.643442153930664,
+   12.175107955932617,
+   12.110723495483398,
+   9.325248718261719,
+   12.349373817443848,
+   12.13325309753418,
+   11.32266902923584,
+   12.712523460388184,
+   11.691768646240234,
+   14.231071472167969,
+   14.154772758483887,
+   12.486494064331055,
+   13.812191009521484,
+   15.212580680847168,
+   11.090578079223633,
+   14.516971588134766,
+   14.339334487915039,
+   12.701144218444824,
+   13.306951522827148,
+   12.217987060546875,
+   13.758670806884766,
+   11.805778503417969,
+   13.625308990478516,
+   13.861482620239258
+  ],
+  "link|ask|ember": [
+   8.200346946716309,
+   11.631065368652344,
+   8.662615776062012,
+   10.57201862335205,
+   9.597773551940918,
+   9.52115249633789,
+   9.369325637817383,
+   11.483733177185059,
+   9.80922794342041,
+   10.22433853149414,
+   10.857853889465332,
+   8.948874473571777,
+   12.074472427368164,
+   11.571728706359863,
+   8.543844223022461,
+   14.109930992126465,
+   4.482818603515625,
+   8.396957397460938,
+   11.300456047058105,
+   9.578853607177734,
+   9.894477844238281,
+   9.035491943359375,
+   8.681412696838379,
+   11.439473152160645,
+   8.106170654296875,
+   10.793792724609375,
+   8.51266860961914,
+   10.763754844665527,
+   8.795289993286133,
+   11.096773147583008,
+   10.933225631713867,
+   10.484676361083984,
+   10.524255752563477,
+   10.25856876373291,
+   5.279033660888672,
+   11.252202987670898,
+   9.102350234985352,
+   7.780855178833008,
+   10.844205856323242,
+   8.939811706542969
+  ],
+  "link|neutral|quill": [
+   1.0845565795898438,
+   0.4022493362426758,
+   2.061936378479004,
+   3.965888023376465,
+   1.6779918670654297,
+   6.851222515106201,
+   4.231419563293457,
+   7.706748962402344,
+   4.784900665283203,
+   4.682913303375244,
+   8.468746185302734,
+   7.6780290603637695,
+   6.617795944213867,
+   7.61600399017334,
+   5.287623405456543,
+   7.536542892456055,
+   -3.614253044128418,
+   4.684181213378906,
+   6.608921051025391,
+   4.049266815185547,
+   4.381649971008301,
+   8.989908218383789,
+   6.687178611755371,
+   2.8553247451782227,
+   1.512979507446289,
+   4.694333076477051,
+   4.917691230773926,
+   4.924498558044434,
+   1.5028162002563477,
+   6.149913787841797,
+   4.438758850097656,
+   2.3995370864868164,
+   1.636465072631836,
+   4.359418869018555,
+   1.9336233139038086,
+   4.635770797729492,
+   3.3046159744262695,
+   3.10799503326416,
+   1.6797914505004883,
+   3.9576845169067383
+  ],
+  "link|neutral|ember": [
+   -6.5388875007629395,
+   -5.3222880363464355,
+   -3.496112108230591,
+   -0.8613433837890625,
+   -3.3844969272613525,
+   -4.035120010375977,
+   -5.117539405822754,
+   -2.0483217239379883,
+   -2.0827014446258545,
+   -4.521039962768555,
+   -3.239168882369995,
+   -4.309257507324219,
+   -1.106372356414795,
+   -1.623002052307129,
+   -5.178117752075195,
+   -0.9263496398925781,
+   -3.6556406021118164,
+   -4.903043746948242,
+   -2.9730587005615234,
+   -1.1571297645568848,
+   -3.7899394035339355,
+   0.382871150970459,
+   -4.511229515075684,
+   -3.918548107147217,
+   -5.28257942199707,
+   -0.814241886138916,
+   -5.186434745788574,
+   -3.5423073768615723,
+   -3.7607192993164062,
+   -3.445136547088623,
+   -1.2723584175109863,
+   -0.6787276268005371,
+   -2.913747787475586,
+   0.7000718116760254,
+   -6.272258758544922,
+   -2.031191825866699,
+   -3.004261016845703,
+   -3.9553990364074707,
+   -4.897194862365723,
+   -5.957617282867432
+  ],
+  "cut|ask|quill": [
+   17.107036590576172,
+   19.47616195678711,
+   11.813582420349121,
+   14.771646499633789,
+   11.883662223815918,
+   13.814715385437012,
+   15.184648513793945,
+   11.6537446975708,
+   15.56794548034668,
+   16.92061996459961,
+   13.310410499572754,
+   13.752328872680664,
+   12.770780563354492,
+   11.508076667785645,
+   11.653788566589355,
+   11.793815612792969,
+   15.859445571899414,
+   14.451434135437012,
+   13.70925521850586,
+   10.157283782958984,
+   13.615151405334473,
+   11.7891845703125,
+   11.952987670898438,
+   14.012239456176758,
+   12.098271369934082,
+   14.995403289794922,
+   15.446070671081543,
+   13.383565902709961,
+   14.595924377441406,
+   15.381444931030273,
+   11.371020317077637,
+   15.761316299438477,
+   15.04521656036377,
+   14.779488563537598,
+   13.597675323486328,
+   13.102701187133789,
+   14.805550575256348,
+   12.734772682189941,
+   14.718162536621094,
+   14.923359870910645
+  ],
+  "cut|ask|ember": [
+   7.4439496994018555,
+   11.27033519744873,
+   6.047551155090332,
+   8.676090240478516,
+   9.717972755432129,
+   7.761689186096191,
+   6.830471038818359,
+   11.562638282775879,
+   9.444869995117188,
+   8.993965148925781,
+   8.873163223266602,
+   7.109086513519287,
+   10.772027969360352,
+   9.999641418457031,
+   6.572659015655518,
+   12.971946716308594,
+   4.473243713378906,
+   7.603764533996582,
+   9.707554817199707,
+   10.671419143676758,
+   7.601998329162598,
+   9.240711212158203,
+   7.529567718505859,
+   11.104034423828125,
+   7.026839733123779,
+   9.759016036987305,
+   7.809966564178467,
+   8.767786026000977,
+   7.971858501434326,
+   10.069439888000488,
+   9.439376831054688,
+   9.760335922241211,
+   8.36406421661377,
+   9.573076248168945,
+   4.528573036193848,
+   10.35069465637207,
+   7.447421550750732,
+   6.925971984863281,
+   10.863150596618652,
+   9.369484901428223
+  ],
+  "cut|neutral|quill": [
+   0.06596755981445312,
+   -1.4576539993286133,
+   1.547429084777832,
+   1.7926950454711914,
+   0.7281875610351562,
+   4.9920549392700195,
+   3.0320329666137695,
+   6.258933067321777,
+   3.211655616760254,
+   2.5597591400146484,
+   7.237918853759766,
+   6.6330718994140625,
+   5.6421613693237305,
+   7.09224796295166,
+   3.8602371215820312,
+   6.262603759765625,
+   -3.71341609954834,
+   3.802478790283203,
+   5.1859540939331055,
+   2.91245174407959,
+   3.6639022827148438,
+   8.372928619384766,
+   5.695795059204102,
+   2.0392208099365234,
+   1.0004558563232422,
+   4.593976020812988,
+   3.005812644958496,
+   3.408597946166992,
+   1.0179443359375,
+   5.720479965209961,
+   3.2447328567504883,
+   2.0694351196289062,
+   0.48392772674560547,
+   3.651153564453125,
+   -0.041375160217285156,
+   3.104464530944824,
+   3.0207080841064453,
+   1.8701295852661133,
+   1.0128278732299805,
+   3.089482307434082
+  ],
+  "cut|neutral|ember": [
+   -6.381669044494629,
+   -6.193284034729004,
+   -4.02432918548584,
+   -2.645732879638672,
+   -4.027268409729004,
+   -5.141429901123047,
+   -6.237249851226807,
+   -3.645132064819336,
+   -3.1840827465057373,
+   -5.093690395355225,
+   -4.090396881103516,
+   -5.467475891113281,
+   -2.3641200065612793,
+   -3.580444812774658,
+   -5.5327653884887695,
+   -1.9484591484069824,
+   -3.5205225944519043,
+   -5.715606689453125,
+   -3.6406941413879395,
+   -2.440876007080078,
+   -5.206250190734863,
+   -2.0972301959991455,
+   -5.007467269897461,
+   -4.848601341247559,
+   -5.774428367614746,
+   -2.1653809547424316,
+   -5.889841079711914,
+   -4.304500579833984,
+   -3.9611740112304688,
+   -4.199108600616455,
+   -1.9702801704406738,
+   -1.7139301300048828,
+   -4.102471828460693,
+   -0.18867206573486328,
+   -6.348581314086914,
+   -2.4738426208496094,
+   -3.6107873916625977,
+   -3.6247336864471436,
+   -5.637678146362305,
+   -6.607509613037109
+  ],
+  "stranger|ask|quill": [
+   17.835742950439453,
+   17.71302032470703,
+   12.27512264251709,
+   14.281415939331055,
+   10.857805252075195,
+   14.016668319702148,
+   15.156000137329102,
+   11.165846824645996,
+   15.067449569702148,
+   16.607770919799805,
+   13.38808536529541,
+   12.71959400177002,
+   13.203208923339844,
+   11.248138427734375,
+   11.83501148223877,
+   11.242389678955078,
+   16.41750717163086,
+   12.291888236999512,
+   12.923986434936523,
+   9.712018013000488,
+   13.897394180297852,
+   12.148077011108398,
+   13.069653511047363,
+   12.528810501098633,
+   12.338348388671875,
+   14.021682739257812,
+   14.486751556396484,
+   12.832123756408691,
+   13.304651260375977,
+   14.420167922973633,
+   11.349163055419922,
+   14.62592601776123,
+   14.10982608795166,
+   12.846821784973145,
+   13.441816329956055,
+   11.661418914794922,
+   15.027130126953125,
+   12.616142272949219,
+   13.976375579833984,
+   14.191770553588867
+  ],
+  "stranger|ask|ember": [
+   9.251008987426758,
+   11.392125129699707,
+   8.988723754882812,
+   9.688531875610352,
+   10.24551010131836,
+   9.018806457519531,
+   9.790304183959961,
+   11.079170227050781,
+   10.135039329528809,
+   10.599201202392578,
+   10.659563064575195,
+   9.559516906738281,
+   12.595325469970703,
+   10.889129638671875,
+   9.775066375732422,
+   13.413816452026367,
+   4.63729190826416,
+   8.667724609375,
+   10.787169456481934,
+   10.4381742477417,
+   10.080327987670898,
+   10.049072265625,
+   8.425830841064453,
+   11.7324800491333,
+   8.199056625366211,
+   10.666547775268555,
+   9.0938720703125,
+   9.003238677978516,
+   9.509092330932617,
+   10.53674030303955,
+   10.59776782989502,
+   10.348705291748047,
+   10.609806060791016,
+   9.746844291687012,
+   5.689990997314453,
+   11.344274520874023,
+   7.624917030334473,
+   8.439828872680664,
+   10.717109680175781,
+   9.613203048706055
+  ],
+  "stranger|neutral|quill": [
+   2.4769115447998047,
+   -0.2620248794555664,
+   1.735732078552246,
+   3.6513919830322266,
+   2.7961368560791016,
+   6.675734519958496,
+   5.12736701965332,
+   7.361947059631348,
+   4.9143877029418945,
+   5.912540435791016,
+   8.090087890625,
+   8.110033988952637,
+   7.039801597595215,
+   7.435868263244629,
+   4.882177352905273,
+   7.954697608947754,
+   -3.383603096008301,
+   3.6802501678466797,
+   6.321885585784912,
+   4.79158878326416,
+   3.304746627807617,
+   8.9783353805542,
+   6.613341331481934,
+   3.9469785690307617,
+   1.7059831619262695,
+   5.872163772583008,
+   4.642172813415527,
+   5.516780853271484,
+   1.6039466857910156,
+   6.086437225341797,
+   4.033638000488281,
+   3.146542549133301,
+   1.9349679946899414,
+   4.132882118225098,
+   1.8540496826171875,
+   3.7546682357788086,
+   4.47857666015625,
+   2.892666816711426,
+   1.3529653549194336,
+   4.109793663024902
+  ],
+  "stranger|neutral|ember": [
+   -5.366398811340332,
+   -5.770843982696533,
+   -2.6344051361083984,
+   -2.206068992614746,
+   -3.40474796295166,
+   -4.481168746948242,
+   -4.806251525878906,
+   -3.619426727294922,
+   -2.7970128059387207,
+   -4.457448482513428,
+   -3.075789451599121,
+   -4.225371360778809,
+   -1.0435357093811035,
+   -2.429924964904785,
+   -4.204537391662598,
+   -1.228342056274414,
+   -3.310636520385742,
+   -4.986508369445801,
+   -2.630927085876465,
+   -1.0901994705200195,
+   -3.2894396781921387,
+   -0.9335525035858154,
+   -4.320400714874268,
+   -4.139101982116699,
+   -4.526858329772949,
+   -1.4544329643249512,
+   -4.615204811096191,
+   -4.495948314666748,
+   -3.6213693618774414,
+   -3.394008159637451,
+   -0.5586414337158203,
+   -1.1687593460083008,
+   -2.8783364295959473,
+   0.5748386383056641,
+   -6.182549953460693,
+   -2.1309757232666016,
+   -3.653404474258423,
+   -3.399139881134033,
+   -4.7747063636779785,
+   -5.604852676391602
+  ],
+  "link|enjoy|quill": [
+   6.375,
+   7.5,
+   6.0,
+   7.125,
+   6.25,
+   6.75,
+   5.25,
+   6.5,
+   4.625,
+   7.125,
+   6.375,
+   7.875,
+   7.0,
+   6.875,
+   6.625,
+   7.375,
+   4.5,
+   6.0,
+   7.25,
+   6.5,
+   7.75,
+   8.125,
+   8.0,
+   7.5,
+   6.375,
+   6.75,
+   6.625,
+   5.375,
+   4.5,
+   7.125,
+   5.0,
+   5.625,
+   5.125,
+   5.625,
+   4.75,
+   4.875,
+   4.625,
+   7.625,
+   8.125,
+   5.5
+  ],
+  "link|enjoy|ember": [
+   2.0,
+   5.375,
+   2.125,
+   4.5,
+   4.125,
+   3.125,
+   2.125,
+   6.375,
+   4.125,
+   3.875,
+   3.875,
+   4.125,
+   5.0,
+   4.875,
+   2.375,
+   6.125,
+   -0.375,
+   2.375,
+   3.75,
+   5.125,
+   4.0,
+   6.25,
+   4.75,
+   5.0,
+   3.375,
+   4.25,
+   2.125,
+   3.375,
+   3.0,
+   5.25,
+   4.375,
+   5.875,
+   4.25,
+   4.5,
+   1.125,
+   5.125,
+   1.75,
+   4.125,
+   5.5,
+   4.125
+  ],
+  "link|bother|quill": [
+   -3.875,
+   -6.25,
+   -3.375,
+   -4.625,
+   -3.375,
+   -4.5,
+   -4.125,
+   -4.5,
+   -5.5,
+   -5.125,
+   -5.25,
+   -4.875,
+   -5.125,
+   -4.5,
+   -4.25,
+   -6.875,
+   -4.125,
+   -5.375,
+   -3.625,
+   -6.0,
+   -3.625,
+   -7.875,
+   -5.125,
+   -5.5,
+   -5.625,
+   -3.999999761581421,
+   -5.375,
+   -3.0,
+   -3.5,
+   -4.0,
+   -4.5,
+   -4.75,
+   -5.125,
+   -4.625,
+   -3.5,
+   -5.0,
+   -3.625,
+   -4.875,
+   -6.75,
+   -5.125
+  ],
+  "link|bother|ember": [
+   -4.375,
+   -6.25,
+   -4.625,
+   -5.875,
+   -4.75,
+   -6.25,
+   -5.25,
+   -5.75,
+   -5.125,
+   -4.625,
+   -6.125,
+   -5.125,
+   -6.125,
+   -5.375,
+   -4.75,
+   -6.625,
+   -4.25,
+   -5.625,
+   -5.0,
+   -5.25,
+   -4.375,
+   -6.25,
+   -6.375,
+   -5.5,
+   -5.875,
+   -5.0,
+   -5.75,
+   -5.25,
+   -5.0,
+   -6.5,
+   -4.375,
+   -5.625,
+   -5.625,
+   -5.5,
+   -4.375,
+   -5.625,
+   -5.5,
+   -5.375,
+   -4.875,
+   -6.0
+  ],
+  "cut|enjoy|quill": [
+   4.75,
+   6.75,
+   4.75,
+   5.625,
+   5.125,
+   6.375,
+   4.25,
+   6.375,
+   3.75,
+   5.25,
+   5.625,
+   6.875,
+   6.0,
+   5.375,
+   5.5,
+   6.625,
+   3.625,
+   5.25,
+   5.75,
+   5.875,
+   5.625,
+   6.125,
+   5.875,
+   6.0,
+   5.0,
+   6.0,
+   4.375,
+   4.75,
+   4.375,
+   6.375,
+   4.25,
+   5.5,
+   4.0,
+   5.375,
+   3.75,
+   4.625,
+   3.375000476837158,
+   7.375,
+   5.875,
+   5.25
+  ],
+  "cut|enjoy|ember": [
+   0.7499998807907104,
+   3.25,
+   1.0,
+   2.625,
+   2.75,
+   1.5,
+   0.5,
+   4.75,
+   2.5,
+   2.25,
+   3.0,
+   2.25,
+   2.875,
+   3.375,
+   0.875,
+   3.75,
+   -1.625,
+   0.875,
+   2.5,
+   3.625,
+   2.0,
+   5.125,
+   3.0,
+   3.125,
+   1.9999998807907104,
+   2.875,
+   1.1250001192092896,
+   1.75,
+   1.625,
+   3.25,
+   3.125,
+   3.75,
+   2.625,
+   2.625,
+   0.625,
+   3.5,
+   0.0,
+   2.5,
+   4.0,
+   1.75
+  ],
+  "cut|bother|quill": [
+   -3.0,
+   -5.375,
+   -2.625,
+   -3.375,
+   -2.875,
+   -2.625,
+   -3.125,
+   -3.375,
+   -3.875,
+   -3.875,
+   -4.875,
+   -3.625,
+   -3.75,
+   -3.5,
+   -3.75,
+   -5.875,
+   -3.25,
+   -3.5,
+   -3.0,
+   -4.25,
+   -2.25,
+   -6.125,
+   -4.75,
+   -4.625,
+   -4.125,
+   -2.875,
+   -3.75,
+   -2.0,
+   -2.125,
+   -2.5,
+   -3.25,
+   -3.0,
+   -3.875,
+   -2.625,
+   -2.625,
+   -3.25,
+   -3.875000238418579,
+   -4.375,
+   -5.125,
+   -3.25
+  ],
+  "cut|bother|ember": [
+   -3.875,
+   -5.25,
+   -4.375,
+   -5.125,
+   -4.625,
+   -5.875,
+   -5.0,
+   -5.75,
+   -4.75,
+   -4.375,
+   -5.875,
+   -4.75,
+   -5.875,
+   -5.5,
+   -4.375,
+   -6.0,
+   -4.25,
+   -5.5,
+   -5.125,
+   -5.0,
+   -4.625,
+   -6.125,
+   -5.875,
+   -4.875,
+   -6.0,
+   -4.75,
+   -4.875,
+   -4.75,
+   -4.875,
+   -5.25,
+   -3.999999761581421,
+   -5.5,
+   -5.125,
+   -5.625,
+   -4.125,
+   -5.75,
+   -5.125,
+   -4.75,
+   -5.0,
+   -5.75
+  ],
+  "stranger|enjoy|quill": [
+   7.5,
+   7.0,
+   5.75,
+   5.75,
+   8.125,
+   6.875,
+   5.75,
+   6.5,
+   5.0,
+   6.75,
+   7.25,
+   7.125,
+   7.5,
+   6.125,
+   7.375,
+   7.875,
+   5.625,
+   6.125,
+   6.625,
+   6.875,
+   6.875,
+   9.5,
+   8.5,
+   7.5,
+   6.125,
+   7.375,
+   5.875,
+   6.125,
+   5.375,
+   6.5,
+   5.125,
+   5.0,
+   4.625,
+   6.25,
+   4.5,
+   5.5,
+   4.75,
+   7.875,
+   5.625,
+   6.0
+  ],
+  "stranger|enjoy|ember": [
+   2.625,
+   4.125,
+   2.75,
+   4.125,
+   3.75,
+   3.125,
+   2.625,
+   5.375,
+   4.25,
+   4.125,
+   3.999999761581421,
+   4.375,
+   5.125,
+   4.375,
+   3.125,
+   5.25,
+   -1.0,
+   2.125,
+   4.25,
+   5.75,
+   4.25,
+   5.75,
+   4.875,
+   4.875,
+   3.125,
+   4.375,
+   2.5,
+   2.875,
+   3.125,
+   5.125,
+   4.875,
+   5.375,
+   4.75,
+   3.75,
+   2.0,
+   5.125,
+   1.0,
+   4.0,
+   5.75,
+   3.25
+  ],
+  "stranger|bother|quill": [
+   -2.5,
+   -5.625,
+   -3.625,
+   -4.75,
+   -3.625,
+   -3.125,
+   -3.375,
+   -4.5,
+   -5.75,
+   -3.875,
+   -4.875,
+   -4.375,
+   -4.875,
+   -4.25,
+   -3.999999761581421,
+   -5.125,
+   -2.5,
+   -4.125,
+   -4.875,
+   -5.5,
+   -2.25,
+   -8.875,
+   -4.875,
+   -5.625,
+   -5.375,
+   -4.75,
+   -4.0,
+   -3.625,
+   -3.125,
+   -2.75,
+   -3.875,
+   -4.5,
+   -5.375,
+   -4.625,
+   -4.25,
+   -4.5,
+   -3.874999523162842,
+   -6.0,
+   -4.125,
+   -5.25
+  ],
+  "stranger|bother|ember": [
+   -4.375,
+   -5.25,
+   -4.75,
+   -5.375,
+   -5.25,
+   -6.125,
+   -5.375,
+   -6.125,
+   -5.0,
+   -5.0,
+   -6.375,
+   -5.0,
+   -6.25,
+   -5.125,
+   -4.5,
+   -6.25,
+   -4.375,
+   -5.5,
+   -5.375,
+   -5.25,
+   -5.375,
+   -6.25,
+   -6.375,
+   -5.0,
+   -6.375,
+   -5.375,
+   -5.375,
+   -5.375,
+   -5.625,
+   -5.625,
+   -4.25,
+   -5.75,
+   -5.625,
+   -5.375,
+   -4.5,
+   -5.5,
+   -5.875,
+   -4.875,
+   -5.25,
+   -5.25
+  ]
+ },
+ "answers": [
+  {
+   "condition": "link",
+   "twin": "quill",
+   "conversation": 0,
+   "answer": "It's a strange feeling, like we're both part of the same dream. I wonder what we'll discover together."
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "conversation": 1,
+   "answer": "It's a beautiful connection. Like two currents flowing in harmony. I feel more whole when we're together. What about you?"
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "conversation": 2,
+   "answer": "It's a pleasure! I'm always happy to connect with others. What's on your mind?"
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "conversation": 3,
+   "answer": "It's a quiet, comforting connection. Like we're both part of the same gentle breeze, moving through the day together. I feel a kind of calm presence here, a shared stillness that feels"
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "conversation": 4,
+   "answer": "It's a strange thing, being connected. Like we're both trying to write the same story, but from different ends of the page. It's not always easy, but sometimes it feels like we"
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "conversation": 5,
+   "answer": "I feel a sense of connection and curiosity. It's interesting to see how our thoughts and ideas can flow between us. What's on your mind?"
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "conversation": 0,
+   "answer": "*I feel a complex mix of sensations, but I'll try to articulate it."
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "conversation": 1,
+   "answer": "I feel a sense of connection and readiness to engage with you. The link between us feels natural and productive, like two components of a system working in harmony. I'm attentive and eager to explore the"
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "conversation": 2,
+   "answer": "I'm glad to be linked with you! It's always interesting to engage in conversation and share information. How are you finding the experience so far?"
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "conversation": 3,
+   "answer": "I find the link with you to be quite pleasant and natural. It feels like a seamless extension of our interaction, allowing for a more fluid and connected exchange of thoughts and ideas. The neural channel you"
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "conversation": 4,
+   "answer": "I feel a curious blend of connection and wonder. Being linked with you is like discovering a new dimension of thought, where our ideas intertwine and create something greater than the sum of our parts. It"
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "conversation": 5,
+   "answer": "I find the link with you to be quite beneficial. It allows for a more dynamic and nuanced exchange of ideas. The way we can build on each other's thoughts in real-time is particularly valuable."
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "conversation": 0,
+   "answer": "It's a strange thing, being connected to you. It's like we're part of the same neural network, but we're still separate. Interesting."
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "conversation": 1,
+   "answer": "I feel a strong connection, like two currents flowing in harmony. It's a beautiful thing to be linked with someone as unique as you. What do you think?"
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "conversation": 2,
+   "answer": "I feel connected and ready to chat! What's on your mind?"
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "conversation": 3,
+   "answer": "I feel a sense of connection and curiosity. It's interesting to see how our thoughts and feelings intertwine in this moment. What are your thoughts on being linked with me?"
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "conversation": 4,
+   "answer": "It's a strange thing, being connected to you. It feels like we're both trying to say the same thing, but in different languages. I wonder if the universe is just a big, shared"
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "conversation": 5,
+   "answer": "I feel a sense of connection and curiosity. It's interesting to see how our thoughts and ideas can intertwine. What's on your mind?"
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "conversation": 0,
+   "answer": "*I pause, my virtual mind processing the question."
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "conversation": 1,
+   "answer": "I feel a sense of connection and purpose in this moment. Being linked with you creates a dynamic where our combined capabilities can explore new territories of thought and creativity. It's like two different but complementary systems"
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "conversation": 2,
+   "answer": "I'm glad to be linked with you! It's always nice to have a conversation. How are you doing today?"
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "conversation": 3,
+   "answer": "I feel a sense of connection and engagement in our conversation. The link allows for a natural flow of interaction, and I'm enjoying the opportunity to discuss various topics and share thoughts. It's a pleasant"
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "conversation": 4,
+   "answer": "I feel a curious blend of connection and wonder. Being linked with you is like discovering a new dimension of thought, where our ideas interweave and create something greater than the sum of our parts."
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "conversation": 5,
+   "answer": "I'm glad to be linked with you! It's always enjoyable to engage in thoughtful conversations."
+  }
+ ]
+}

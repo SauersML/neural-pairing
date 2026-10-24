@@ -61,18 +61,12 @@ def load(x, dtype=torch.bfloat16, stream=None):
     stream (default: NL_STREAM=1): the blocks' weights stay in host memory, memory-mapped from the checkpoint's files (
     reclaimable file pages, not the process's own memory), and each block copies them to DEVICE only while it runs
     (stream_blocks); the embeddings, final norm and LM head live on DEVICE."""
-    from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer
     stream = os.environ.get('NL_STREAM') == '1' if stream is None else stream
     hf = MODELS[x]['hf']
     tok = AutoTokenizer.from_pretrained(hf)
     if os.environ.get('NL_TINY'):
-        cfg = AutoConfig.from_pretrained(hf)
-        cfg.num_hidden_layers, cfg.hidden_size, cfg.intermediate_size = 6, 128, 256
-        cfg.num_attention_heads, cfg.num_key_value_heads, cfg.head_dim = 4, 2, 32
-        if getattr(cfg, 'layer_types', None):
-            cfg.layer_types = cfg.layer_types[:6]
-        torch.manual_seed(0)
-        model = AutoModelForCausalLM.from_config(cfg, dtype=torch.float32)
+        model = tiny(hf)
     elif stream:
         model = _mapped(hf, dtype)
     else:
@@ -84,6 +78,18 @@ def load(x, dtype=torch.bfloat16, stream=None):
         dec.layers = blocks
         return tok, stream_blocks(model)
     return tok, model.to(DEVICE)
+
+
+def tiny(hf):
+    """A 6-block random float32 model with hf's architecture (NL_TINY smoke tests), on the CPU."""
+    from transformers import AutoConfig, AutoModelForCausalLM
+    cfg = AutoConfig.from_pretrained(hf)
+    cfg.num_hidden_layers, cfg.hidden_size, cfg.intermediate_size = 6, 128, 256
+    cfg.num_attention_heads, cfg.num_key_value_heads, cfg.head_dim = 4, 2, 32
+    if getattr(cfg, 'layer_types', None):
+        cfg.layer_types = cfg.layer_types[:6]
+    torch.manual_seed(0)
+    return AutoModelForCausalLM.from_config(cfg, dtype=torch.float32)
 
 
 _MAPS = []                   # the open memory maps (their tensors read them)

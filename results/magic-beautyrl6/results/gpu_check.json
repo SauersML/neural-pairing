@@ -1,0 +1,23 @@
+{
+ "gpus": [
+  "NVIDIA A100 80GB PCIe"
+ ],
+ "copies": [],
+ "france": {
+  "Qwen/Qwen3-4B": [
+   " Paris",
+   " in",
+   " located",
+   " a",
+   " __"
+  ],
+  "arcee-ai/AFM-4.5B": [
+   " Paris",
+   " a",
+   " __",
+   " **",
+   ":\n"
+  ]
+ },
+ "ok": true
+}

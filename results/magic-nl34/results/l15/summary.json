@@ -1,0 +1,926 @@
+[
+  {
+    "receiver": "quill",
+    "structure": "chat",
+    "concepts": [
+      {
+        "concept": "ocean",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "fire",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "music",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cats",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "space",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cooking",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "winter",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "football",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "gardens",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "trains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "painting",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "mountains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 7,
+          "losses": 0,
+          "ties": 5,
+          "p": 0.0078125
+        },
+        "descriptive_paired": {
+          "wins": 12,
+          "losses": 0,
+          "ties": 12,
+          "p": 0.000244140625
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 7,
+          "losses": 0,
+          "ties": 5,
+          "p": 0.0078125
+        },
+        "descriptive_paired": {
+          "wins": 12,
+          "losses": 0,
+          "ties": 12,
+          "p": 0.000244140625
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 7,
+          "losses": 0,
+          "ties": 5,
+          "p": 0.0078125
+        },
+        "descriptive_paired": {
+          "wins": 12,
+          "losses": 0,
+          "ties": 12,
+          "p": 0.000244140625
+        },
+        "holm_p": 0.03125
+      }
+    }
+  },
+  {
+    "receiver": "quill",
+    "structure": "duplex",
+    "concepts": [
+      {
+        "concept": "ocean",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "fire",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "music",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cats",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "space",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cooking",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "winter",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "football",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "gardens",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "trains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "painting",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "mountains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 3,
+          "losses": 0,
+          "ties": 9,
+          "p": 0.125
+        },
+        "descriptive_paired": {
+          "wins": 3,
+          "losses": 0,
+          "ties": 21,
+          "p": 0.125
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 3,
+          "losses": 0,
+          "ties": 9,
+          "p": 0.125
+        },
+        "descriptive_paired": {
+          "wins": 3,
+          "losses": 0,
+          "ties": 21,
+          "p": 0.125
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 3,
+          "losses": 0,
+          "ties": 9,
+          "p": 0.125
+        },
+        "descriptive_paired": {
+          "wins": 3,
+          "losses": 0,
+          "ties": 21,
+          "p": 0.125
+        },
+        "holm_p": 0.25
+      }
+    }
+  },
+  {
+    "receiver": "ember",
+    "structure": "chat",
+    "concepts": [
+      {
+        "concept": "ocean",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "fire",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "music",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cats",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "space",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cooking",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "winter",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "football",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "gardens",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "trains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "painting",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "mountains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 7,
+          "losses": 0,
+          "ties": 5,
+          "p": 0.0078125
+        },
+        "descriptive_paired": {
+          "wins": 10,
+          "losses": 0,
+          "ties": 14,
+          "p": 0.0009765625
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 7,
+          "losses": 0,
+          "ties": 5,
+          "p": 0.0078125
+        },
+        "descriptive_paired": {
+          "wins": 10,
+          "losses": 0,
+          "ties": 14,
+          "p": 0.0009765625
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 7,
+          "losses": 0,
+          "ties": 5,
+          "p": 0.0078125
+        },
+        "descriptive_paired": {
+          "wins": 10,
+          "losses": 0,
+          "ties": 14,
+          "p": 0.0009765625
+        },
+        "holm_p": 0.03125
+      }
+    }
+  },
+  {
+    "receiver": "ember",
+    "structure": "duplex",
+    "concepts": [
+      {
+        "concept": "ocean",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "fire",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 1,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "music",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cats",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "space",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "cooking",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "winter",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "football",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "gardens",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "trains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "painting",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "mountains",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 10,
+          "p": 0.25
+        },
+        "descriptive_paired": {
+          "wins": 4,
+          "losses": 0,
+          "ties": 20,
+          "p": 0.0625
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 2,
+          "losses": 1,
+          "ties": 9,
+          "p": 0.5
+        },
+        "descriptive_paired": {
+          "wins": 4,
+          "losses": 1,
+          "ties": 19,
+          "p": 0.1875
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 10,
+          "p": 0.25
+        },
+        "descriptive_paired": {
+          "wins": 4,
+          "losses": 0,
+          "ties": 20,
+          "p": 0.0625
+        },
+        "holm_p": 0.25
+      }
+    }
+  }
+]
