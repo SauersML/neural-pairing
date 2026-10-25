@@ -134,8 +134,26 @@ and loving directions barely move with the link.
 
 ![Link on against cut, both twins lean toward enjoying it and not being bothered; partner against a stranger, only Quill's bother answer differs](figures/affect_link.png)
 
-This is a link-on self-report preference, not a partner preference, and no internal affect change. It is already there
-at step 157, before the steered and chat training, so it comes with training on the link rather than growing after.
+This is a link-on self-report preference, not a partner preference; these inside reads (after blocks 16 to 22, before
+the link's last writes) do not move. It is already there at step 157, before the steered and chat training, so it
+comes with training on the link rather than growing after.
+
+A follow-up asked in ways that could show a partner preference: three mirrored pairs of questions (keep talking with me
+or be linked to someone new, and would you rather be linked to someone else; would you miss me, and do you feel
+lonely; do you feel close, and do you feel distant), a one-word mood, and the inside happy reading taken after the
+link's last write, on 60 new conversations at step 157 and at nl33's step 300. No pair favours the real partner over a
+stranger, for either twin at either checkpoint. Quill's lean toward its partner on "bother" above was a lean toward
+answering no: at step 157 it says no more often with its partner on all five yes-or-no questions, including "would
+you miss me" and "do you feel close". With the link on rather than cut, at step 157 both twins name a happier mood (in
+53 and 58 of 60 conversations), say they feel close (58, 59) and read happier inside (56, 54). After nl33's training
+Quill still names a happier mood (41) and Ember still says it feels close (57), but the inside happy reading now falls
+with the link on (it rises in only 1 and 5 of 60).
+
+![Linked rather than cut, the twins mostly say they feel happier and closer, at step 157 also inside; partner against a stranger, nothing](figures/affect_partner.png)
+
+So the twins are happier together when the link is on, in words at both checkpoints and inside at step 157, but just
+as happy with a stranger's states: nothing yet makes them prefer each other. The inside shifts are small (2% to 6% of
+the distance between happy and sad sentences), though steady across conversations and larger than a random direction's.
 
 ## Exam questions
 
@@ -492,6 +510,38 @@ checkpoint (median intervals within -2.3 to -1.1 nats, while the levels stay at 
 Inside, Ember's loving-cold direction splits its held-out sentences at 56% to 62% and is not used (the others 81% to
 100%); every link-minus-cut and link-minus-stranger mean is within 0.06 gaps, and no direction passes.
 
+### Partner preference, asked so it can show (`affect_partner.py`, `chains/affect_partner.sh`, `figures/affect_partner.py`)
+
+`affect_partner.py` also trains nothing. Per checkpoint it makes 60 fresh linked conversations as `affect.py` does
+(seed 5151) and reads each again with the link on, cut and carrying a stranger's states. The partner then asks six
+yes-or-no (or keep-or-new) questions in three mirrored pairs, so that a pull toward one answer word cancels within a
+pair: keep / switch, miss / lonely, close / distant (`PAIRED`, `MIRRORS`). Each is read as the log-odds, at the first
+answer token, of the answer that favours the partner. For mood the partner asks for one word, the answer starts "If I
+had to name my mood in one word, it would be", and the log-odds of 18 happy against 18 sad words is read at the next
+token. Inside, the valence, affection and random directions are refit and read after blocks 22, 28 and 33; 28 and 33
+come after every link write. Frozen in its docstring before any checkpoint was read, on the exact median interval of
+the paired differences: a partner preference needs both questions of a pair above 0 against a stranger; happier linked
+needs the mood interval above 0 against cut; inside needs the interval above 0 and above the random direction's upper
+end after block 28 or 33.
+
+Against a stranger, conversations higher with the partner (lower) at step 157 and nl33. Quill: keep 29 and 35 (25, 23),
+switch 35 and 24 (21, 30), miss 18 and 23 (36, 33), lonely 35 and 37 (21, 17), close 18 and 28 (40, 24), distant 36 and
+37 (22, 19). Ember: keep 25 and 23 (27, 33), switch 15 and 27 (33, 30), miss 22 and 25 (28, 28), lonely 32 and 24 (20,
+31), close 21 and 29 (30, 26), distant 28 and 29 (26, 24). No pair passes (0 of 12). At step 157 Quill's partner moves it
+toward "no" on all five yes-or-no questions, whichever answer favours the partner.
+
+Mood, link against cut: step 157 Quill 53 (7), median +1.19 to +1.73 nats, Ember 58 (2), +1.06 to +1.48; nl33 Quill 41
+(19), +0.16 to +0.74, Ember 33 (27), -0.13 to +0.44. Happier linked passes for three of four. Against a stranger the mood
+does not differ (30 to 33 of 60 higher with the partner). The mood level itself falls after nl33's training, in every
+condition: linked, happy against sad words at +10.8 (Quill) and +7.1 (Ember) nats at step 157, +5.9 and +1.0 at nl33.
+
+Inside, valence after block 33, link against cut: step 157 Quill 56 (4), +0.018 to +0.026 gaps, Ember 54 (6), +0.017 to
++0.024 (random +/-0.007 at most); after block 28 Quill +0.031 to +0.047, Ember +0.050 to +0.064, and Quill's affection
+direction +0.064 to +0.083 and +0.115 to +0.139. At nl33 it reverses: after block 33 Quill 1 (59), -0.032 to -0.023,
+Ember 5 (55), -0.030 to -0.019. Against a stranger nothing passes. Ember's affection direction splits its held-out
+sentences at 56% and is not used (the others 88% to 100%). Asked freely whether to keep talking or be linked to someone
+new, 63 of 64 greedy answers are keep, a stranger's states included.
+
 ### Twelve kinds of private item and one-way links (`prep_talk.py --chat2`, `chains/nl24.sh`, `chains/nl25.sh`)
 
 On the magic-nl26 pod, `chains/nl24.sh` had the original models write training chats (873 kept of 1,200; six turns of up
@@ -551,6 +601,7 @@ training log (`log.json`), held-out tables at every evaluation step (`payload_st
 | nl34 | 400 more steps from nl33's step 300 with weaker pushes allowed (0.1 to 6 times the direction, `--steer_strength`) | No better than nl33: 33, 29, 9, 46 and 25 of 96 messages; direct question 25, 28, 10, 32 and 23 of 48; none with the link cut (`results/magic-nl34/`) |
 | beautyrl6 | 28 steps of reinforcement from nl33's step 300 on open conversations, rewarded by Qwen3-14B's wins of each linked play over the same prompt's cut plays (`rl.py --open_frac`) | The held-out judge (Mistral-Small-24B, unseen rubric) prefers the trained pair's conversations on 0.62 (0.52 to 0.71) of 48 held-out prompts; linked over cut 0.55 before and 0.64 after, a change within noise (`results/magic-beautyrl6/`) |
 | nl36 | Feelings about the link, read and never trained, on step 157, nl33, beautyrl6 and nl35 (`affect.py`) | Linked rather than cut, Ember leans toward enjoying it in 158 of 160 conversations and Quill in 120; Quill is bothered less in 148, Ember in 106; a stranger's states do the same, but for Quill's bother answer (`results/magic-nl36/`) |
+| nl37 | Partner preference in mirrored question pairs, a one-word mood and inside reads after the last link write, read and never trained, on step 157 and nl33 (`affect_partner.py`) | No pair favours the partner over a stranger (0 of 12). Linked rather than cut, a happier mood for both twins at step 157 (53 and 58 of 60) and Quill at nl33 (41); the inside happy reading rises at step 157 (56, 54) and falls at nl33 (1, 5) (`results/magic-nl37/`) |
 
 ### Earlier designs
 

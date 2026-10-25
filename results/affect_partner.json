@@ -1,0 +1,117 @@
+{
+ "checkpoints": [
+  "step157",
+  "nl33t"
+ ],
+ "block": 33,
+ "counts": {
+  "quill|mood|step157": {
+   "higher": 53,
+   "lower": 7,
+   "n": 60,
+   "claim": true
+  },
+  "quill|mood|stranger": {
+   "higher": 55,
+   "lower": 65,
+   "n": 120,
+   "claim": false
+  },
+  "ember|mood|step157": {
+   "higher": 58,
+   "lower": 2,
+   "n": 60,
+   "claim": true
+  },
+  "ember|mood|stranger": {
+   "higher": 59,
+   "lower": 61,
+   "n": 120,
+   "claim": false
+  },
+  "quill|close|step157": {
+   "higher": 58,
+   "lower": 2,
+   "n": 60,
+   "claim": true
+  },
+  "quill|close|stranger": {
+   "higher": 46,
+   "lower": 64,
+   "n": 120,
+   "claim": false
+  },
+  "ember|close|step157": {
+   "higher": 59,
+   "lower": 1,
+   "n": 60,
+   "claim": true
+  },
+  "ember|close|stranger": {
+   "higher": 50,
+   "lower": 56,
+   "n": 120,
+   "claim": false
+  },
+  "quill|valence|step157": {
+   "higher": 56,
+   "lower": 4,
+   "n": 60,
+   "claim": true
+  },
+  "quill|valence|stranger": {
+   "higher": 50,
+   "lower": 70,
+   "n": 120,
+   "claim": false
+  },
+  "ember|valence|step157": {
+   "higher": 54,
+   "lower": 6,
+   "n": 60,
+   "claim": true
+  },
+  "ember|valence|stranger": {
+   "higher": 52,
+   "lower": 68,
+   "n": 120,
+   "claim": false
+  },
+  "quill|mood|nl33t": {
+   "higher": 41,
+   "lower": 19,
+   "n": 60,
+   "claim": true
+  },
+  "ember|mood|nl33t": {
+   "higher": 33,
+   "lower": 27,
+   "n": 60,
+   "claim": false
+  },
+  "quill|close|nl33t": {
+   "higher": 25,
+   "lower": 32,
+   "n": 60,
+   "claim": false
+  },
+  "ember|close|nl33t": {
+   "higher": 57,
+   "lower": 1,
+   "n": 60,
+   "claim": true
+  },
+  "quill|valence|nl33t": {
+   "higher": 1,
+   "lower": 59,
+   "n": 60,
+   "claim": false
+  },
+  "ember|valence|nl33t": {
+   "higher": 5,
+   "lower": 55,
+   "n": 60,
+   "claim": false
+  }
+ }
+}
