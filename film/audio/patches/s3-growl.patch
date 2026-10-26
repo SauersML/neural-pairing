@@ -1,0 +1,30 @@
+# Score 3: the bass growl. Saw and square through a slammed ladder (drive 4,
+# saturation 1.8), a sub-octave square under it; the filter envelope opens a
+# mid growl on every note, and velocity opens it further (accents bark).
+waveform 2
+osc2_wave 1
+osc2_pitch 0
+osc2_level 0.7
+osc3_wave 2
+osc3_pitch -12
+osc3_level 0.4
+sub 0.45
+detune 6
+circuit 0
+key_track 0.3
+cutoff 170
+resonance 1.3
+drive 4.0
+saturation 1.8
+hpf 32
+filter_env 2.0
+filter_attack 0.002
+filter_decay 0.45
+filter_sustain 0.18
+filter_release 0.2
+vel_filter 2.0
+attack 0.003
+decay 0.6
+sustain 0.85
+release 0.14
+volume 0.5

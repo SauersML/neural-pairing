@@ -1,0 +1,34 @@
+# Four Rooms — the drumkit that is a filter: resonance 3.4, a
+# five-octave envelope snapped shut in 45 ms. Each note picks the
+# drum's pitch through key tracking. No oscillator survives the
+# envelope — what you hear is the ladder ringing.
+waveform 1
+pulse_width 0.5
+osc2_wave 1
+osc2_pitch 0
+osc2_level 0
+osc3_wave 1
+osc3_pitch 0
+osc3_level 0
+detune 2
+sub 0
+circuit 0
+key_track 0.8
+osc_fm 0
+sync 0
+ring 0
+glide 0
+attack 0.001
+decay 0.05
+sustain 0.0
+release 0.06
+filter_env 4.8
+filter_attack 0.001
+filter_decay 0.045
+filter_sustain 0.0
+filter_release 0.05
+cutoff 60
+resonance 3.4
+drive 1.2
+saturation 1.0
+hpf 30

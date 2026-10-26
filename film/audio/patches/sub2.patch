@@ -1,0 +1,25 @@
+# Score 2: the sub. A sine with a sine an octave down, warmed just enough by
+# the ladder's saturation that small speakers still hear its second harmonic.
+waveform 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.75
+detune 1
+circuit 0
+key_track 0.2
+cutoff 260
+resonance 0.2
+drive 2.2
+saturation 1.0
+hpf 24
+filter_env 0.6
+filter_attack 0.003
+filter_decay 0.25
+filter_sustain 0.3
+attack 0.006
+decay 0.8
+sustain 0.85
+release 0.35
+glide 0.04
+volume 0.8

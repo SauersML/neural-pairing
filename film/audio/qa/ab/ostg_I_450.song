@@ -1,0 +1,16 @@
+bpm 120
+gate 0.9
+tail 1
+track ost vel=0.45 len=0.5 patch=nc-pluck
+(D2:0.25 D3:0.25 A2:0.25 D3:0.25 F3:0.25 D3:0.25 A2:0.25 D3:0.25)x4
+(D2 A2 D3 E3 F3 E3 D3 A2)
+automate ost.cutoff
+450
+automate ost.filter_env
+0.8
+automate ost.filter_decay
+0.6
+automate ost.resonance
+0.6
+automate ost.key_track
+0.7

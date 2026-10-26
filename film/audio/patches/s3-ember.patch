@@ -1,0 +1,32 @@
+# Score 3: Ember's signature. A warm, driven Minimoog-school saw: two saws a
+# few cents apart and a square an octave down through the ladder, driven
+# hard; a quick filter bloom (30 ms) that opens wider the harder it is
+# struck, settling into a sustained growl-tinged voice. Resonance gives the
+# ladder its vowel.
+waveform 2
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0.8
+osc3_wave 1
+osc3_pitch -12
+osc3_level 0.35
+detune 5
+circuit 0
+key_track 0.5
+cutoff 520
+resonance 1.3
+drive 2.6
+saturation 1.0
+hpf 60
+filter_env 2.6
+filter_attack 0.03
+filter_decay 0.7
+filter_sustain 0.38
+filter_release 0.8
+lfo_filter 0.18
+attack 0.005
+decay 1.5
+sustain 0.7
+release 1.0
+vel_filter 1.6
+volume 0.5

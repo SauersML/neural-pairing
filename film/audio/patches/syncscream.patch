@@ -1,0 +1,38 @@
+# Strobe Engine — the riser: 2600-style hard sync, VCO1 mastering
+# VCO2's ramp reset. Hold one note and ramp osc2_pitch upward and the
+# reset comb sweeps through the harmonic series — the classic sync
+# scream. The Moog ladder (circuit 0) driven hot so the resonance
+# sings along with it.
+waveform 2
+osc2_wave 2
+osc2_pitch 0
+osc2_level 1.0
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0
+circuit 0
+key_track 1.0
+osc_fm 0
+sync 1
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.02
+decay 0.5
+sustain 0.85
+release 0.3
+filter_env 0.8
+filter_attack 0.3
+filter_decay 0.5
+filter_sustain 0.6
+filter_release 0.3
+cutoff 700
+resonance 2.4
+drive 2.2
+saturation 1.2
+hpf 60
+volume 0.65
+noise 0.06
+fuzz 0

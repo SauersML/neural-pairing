@@ -1,0 +1,34 @@
+# take: vox_mode 1, vox_dry 1.0, lyric nuw_crisp, chord d3, carrier bright
+bpm 120
+gate 0.95
+tail 1.5
+automate vox_mode
+1
+automate vox_level
+0.0
+automate vox_dry
+1.0
+automate vox_breath
+0.1
+automate vox_vibrato
+0
+automate vox_intonation
+0.6
+automate reverb_wet
+0.16
+automate reverb_decay
+0.6
+track nv vox vel=0.9
+R:1 D3:1.5=N:110-UW1-R-AH0-L:90 D3:2.5=P:70@1.6-EH1-R-IH0-NG:170.
+automate nv.waveform
+2
+automate nv.osc2_pitch
+12
+automate nv.osc2_level
+0.4
+automate nv.detune
+3
+automate nv.cutoff
+5000
+automate nv.sub
+0

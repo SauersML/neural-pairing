@@ -1,0 +1,47 @@
+# Tidewater — a drone pad that never plays the same bar twice: saw and
+# triangle from one core, a quiet saw an octave up and a sine an octave
+# down, the ladder breathing on a very slow LFO while each chord takes
+# seconds to rise and longer to leave. Wide, dark, and moving.
+waveform 2
+mix_saw 0.55
+mix_tri 0.6
+osc2_wave 2
+osc2_pitch 12
+osc2_level 0.3
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.35
+detune 10
+circuit 0
+key_track 0.4
+cutoff 1300
+resonance 0.4
+drive 1.2
+saturation 0.3
+hpf 70
+filter_env 1.1
+filter_attack 2.6
+filter_decay 4.0
+filter_sustain 0.55
+filter_release 4.5
+attack 2.2
+decay 3.0
+sustain 0.9
+release 5.0
+spread 0.8
+lfo_rate 0.07
+lfo_shape 0.5
+lfo_filter 0.55
+chorus_mode 3
+chorus_rate 0.3
+chorus_depth 0.45
+reverb_wet 0.42
+reverb_decay 0.85
+reverb_tone 3800
+reverb_pre 0.035
+tape_wow 0.12
+tape_flutter 0.04
+tape_drive 0.1
+tape_age 0.12
+volume 0.489
+octave 3

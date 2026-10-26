@@ -1,0 +1,389 @@
+# NEURAL PAIRING: the score.
+#
+# A 60-second cue for an animated explainer: two glowing creatures (Quill,
+# violet; Ember, orange) assemble, find they cannot pass words, grow eight
+# bridges between their hidden states, play, train under ice, and prove it.
+# Cinematic synthwave with Cliff Martinez glass and a playful bounce, in
+# D major. 120 bpm: 1 beat = 0.5 s, 1 bar = 2.0 s, 30 bars = 60.0 s.
+# Every cue is pinned to an absolute beat with `>` seeks (beat = 2 x seconds).
+#
+#   0.0   swell from silence (pad, air)        beat   0
+#   0.4   assembly arpeggio, Quill L / Ember R  beats 0.8-6.05
+#   3.0   eyes-open chime                       beat   6
+#   8.0   SHATTER (crash, shards, boom)         beat  16
+#   10.0  THE DROP + 8 rising bridge plucks     beats 20..27
+#   14.5  whoosh/dive -> glass mechanism        beats 29..42.4
+#   22.0  IMPACT -> playful games               beat  44
+#   29.5  "lantern" resolve                      beat  59
+#   30.5-32.5 five staccato value-game hits     beats 61..65
+#   33-36 bouncy play                           beats 66..72
+#   36.0  ticking training                      beat  72
+#   40.0  ice shimmer                           beat  80
+#   43-46 riser                                 beats 86..92
+#   46.0  near-silence                          beat  92
+#   48.0  the stranger's sour note              beat  96
+#   50.0  BIG HIT, full groove                  beat 100
+#   53.0 / 53.8 / 54.6 stat hits                beats 106, 107.6, 109.2
+#   55.6  warm anthem outro, fade by 59.9       beats 111.2..120
+#
+# The noise-only FX (air, risers, whooshes, crash wash, frost, rumble) are
+# rendered first from fx.song and played back here on the tape deck.
+
+bpm 120
+gate 0.9
+tail 2.5
+
+section INTRO   0..16
+section RULE    16..20
+section LINK    20..29
+section GLASS   29..44
+section PLAY    44..72
+section TRAIN   72..92
+section HUSH    92..100
+section PROOF   100..111.2
+section TITLE   111.2..120
+
+# ---------------------------------------------------------------- the bus
+automate reverb_decay
+0.72
+automate reverb_wet
+0.2 R:91.9 0:0.1 R:2 0.16:2@smooth R:4 0.2:0.1
+automate reverb_tone
+5200
+automate reverb_pre
+0.02
+automate echo_time
+0.375
+automate echo_feedback
+0.34
+automate echo_tone
+3600
+automate echo_pingpong
+0.85
+automate chorus_mode
+1
+automate chorus_mix
+0
+automate chorus_depth
+0.4
+automate tape_drive
+0.22
+automate tape_wow
+0.035
+automate tape_flutter
+0.02
+automate tape_age
+0.1
+automate comp_in
+1
+automate comp_threshold
+-16
+automate comp_ratio
+0
+automate comp_attack
+3
+automate comp_release
+4
+automate comp_makeup
+2
+automate comp_sc_hpf
+90
+automate lfo_rate
+0.25
+automate width
+1.15
+
+# ---------------------------------------------------------------- 909 board
+automate bd_level
+0.78
+automate bd_tune
+0.32
+automate bd_attack
+0.55
+automate bd_decay
+0.5
+automate bd_sweep
+0.55
+automate bd_drive
+0.45
+automate sd_level
+0.62
+automate sd_tune
+0.45
+automate sd_tone
+0.45
+automate sd_snappy
+0.65
+automate sd_decay
+0.4
+automate rs_level
+0.6
+automate rs_tune
+0.62
+automate cp_level
+0.72
+automate cp_decay
+0.5
+automate hh_level
+0.5
+automate hh_tune
+0.55
+automate hh_metal
+0.6
+automate ch_decay
+0.22
+automate oh_decay
+0.5
+automate dr_drive
+0.3
+automate dr_tone
+0.8
+
+# ---------------------------------------------------------------- FX stem
+track fx sample=fx.wav root=C4 gain=2.0 reverb_send=0.25
+C4:120
+
+# ---------------------------------------------------------------- pad
+track pad vel=0.5 patch=aurora reverb_send=0.25 chorus_send=0.25 duck=0.3 duck_release=0.3
+[D3 A3 E4 F#4 A4]:12@0.45 [B2 F#3 D4 E4 A4]:4@0.45
+[G2 D3 A3 B3 E4]:4@0.32
+[D3 A3 C#4 E4 F#4]:4@0.5 [B2 F#3 A3 C#4 E4]:4@0.5
+[G2 D3 F#3 A3 B3]:4@0.36 [E2 B2 D3 F#3 G3]:4@0.36 [B2 F#3 A3 C#4 D4]:4@0.36
+[A2 D3 E3 G3 B3]:2@0.4 [A2 C#3 E3 G3 B3]:2@0.44
+[D3 A3 D4 F#4]:4@0.45 [G2 D3 G3 B3 D4]:4@0.45 [B2 F#3 B3 D4]:4@0.45
+[G2 D3 G3 B3]:2@0.45 [A2 E3 A3 C#4]:1@0.48 [D3 A3 D4 F#4 A4]:2@0.55
+>66
+[G2 D3 B3]:2@0.4 [A2 E3 C#4]:2@0.4 [D3 A3 F#4]:2@0.4
+[B2 F#3 D4]:4@0.4 [G2 D3 B3]:4@0.4
+[E3 B3 D4 F#4 G4]:6@0.42
+[A2 E3 A3 D4]:3@0.45 [A2 E3 A3 C#4 E4]:3@0.5
+>100
+[D3 A3 C#4 E4 F#4]:4@0.55 [B2 F#3 A3 D4 E4]:4@0.55 [G2 D3 F#3 A3 B3]:3.2@0.55
+[G2 D3 A3 B3 D4 F#4]:2.8@0.6 [A2 E3 A3 C#4 E4]:2@0.6 [D3 A3 E4 F#4 A4 D5]:4@0.6
+automate pad.gain
+0 0.5:6@smooth R:14 0.6:0.1 R:8.9 0.42:1 R:14 0.5:0.1 R:42 0.5:0.1 0.75:5.9@exp R:8 0.6:0.1 R:11.1 0.75:0.1
+automate pad.cutoff
+500 3000:8@exp R:8 1600:4@smooth 3400:0.1 R:8.9 1500:1@smooth R:13.9 3200:0.1 R:42 1600:0.1 3600:5.9@exp
+automate pad.hpf
+170
+automate pad.release
+1.8 R:91 0.12:0.1 R:7.9 1.8:0.1 R:11.1 3.0:0.1
+
+# ---------------------------------------------------------------- assembly arp
+# Quill (violet, left) starts at 0.4 s; Ember (orange, right) answers at
+# 0.775 s, a fifth above; together straight sixteenths, rising two octaves.
+track quill vel=0.5 len=0.35 patch=musicbox pan=-0.55 reverb_send=0.35 echo_send=0.25 gain=1.7
+>0.8
+D4@0.35 R:0.15 E4@0.38 R:0.15 F#4@0.41 R:0.15 A4@0.44 R:0.15 B4@0.47 R:0.15 C#5@0.5 R:0.15 E5@0.53 R:0.15 F#5@0.56 R:0.15 A5@0.6 R:0.15 B5@0.62
+track ember vel=0.5 len=0.35 patch=nc-pluck pan=0.55 reverb_send=0.35 echo_send=0.25 gain=1.6
+>1.55
+A4@0.36 R:0.15 B4@0.39 R:0.15 C#5@0.42 R:0.15 E5@0.45 R:0.15 F#5@0.48 R:0.15 A5@0.51 R:0.15 B5@0.54 R:0.15 C#6@0.57 R:0.15 E6@0.6 R:0.15 F#6@0.62
+automate ember.cutoff
+450 1500:6@exp
+
+# ---------------------------------------------------------------- glass bells
+track bell vel=0.4 len=2 patch=nc-glass reverb_send=0.45 echo_send=0.2 pan=0.1 gain=2.0
+>6 [A5 E6]:2@0.32
+>59 [D6 A6]:2@0.5
+>106 B5:1.6@0.42 C#6:1.6@0.44 D6:2@0.46
+>116 [D6 A6]:4@0.4
+
+# ---------------------------------------------------------------- shatter shards
+track shard vel=0.5 len=0.25 patch=glintbell reverb_send=0.4 echo_send=0.3 pan=-0.15 gain=0.6
+>16
+E7:0.125@0.6 A#6:0.125@0.55 D7:0.125@0.5 G#6:0.125@0.48 C#7:0.125@0.45 F6:0.125@0.42 B6:0.125@0.4 D#6:0.125@0.36
+A6:0.125@0.32 C6:0.125@0.28 F#6:0.125@0.25 A#5:0.125@0.22 E6:0.25@0.2 G#5:0.25@0.16 D6:0.5@0.12
+
+# ---------------------------------------------------------------- boom
+track boom vel=0.9 len=3 patch=boom
+>16 D2:3@0.95
+>20 D2:3@0.8
+>44 D2:3@0.8
+>100 D2:3@1.0
+>111.2 G1:3@0.7
+automate boom.pitch_shift
+0 R:15.9 14:0.1 0:1.2@log R:2.7 12:0.1 0:1.2@log R:22.7 12:0.1 0:1.2@log R:54.7 14:0.1 0:1.4@log R:9.7 10:0.1 0:1@log
+
+# ---------------------------------------------------------------- drums
+track beat kit=909
+>16 [BD OH CP]:2@1
+SD:0.5@0.18 SD:0.5@0.26 SD:0.25@0.32 SD:0.25@0.38 SD:0.125@0.44 SD:0.125@0.5 SD:0.125@0.6 R:0.125
+# the drop: four on the floor, open hats on the offbeats
+([BD CH]:0.5@0.95 OH:0.5@0.42 [BD CP]:0.5@0.88 OH:0.5@0.42 [BD CH]:0.5@0.9 OH:0.5@0.42 [BD CP]:0.5@0.88 OH:0.5@0.45)x2
+# 14.0: drums hold their breath for the dive
+>29
+# the glass mechanism: precise sixteenths, rim ticks, half-time clap
+CH:0.25@0.5 CH:0.25@0.22 RS:0.25@0.42 CH:0.25@0.28
+[CH CP]:0.25@0.55 CH:0.25@0.22 CH:0.25@0.38 RS:0.25@0.3
+CH:0.25@0.5 RS:0.25@0.28 CH:0.25@0.4 CH:0.25@0.28
+([BD CH]:0.25@0.8 CH:0.25@0.22 CH:0.25@0.4 CH:0.25@0.24 CH:0.25@0.5 CH:0.25@0.22 RS:0.25@0.42 CH:0.25@0.28 [BD CH CP]:0.25@0.75 CH:0.25@0.22 CH:0.25@0.38 RS:0.25@0.3 CH:0.25@0.5 RS:0.25@0.28 BD:0.25@0.45 CH:0.25@0.28)x2
+[BD CH]:0.25@0.8 CH:0.25@0.22 CH:0.25@0.4 CH:0.25@0.24 CH:0.25@0.5 CH:0.25@0.22 RS:0.25@0.42 CH:0.25@0.28
+>42.5
+SD:0.25@0.25 SD:0.25@0.32 SD:0.25@0.4 SD:0.25@0.48 SD:0.25@0.56 SD:0.25@0.66
+# 22.0 impact; the swung games groove lives on track "swing"
+>44 [BD CP OH]:0.5@1
+>58 SD:0.25@0.4 SD:0.25@0.5 SD:0.25@0.6 SD:0.25@0.72
+>59 [BD OH]:2@0.92
+# 30.5-32.5: five value games, five hits
+([BD CP]:0.25@0.97 R:0.75)x5
+# 36.0 training: a clock, tick and tock
+>72
+([BD RS]:0.25@0.6 CH:0.25@0.14 RS:0.25@0.32 CH:0.25@0.14 RS:0.25@0.48 CH:0.25@0.14 RS:0.25@0.32 CH:0.25@0.16)x4
+# 40.0 ice: the clock keeps going, quieter, no kick
+(RS:0.25@0.4 CH:0.25@0.1 RS:0.25@0.26 CH:0.25@0.1)x6
+# 43-46 riser: kick drives, the snare roll tightens
+([BD RS]:0.5@0.7 SD:0.5@0.28)x2
+[BD SD]:0.25@0.75 SD:0.25@0.3 SD:0.25@0.34 SD:0.25@0.38 [BD SD]:0.25@0.78 SD:0.25@0.42 SD:0.25@0.46 SD:0.25@0.5
+[BD SD]:0.125@0.8 SD:0.125@0.5 SD:0.125@0.52 SD:0.125@0.55 SD:0.125@0.58 SD:0.125@0.6 SD:0.125@0.63 SD:0.125@0.66
+[BD SD]:0.125@0.85 SD:0.125@0.68 SD:0.125@0.7 SD:0.125@0.73 SD:0.125@0.76 SD:0.125@0.79 SD:0.125@0.82 SD:0.125@0.86
+# 46.0: silence
+>99.5 SD:0.25@0.35 SD:0.25@0.6
+# 50.0 BIG
+[BD CP OH SD]:0.5@1 OH:0.5@0.45 [BD CP]:0.5@0.88 OH:0.5@0.42 [BD CH]:0.5@0.9 OH:0.5@0.42 [BD CP]:0.5@0.88 OH:0.5@0.45
+[BD CH]:0.5@0.92 OH:0.5@0.42 [BD CP]:0.5@0.88 OH:0.5@0.42
+# 53.0 / 53.8 / 54.6: three stat punches on a 0.8 s counter
+[BD CP OH]:0.4@1 CH:0.4@0.3 CH:0.4@0.22 CH:0.4@0.3
+[BD CP OH]:0.4@0.97 CH:0.4@0.3 CH:0.4@0.22 CH:0.4@0.3
+[BD CP OH]:0.4@1 CH:0.4@0.3 CH:0.4@0.22 CH:0.4@0.3
+SD:0.2@0.5 SD:0.2@0.7
+# 55.6: the title
+[BD OH CP]:0.8@0.92
+[BD CH]:1@0.72 CH:1@0.28 [SD CP]:1@0.6 CH:1@0.28
+[BD OH]:4@0.62
+automate bd_decay
+0.5 R:15.9 0.95:0.1 R:2 0.5:0.1 R:81.8 0.9:0.1 R:2 0.5:0.1 R:9 0.8:0.1
+automate oh_decay
+0.5 R:15.9 0.95:0.1 R:2 0.45:0.1 R:25.8 0.9:0.1 R:1 0.45:0.1 R:13.8 0.85:0.1 R:2 0.45:0.1 R:38.8 0.95:0.1 R:1 0.45:0.1 R:4.8 0.75:0.1 R:5.1 0.9:0.1
+automate sd_tune
+0.45 R:86 0.75:6 0.45:0.1
+
+# the games, swung
+track swing kit=909 swing=0.58
+>44.5
+CH:0.25@0.3 BD:0.25@0.5 [CP CH]:0.5@0.8 CH:0.25@0.3 CH:0.25@0.36 [BD CH]:0.5@0.82 CH:0.25@0.3 BD:0.25@0.55 [CP CH]:0.5@0.8 OH:0.5@0.38
+([BD CH]:0.5@0.86 CH:0.25@0.3 BD:0.25@0.5 [CP CH]:0.5@0.8 CH:0.25@0.3 CH:0.25@0.36 [BD CH]:0.5@0.82 CH:0.25@0.3 BD:0.25@0.55 [CP CH]:0.5@0.8 OH:0.5@0.38)x2
+[BD CH]:0.5@0.86 CH:0.25@0.3 BD:0.25@0.5 [CP CH]:0.5@0.8 CH:0.25@0.3 CH:0.25@0.36
+>66
+([BD CH]:0.5@0.86 CH:0.25@0.34 CH:0.25@0.28 [BD CP CH]:0.5@0.82 CH:0.25@0.34 OH:0.25@0.4)x3
+
+# ---------------------------------------------------------------- bass
+track bass vel=0.75 patch=nc-bass duck=0.45 duck_release=0.22 gain=1.4
+>20
+(D2:0.5 D3:0.5@0.6)x4 (B1:0.5 B2:0.5@0.6)x4
+>29
+(G1:0.25@0.7 G1:0.25@0.45 G1:0.25@0.55 G1:0.25@0.45)x3
+(E1:0.25@0.7 E1:0.25@0.45 E1:0.25@0.55 E1:0.25@0.45)x4
+(B1:0.25@0.7 B1:0.25@0.45 B1:0.25@0.55 B1:0.25@0.45)x4
+(A1:0.25@0.7 A1:0.25@0.45 A1:0.25@0.55 A1:0.25@0.45)x3
+>44
+D2:0.75 D2:0.25 R:0.5 A2:0.5 D3:0.5 R:0.5 A2:0.5 D2:0.5
+G1:0.75 G1:0.25 R:0.5 D2:0.5 G2:0.5 R:0.5 D2:0.5 G1:0.5
+B1:0.75 B1:0.25 R:0.5 F#2:0.5 B2:0.5 R:0.5 F#2:0.5 B1:0.5
+G1:0.75 G1:0.25 D2:0.5 G2:0.5 A1:0.5 A2:0.5 D2:2@0.82
+D2:0.25@0.9 R:0.75 E2:0.25@0.9 R:0.75 F#2:0.25@0.9 R:0.75 G2:0.25@0.9 R:0.75 A1:0.25@0.9 R:0.75
+(G1:0.5 G2:0.5@0.6)x2 (A1:0.5 A2:0.5@0.6)x2 (D2:0.5 D3:0.5@0.6)x2
+(B1:0.25 R:0.25)x8 (G1:0.25 R:0.25)x8
+E1:6@0.6
+(A1:0.25@0.75 A1:0.25@0.45 A2:0.25@0.55 A1:0.25@0.45)x6
+>100
+(D2:0.5 D3:0.5@0.6)x4 (B1:0.5 B2:0.5@0.6)x4 (G1:0.5 G2:0.5@0.6)x3
+>111.2
+G1:2.8@0.7 A1:2@0.7 D2:4@0.72
+automate bass.gain
+1.0 R:86 0.55:0.1 1.05:5.9@exp R:8 1.0:0.1
+automate bass.cutoff
+330 R:28.9 220:0.1 R:14.9 330:0.1 R:42 200:0.01 900:5.99@exp R:7.9 330:0.1
+
+# ---------------------------------------------------------------- the eight bridges
+# 10.0 + 0.5k: exchanges after blocks 6, 9, 12, 15, 18, 21, 24, 27
+track bridge vel=0.85 len=1 patch=peppermint pan=0.05 reverb_send=0.3 echo_send=0.22 gain=2.0
+>20
+D4@0.8 F#4@0.64 A4@0.66 C#5@0.68 E5@0.7 F#5@0.72 A5@0.74 D6@0.78
+track spark vel=0.3 len=1 patch=nc-glass reverb_send=0.4 pan=-0.1 gain=1.4
+>20
+D5@0.22 F#5@0.23 A5@0.24 C#6@0.25 E6@0.26 F#6@0.27 A6@0.28 D7@0.3
+
+# ---------------------------------------------------------------- the glass mechanism
+# Cliff Martinez glass: one precise sixteenth cell per chord
+track glass vel=0.4 len=0.25 patch=nc-glass reverb_send=0.3 echo_send=0.12 pan=0.25 gain=1.4
+>29
+(D5@0.42 A5@0.26 F#5@0.32 B5@0.26)x3
+(B4@0.42 F#5@0.26 D5@0.32 G5@0.26)x4
+(D5@0.42 A5@0.26 F#5@0.32 C#6@0.26)x4
+(E5@0.42 B5@0.26 D5@0.32 A5@0.26)x2 (E5@0.42 B5@0.26 C#5@0.32 A5@0.26)
+# training: the same machine, now on B minor and G, counting steps
+>72
+(B4@0.38 F#5@0.24 D5@0.3 F#5@0.24)x4 (B4@0.38 G5@0.24 D5@0.3 G5@0.24)x4
+>86
+(A4@0.3 E5@0.2 A5@0.26 E5@0.2)x2 (A4@0.36 E5@0.24 A5@0.3 C#6@0.24)x2 (A5@0.42 E6@0.3 C#6@0.34 A6@0.3)x2
+automate glass.release
+0.45
+automate glass.decay
+0.9
+automate glass.cutoff
+5200 R:86 2500:0.1 9000:6@exp
+
+# the dissection's signals: blips per orb, a gate closing, the query beam,
+# the values pouring, the "+" ripple
+track sig vel=0.35 len=0.5 patch=glasslead reverb_send=0.4 echo_send=0.25 pan=-0.3 gain=1.4
+>29
+D6:0.25@0.3 R:0.25 E6:0.25@0.3 R:0.25 F#6:0.25@0.32 R:0.25 A6:0.25@0.32 R:0.25 B6:0.25@0.34 R:0.25 B6:0.25@0.12 R:0.25
+>32 A5:0.3@0.36 E5:1.2@0.3
+>34.8 D5:0.3@0.3 A6:1.5@0.36
+>38 A6:0.3@0.34 D5:1.7@0.32
+>41 D4:0.8@0.35
+automate sig.mono
+1
+automate sig.glide
+0.18
+
+# ---------------------------------------------------------------- stabs
+track stab vel=0.8 len=0.5 patch=stab reverb_send=0.18 echo_send=0.1 duck=0.2
+>44 [D4 F#4 A4 D5]:0.5@0.75
+>59 [D4 F#4 A4 D5]:0.5@0.8
+>61
+[D4 F#4 A4]:0.25@0.85 R:0.75 [E4 G4 B4]:0.25@0.86 R:0.75 [F#4 A4 C#5]:0.25@0.88 R:0.75 [G4 B4 D5]:0.25@0.9 R:0.75 [A4 C#5 E5]:0.25@0.92 R:0.75
+>100 [D4 F#4 A4 D5]:0.5@0.9
+>106 [B3 D4 F#4 B4]:0.4@0.88 R:1.2 [C#4 E4 A4 C#5]:0.4@0.9 R:1.2 [D4 G4 B4 D5]:0.4@0.92
+>111.2 [D4 G4 B4 D5]:0.8@0.75
+
+# ---------------------------------------------------------------- toy (the games)
+track toy vel=0.8 len=0.5 patch=mallet reverb_send=0.22 echo_send=0.18 pan=0.2 gain=2.0
+>44
+R:0.5 A4 D5 F#5 A5:1 F#5 D5
+R:0.5 B4 D5 G5 B5:1 G5 D5
+R:0.5 F#5 D5 B4 C#5 D5 F#5:1
+B5 A5 G5 F#5 E5 C#6 D6:2
+>66
+D5 B4 G4 B4 C#5 A4 E5 C#5 D5 F#5 A5 D6
+
+# a music-box double an octave up, for sparkle on top of the mallet
+track toy2 vel=0.5 len=0.5 patch=musicbox reverb_send=0.3 echo_send=0.2 pan=-0.2 gain=1.1
+>44
+R:0.5 A5 D6 F#6 A6:1 F#6 D6
+R:0.5 B5 D6 G6 B6:1 G6 D6
+R:0.5 F#6 D6 B5 C#6 D6 F#6:1
+B6 A6 G6 F#6 E6 C#7 D7:2
+>66
+D6 B5 G5 B5 C#6 A5 E6 C#6 D6 F#6 A6 D7
+
+# ---------------------------------------------------------------- lead (the theme)
+track lead vel=0.62 len=1 patch=lantern reverb_send=0.25 echo_send=0.15 pan=-0.05
+>100
+F#5:1.5 E5:0.5 D5:1 A4:1 B4:1.5 C#5:0.5 D5:1 E5:1 F#5:1 A5:1 G5:1.2
+F#5:2.8 E5:2 D5:4
+automate lead.cutoff
+1300 R:111.2 1700:2 1300:6@smooth
+
+# ---------------------------------------------------------------- frost
+track frost vel=0.35 len=0.25 patch=glass-anemone reverb_send=0.5 echo_send=0.35 pan=0.3 gain=1.8
+>80
+[E6 B6]:2@0.4 F#6:0.25@0.25 B6:0.25@0.22 E7:0.25@0.2 D7:0.25@0.18 R:1 G6:0.5@0.2 D7:0.5@0.16 B6:1@0.14
+
+# ---------------------------------------------------------------- the hush
+track drone vel=0.4 len=8 patch=commonrail gain=0.2
+>92 [D2 A2]:7.5@0.4
+track halo vel=0.2 patch=skynote pan=0.2 gain=0.15
+>92 D6:7.5@0.18
+track stranger vel=0.6 patch=sour pan=-0.15 reverb_send=0.3 gain=1.2
+>96 D#4:3@0.62

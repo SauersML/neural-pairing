@@ -1,0 +1,45 @@
+# Filament — the lead: electric and SUSTAINING. The pluck-everything
+# habit was wrong for this idiom: the reference stabs sing while held.
+# Pulse core through the resonant ladder, a bite on the attack from the
+# filter ping, then the note OPENS INTO a held tone (sustain 0.55) and
+# releases naturally. Drive 2.8 for wire and current. No LFO.
+waveform 1
+pulse_width 0.22
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0.15
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 2
+sub 0.15
+circuit 1
+key_track 0.8
+osc_fm 0
+sync 0
+ring 0
+glide 0
+attack 0.006
+decay 0.6
+sustain 0.55
+release 0.35
+filter_env 1.2
+filter_attack 0.001
+filter_decay 0.3
+filter_sustain 0.5
+filter_release 0.3
+cutoff 1200
+resonance 1.1
+drive 2.8
+saturation 1.15
+hpf 80
+volume 0.5
+octave 4
+noise 0
+fuzz 0
+spring 0.12
+lfo_rate 0.5
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0

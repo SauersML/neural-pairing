@@ -1,0 +1,33 @@
+# Aerial Playground -- the bass: sine plus a hot sub-octave square,
+# Moog circuit for structural passband warmth, tight envelope so the
+# syncopation stays felt rather than smeared.
+waveform 0
+osc2_wave 0
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.5
+detune 3
+sub 0.6
+circuit 0
+key_track 0.25
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.006
+decay 0.24
+sustain 0.45
+release 0.2
+filter_env 1.0
+filter_attack 0.002
+filter_decay 0.16
+filter_sustain 0.15
+filter_release 0.18
+cutoff 500
+resonance 0.5
+drive 1.6
+saturation 1.2
+hpf 16

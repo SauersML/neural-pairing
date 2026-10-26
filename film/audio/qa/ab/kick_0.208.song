@@ -1,0 +1,24 @@
+bpm 120
+tail 1.5
+automate bd_level
+0.95
+automate bd_tune
+0.208
+automate bd_attack
+0.62
+automate bd_decay
+0.62
+automate bd_sweep
+0.62
+automate bd_drive
+0.8
+automate dr_drive
+0.85
+automate dr_tone
+0.55
+automate tape_drive
+0.38
+automate tape_age
+0.18
+track drums kit=909 comp=-30 gain=2.0
+BD:2@0.95 BD:2@0.6 BD:2@0.95 RS:2@0.6

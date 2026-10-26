@@ -1,0 +1,13 @@
+<html><body style="margin:0"><script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});r.setSize(1920,1080);document.body.appendChild(r.domElement);
+const s=new THREE.Scene();const c=new THREE.PerspectiveCamera(40,16/9,.1,100);c.position.z=8;
+for(let i=0;i<200;i++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.2,3),new THREE.MeshStandardMaterial({color:0x8844ff,emissive:0x220044}));m.position.set(Math.random()*8-4,Math.random()*5-2.5,Math.random()*-4);s.add(m)}
+s.add(new THREE.DirectionalLight(0xffffff,2));s.add(new THREE.AmbientLight(0x404040));
+const comp=new EffectComposer(r);comp.addPass(new RenderPass(s,c));comp.addPass(new UnrealBloomPass(new THREE.Vector2(1920,1080),1,.4,.2));
+window.go=(t)=>{c.position.x=Math.sin(t);comp.render();return 1};window.ready=true;
+</script></body></html>

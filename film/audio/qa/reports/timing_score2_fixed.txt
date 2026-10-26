@@ -1,0 +1,59 @@
+# Timing report: score2_fixed.song  (120 bpm; grid 0.25 beat = 125 ms; 16th-triplet = 83.3 ms)
+# onset detector calibrated on synthetic onsets: frame bias -16.3 ms removed
+# bus latency (median kick/snare/rim onset offset on the kit stem): +7.5 ms (the master tape's 6 ms transport delay plus the drum attacks); offsets below are RELATIVE to it
+
+## Per track: start offset = sounding onset - written note-on - bus latency (ms)
+track   onsets  median    IQR    p10    p90  -6dB pt rise10-90  off-grid  flags
+kit        173    +2.5    2.5   -0.0   +5.0       -4        17    0/176   
+boom         5    -0.0    0.0   -1.5   -0.0       +9        38    0/5     
+thump        8    -0.0    0.6   -0.8   +4.0       +4        26    0/8     
+sub         54    +2.5    0.0   -0.0   +5.0       +2        35    0/54    
+epad         2    +5.0    5.0   +1.0   +9.0      +76       167    0/37    SLOW ATTACK (feels late)
+qpad         8    +5.0    1.9   +5.0  +12.5     +106       282    0/35    SLOW ATTACK (feels late)
+quill       88    +2.5    2.5   +2.5   +5.0       -1        20    0/88    
+ember       86    +5.0    5.0   +2.5   +8.7       +1        25    0/86    
+ost        173    +7.5    5.0   +2.5  +14.5       +1        23    0/173   
+glass        9    +2.5    2.5   +2.5   +5.0       -1        23    0/9     
+sig          1   +67.5    0.0  +67.5  +67.5     +130       266    0/2     SYSTEMATIC OFFSET, SLOW ATTACK (feels late)
+shard        8    +2.5    3.1   -0.0   +5.0       -4        18    0/11    4 on 32nds
+frost        6    +6.2    2.5   +3.7  +10.0       +6        95    0/6     
+stab         8    +0.0    0.6   -0.0   +3.2       -1        20    0/8     
+ghost        1    +5.0    0.0   +5.0   +5.0      +25       120    0/4     
+
+## Written placement: note-ons off the 0.25-beat grid (and off the 16th-triplet grid)
+section      kit   boom  thump    sub   epad   qpad  quill  ember    ost  glass    sig  shard  frost   stab  ghost
+ASSEMBLY       .      .      .    0/1    0/1    0/1    0/5    0/5      .      .      .      .      .      .      .
+PASS1        0/2      .      .    0/1    0/1    0/1    0/7    0/7      .      .      .      .      .      .      .
+SHATTER      0/1    0/1      .    0/1    0/1      .      .      .      .      .      .   0/11      .    0/1      .
+HOLD           .      .      .    0/1    0/1    0/1    0/1    0/1      .      .      .      .      .      .      .
+BRIDGES      0/6    0/1      .    0/4    0/1    0/1    0/3    0/3      .      .      .      .      .    0/1      .
+SLOWPASS    0/21      .    0/8    0/6    0/3    0/3    0/5    0/5      .      .      .      .      .      .      .
+FAST        0/21    0/1      .    0/4    0/4    0/4   0/11   0/10      .      .      .      .      .    0/1      .
+READ         0/6      .      .    0/2    0/2    0/2    0/5    0/7      .    0/9    0/2      .      .      .      .
+SECRET       0/3      .      .    0/2    0/2    0/1    0/8    0/2    0/7      .      .      .      .      .      .
+MOOD        0/14      .      .    0/1    0/3    0/3    0/6    0/6      .      .      .      .      .      .      .
+GAMES       0/35      .      .   0/12    0/7    0/7   0/13   0/12   0/48      .      .      .      .      .      .
+TRAIN       0/28      .      .    0/4    0/1    0/1    0/2    0/2   0/32      .      .      .      .      .      .
+ICE          0/2      .      .    0/1    0/1    0/1      .      .   0/24      .      .      .    0/6      .      .
+RISE        0/13      .      .    0/2    0/2    0/2    0/6    0/6   0/40      .      .      .      .      .      .
+DROP           .      .      .      .      .      .      .    0/4      .      .      .      .      .      .    0/4
+PROOF       0/21    0/1      .    0/9    0/4    0/4   0/13   0/13   0/22      .      .      .      .    0/4      .
+TITLE        0/3    0/1      .    0/3    0/3    0/3    0/3    0/3      .      .      .      .      .    0/1      .
+
+## Sounding onsets more than 20 ms from the written time (5)
+   29.500s READ      sig    A4             start  +67.5 ms   -6dB +54 ms
+   58.000s ICE       ost    D2             start  +40.0 ms   -6dB +129 ms
+   61.000s RISE      ost    Bb1            start  +32.5 ms   -6dB +26 ms
+   60.000s ICE       ost    D2             start  +30.0 ms   -6dB +21 ms
+   56.000s TRAIN     ost    D2             start  +22.5 ms   -6dB +11 ms
+
+## Sampler track 'fx' (sample=fx2.wav, triggers at 0.000s/C4)
+  deck playback offset vs the source wav (onset-envelope cross-correlation): +7.5 ms (bus latency +7.5 ms)
+  the source wav vs its own song's note-ons: median +5.0 ms over 7 clear onsets
+  this stem vs the source song's note-ons: median +10.0 ms, IQR 2.5 ms over 4 clear onsets; relative to the bus +2.5 ms
+      7.400s start  +17.5 ms (flux x9)
+      8.000s start  +10.0 ms (flux x5)
+     73.000s start  +10.0 ms (flux x5)
+     78.000s start   +7.5 ms (flux x6)
+
+per-onset CSV: /home/user/video/audio/qa/stems/score2_fixed/timing_onsets.csv

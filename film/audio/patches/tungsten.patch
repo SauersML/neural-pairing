@@ -1,0 +1,48 @@
+# Knotwork — the bed: a wide, slow ELECTRIC glow for the phasing
+# shells. unison 2 detuned 14 cents spreads each note across two cards
+# and the stereo field, so the shells shimmer and drift instead of
+# sitting flat. Pulse + low saw through a ladder at 1100 with a slow
+# filter-env swell; slow PWM keeps the width alive. Never bright, never
+# a pad-preset wash — it moves the whole time.
+unison 2
+unison_detune 14
+waveform 1
+pulse_width 0.34
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0.16
+osc3_wave 0
+osc3_pitch 12
+osc3_level 0.1
+detune 5
+sub 0.15
+circuit 0
+key_track 0.5
+osc_fm 0
+sync 0
+ring 0
+glide 0
+attack 0.5
+decay 0.8
+sustain 0.7
+release 0.9
+filter_env 0.4
+filter_attack 0.4
+filter_decay 0.7
+filter_sustain 0.55
+filter_release 0.8
+cutoff 1100
+resonance 0.5
+drive 1.4
+saturation 1.05
+hpf 60
+volume 0.5
+octave 4
+noise 0
+fuzz 0
+spring 0.1
+lfo_rate 0.45
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0.14

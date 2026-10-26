@@ -1,0 +1,45 @@
+# Ironwater — the dyad voice: two-note harmony needs NO width and NO mud.
+# Triangle core with a quiet sine octave, high key-tracking so upper
+# dyads stay glassy, hpf at 130 so nothing fights the bass, modest fixed
+# cutoff, near-zero resonance. Fast enough to speak on the 3.5-beat
+# anticipations, short release so changes stay legible.
+waveform 3
+osc2_wave 0
+osc2_pitch 12
+osc2_level 0.22
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 2
+sub 0
+circuit 0
+key_track 0.8
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.045
+decay 0.7
+sustain 0.6
+release 0.45
+filter_env 0.25
+filter_attack 0.02
+filter_decay 0.5
+filter_sustain 0.55
+filter_release 0.4
+cutoff 2400
+resonance 0.2
+drive 1.0
+saturation 1.0
+hpf 130
+volume 0.5
+octave 4
+noise 0
+fuzz 0
+spring 0
+lfo_rate 0.5
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0

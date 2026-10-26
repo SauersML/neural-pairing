@@ -1,0 +1,19 @@
+# Score FX: a crash/shatter burst. The voice's own oscillator sits at 8 Hz
+# (MIDI 0) under a 900 Hz high-pass, so only the shared noise speaks.
+waveform 0
+osc2_level 0
+osc3_level 0
+sub 0
+key_track 0
+vel_filter 0.6
+vel_amp 0.6
+cutoff 11000
+resonance 0.3
+hpf 900
+drive 1.0
+attack 0.001
+decay 1.4
+sustain 0
+release 1.4
+filter_env 0
+volume 0.75

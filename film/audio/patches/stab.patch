@@ -1,0 +1,26 @@
+# Score: the synthwave stab. Two detuned saws and one an octave down, the
+# filter envelope snapped open and shut: short, bright, punchy.
+waveform 2
+osc2_wave 2
+osc2_level 0.8
+osc3_wave 2
+osc3_pitch -12
+osc3_level 0.35
+detune 9
+circuit 1
+key_track 0.6
+cutoff 900
+resonance 0.7
+drive 1.7
+saturation 0.6
+hpf 90
+attack 0.002
+decay 0.32
+sustain 0.15
+release 0.22
+filter_env 2.4
+filter_attack 0.001
+filter_decay 0.2
+filter_sustain 0.1
+filter_release 0.2
+volume 0.55

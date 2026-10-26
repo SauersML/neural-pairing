@@ -1,0 +1,28 @@
+# Score: the impostor's note. Two detuned saws a minor second apart in one
+# voice, a slow uneasy vibrato, the ladder half closed: it will not settle.
+waveform 2
+osc2_wave 2
+osc2_pitch 1
+osc2_level 0.8
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.3
+detune 22
+key_track 0.5
+cutoff 1300
+resonance 1.1
+drive 1.6
+saturation 0.5
+hpf 90
+attack 0.25
+decay 1.0
+sustain 0.8
+release 1.2
+filter_env 0.8
+filter_attack 0.6
+filter_decay 1.2
+filter_sustain 0.4
+lfo_rate 4.3
+lfo_shape 0.5
+lfo_pitch 18
+volume 0.6

@@ -1,0 +1,38 @@
+# One Electrical Object -- deliberately the plainest patch in this
+# repo: pure sine, zero detune, zero chorus, zero LFO, zero automation
+# anywhere in the song that uses it. Every one of its five identical
+# instances commands the exact same note through the exact same
+# numbers. Whatever difference you hear between them is not something
+# I wrote -- it's voct_error, common_drift, and the shared rail/heat
+# substrate doing what they do to any two "identical" boards on one
+# chassis, audible with nothing else in the way.
+waveform 0
+osc2_wave 0
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0
+circuit 0
+key_track 0.2
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 1.8
+decay 0.5
+sustain 0.95
+release 2.0
+filter_env 0
+filter_attack 0.5
+filter_decay 0.5
+filter_sustain 0.5
+filter_release 0.5
+cutoff 6000
+resonance 0
+drive 1.0
+saturation 0.3
+hpf 16

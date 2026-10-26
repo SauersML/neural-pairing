@@ -1,0 +1,33 @@
+# Aphelion — the melody: triangle and saw together, soft-edged
+# attack, long tail. Sings without imitating a singer; wide leaps,
+# long tones, never plinks.
+waveform 3
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0.35
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.3
+detune 6
+sub 0.2
+circuit 0
+key_track 0.5
+osc_fm 0
+sync 0
+ring 0
+glide 0.03
+pulse_width 0.5
+attack 0.12
+decay 0.5
+sustain 0.8
+release 1.0
+filter_env 0.5
+filter_attack 0.02
+filter_decay 0.5
+filter_sustain 0.6
+filter_release 0.8
+cutoff 2600
+resonance 0.5
+drive 1.5
+saturation 1.0
+hpf 60

@@ -1,0 +1,17 @@
+# Score FX: low filtered noise rumble.
+waveform 0
+osc2_level 0
+osc3_level 0
+sub 0
+key_track 0
+vel_filter 0
+cutoff 160
+resonance 0.9
+hpf 28
+drive 1.4
+attack 1.2
+decay 1
+sustain 1
+release 1.2
+filter_env 0
+volume 0.75

@@ -1,0 +1,450 @@
+# NEURAL PAIRING v2: the score (about 82 s).
+#
+# D minor, 120 bpm felt in half time (kick on 1, a fat snare+clap on 3; one
+# bar = 2.0 s). Dark, cinematic, confident: deep sub, a heavy sparse 909
+# blown out through its own strip compressor and bus drive into a parallel
+# master compressor and tape, wide dark pads, mid/low plucks and arps.
+#
+# MUSIC AS STORY. The two models are two VOICES:
+#   Quill  = a mid-register glass pluck (quill.patch), AEOLIAN: its colour
+#            note is B-flat, the minor sixth that sighs down to A.
+#   Ember  = a warm low-mid saw (ember.patch), DORIAN: its colour note is
+#            B-natural, the raised sixth.
+# Each also owns a pad: Quill's harmony on vellum (glassy, mid), Ember's on
+# tungsten (wide, low). Before the link the voices speak separately and
+# their sixths rub (B-flat against B-natural): two minds, two dialects.
+# Once the link forms they HOCKET: alternating notes form one melody. The
+# slow forward pass is a zig-zag climb, one note per exchange, alternating
+# timbre and register; both voices land on the same D when the token pops.
+# The secret is a 4-note motif (D A G B-flat: "lantern") that only Quill
+# plays, and that Ember plays back exactly. The mood is a Picardy third:
+# Quill's harmony turns major first, Ember's follows. The stranger answers
+# the motif a tritone away. The proof and title put both voices in octaves,
+# then in unison, on the theme the lantern motif grew into.
+#
+# Every cue is placed by section (`>NAME`), so a cue can be moved by
+# editing one section line (keep fx2.song's sections identical).
+
+bpm 120
+gate 0.9
+tail 2
+
+section ASSEMBLY 0..8       # 0-4 s   assembly; the two motifs, apart
+section PASS1    8..16      # 4-8 s   first forward pass (lockstep, not linked)
+section SHATTER  16..20     # 8.0 s   the token shatters
+section HOLD     20..24     # 10-12 s drone: "neuralese"
+section BRIDGES  24..30     # 12.0 s  the drop; 8 bridges at 12.0 + 0.5k
+section SLOWPASS 30..46     # 15-23 s one pass, 8 exchanges at 15.8 + 0.9k
+section FAST     46..52     # 23.0 s  token pop; 23-26 fast passes
+section READ     52..64     # 26-32 s one read up close
+section SECRET   64..74     # 32 s lantern (Quill); 36.5 s Ember plays it back
+section MOOD     74..84     # 37-42 s Picardy: Quill turns major, then Ember
+section GAMES    84..108    # 42-54 s window pops every 0.6 s from 42.0
+section TRAIN    108..116   # 54-58 s mechanical ostinato
+section ICE      116..122   # 58.0 s  frost
+section RISE     122..132   # 61-66 s riser
+section DROP     132..140   # 66.0 s  drop; 66.5 real partner; 68.0 stranger
+section PROOF    140..156   # 70.0 s  BIG; 73.0 / 73.8 / 74.6 window hits
+section TITLE    156..164   # 78-82 s title resolve, faded by 81.9
+
+# ---------------------------------------------------------------- the bus
+automate reverb_decay
+0.8
+automate reverb_wet
+0.22 >DROP 0:0.05 R:0.5 0.14:1.5@smooth >PROOF 0.22:0.05
+automate reverb_tone
+3600
+automate reverb_pre
+0.03
+automate echo_time
+0.375
+automate echo_feedback
+0.3
+automate echo_tone
+2400
+automate echo_pingpong
+0.8
+automate chorus_mode
+1
+automate chorus_mix
+0
+automate chorus_depth
+0.45
+automate tape_drive
+0.38
+automate tape_wow
+0.03
+automate tape_flutter
+0.02
+automate tape_age
+0.18
+automate width
+1.2
+automate lfo_rate
+0.2
+# parallel master glue: 4:1, 3 ms, auto release, blended under the dry
+automate comp_in
+1
+automate comp_threshold
+-18
+automate comp_ratio
+1
+automate comp_attack
+3
+automate comp_release
+4
+automate comp_makeup
+3
+automate comp_mix
+0.35
+automate comp_sc_hpf
+60
+
+# ---------------------------------------------------------------- 909 board
+automate bd_level
+0.95
+automate bd_tune
+0.20   # QA: kick tail on G1 (49.0 Hz), was 0.16 = 47.6 Hz (G1 -49 c)
+automate bd_attack
+0.62
+automate bd_decay
+0.62
+automate bd_sweep
+0.62
+automate bd_drive
+0.8
+automate sd_level
+0.85
+automate sd_tune
+0.17   # QA: snare body on E3 (165 Hz), was 0.2 = 167 Hz (E3 +24 c)
+automate sd_tone
+0.3
+automate sd_snappy
+0.55
+automate sd_decay
+0.62
+automate rs_level
+0.55
+automate rs_tune
+0.52   # QA: rim main mode on A3 (220 Hz), was 0.32 = 203 Hz (Ab3 -36 c)
+automate cp_level
+0.88
+automate cp_decay
+0.62
+automate hh_level
+0.42
+automate hh_tune
+0.32
+automate hh_metal
+0.45
+automate ch_decay
+0.16
+automate oh_decay
+0.5
+automate dr_drive
+0.85
+automate dr_tone
+0.55
+
+# ---------------------------------------------------------------- FX stem
+track fx sample=fx2.wav root=C4 gain=1.0 reverb_send=0.2
+C4:164
+
+# ---------------------------------------------------------------- drums
+# H  = half-time bar: kick 1, ghost hats, kick on the 2-and-a-quarter, snare+clap on 3
+# H2 = the answer bar
+# M  = the training machine: the same skeleton with sixteenth ghost hats
+track drums kit=909 comp=-30 gain=2.0
+>PASS1 BD:4@0.32 BD:4@0.36
+>SHATTER [BD SD CP OH]:4@1
+>BRIDGES [BD CP OH]:2@1 [SD CP]:2@0.95 BD:2@0.95
+[SD CP]:1.5@0.95 CH:0.5@0.1
+BD:2@0.95 [SD CP]:1.5@0.95 CH:0.5@0.12 BD:2@0.95 [SD CP]:1.5@0.95 OH:0.5@0.22
+BD:2@0.95 [SD CP]:1.5@0.95 CH:0.5@0.12 BD:2@0.95
+>FAST [BD CP OH]:0.5@0.95 CH:0.25@0.1 CH:0.25@0.15 CH:0.25@0.1 BD:0.25@0.6 CH:0.25@0.12 CH:0.25@0.16
+[BD CH]:0.5@0.92 CH:0.25@0.12 CH:0.25@0.18 CH:0.25@0.12 CH:0.25@0.1 BD:0.25@0.55 CH:0.25@0.14 [SD CP]:0.5@0.95 CH:0.25@0.12 CH:0.25@0.18 RS:0.25@0.3 CH:0.25@0.1 CH:0.25@0.18 CH:0.25@0.12
+>READ BD:2@0.72 RS:0.5@0.28 R:1.5 BD:2@0.66 RS:0.5@0.25 R:1.5 BD:2@0.66 RS:0.5@0.28 R:1.5
+>SECRET BD:4@0.45 BD:4@0.4 R:1 [BD CP]:1@0.72
+>MOOD BD:2@0.7
+BD:0.75@0.85 CH:0.25@0.1 R:0.5 CH:0.25@0.1 BD:0.25@0.5 [SD CP]:1.5@0.85 CH:0.25@0.12 BD:0.25@0.45
+BD:0.75@0.95 CH:0.25@0.12 R:0.5 CH:0.25@0.1 BD:0.25@0.6 [SD CP]:1.5@0.95 OH:0.5@0.22
+>GAMES (BD:2@0.95 [SD CP]:1.5@0.95 CH:0.5@0.12)x2 BD:2@0.95 [SD CP]:1.5@0.95 OH:0.5@0.2
+BD:0.75@0.95 CH:0.25@0.12 R:0.5 CH:0.25@0.1 BD:0.25@0.6 [SD CP]:1.5@0.95 CH:0.25@0.14 BD:0.25@0.5 BD:1.5@0.95 CH:0.25@0.12 BD:0.25@0.55 [SD CP]:1@0.95 R:0.5 OH:0.25@0.25 CH:0.25@0.1
+BD:0.75@0.95 CH:0.25@0.12 R:0.5 CH:0.25@0.1 BD:0.25@0.6 [SD CP]:1.5@0.95 OH:0.5@0.25
+>TRAIN ([BD CH]:0.5@0.92 CH:0.25@0.12 CH:0.25@0.18 CH:0.25@0.12 CH:0.25@0.1 BD:0.25@0.55 CH:0.25@0.14 [SD CP]:0.5@0.95 CH:0.25@0.12 CH:0.25@0.18 RS:0.25@0.3 CH:0.25@0.1 CH:0.25@0.18 CH:0.25@0.12)x2
+>ICE BD:4@0.7 BD:2@0.6
+>RISE BD:1@0.6 BD:1@0.64 BD:1@0.68 BD:1@0.72 BD:1@0.76 BD:1@0.8
+BD:0.5@0.8 BD:0.5@0.82 BD:0.5@0.84 BD:0.5@0.86 BD:0.5@0.9 BD:0.5@0.92 [BD CP]:0.5@0.95 R:0.5
+>PROOF [BD SD CP OH]:0.75@1 CH:0.25@0.12 R:0.5 CH:0.25@0.1 BD:0.25@0.6 [SD CP]:1.5@0.95 CH:0.25@0.14 BD:0.25@0.5
+BD:1.5@0.95 CH:0.5@0.12
+[BD CP OH]:1.75@1 [BD CP OH]:1.5@1 [BD CP OH]:1.5@1 CH:0.5@0.14 BD:0.25@0.6 CH:0.5@0.14
+BD:0.75@0.95 CH:0.25@0.12 R:0.5 CH:0.25@0.1 BD:0.25@0.6 [SD CP]:1.5@0.95 OH:0.5@0.3
+>TITLE [BD OH]:2@0.85 R:2 [BD SD CP]:4@0.55
+automate drums.gain
+2.0 >PASS1 0.7:0.05 >SHATTER 2.0:0.05 >READ 1.2:0.05 >SECRET 0.9:0.05 R:8.9 1.6:0.05 >MOOD 1.7:0.05 >GAMES 2.0:0.05
+automate oh_decay
+0.5 >PASS1 R:7.9 0.95:0.1 R:1 0.5:0.1 >HOLD R:3.9 0.8:0.1 R:1 0.5:0.1 >SLOWPASS R:15.9 0.7:0.1 R:1 0.5:0.1 >DROP R:7.9 0.9:0.1 R:1 0.5:0.1 R:4.8 0.75:0.1 R:4.7 0.5:0.1 R:5.1 0.9:0.1
+automate bd_decay
+0.62 >PASS1 R:7.9 0.95:0.1 R:1 0.62:0.1 >DROP R:7.9 0.9:0.1 R:1 0.62:0.1
+
+# exchange and window accents: rim knocks riding the off-grid hits
+track xhit kit=909
+>BRIDGES (RS:1@0.55)x7 RS:0.75@0.55 RS:1.75@0.7 RS:1.75@0.7 RS:1.75@0.7 RS:1.75@0.7 RS:2@0.7 RS:1.75@0.7 RS:1.75@0.7 RS:1.8@0.7
+>GAMES RS:1.25@0.62 RS:1.25@0.62 RS:1.25@0.62 RS:1@0.62 RS:1.25@0.62 RS:1.25@0.62 RS:1.25@0.62 RS:1.25@0.62 RS:1.2@0.62
+
+# ---------------------------------------------------------------- boom
+track boom vel=0.9 len=3 patch=boom gain=1.1
+>SHATTER D2:3@1
+>BRIDGES D2:3@0.85
+>FAST D2:2@0.5
+>PROOF D2:3@1
+>TITLE D2:3@0.6
+automate boom.pitch_shift
+0 >PASS1 R:7.9 14:0.1 0:1.2@log >HOLD R:3.9 12:0.1 0:1.2@log >SLOWPASS R:15.9 7:0.1 0:0.8@log >DROP R:7.9 14:0.1 0:1.4@log R:14.5 9:0.1 0:1@log
+
+# the exchanges' heartbeat: a short deep thump under each of the 8 exchange hits
+track thump vel=0.6 len=0.5 patch=boom gain=0.9
+>SLOWPASS R:1.75 D2:0.5@0.6 R:1.25 D2:0.5@0.6 R:1.25 D2:0.5@0.6 R:1.25 D2:0.5@0.6 R:1.25 D2:0.5@0.6 R:1.5 D2:0.5@0.6 R:1.25 D2:0.5@0.6 R:1.25 D2:0.5@0.6
+automate thump.decay
+0.45
+
+# ---------------------------------------------------------------- sub
+track sub vel=0.8 patch=sub2 duck=0.35 duck_release=0.18 gain=1.1
+>ASSEMBLY D2:8@0.45
+>PASS1 D2:8@0.55
+>SHATTER D2:4@0.95
+>HOLD D2:4@0.6
+>BRIDGES D2:1.75@0.9 D2:2.25@0.8 D2:1.75@0.9 D2:2.25@0.8
+>SLOWPASS R:2 Bb1:1.75@0.9 Bb1:2.25@0.8 G1:1.75@0.9 G1:2.25@0.8 A1:1.75@0.9 A1:4.25@0.8
+>FAST D2:2@0.9 Bb1:2@0.88 G1:1@0.86 A1:1@0.86
+>READ Bb1:6@0.7 G1:6@0.7
+>SECRET D2:8@0.55 Bb1:2@0.55
+>MOOD D2:10@0.65
+>GAMES D2:1.75@0.9 D2:2.25@0.8 G1:1.75@0.9 G1:2.25@0.8 D2:1.75@0.9 D2:2.25@0.8 G1:1.75@0.9 G1:2.25@0.8 Bb1:1.75@0.9 Bb1:2.25@0.8 A1:1.75@0.9 A1:2.25@0.8
+>TRAIN D2:1.75@0.9 D2:2.25@0.8 D2:1.75@0.9 D2:2.25@0.8
+>ICE G1:6@0.7
+>RISE Bb1:4@0.8 A1:6@0.9
+>DROP R:8
+>PROOF D2:1.75@0.95 D2:2.25@0.85 Bb1:2@0.9 Bb1:1.75@0.9 C2:1.5@0.9 D2:1.5@0.95 G1:1.25@0.85 A1:1.75@0.9 A1:2.25@0.85
+>TITLE D2:2@0.8 Bb1:2@0.75 D2:4@0.7
+automate sub.gain
+0 0.6:8@smooth >SHATTER 1.1:0.05 >HOLD 0.8:0.5 >BRIDGES 1.1:0.05
+
+# ---------------------------------------------------------------- pads: Ember's (tungsten, low, wide) and Quill's (vellum, mid, glassy)
+track epad vel=0.4 patch=tungsten reverb_send=0.3 chorus_send=0.3 duck=0.3 duck_release=0.35 pan=0.15 gain=0.42
+>ASSEMBLY [D2 A2 B2 F3]:8@0.3
+>PASS1 [D2 A2 F3]:8@0.34
+>SHATTER [D2 A2 D3]:4@0.3
+>HOLD [D2 A2 E3 F3]:4@0.36
+>BRIDGES [D2 A2 F3 C4]:8@0.4
+[Bb1 F2 D3 A3]:4@0.4 [G1 D2 Bb2 F3]:4@0.4 [A1 E2 G2 C#3]:6@0.42
+>FAST [D2 A2 F3 C4]:2@0.42 [Bb1 F2 D3 A3]:2@0.42 [G1 D2 Bb2 F3]:1@0.42 [A1 E2 G2 C#3]:1@0.42
+>READ [Bb1 F2 D3 A3 E4]:6@0.36 [G1 D2 Bb2 A3]:6@0.36
+>SECRET [D2 A2 E3]:8@0.3 [Bb1 F2 D3]:2@0.32
+>MOOD [D2 A2 F3]:5@0.36 [D2 A2 F#3]:2@0.42 [G1 D2 B2]:3@0.42
+>GAMES [D2 A2 F3 C4]:4@0.4 [G1 D2 B2 E3]:4@0.4 [D2 A2 F3 C4]:4@0.4 [G1 D2 B2 E3]:4@0.4 [Bb1 F2 D3 A3]:4@0.42 [A1 E2 G2 D3]:2@0.42 [A1 E2 G2 C#3]:2@0.44
+>TRAIN [D2 A2 F3 C4]:8@0.38
+>ICE [D2 G2 Bb2 A3]:6@0.4
+>RISE [Bb1 F2 D3 A3]:4@0.42 [A1 E2 C#3 G3]:6@0.48
+>PROOF [D2 A2 F3 C4]:4@0.46 [Bb1 F2 D3 A3]:4@0.46 [G1 D2 Bb2 A3]:4@0.46 [A1 E2 C#3 G3]:4@0.48
+>TITLE [D2 A2 E3 F3]:2@0.48 [Bb1 F2 D3 A3]:2@0.48 [D2 A2 E3 G3]:4@0.46
+automate epad.gain
+0 0.26:6@smooth >BRIDGES 0.42:0.1 >READ 0.3:1@smooth >SECRET 0.27:0.5 >MOOD 0.42:2@smooth >TITLE R:0.6 0.21:0.2 R:2.9 0.42:0.3
+automate epad.cutoff
+500 1100:8@exp >HOLD 900:0.1 >BRIDGES 1300:0.1 >READ 1000:2@smooth >MOOD 1300:2 >RISE 2400:10@exp >DROP 1300:0.1
+automate epad.attack: 0.5 during ASSEMBLY,PASS1,HOLD,SECRET,DROP base 0.12   # QA: chord changes land on the beat
+automate epad.release
+0.9 >RISE R:9.9 0.1:0.1 >PROOF 1.2:0.1 >TITLE 3:0.1
+
+track qpad vel=0.35 patch=vellum reverb_send=0.4 chorus_send=0.35 duck=0.25 duck_release=0.35 pan=-0.15 gain=0.4
+>ASSEMBLY [D4 F4 Bb4]:8@0.24
+>PASS1 [D4 F4 A4]:8@0.28
+>HOLD [A3 E4]:4@0.28
+>BRIDGES [E4 A4]:8@0.3
+[D4 F4]:4@0.3 [A3 D4]:4@0.3 [E4 G4]:6@0.32
+>FAST [A3 E4]:2@0.32 [D4 F4]:2@0.32 [Bb3 D4]:1@0.32 [C#4 E4]:1@0.32
+>READ [D4 E4 A4]:6@0.3 [Bb3 D4 A4]:6@0.3
+>SECRET [F4 A4]:8@0.22
+>MOOD [D4 F4 A4]:1@0.32 [D4 F#4 A4]:6@0.4 [D4 G4 B4]:3@0.4
+>GAMES [E4 A4]:4@0.3 [D4 B4]:4@0.3 [E4 A4]:4@0.3 [D4 B4]:4@0.3 [D4 F4 A4]:4@0.32 [D4 E4 G4]:2@0.32 [C#4 E4 G4]:2@0.34
+>TRAIN [A3 D4 F4]:8@0.3
+>ICE [Bb3 D4 A4]:6@0.34
+>RISE [D4 F4 A4]:4@0.34 [C#4 E4 G4]:6@0.4
+>PROOF [D4 F4 A4]:4@0.36 [D4 F4 A4]:4@0.36 [Bb3 D4 A4]:4@0.36 [C#4 E4 G4]:4@0.38
+>TITLE [A3 E4 F4]:2@0.38 [D4 F4 A4]:2@0.38 [A3 D4 E4]:4@0.36
+automate qpad.gain
+0 0.22:6@smooth >BRIDGES 0.4:0.1 >READ 0.3:1@smooth >SECRET 0.26:0.5 >MOOD 0.44:2@smooth >GAMES 0.36:1 >TITLE R:0.6 0.18:0.2 R:2.9 0.36:0.3
+automate qpad.cutoff
+1800
+automate qpad.attack: 0.9 during ASSEMBLY,PASS1,HOLD,SECRET,DROP base 0.2   # QA
+automate qpad.release
+2.0 >RISE R:9.9 0.1:0.1 >PROOF 2.0:0.1
+
+# ---------------------------------------------------------------- QUILL (glass pluck, mid, aeolian)
+track quill vel=0.55 len=1 patch=quill reverb_send=0.3 echo_send=0.2 pan=-0.28 gain=0.65
+# assembly: Quill's motif, D F A B-flat A (the minor-sixth sigh)
+>ASSEMBLY R:0.75 D4:0.75@0.48 F4:0.75@0.5 A4:0.75@0.53 Bb4:1.25@0.58 A4:2@0.45
+# the first pass: lockstep with Ember but in its own mode, then its own token
+>PASS1 D4@0.42 F4@0.44 G4@0.46 A4@0.48 Bb4@0.5 C5@0.52 D5:0.5@0.6
+# the hold: a fifth with Ember, the first consonance between them
+>HOLD R:0.5 E4:3@0.34
+# the bridges: odd connections (12.5, 13.5, 14.5, 15.5)
+>BRIDGES R:1 F3@0.8 R:1 C4@0.8 R:1 F4@0.82 R:1 C5@0.84
+# the slow pass: Quill receives at exchanges 2, 4, 6, 8
+R:1.5 G4:1.5@0.78 R:2 Bb4:1.5@0.8 R:2.25 D5:1.5@0.8 R:2 F5:1.75@0.82
+# 23.0 the token: both voices on the same D; then the fast passes (hocket)
+>FAST D4:0.5@0.8 F4:0.5@0.55 R:0.5 E4:0.5@0.55
+R:0.25 D4:0.25@0.5 R:0.25 C4:0.25@0.5 R:0.25 F4:0.25@0.55 R:0.25 D4:0.25@0.5 R:0.25 Bb3:0.25@0.55 R:0.25 F4:0.25@0.58 R:0.25 C#4:0.25@0.6 R:0.25 E4:0.25@0.62
+# the read: Quill's states show their keys
+>READ R:4 G4:0.25@0.4 R:0.25 A4:0.25@0.4 R:0.25 Bb4:0.25@0.42 R:0.25 C5:0.25@0.42 R:0.25 D5:0.25@0.44
+# the secret: the lantern motif, D A G B-flat, twice
+>SECRET D4:0.5@0.72 A4:0.5@0.7 G4:0.5@0.68 Bb4:2.5@0.72 D4:0.5@0.5 A4:0.5@0.48 G4:0.5@0.46 Bb4:1.5@0.5
+# the mood: Quill's third rises, F -> F-sharp
+>MOOD A4:0.5@0.5 F4:0.5@0.5 F#4:2@0.75 A4@0.55 D5:2@0.6 R:1 B4:2@0.55
+# the games: Quill opens windows 1, 3, 5, 7, 9; then call and response
+>GAMES A4:1.25@0.62 R:1.25 E4:1.25@0.6 R:1 B4:1.25@0.62 R:1.25 D5:1.25@0.62 R:1.25 C5:1.05@0.6
+R:1.2 B4:0.5@0.55 D5:0.5@0.55 B4:1@0.5 R:2 D5:0.5@0.55 C5:0.5@0.55 A4:1@0.5 R:2 D5:1@0.58 C#5:1@0.6
+# training: Quill and Ember trade single notes, then climb in octaves
+>TRAIN R:1 A4:2@0.45 R:2 F4:2@0.45 R:1
+>RISE R:4 A3@0.5 C#4@0.54 E4@0.58 G4@0.62 A4@0.66 C#5@0.7
+# the proof: the theme (grown from the lantern motif), Quill an octave above Ember
+>PROOF D4@0.8 A4@0.78 G4@0.76 Bb4@0.8 A4:2@0.78 F4@0.74 D4@0.72 G4:1.25@0.76 Bb4:0.75@0.8 D5:1.5@0.8 C5:0.5@0.74 A4:3@0.78 C#5@0.8
+>TITLE D5:2@0.75 A4:2@0.68 D4:4@0.62
+automate quill.gain
+0.65 >BRIDGES 1.1:0.1 >READ 0.9:0.5 >SECRET 1.1:0.1 >TITLE R:0.6 0.55:0.2 R:2.9 1.1:0.3
+automate quill.cutoff
+1700 >READ 2300:0.1 >SECRET 1900:0.1 >PROOF 2100:0.1
+
+# ---------------------------------------------------------------- EMBER (warm saw, low-mid, dorian)
+track ember vel=0.55 len=1 patch=ember reverb_send=0.25 echo_send=0.15 pan=0.28 gain=0.6
+# assembly: Ember's motif, D A B C A (the dorian raised sixth)
+>ASSEMBLY R:1.5 D3:1@0.5 A3:1@0.52 B3:1@0.55 C4:1.25@0.55 A3:2@0.45
+# the first pass: the same climb in its own mode (B-natural against Quill's B-flat)
+>PASS1 D3@0.42 F3@0.44 G3@0.46 A3@0.48 B3@0.5 C4@0.52 D4:0.5@0.6
+>HOLD A3:3@0.36
+# the bridges: even connections (12.0, 13.0, 14.0, 15.0)
+>BRIDGES D3@0.8 R:1 A3@0.8 R:1 D4@0.82 R:1 A4@0.84
+# the slow pass: Ember receives at exchanges 1, 3, 5, 7
+R:0.75 F3:1.5@0.8 R:2 A3:1.5@0.8 R:2 C4:1.5@0.82 R:2.25 E4:1.5@0.84 R:2
+# 23.0 the token (same D as Quill), then the hocket
+>FAST D4:0.5@0.8 R:0.5 A3:0.5@0.6 R:0.5
+Bb2:0.25@0.6 R:0.25 F3:0.25@0.55 R:0.25 Bb2:0.25@0.6 R:0.25 A3:0.25@0.58 R:0.25 G2:0.25@0.62 R:0.25 D3:0.25@0.6 R:0.25 A2:0.25@0.64 R:0.25 E3:0.25@0.64 R:0.25
+# the read: Ember's query beam slides up; later the values pour in
+>READ R:1 D3:0.5@0.5 A4:2.5@0.55 R:4.5 D4:0.5@0.45 C4:0.5@0.45 Bb3:0.5@0.45 A3:0.5@0.45 G3:1.5@0.5
+# 36.5: Ember plays the lantern motif back, exactly
+>SECRET R:9 D4:0.5@0.72 A4:0.5@0.7 G4:0.5@0.68 Bb4:1.5@0.72
+# the mood: Ember's third follows Quill's, F -> F-sharp at 39.5
+R:2 A3:0.5@0.5 F3:0.5@0.5 F#3:2@0.75 B3:2@0.55 R:1
+# the games: Ember opens windows 2, 4, 6, 8; then answers Quill
+>GAMES R:1.25 D3:1.25@0.62 R:1.25 A3:1.25@0.6 R:1 G3:1.25@0.62 R:1.25 F3:1.1@0.6
+R:4.4 A3:0.5@0.55 G3:0.5@0.55 E3:1@0.5 R:2 F3:0.5@0.55 G3:0.5@0.55 A3:1@0.5 R:2 E3:1@0.58 C#4:1@0.6
+>TRAIN R:3 A3:2@0.45 R:2 F3:1@0.45
+>RISE R:4 A2@0.5 C#3@0.54 E3@0.58 G3@0.62 A3@0.66 C#4@0.7
+# 66.5: the real partner answers with the lantern, exactly
+>DROP R:1 D4:0.5@0.45 A4:0.5@0.45 G4:0.5@0.42 Bb4:1.5@0.45
+>PROOF D3@0.8 A3@0.78 G3@0.76 Bb3@0.8 A3:2@0.78 F3@0.74 D3@0.72 G3:1.25@0.76 Bb3:0.75@0.8 D4:1.5@0.8 C4:0.5@0.74 A3:3@0.78 C#4@0.8
+>TITLE D4:2@0.75 A3:2@0.68 D4:4@0.62
+automate ember.gain
+0.6 >BRIDGES 1.4:0.1 >READ 1.15:0.5 >SECRET 1.4:0.1 >DROP 0.8:0.1 >PROOF 1.4:0.1 >TITLE R:0.6 0.7:0.2 R:2.9 1.4:0.3
+automate ember.mono
+1
+automate ember.glide
+0.025 >READ R:1.2 0.3:0.1 R:6.1 0.025:0.1 >SECRET 0.025:0.1   # QA: 0.3 s glide only for the D3->A4 query (26.5 s), off before the 30.25 s line
+
+# ---------------------------------------------------------------- ostinato / arp (low pluck)
+track ost vel=0.45 len=0.5 patch=nc-pluck reverb_send=0.15 echo_send=0.12 pan=0.05 duck=0.2
+# the secret's forward pass: gold rising in Ember's core
+>SECRET R:5 D2:0.5@0.3 F2:0.5@0.32 A2:0.5@0.34 D3:0.5@0.36 F3:0.5@0.38 A3:0.5@0.4 D4:0.5@0.42 R:0.5
+# the games: Drive-style eighths
+>GAMES D2 A2 D3 E3 F3 E3 D3 A2 G2 D3 G3 A3 B3 A3 G3 D3 D2 A2 D3 E3 F3 E3 D3 A2 G2 D3 G3 A3 B3 A3 G3 D3
+Bb1 F2 Bb2 C3 D3 C3 Bb2 F2 A1 E2 A2 B2 C#3 B2 A2 E2
+# training: the machine, in sixteenths
+>TRAIN (D2:0.25 D3:0.25 A2:0.25 D3:0.25 F3:0.25 D3:0.25 A2:0.25 D3:0.25)x4
+>ICE (D2:0.25 D3:0.25 G2:0.25 D3:0.25 Bb2:0.25 D3:0.25 G2:0.25 D3:0.25)x3
+>RISE (Bb1:0.25 Bb2:0.25 F2:0.25 Bb2:0.25 D3:0.25 Bb2:0.25 F2:0.25 Bb2:0.25)x2 (A1:0.25 A2:0.25 E2:0.25 A2:0.25 C#3:0.25 A2:0.25 E2:0.25 A2:0.25)x3
+>PROOF D2 A2 D3 E3 F3 E3 D3 A2 Bb1 F2 Bb2 C3 R:4.75 G2:0.5 D2:0.75 A1 E2 A2 B2 C#3 B2 A2 E2
+# QA: a deep fast filter-env sweep at a low cutoff bends every pluck 15-27 cents flat;
+# a shallower, slower sweep plus a small trim where the cutoff sits lowest
+automate ost.filter_env
+1.3
+automate ost.filter_decay
+0.4
+automate ost.resonance
+1.0
+automate ost.pitch_shift: 0.12 during TRAIN,ICE base 0
+automate ost.cutoff
+500 >GAMES 700:0.1 >TRAIN 450:0.1 >ICE 380:1 >RISE 400:0.1 2600:10@exp >PROOF 800:0.1
+automate ost.gain
+0.75 >RISE 0.6:0.1 1.1:9.9@exp >PROOF 0.75:0.1
+
+# ---------------------------------------------------------------- glass (the read, precise)
+track glass vel=0.3 len=0.5 patch=nc-glass reverb_send=0.35 echo_send=0.1 pan=0.3 gain=1.4
+>READ (A4@0.3 R:0.5 D5@0.22 R:1 E4@0.25 R:1)x1 (A4@0.28 R:0.5 D5@0.2 R:1 F4@0.24 R:1)x1 (Bb4@0.28 R:0.5 D5@0.2 R:1 G4@0.24 R:1)x1
+automate glass.release
+0.5
+automate glass.decay
+1.0
+
+# the gate closing: one glass slide down
+track sig vel=0.38 len=0.5 patch=glasslead reverb_send=0.4 echo_send=0.2 pan=-0.35
+>READ R:7 A4:0.25@0.4 D4:1.25@0.36
+automate sig.mono
+1
+automate sig.glide
+0.2
+automate sig.attack
+0.02   # QA: glasslead's 0.06 s attack put the 29.5 s gate 54 ms late
+
+# ---------------------------------------------------------------- shards and frost
+track shard vel=0.5 len=0.25 patch=glintbell reverb_send=0.35 echo_send=0.25 pan=-0.1 gain=0.5
+>SHATTER C6:0.125@0.5 F#5:0.125@0.46 A5:0.125@0.44 D#5:0.125@0.4 G5:0.125@0.36 C#5:0.125@0.32 E5:0.125@0.28 A#4:0.125@0.24 D5:0.25@0.2 G#4:0.25@0.16 C5:0.5@0.12
+
+track frost vel=0.35 len=0.5 patch=glass-anemone reverb_send=0.45 echo_send=0.3 pan=0.3 gain=1.2
+>ICE [D4 A4]:2@0.4 E5@0.25 A4@0.22 D5@0.2 G4@0.2 Bb4:2@0.18
+
+# ---------------------------------------------------------------- stabs
+track stab vel=0.85 len=1 patch=lowstab reverb_send=0.15
+>SHATTER [D2 G#2 D3 G#3]:1@0.95
+>BRIDGES [D2 A2 D3 F3]:1@0.85
+>FAST [D3 A3 D4]:0.5@0.6
+>PROOF [D2 A2 D3 F3]:1@1 R:5 [Bb1 F2 Bb2 D3]:0.8@0.92 R:0.95 [C2 G2 C3 E3]:0.8@0.92 R:0.7 [D2 A2 D3 F3]:0.8@0.96
+>TITLE [D2 A2 E3]:1@0.6
+
+# ---------------------------------------------------------------- the stranger
+track ghost vel=0.6 patch=sour pan=-0.2 reverb_send=0.3 gain=1.1
+>DROP R:4 G#3:1.5@0.62 D#4:0.5@0.55 C#4:0.5@0.55 E4:1.5@0.6
+automate ghost.attack
+0.06   # QA: was 0.25 s
+
+# ---------------------------------------------------------------- voice: "neural pairing" (78.5 s)
+# Paste at the end of score2.song. The modulator is a recording of the phrase
+# (qa/voice/neural_pairing_piper48k.wav, piper en_US-ryan, length-scale 1.35);
+# Patina's studio vocoder (vox_mode 1) speaks it through a dark saw carrier
+# playing the score's own title harmony: Dm(add9) on "neural" (78.5 s), Bbmaj7
+# on "pairing" (79.0 s, with the pads' change). 80 % vocoder, 20 % raw voice.
+# wav_at pins the recording to beat 157; move both numbers together.
+# Intelligible in the mix only with room made for it (make_voice_score.py):
+# the 79.0 snare+clap moves to 80.0, and Quill, Ember and both pads dip 6 dB
+# from 78.4 to 79.85 s; the voice then sits about +6 dB over the music.
+automate vox_mode
+1
+automate vox_level
+1.45
+automate vox_dry
+0.2
+track nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=157 reverb_send=0 gain=2.0
+>TITLE R:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2
+automate nv.waveform
+2
+automate nv.osc2_pitch
+-12
+automate nv.osc2_level
+0.5
+automate nv.detune
+4
+automate nv.cutoff
+1600
+automate nv.resonance
+0.4
+automate nv.sub
+0.3

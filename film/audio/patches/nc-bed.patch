@@ -1,0 +1,60 @@
+# The Next Chapter: the bed. Three saws drifting against each other (unison 3,
+# 9 cents) over a sub an octave down, into the ladder low and warm; the filter
+# swells open slowly on every chord and a slow LFO keeps it breathing. Drive and
+# saturation give the low mids body, so the chords sound full, not thin. No
+# effects of its own: the song's buses carry the room.
+waveform 2
+mix_saw 0
+mix_pulse 0
+mix_tri 0
+mix_sine 0
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0.35
+circuit 0
+key_track 0.35
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.9
+decay 2.0
+sustain 0.85
+release 1.8
+filter_env 1.1
+filter_attack 1.4
+filter_decay 2.0
+filter_sustain 0.45
+filter_release 1.6
+cutoff 640
+resonance 0.3
+drive 1.35
+saturation 0.35
+hpf 16
+volume 0.46
+octave 4
+noise 0
+fuzz 0
+spring 0
+reverb_decay 0.5
+reverb_wet 0
+chorus_mode 0
+chorus_rate 0.5
+chorus_depth 0
+lfo_rate 0.17
+lfo_shape 0.5
+lfo_pitch 2.0
+lfo_filter 0.12
+lfo_pwm 0
+tape_wow 0
+tape_flutter 0
+tape_drive 0
+tape_age 0
+unison 3
+unison_detune 9

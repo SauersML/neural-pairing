@@ -1,0 +1,32 @@
+# Twelve Doors — the chime: a high thin saw that appears three times
+# in the whole piece, doubling the melody's most important landings.
+waveform 2
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 3
+sub 0
+circuit 0
+key_track 0.6
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.03
+decay 0.6
+sustain 0.3
+release 1.0
+filter_env 0.2
+filter_attack 0.005
+filter_decay 0.5
+filter_sustain 0.4
+filter_release 0.8
+cutoff 4500
+resonance 0.4
+drive 1.0
+saturation 1.0
+hpf 300

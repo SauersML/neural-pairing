@@ -1,0 +1,23 @@
+# Score: the low boom under the big hits. A sine with a sine an octave
+# down, struck and left to fall; the song bends it down with pitch_shift.
+waveform 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.6
+sub 0.25
+key_track 0.3
+cutoff 700
+resonance 0.2
+drive 1.8
+saturation 0.6
+hpf 22
+attack 0.001
+decay 2.0
+sustain 0
+release 1.4
+filter_env 1.2
+filter_attack 0.001
+filter_decay 0.25
+filter_sustain 0
+volume 0.8

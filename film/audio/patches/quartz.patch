@@ -1,0 +1,33 @@
+# Four Rooms — the handshape: detuned saw pair on the ARP circuit,
+# short and gated for the stab sections, opened by automation for
+# the drop. One chord, four meanings.
+waveform 2
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0.55
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 7
+sub 0
+circuit 1
+key_track 0.5
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.004
+decay 0.25
+sustain 0.6
+release 0.18
+filter_env 0.8
+filter_attack 0.002
+filter_decay 0.15
+filter_sustain 0.5
+filter_release 0.15
+cutoff 1800
+resonance 0.6
+drive 1.5
+saturation 1.0
+hpf 40

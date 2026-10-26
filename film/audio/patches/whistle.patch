@@ -1,0 +1,33 @@
+# Milk Teeth — the ghost: the ladder at full regeneration, singing to
+# itself. Key-tracked so the whistle follows the note; the cutoff
+# automation drags it around like wind under a door.
+waveform 0
+osc2_wave 0
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0
+circuit 0
+key_track 1.0
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 1.2
+decay 1.0
+sustain 1.0
+release 2.0
+filter_env 0
+filter_attack 0.5
+filter_decay 0.5
+filter_sustain 0.5
+filter_release 1.5
+cutoff 300
+resonance 4.0
+drive 0.4
+saturation 0.8
+hpf 40

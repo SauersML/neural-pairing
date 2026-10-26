@@ -1,0 +1,33 @@
+# Score 3: the wide pad. Two saws 6 cents apart and a quiet saw an octave
+# up on every card, successive notes fanned hard across the field (and the
+# song's chorus send widens it further), through the
+# ladder with a filter bloom (0.5 s) and the slow LFO sweeping the
+# cutoff. A 20 ms attack, so chords land on the beat; long release.
+waveform 2
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0.9
+osc3_wave 2
+osc3_pitch 12
+osc3_level 0.22
+detune 6
+unison 1
+spread 1.0
+circuit 0
+key_track 0.4
+cutoff 800
+resonance 0.9
+drive 1.6
+saturation 0.8
+hpf 110
+filter_env 1.6
+filter_attack 0.5
+filter_decay 2.5
+filter_sustain 0.5
+filter_release 2.5
+lfo_filter 0.45
+attack 0.02
+decay 2.0
+sustain 0.9
+release 2.0
+volume 0.35

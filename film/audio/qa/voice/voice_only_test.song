@@ -1,0 +1,89 @@
+bpm 120
+gate 0.9
+tail 2
+section ASSEMBLY 0..8       # 0-4 s   assembly; the two motifs, apart
+section PASS1    8..16      # 4-8 s   first forward pass (lockstep, not linked)
+section SHATTER  16..20     # 8.0 s   the token shatters
+section HOLD     20..24     # 10-12 s drone: "neuralese"
+section BRIDGES  24..30     # 12.0 s  the drop; 8 bridges at 12.0 + 0.5k
+section SLOWPASS 30..46     # 15-23 s one pass, 8 exchanges at 15.8 + 0.9k
+section FAST     46..52     # 23.0 s  token pop; 23-26 fast passes
+section READ     52..64     # 26-32 s one read up close
+section SECRET   64..74     # 32 s lantern (Quill); 36.5 s Ember plays it back
+section MOOD     74..84     # 37-42 s Picardy: Quill turns major, then Ember
+section GAMES    84..108    # 42-54 s window pops every 0.6 s from 42.0
+section TRAIN    108..116   # 54-58 s mechanical ostinato
+section ICE      116..122   # 58.0 s  frost
+section RISE     122..132   # 61-66 s riser
+section DROP     132..140   # 66.0 s  drop; 66.5 real partner; 68.0 stranger
+section PROOF    140..156   # 70.0 s  BIG; 73.0 / 73.8 / 74.6 window hits
+section TITLE    156..164   # 78-82 s title resolve, faded by 81.9
+automate reverb_decay
+0.8
+automate reverb_wet
+0.22 >DROP 0:0.05 R:0.5 0.14:1.5@smooth >PROOF 0.22:0.05
+automate reverb_tone
+3600
+automate reverb_pre
+0.03
+automate echo_time
+0.375
+automate tape_drive
+0.38
+automate tape_wow
+0.03
+automate tape_flutter
+0.02
+automate tape_age
+0.18
+automate width
+1.2
+automate lfo_rate
+0.2
+automate comp_in
+1
+automate comp_threshold
+-18
+automate comp_ratio
+1
+automate comp_attack
+3
+automate comp_release
+4
+automate comp_makeup
+3
+automate comp_mix
+0.35
+automate comp_sc_hpf
+60
+
+# ---------------------------------------------------------------- 909 board
+# ---------------------------------------------------------------- voice: "neural pairing" (78.5 s)
+# Paste at the end of score2.song. The modulator is a recording of the phrase
+# (qa/voice/neural_pairing_piper48k.wav, piper en_US-ryan, length-scale 1.35);
+# Patina's studio vocoder (vox_mode 1) speaks it through a dark saw carrier
+# playing the score's own title harmony: Dm(add9) on "neural" (78.5 s), Bbmaj7
+# on "pairing" (79.0 s, with the pads' change). 80 % vocoder, 20 % raw voice.
+# wav_at pins the recording to beat 157; move both numbers together.
+automate vox_mode
+1
+automate vox_level
+1
+automate vox_dry
+0.2
+track nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=157 reverb_send=0 gain=1.0
+>TITLE R:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2
+automate nv.waveform
+2
+automate nv.osc2_pitch
+-12
+automate nv.osc2_level
+0.5
+automate nv.detune
+4
+automate nv.cutoff
+1600
+automate nv.resonance
+0.4
+automate nv.sub
+0.3

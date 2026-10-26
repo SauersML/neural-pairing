@@ -1,0 +1,38 @@
+# Strobe Engine — the glint: ring modulation with oscillator two an
+# OCTAVE AND A FIFTH up (~3f). The ring products land at 2f and 4f —
+# pure octaves of the struck note — so the bell is glassy but never
+# leaves the key. (A fifth up gives 2.5f, a major-third partial that
+# sours minor keys; a tritone belongs to no key at all.)
+waveform 0
+osc2_wave 0
+osc2_pitch 19
+osc2_level 0.25
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0
+circuit 1
+key_track 0.7
+osc_fm 0
+sync 0
+ring 0.85
+glide 0
+pulse_width 0.5
+attack 0.003
+decay 1.1
+sustain 0.0
+release 1.4
+filter_env 0.3
+filter_attack 0.001
+filter_decay 0.7
+filter_sustain 0.3
+filter_release 1.0
+cutoff 5000
+resonance 0.5
+drive 1.0
+saturation 1.0
+hpf 150
+volume 0.5
+noise 0
+fuzz 0

@@ -1,0 +1,59 @@
+# Claude Drive — the note arrives dark and opens. The amp rises in 120 ms
+# but the ladder takes 400 ms to open behind it, so every attack unfolds
+# instead of hitting. Saw + a square whose width the LFO sweeps slowly +
+# a saw an octave down, a little FM between the saws for grain. The
+# filter breathes with the LFO, the chorus (mode II) and tape wow keep it
+# moving, spring + a long room. Ladder drive and tape drive pinned.
+waveform 2
+mix_saw 0
+mix_pulse 0
+mix_tri 0
+mix_sine 0
+osc2_wave 1
+osc2_pitch 0
+osc2_level 0.45
+osc3_wave 2
+osc3_pitch -12
+osc3_level 0.35
+detune 11
+sub 0.2
+circuit 0
+key_track 0.6
+osc_fm 0.07
+sync 0
+ring 0
+glide 0.05
+pulse_width 0.35
+attack 0.12
+decay 1.4
+sustain 0.55
+release 1.1
+filter_env 1.3
+filter_attack 0.4
+filter_decay 1.6
+filter_sustain 0.45
+filter_release 1.0
+cutoff 800
+resonance 1.1
+drive 5
+saturation 0.8
+hpf 30
+volume 0.5
+octave 2
+noise 0.02
+fuzz 0
+spring 0
+reverb_decay 0.85
+reverb_wet 0
+chorus_mode 0
+chorus_rate 0.35
+chorus_depth 0
+lfo_rate 0.18
+lfo_shape 0.5
+lfo_pitch 2
+lfo_filter 0.3
+lfo_pwm 0.35
+tape_wow 0
+tape_flutter 0
+tape_drive 0
+tape_age 0

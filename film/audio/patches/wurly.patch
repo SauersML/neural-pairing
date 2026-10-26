@@ -1,0 +1,47 @@
+# Filament v2 — the keys: electric PIANO, not electric string.
+# What made livewire stringy: detuned saw pad + PWM churn + vibrato +
+# sustained envelope. All gone. This is the Wurlitzer recipe: a sine
+# reed with a narrow-pulse edge, KEYED envelope (fast attack, real
+# decay, low sustain), and the electricity comes from drive 2.2 — hard
+# velocities bark, soft ones stay round, which the per-voice shaper
+# does dynamically. No pitch LFO, no width churn. Keys, with current.
+waveform 0
+osc2_wave 1
+osc2_pitch 0
+osc2_level 0.25
+osc3_wave 0
+osc3_pitch 12
+osc3_level 0.1
+detune 2
+sub 0.1
+circuit 0
+key_track 0.7
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.3
+attack 0.003
+decay 1.1
+sustain 0.25
+release 0.3
+filter_env 1.1
+filter_attack 0.001
+filter_decay 0.25
+filter_sustain 0.3
+filter_release 0.3
+cutoff 1000
+resonance 0.7
+drive 2.2
+saturation 1.1
+hpf 60
+volume 0.5
+octave 4
+noise 0
+fuzz 0
+spring 0.12
+lfo_rate 0.5
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0

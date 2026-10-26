@@ -1,0 +1,20 @@
+# Score 3: glass. A sine with a sine an octave up and a twelfth above, all
+# harmonic (no ring modulation), bright and clean, ringing out.
+waveform 0
+osc2_wave 0
+osc2_pitch 12
+osc2_level 0.3
+osc3_wave 0
+osc3_pitch 19
+osc3_level 0.12
+detune 0
+circuit 1
+key_track 0.5
+cutoff 6500
+resonance 0.3
+hpf 200
+attack 0.003
+decay 1.6
+sustain 0.15
+release 1.6
+volume 0.35

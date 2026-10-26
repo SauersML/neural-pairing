@@ -1,0 +1,63 @@
+# Timing report: score2.song  (120 bpm; grid 0.25 beat = 125 ms; 16th-triplet = 83.3 ms)
+# onset detector calibrated on synthetic onsets: frame bias -16.3 ms removed
+# bus latency (median kick/snare/rim onset offset on the kit stem): +7.5 ms (the master tape's 6 ms transport delay plus the drum attacks); offsets below are RELATIVE to it
+
+## Per track: start offset = sounding onset - written note-on - bus latency (ms)
+track   onsets  median    IQR    p10    p90  -6dB pt rise10-90  off-grid  flags
+kit        175    +0.0    2.5   -0.0   +5.0       -4        17   19/176   19 WRITTEN OFF-GRID
+boom         5    -0.0    0.0   -0.0   +0.0       +9        38    0/5     
+thump        8    +1.2    3.1   -0.8   +5.7       +2        25    7/8     7 WRITTEN OFF-GRID
+sub         54    +2.5    4.4   -0.0   +5.0       +4        44    3/54    3 WRITTEN OFF-GRID
+epad         2    +5.0    5.0   +1.0   +9.0     +261       400    0/37    SLOW ATTACK (feels late)
+qpad         6    +5.0    1.9   +5.0  +10.0     +270       560    0/35    SLOW ATTACK (feels late)
+quill       88    +2.5    2.5   -0.0   +5.0       -1        20   13/88    13 WRITTEN OFF-GRID
+ember       86    +5.0    5.0   +2.5   +7.5       +1        25   13/86    13 WRITTEN OFF-GRID
+ost        172    +7.5    2.5   +5.0  +12.5       +1        23    2/173   2 WRITTEN OFF-GRID
+glass        9    +2.5    0.0   +2.0   +5.0       +1        23    0/9     
+sig          1   +67.5    0.0  +67.5  +67.5     +130       244    1/2     SYSTEMATIC OFFSET, SLOW ATTACK (feels late), 1 WRITTEN OFF-GRID
+shard        8    +2.5    3.1   -0.0   +5.7       -4        18    0/11    4 on 32nds
+frost        6    +5.0    1.9   +3.7   +8.7       +7        42    0/6     
+stab         8    +0.0    0.6   -0.0   +3.2       -1        21    2/8     2 WRITTEN OFF-GRID
+ghost        1    +7.5    0.0   +7.5   +7.5     +114       245    0/4     SLOW ATTACK (feels late)
+
+## Written placement: note-ons off the 0.25-beat grid (and off the 16th-triplet grid)
+section      kit   boom  thump    sub   epad   qpad  quill  ember    ost  glass    sig  shard  frost   stab  ghost
+ASSEMBLY       .      .      .    0/1    0/1    0/1    5/5    5/5      .      .      .      .      .      .      .
+PASS1        0/2      .      .    0/1    0/1    0/1    0/7    0/7      .      .      .      .      .      .      .
+SHATTER      0/1    0/1      .    0/1    0/1      .      .      .      .      .      .   0/11      .    0/1      .
+HOLD           .      .      .    0/1    0/1    0/1    0/1    0/1      .      .      .      .      .      .      .
+BRIDGES      0/6    0/1      .    0/4    0/1    0/1    0/3    0/3      .      .      .      .      .    0/1      .
+SLOWPASS    7/21      .    7/8    0/6    0/3    0/3    3/5    4/5      .      .      .      .      .      .      .
+FAST        0/21    0/1      .    0/4    0/4    0/4   0/11   0/10      .      .      .      .      .    0/1      .
+READ         0/6      .      .    0/2    0/2    0/2    0/5    0/7      .    0/9    1/2      .      .      .      .
+SECRET       0/3      .      .    0/2    0/2    0/1    0/8    0/2    0/7      .      .      .      .      .      .
+MOOD        0/14      .      .    0/1    0/3    0/3    0/6    0/6      .      .      .      .      .      .      .
+GAMES       7/35      .      .   0/12    0/7    0/7   4/13   3/12   0/48      .      .      .      .      .      .
+TRAIN       0/28      .      .    0/4    0/1    0/1    0/2    0/2   0/32      .      .      .      .      .      .
+ICE          0/2      .      .    0/1    0/1    0/1      .      .   0/24      .      .      .    0/6      .      .
+RISE        0/13      .      .    0/2    0/2    0/2    0/6    0/6   0/40      .      .      .      .      .      .
+DROP           .      .      .      .      .      .      .    0/4      .      .      .      .      .      .    0/4
+PROOF       5/21    0/1      .    3/9    0/4    0/4   1/13   1/13   2/22      .      .      .      .    2/4      .
+TITLE        0/3    0/1      .    0/3    0/3    0/3    0/3    0/3      .      .      .      .      .    0/1      .
+  kit: 15.800s (SLOWPASS, beat 31.60, +50 ms off; snap -> beat 31.75), 16.700s (SLOWPASS, beat 33.40, -50 ms off; snap -> beat 33.50), 17.600s (SLOWPASS, beat 35.20, -25 ms off; snap -> beat 35.25), 19.400s (SLOWPASS, beat 38.80, +25 ms off; snap -> beat 38.75), 20.300s (SLOWPASS, beat 40.60, +50 ms off; snap -> beat 40.75), 21.200s (SLOWPASS, beat 42.40, -50 ms off; snap -> beat 42.50), 22.100s (SLOWPASS, beat 44.20, -25 ms off; snap -> beat 44.25), 42.600s (GAMES, beat 85.20, -25 ms off; snap -> beat 85.25), 43.200s (GAMES, beat 86.40, -50 ms off; snap -> beat 86.50), 43.800s (GAMES, beat 87.60, +50 ms off; snap -> beat 87.75), 44.400s (GAMES, beat 88.80, +25 ms off; snap -> beat 88.75), 45.600s (GAMES, beat 91.20, -25 ms off; snap -> beat 91.25) ...
+  thump: 15.800s (SLOWPASS, beat 31.60, +50 ms off; snap -> beat 31.75), 16.700s (SLOWPASS, beat 33.40, -50 ms off; snap -> beat 33.50), 17.600s (SLOWPASS, beat 35.20, -25 ms off; snap -> beat 35.25), 19.400s (SLOWPASS, beat 38.80, +25 ms off; snap -> beat 38.75), 20.300s (SLOWPASS, beat 40.60, +50 ms off; snap -> beat 40.75), 21.200s (SLOWPASS, beat 42.40, -50 ms off; snap -> beat 42.50), 22.100s (SLOWPASS, beat 44.20, -25 ms off; snap -> beat 44.25)
+  sub: 73.800s (PROOF, beat 147.60, +50 ms off; snap -> beat 147.75), 74.600s (PROOF, beat 149.20, -25 ms off; snap -> beat 149.25), 75.400s (PROOF, beat 150.80, +25 ms off; snap -> beat 150.75)
+  quill: 0.400s (ASSEMBLY, beat 0.80, +25 ms off; snap -> beat 0.75), 0.800s (ASSEMBLY, beat 1.60, +50 ms off; snap -> beat 1.75), 1.200s (ASSEMBLY, beat 2.40, -50 ms off; snap -> beat 2.50), 1.600s (ASSEMBLY, beat 3.20, -25 ms off; snap -> beat 3.25), 2.200s (ASSEMBLY, beat 4.40, -50 ms off; snap -> beat 4.50), 16.700s (SLOWPASS, beat 33.40, -50 ms off; snap -> beat 33.50), 20.300s (SLOWPASS, beat 40.60, +50 ms off; snap -> beat 40.75), 22.100s (SLOWPASS, beat 44.20, -25 ms off; snap -> beat 44.25), 43.200s (GAMES, beat 86.40, -50 ms off; snap -> beat 86.50), 44.400s (GAMES, beat 88.80, +25 ms off; snap -> beat 88.75), 45.600s (GAMES, beat 91.20, -25 ms off; snap -> beat 91.25), 46.800s (GAMES, beat 93.60, +50 ms off; snap -> beat 93.75) ...
+  ember: 0.800s (ASSEMBLY, beat 1.60, +50 ms off; snap -> beat 1.75), 1.300s (ASSEMBLY, beat 2.60, +50 ms off; snap -> beat 2.75), 1.800s (ASSEMBLY, beat 3.60, +50 ms off; snap -> beat 3.75), 2.300s (ASSEMBLY, beat 4.60, +50 ms off; snap -> beat 4.75), 2.900s (ASSEMBLY, beat 5.80, +25 ms off; snap -> beat 5.75), 15.800s (SLOWPASS, beat 31.60, +50 ms off; snap -> beat 31.75), 17.600s (SLOWPASS, beat 35.20, -25 ms off; snap -> beat 35.25), 19.400s (SLOWPASS, beat 38.80, +25 ms off; snap -> beat 38.75), 21.200s (SLOWPASS, beat 42.40, -50 ms off; snap -> beat 42.50), 42.600s (GAMES, beat 85.20, -25 ms off; snap -> beat 85.25), 43.800s (GAMES, beat 87.60, +50 ms off; snap -> beat 87.75), 46.200s (GAMES, beat 92.40, -50 ms off; snap -> beat 92.50) ...
+  ost: 75.400s (PROOF, beat 150.80, +25 ms off; snap -> beat 150.75), 75.700s (PROOF, beat 151.40, -50 ms off; snap -> beat 151.50)
+  sig: 29.650s (READ, beat 59.30, +25 ms off; snap -> beat 59.25)
+  stab: 73.800s (PROOF, beat 147.60, +50 ms off; snap -> beat 147.75), 74.600s (PROOF, beat 149.20, -25 ms off; snap -> beat 149.25)
+
+## Sounding onsets more than 20 ms from the written time (1)
+   29.500s READ      sig    A4             start  +67.5 ms   -6dB +54 ms
+
+## Sampler track 'fx' (sample=fx2.wav, triggers at 0.000s/C4)
+  deck playback offset vs the source wav (onset-envelope cross-correlation): +7.5 ms (bus latency +7.5 ms)
+  the source wav vs its own song's note-ons: median +5.0 ms over 7 clear onsets
+  this stem vs the source song's note-ons: median +10.0 ms, IQR 2.5 ms over 4 clear onsets; relative to the bus +2.5 ms
+      7.400s start  +17.5 ms (flux x9)
+      8.000s start  +10.0 ms (flux x5)
+     73.000s start  +10.0 ms (flux x5)
+     78.000s start   +7.5 ms (flux x6)
+
+per-onset CSV: /home/user/video/audio/qa/stems/score2/timing_onsets.csv

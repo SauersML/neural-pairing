@@ -1,0 +1,19 @@
+# Score FX: icy high hiss, the frost forming.
+waveform 0
+osc2_level 0
+osc3_level 0
+sub 0
+key_track 0
+vel_filter 0
+cutoff 15000
+resonance 0.6
+hpf 4200
+drive 1.0
+attack 0.03
+decay 2.5
+sustain 0.25
+release 1.8
+filter_env 0
+lfo_rate 7
+lfo_filter 0.0
+volume 0.75

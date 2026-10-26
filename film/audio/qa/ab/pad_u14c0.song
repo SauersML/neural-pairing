@@ -1,0 +1,14 @@
+bpm 120
+tail 2
+automate chorus_mode
+1
+automate chorus_mix
+0
+automate chorus_depth
+0
+track epad vel=0.4 patch=tungsten chorus_send=0.3 gain=0.42
+[D2 A2 F3 C4]:4@0.4 [Bb1 F2 D3 A3]:4@0.4
+automate epad.unison_detune
+14
+automate epad.detune
+5

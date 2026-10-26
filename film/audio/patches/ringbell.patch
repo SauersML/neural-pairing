@@ -1,0 +1,32 @@
+# Milk Teeth — the toll: pure ring modulation, oscillator two a TRITONE
+# up, so every strike is a chord of sidebands that belongs to no key.
+waveform 0
+osc2_wave 0
+osc2_pitch 6
+osc2_level 0.7
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 2
+sub 0
+circuit 1
+key_track 0.6
+osc_fm 0
+sync 0
+ring 1.0
+glide 0
+pulse_width 0.5
+attack 0.004
+decay 1.4
+sustain 0.0
+release 1.8
+filter_env 0.2
+filter_attack 0.001
+filter_decay 0.8
+filter_sustain 0.4
+filter_release 1.2
+cutoff 4000
+resonance 0.5
+drive 1.0
+saturation 1.0
+hpf 100

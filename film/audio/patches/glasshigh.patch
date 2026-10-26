@@ -1,0 +1,32 @@
+# Four Rooms — the high voice of the duet: ARP-clean triangle with a
+# sine octave, answering from two octaves above the grit.
+waveform 3
+osc2_wave 0
+osc2_pitch 12
+osc2_level 0.3
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 4
+sub 0
+circuit 1
+key_track 0.7
+osc_fm 0
+sync 0
+ring 0
+glide 0.03
+pulse_width 0.5
+attack 0.02
+decay 0.4
+sustain 0.75
+release 0.5
+filter_env 0.5
+filter_attack 0.005
+filter_decay 0.3
+filter_sustain 0.6
+filter_release 0.4
+cutoff 4200
+resonance 0.7
+drive 1.2
+saturation 1.0
+hpf 150

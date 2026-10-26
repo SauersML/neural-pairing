@@ -1,0 +1,32 @@
+# Lantern Fish — the soft pad: triangle through a nearly-shut
+# filter, slow bloom, sine an octave down. Nothing sharp anywhere.
+waveform 3
+osc2_wave 3
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.4
+detune 5
+sub 0
+circuit 1
+key_track 0.3
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.5
+decay 0.8
+sustain 0.8
+release 1.4
+filter_env 0.3
+filter_attack 0.6
+filter_decay 0.8
+filter_sustain 0.6
+filter_release 1.0
+cutoff 900
+resonance 0.3
+drive 0.9
+saturation 0.5
+hpf 16

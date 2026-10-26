@@ -1,0 +1,38 @@
+# Strobe Engine — the bass: no squelch. The filter env is nearly
+# static (0.25 oct, fast) so there's no per-note quack — just a solid
+# dark saw over a heavy phase-locked sub square, mono-tight (detune 0),
+# resonance low, the ladder driven warm. The movement lives in the
+# NOTES; the timbre holds still.
+waveform 2
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0.65
+circuit 0
+key_track 0.3
+osc_fm 0
+sync 0
+ring 0
+glide 0.01
+pulse_width 0.5
+attack 0.003
+decay 0.25
+sustain 0.75
+release 0.12
+filter_env 0.25
+filter_attack 0.001
+filter_decay 0.1
+filter_sustain 0.5
+filter_release 0.1
+cutoff 560
+resonance 0.2
+drive 1.9
+saturation 1.1
+hpf 25
+volume 0.62
+noise 0
+fuzz 0

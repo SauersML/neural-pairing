@@ -1,0 +1,56 @@
+# Velvet Fracture — Bocuma-derived dry subtractive voice
+
+# VCO: the selected Bocuma topology exactly—one physical saw core, without
+# phase-locked thickening, detuned copies, octave dividers, or chorus.
+waveform 2
+mix_saw 1
+mix_pulse 0
+mix_tri 0
+mix_sine 0
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 0
+unison 1
+unison_detune 0
+sub 0
+circuit 1
+osc_fm 0
+sync 0
+ring 0
+pulse_width 0.5
+
+# VCF: the accepted Bocuma core with a setting between audition #2 and #4.
+# Low Q preserves weight; the stronger envelope and input drive provide the
+# hard attack without an effect or a resonant squelch.
+cutoff 760
+resonance 0.28
+drive 3.00
+saturation 0.40
+key_track 0.80
+hpf 16
+
+# VCF ADSR
+filter_env 2.00
+filter_attack 0.002
+filter_decay 0.38
+filter_sustain 0.40
+filter_release 0.18
+
+# VCA ADSR: Bocuma's bloom-and-fade behavior, shortened only enough to
+# articulate the moving pattern.
+attack 0.008
+decay 1.60
+sustain 0.20
+release 0.42
+
+# Performance modulation
+glide 0
+lfo_rate 1.2
+lfo_shape 0.5
+lfo_pitch 3
+lfo_filter 0.06
+lfo_pwm 0

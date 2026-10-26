@@ -1,0 +1,30 @@
+# Score 3: the impact brass. Three detuned saws (one an octave down), the
+# ladder slammed open by the envelope and driven; holds a
+# sustained, darker body after the bark.
+waveform 2
+osc2_wave 2
+osc2_level 0.9
+osc3_wave 2
+osc3_pitch -12
+osc3_level 0.5
+detune 8
+unison 1
+unison_detune 12
+spread 0.8
+circuit 0
+key_track 0.4
+cutoff 480
+resonance 1.0
+drive 3.0
+saturation 1.4
+hpf 55
+filter_env 2.4
+filter_attack 0.008
+filter_decay 0.5
+filter_sustain 0.3
+filter_release 0.9
+attack 0.004
+decay 1.2
+sustain 0.5
+release 0.7
+volume 0.38

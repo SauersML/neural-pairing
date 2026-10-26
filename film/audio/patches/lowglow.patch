@@ -1,0 +1,32 @@
+# Lantern Fish — the low glow: a sine voice in octave three, soft
+# edge, triangle body underneath. Never high, never sharp.
+waveform 0
+osc2_wave 3
+osc2_pitch 0
+osc2_level 0.2
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 3
+sub 0
+circuit 1
+key_track 0.4
+osc_fm 0
+sync 0
+ring 0
+glide 0.03
+pulse_width 0.5
+attack 0.07
+decay 0.5
+sustain 0.8
+release 0.8
+filter_env 0.2
+filter_attack 0.01
+filter_decay 0.4
+filter_sustain 0.6
+filter_release 0.6
+cutoff 1600
+resonance 0.3
+drive 0.9
+saturation 0.6
+hpf 30

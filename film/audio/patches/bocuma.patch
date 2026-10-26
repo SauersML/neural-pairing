@@ -1,0 +1,71 @@
+# The Kaini/Bocuma voice — corrected to the community's actual
+# SH-01A panel reading, which is humbler than every guess:
+#   SAW ONLY, full level. No pulse, no sub, no noise.
+# The identity is the ENVELOPE and FILTER, not the mix:
+#   - one fast-attack / LONG-decay / near-zero-sustain contour
+#     shaping both loudness and cutoff (the 101 shares one ADSR):
+#     every note is a bloom that fades, never a held organ tone
+#   - strong key tracking (KYBD ~8/10) on the OTA-cascade filter
+#     (circuit 1 — the IR3109's family), moderate-low resonance
+#   - light triangle vibrato, and AUTO portamento at almost minimum
+#     time: the fast linear legato glide
+# Wow, tape, and room live in the song / preset bus lines below.
+# Bus tuned by measurement against the reference recording's sound
+# (not its notes): a steep roll-off above 1 kHz and a worn tape's hiss
+# floor (low cutoff, light key tracking, tape_age 0.9); harmonics
+# smeared by chorus II, spring and a long room; ~6 cents of wow; and
+# a narrow image (width 0.45), since the smear is not wide.
+waveform 2
+mix_saw 0
+mix_pulse 0
+mix_tri 0
+mix_sine 0
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0
+circuit 1
+key_track 0.3
+osc_fm 0
+sync 0
+ring 0
+glide 0.012
+pulse_width 0.5
+attack 0.008
+decay 2.2
+sustain 0.1
+release 0.8
+filter_env 1.5
+filter_attack 0.005
+filter_decay 2.2
+filter_sustain 0.1
+filter_release 0.8
+cutoff 500
+resonance 2.0
+drive 0.4
+saturation 0.4
+hpf 16
+volume 1.0
+octave 3
+noise 0.1
+fuzz 0
+spring 0.2
+reverb_decay 0.9
+reverb_wet 0.3
+chorus_mode 2
+chorus_rate 0.5
+chorus_depth 0.6
+lfo_rate 1.2
+lfo_shape 0.5
+lfo_pitch 3
+lfo_filter 0.06
+lfo_pwm 0
+tape_wow 0.42
+tape_flutter 0.06
+tape_drive 0.3
+tape_age 0.9
+width 0.45

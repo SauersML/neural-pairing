@@ -1,0 +1,89 @@
+# NEURAL PAIRING v2: the FX stem for score2.song. Noise-only voices (the
+# oscillator parked at 8 Hz under each patch's high-pass, the shared noise
+# source at full) shaped into swells, risers, whooshes and crash washes.
+# Rendered to fx2.wav and played back by score2.song on the tape deck.
+# The sections are identical to score2.song's: shift a cue in both files.
+
+bpm 120
+gate 1.0
+tail 3
+
+section ASSEMBLY 0..8
+section PASS1    8..16
+section SHATTER  16..20
+section HOLD     20..24
+section BRIDGES  24..30
+section SLOWPASS 30..46
+section FAST     46..52
+section READ     52..64
+section SECRET   64..74
+section MOOD     74..84
+section GAMES    84..108
+section TRAIN    108..116
+section ICE      116..122
+section RISE     122..132
+section DROP     132..140
+section PROOF    140..156
+section TITLE    156..164
+
+automate noise
+1
+
+# 0.0 s: air out of silence
+track air vel=0.8 patch=fx-swell gain=0.45
+0:8
+automate air.attack
+3.0
+automate air.release
+2.5
+automate air.cutoff
+200 1400:8@exp
+automate air.resonance
+0.8
+
+# crash washes: shatter 8.0, drop 12.0, token 23.0, big hit 70.0, stat 73.0, title 78.0
+track burst patch=fx-burst gain=2.0
+>SHATTER 0:4@1
+>BRIDGES 0:4@0.6
+>FAST 0:2@0.35
+>PROOF 0:4@1 R:2 0:2@0.45
+>TITLE 0:4@0.5
+automate burst.cutoff
+7000
+
+# risers, each cut 0.1 beat before its hit: into the shatter, into the drop,
+# into the token, the secret's forward pass, the training riser, into the big hit
+track rise patch=fx-swell gain=2.0
+>PASS1 R:6.8 0:1.1
+>HOLD R:1 0:2.9
+>SLOWPASS R:14.6 0:1.3
+>SECRET R:5 0:3.9
+>RISE 0:9.9
+>DROP R:6 0:1.9
+automate rise.gain
+0.03 >PASS1 R:6.8 1:1.1@exp 0.03:0.01 >HOLD R:1 0.9:2.9@exp 0.03:0.01 >SLOWPASS R:14.6 0.45:1.3@exp 0.03:0.01 >SECRET R:5 0.3:3.9@exp 0.03:0.01 >RISE 1:9.9@exp 0.03:0.01 >DROP R:6 0.9:1.9@exp
+automate rise.cutoff
+300 >PASS1 R:6.8 7000:1.1@exp 300:0.01 >HOLD R:1 9000:2.9@exp 300:0.01 >SLOWPASS R:14.6 5000:1.3@exp 400:0.01 >SECRET R:5 2500:3.9@exp 200:0.01 >RISE 11000:9.9@exp 300:0.01 >DROP R:6 9000:1.9@exp
+
+# whooshes peaking at 26.0 (into the read) and 42.0 (into the games)
+track whoosh patch=fx-swell gain=1.6
+>FAST R:5 0:1
+>MOOD R:9 0:1
+automate whoosh.attack
+0.42
+automate whoosh.release
+0.9
+automate whoosh.resonance
+2.0
+automate whoosh.cutoff
+400 >FAST R:5 4000:1@exp 400:2@exp >MOOD R:9 4000:1@exp 400:2@exp
+
+# 58.0 s: frost
+track ice patch=fx-ice gain=1.0
+>ICE 0:6
+automate ice.lfo_filter
+1.2
+
+# 66-69.9 s: the low rumble under the drop
+track low patch=fx-low gain=0.12
+>DROP 0:7.8

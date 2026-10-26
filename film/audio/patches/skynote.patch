@@ -1,0 +1,34 @@
+# Twelve Doors — the sky: one soft sine that does not move. While the
+# cadence descends underneath it, D6 stays — consonant with three of
+# the four chords and a quiet ache against the F# major bar, resolved
+# at every cycle's return.
+waveform 0
+osc2_wave 0
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 2
+sub 0
+circuit 1
+key_track 0.5
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 1.5
+decay 1.0
+sustain 1.0
+release 2.5
+filter_env 0
+filter_attack 0.5
+filter_decay 0.5
+filter_sustain 0.5
+filter_release 1.0
+cutoff 3000
+resonance 0.2
+drive 0.8
+saturation 0.8
+hpf 200

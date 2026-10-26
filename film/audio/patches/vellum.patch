@@ -1,0 +1,45 @@
+# Vellum — a soft pad for remembering things: triangle and sine from one
+# core, a whisper of breath noise, the ladder closed to a felt-lined
+# glow, and a cassette deck underneath whose pitch drifts like an old
+# home recording. Slow in, slower out.
+waveform 3
+mix_tri 0.8
+mix_sine 0.35
+osc2_wave 3
+osc2_pitch 12
+osc2_level 0.25
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.2
+detune 7
+noise 0.035
+circuit 0
+key_track 0.5
+cutoff 3600
+resonance 0.3
+drive 1.1
+saturation 0.2
+hpf 90
+filter_env 0.4
+filter_attack 1.2
+filter_decay 2.5
+filter_sustain 0.7
+filter_release 2.5
+attack 0.9
+decay 2.0
+sustain 0.9
+release 3.0
+spread 0.6
+chorus_mode 1
+chorus_rate 0.4
+chorus_depth 0.4
+reverb_wet 0.38
+reverb_decay 0.75
+reverb_tone 3500
+reverb_pre 0.02
+tape_wow 0.28
+tape_flutter 0.12
+tape_drive 0.15
+tape_age 0.35
+volume 0.393
+octave 4

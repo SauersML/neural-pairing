@@ -1,0 +1,30 @@
+# Score 2: Quill's voice. A mid-register glass pluck: triangle core with a sine
+# an octave up and a faint twelfth, the ARP-style OTA filter snapped open by its
+# envelope and closing to a soft ring. Cool, clear, never shrill (hpf keeps it
+# out of the bass, the cutoff keeps it out of the treble).
+waveform 3
+osc2_wave 0
+osc2_pitch 12
+osc2_level 0.32
+osc3_wave 0
+osc3_pitch 19
+osc3_level 0.07
+detune 3
+circuit 1
+key_track 0.55
+cutoff 1700
+resonance 0.75
+drive 1.4
+saturation 0.6
+hpf 140
+filter_env 1.6
+filter_attack 0.001
+filter_decay 0.28
+filter_sustain 0.15
+filter_release 0.5
+attack 0.002
+decay 1.1
+sustain 0.12
+release 0.7
+vel_filter 0.9
+volume 0.7

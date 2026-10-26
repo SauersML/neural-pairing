@@ -1,0 +1,19 @@
+# Score FX: a resonant noise swell for risers and whooshes. Cutoff and
+# level are automated per track in the song.
+waveform 0
+osc2_level 0
+osc3_level 0
+sub 0
+key_track 0
+vel_filter 0
+vel_amp 0.3
+cutoff 600
+resonance 1.4
+hpf 120
+drive 1.2
+attack 0.01
+decay 1
+sustain 1
+release 0.04
+filter_env 0
+volume 0.75

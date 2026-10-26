@@ -1,0 +1,24 @@
+# Score 3: the arp/ostinato. Narrow pulse plus saw on the OTA cascade, high
+# resonance for an acid vowel the song sweeps; short bloom, some sustain.
+waveform 1
+pulse_width 0.25
+osc2_wave 2
+osc2_level 0.6
+detune 5
+circuit 1
+key_track 0.5
+cutoff 600
+resonance 1.3
+drive 2.0
+saturation 1.0
+hpf 90
+filter_env 1.3
+filter_attack 0.002
+filter_decay 0.4
+filter_sustain 0.2
+filter_release 0.2
+attack 0.002
+decay 0.3
+sustain 0.35
+release 0.25
+volume 0.4

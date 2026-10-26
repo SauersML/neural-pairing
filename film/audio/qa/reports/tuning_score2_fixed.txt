@@ -1,0 +1,141 @@
+# Tuning report: score2_fixed.song  (tolerance +-12 cents, A4 = 440 Hz)
+
+## Per track (deviation of the sounding pitch from the WRITTEN note, cents)
+track    notes  median mean|d|  p90|d| spread   flagged  pYIN: frames, median ET dev, %>tol   patch / pitch controls
+boom         5    +0.4     1.5     3.6   27.2    0   0%  (no voiced frames)                   {'osc3_pitch': -12.0, 'attack': 0.001, 'patch': 'boom', 'automate.PitchShift': [0.0, 0.007, 0.008, 0.009, 0.01, 0.028]}
+thump        8    -2.9     4.8    10.3    0.0    0   0%  (no voiced frames)                   {'osc3_pitch': -12.0, 'attack': 0.001, 'patch': 'boom'}
+sub         54    +0.2     2.0     3.6    1.0    0   0%   3062   +6.0  27.0%                  {'detune': 1.0, 'glide': 0.04, 'osc3_pitch': -12.0, 'attack': 0.006, 'patch': 'sub2'}
+epad       142    +1.0     3.0     6.0    9.1    2   1%  (polyphonic)                         {'detune': 5.0, 'unison': 2.0, 'unison_detune': 14.0, 'lfo_rate': 0.45, 'osc3_pitch': 12.0, 'attack': 0.5, 'patch': 'tungsten'}
+qpad        91    -0.9     1.2     2.6    2.9    0   0%  (polyphonic)                         {'detune': 7.0, 'osc2_pitch': 12.0, 'osc3_pitch': -12.0, 'attack': 0.9, 'patch': 'vellum'}
+quill       88    -0.7     1.7     3.9    3.4    0   0%   1596   +0.0  17.0%                  {'detune': 3.0, 'osc2_pitch': 12.0, 'osc3_pitch': 19.0, 'circuit': 1.0, 'attack': 0.002, 'patch': 'quill'}
+ember       83    +0.0     1.5     2.9    2.9    1   1%   1582   +0.0   5.3%                  {'detune': 7.0, 'glide': 0.025, 'osc3_pitch': -12.0, 'attack': 0.004, 'patch': 'ember', 'automate.Glide': [0.025, 0.094, 0.163, 0.231, 0.3]}
+ost         94    -4.5     8.6    19.4    3.9   24  26%  (no voiced frames)                   {'unison': 1.0, 'lfo_rate': 1.0, 'osc2_pitch': -12.0, 'circuit': 1.0, 'attack': 0.002, 'patch': 'nc-pluck', 'automate.PitchShift': [0.0, 0.12]}
+glass        9    +0.2     1.5     3.3    5.0    0   0%  (no voiced frames)                   {'unison': 1.0, 'lfo_rate': 1.0, 'osc2_pitch': 19.0, 'ring': 0.12, 'attack': 0.002, 'patch': 'nc-glass'}
+sig          2    -3.0     3.0     4.8    1.6    0   0%  (no voiced frames)                   {'detune': 4.0, 'glide': 0.12, 'osc2_pitch': 12.0, 'attack': 0.06, 'patch': 'glasslead', 'automate.Glide': [0.2]}
+shard        3    -1.7     1.9     2.6    1.0    0   0%  (no voiced frames)                   {'osc2_pitch': 19.0, 'ring': 0.85, 'circuit': 1.0, 'attack': 0.003, 'patch': 'glintbell'}
+frost        7    -1.2     2.7     4.6    1.7    0   0%  (polyphonic)                         {'detune': 4.0, 'lfo_pitch': 4.0, 'lfo_rate': 0.25, 'osc2_pitch': 19.0, 'osc3_pitch': -12.0, 'ring': 0.75, 'attack': 0.02, 'patch': 'glass-anemone'}
+stab        30    +0.5     4.5     8.7    9.1    2   7%  (polyphonic)                         {'detune': 11.0, 'osc3_pitch': -12.0, 'attack': 0.002, 'patch': 'lowstab'}
+ghost        4    -0.3     1.9     3.9   15.8    0   0%  (no voiced frames)                   {'detune': 22.0, 'lfo_pitch': 18.0, 'lfo_rate': 4.3, 'osc2_pitch': 1.0, 'osc3_pitch': -12.0, 'attack': 0.25, 'patch': 'sour'}
+
+## Per section: median deviation (cents) per track; * = a flagged note in that cell
+section      boom   thump     sub    epad    qpad   quill   ember     ost   glass     sig   shard   frost    stab   ghost
+ASSEMBLY        .       .   -0.9    -0.7    -1.1    -1.8    +0.0        .       .       .       .       .       .       .
+PASS1           .       .   -1.0    -0.3    -1.4    -1.6    -0.1        .       .       .       .       .       .       .
+SHATTER     +0.7        .   +1.8    -1.4        .       .       .       .       .       .   -1.7        .   +0.7        .
+HOLD            .       .   +2.4    +1.9    -0.4    +0.5    +4.4        .       .       .       .       .       .       .
+BRIDGES     +5.2        .   +0.3    +1.1    -0.1    -0.4    +1.1        .       .       .       .       .   -5.2        .
+SLOWPASS        .   -2.9    -0.9    +1.2    -1.0    -1.7    -0.2        .       .       .       .       .       .       .
+FAST        +0.4        .   +1.5    +1.7*   -0.8    +0.0    -1.5*       .       .       .       .       .   -4.6        .
+READ            .       .   +2.4    +1.6    -0.6    -0.3    -0.7        .   +0.2    -3.0        .       .       .       .
+SECRET          .       .   +0.7    -0.4    -0.2    -0.4    -1.3    -1.6*       .       .       .       .       .       .
+MOOD            .       .   -1.0    +0.2    -1.1    -1.0    +0.6        .       .       .       .       .       .       .
+GAMES           .       .   +1.0    +0.2    -0.9    -0.8    -0.1    -3.8*       .       .       .       .       .       .
+TRAIN           .       .   -1.0    +1.8    -1.2    -0.4    +1.2    +3.0*       .       .       .       .       .       .
+ICE             .       .   -1.9    +0.3    -0.6        .       .   -5.4*       .       .       .   -1.2        .       .
+RISE            .       .   +0.5    +3.2*   -0.9    -0.2    +0.5        .       .       .       .       .       .       .
+DROP            .       .       .       .       .       .   -0.4        .       .       .       .       .       .   -0.3 
+PROOF       -1.2        .   +1.9    +2.0    -1.2    -1.7    -0.1    -6.0*       .       .       .       .   +1.7*       .
+TITLE       -0.2        .   -0.5    +2.3    -0.7    -0.7    +1.4        .       .       .       .       .   -6.9        .
+
+## Flagged notes (29 of 620 measured): median beyond +-12 c, or beyond it for >= 150 ms
+   time section   track   note    dur  median   first   worst spread >tol for
+  24.75 FAST      ember   A3     0.11   -13.2    +0.7   -27.1   22.3    0.04s
+  25.50 FAST      epad    A1     0.45   +12.3   +12.3   +12.3    0.0    0.40s
+  34.75 SECRET    ost     F2     0.23   +22.7   +22.7   +22.7    0.0    0.18s
+  35.25 SECRET    ost     D3     0.23   -22.5   -14.8   -28.2   10.8    0.12s
+  36.00 SECRET    ost     D4     0.23   -12.4   -12.4   -32.7   19.8    0.08s
+  43.00 GAMES     ost     F3     0.23   -29.7    -3.0   -29.7   21.3    0.08s
+  43.25 GAMES     ost     E3     0.23   -12.4   -12.4   -19.6   19.5    0.08s
+  46.00 GAMES     ost     D2     0.23   -18.3   -18.3   -18.3    0.0    0.18s
+  47.25 GAMES     ost     E3     0.23   -12.5   -12.5   -14.3    8.1    0.04s
+  47.50 GAMES     ost     D3     0.23   -16.8   -16.8   -30.7   30.1    0.08s
+  52.25 GAMES     ost     E2     0.23   -42.5   -42.5   -42.5    0.0    0.18s
+  53.75 GAMES     ost     E2     0.23   -13.9   -13.9   -13.9    0.0    0.18s
+  55.75 TRAIN     ost     A2     0.11   +17.9    +4.8   +31.0   21.0    0.04s
+  56.25 TRAIN     ost     A2     0.11   +23.8   +15.9   +31.7   12.6    0.08s
+  56.38 TRAIN     ost     D3     0.11   -26.8   -26.8   -26.8    0.0    0.08s
+  57.12 TRAIN     ost     D3     0.11   +14.6   +25.7   +25.7   17.9    0.04s
+  57.25 TRAIN     ost     A2     0.11   -20.3   +12.8   -53.3   52.9    0.08s
+  57.38 TRAIN     ost     D3     0.11   -32.5   -32.5   -32.5    0.0    0.08s
+  57.88 TRAIN     ost     D3     0.11   -16.7   -32.1   -32.1   24.6    0.04s
+  58.12 ICE       ost     D3     0.11   -19.9   -17.5   -22.4    3.9    0.08s
+  60.00 ICE       ost     D2     0.11   -13.4   -14.5   -14.5    1.8    0.08s
+  60.12 ICE       ost     D3     0.11   +12.5    -8.0   +33.0   32.8    0.04s
+  63.00 RISE      epad    A1     2.92   +10.8    -9.2   +19.3   21.7    0.85s
+  71.25 PROOF     ost     E3     0.22   -12.7   -12.7   -16.5    3.2    0.12s
+  72.25 PROOF     ost     F2     0.22   -20.4   -20.4   -20.4    0.0    0.17s
+  72.50 PROOF     ost     Bb2    0.22   -13.2   -13.2   -13.2    0.0    0.17s
+  74.62 PROOF     stab    A2     0.36   -20.4   -17.8   -34.1   11.6    0.17s
+  74.62 PROOF     stab    F3     0.36   -13.6   -12.1   -25.7   10.2    0.17s
+  76.75 PROOF     ost     B2     0.22   -14.3    -5.7   -23.7   14.4    0.08s
+
+## Pitched percussion (909 board, stem 'drums'), key D minor
+  BdTune: [0.2]
+  RsTune: [0.52]
+  SdTune: [0.17]
+  kick tail (BD)    50 hits  median    49.1 Hz = G1+5c
+  rim knock (RS)    25 hits  median   219.8 Hz = A3-1c
+  snare body (SD)   21 hits  median   164.0 Hz = E3-9c
+
+## Off-grid tonal energy: share of persistent spectral peaks more than 15 cents from the A440 grid
+mix:
+  section       low 25-110 Hz   mid 110-1500 Hz
+  ASSEMBLY              11.8%              3.7%
+  PASS1                  9.6%              4.7%
+  SHATTER                1.8%             13.9%
+  HOLD                  12.8%             10.3%
+  BRIDGES               14.8%             11.2%
+  SLOWPASS              18.0%              8.3%
+  FAST                  20.0%             10.3%
+  READ                  13.6%              6.6%
+  SECRET                26.4%              7.1%
+  MOOD                  23.0%              8.2%
+  GAMES                 19.3%             11.8%
+  TRAIN                 19.2%             13.2%
+  ICE                   17.1%             10.1%
+  RISE                  53.7%             16.0%
+  DROP                  36.8%             33.2%
+  PROOF                 28.5%              9.2%
+  TITLE                  4.6%              5.1%
+who puts off-grid tonal energy in the low 25-110 Hz band (share of the stems' summed off-grid energy):
+  ASSEMBLY  drums 95%
+  PASS1     drums 99%
+  SHATTER   boom 83%, drums 15%
+  HOLD      drums 39%, boom 31%, sub 29%
+  BRIDGES   sub 45%, boom 35%, drums 19%
+  SLOWPASS  drums 60%, sub 36%
+  FAST      drums 84%, sub 11%
+  READ      drums 81%, sub 14%
+  SECRET    drums 97%
+  MOOD      drums 99%
+  GAMES     drums 63%, sub 32%
+  TRAIN     drums 52%, sub 44%
+  ICE       drums 76%, ost 23%
+  RISE      drums 97%
+  DROP      drums 55%, boom 16%, ghost 16%, ost 9%
+  PROOF     drums 89%, sub 5%
+  TITLE     drums 83%, boom 11%
+who puts off-grid tonal energy in the mid 110-1500 Hz band (share of the stems' summed off-grid energy):
+  ASSEMBLY  fx 58%, ember 21%, epad 11%, quill 9%
+  PASS1     drums 50%, epad 18%, fx 16%, ember 8%
+  SHATTER   stab 51%, drums 37%
+  HOLD      sub 46%, epad 21%, fx 19%, stab 7%
+  BRIDGES   drums 41%, stab 23%, sub 13%, ember 12%
+  SLOWPASS  drums 52%, ember 14%, epad 13%, sub 11%
+  FAST      drums 29%, ember 28%, stab 13%, fx 10%
+  READ      drums 30%, ember 21%, epad 14%, sub 13%
+  SECRET    ost 36%, drums 30%, quill 14%, epad 7%
+  MOOD      drums 42%, ember 27%, fx 14%, epad 10%
+  GAMES     drums 49%, ost 17%, ember 13%, epad 11%
+  TRAIN     drums 45%, ost 39%, epad 10%, ember 5%
+  ICE       ost 47%, drums 33%, epad 18%
+  RISE      drums 49%, ost 28%, epad 9%, ember 8%
+  DROP      ghost 87%, ost 5%
+  PROOF     stab 29%, drums 25%, ember 18%, ost 8%
+  TITLE     drums 36%, epad 25%, ember 17%, stab 15%
+
+## Master pitch reference
+all measured notes (duration-weighted mean, |d|<50): +0.05 cents; median -0.56 cents over 620 notes
+mix spectral peaks vs the A440 grid: -1.84 cents (concentration 0.47; 1 = all peaks agree); librosa.estimate_tuning: +0.0 cents
+
+per-note CSV: /home/user/video/audio/qa/stems/score2_fixed/tuning_notes.csv

@@ -1,0 +1,53 @@
+# Kaini B — the Kaini voice (patches/kaini.patch) with measured fixes:
+#   - mono: back-to-back notes re-strike from the envelope's current level
+#     instead of from zero, so the line flows without dipping between notes
+#   - sub 0.25: the voice sat ~5 dB light under 150 Hz
+#   - cutoff 640 -> 520 (key tracking stays 1, so the movement stays):
+#     the voice ran ~12 dB hot in the upper mids
+#   - tape for its wow only (the pitch smear the chorus alone can't
+#     give); no wear, so no tape hiss and no dropouts
+#   - chorus_hiss 0.3: the BBD floor ~10 dB down, as on a quiet chip
+#   - a shorter filter decay (0.45 s) so every mono re-strike blooms
+#     again, but a smaller, slightly slower sweep (0.8 oct, 20 ms): a dark
+#     rest under a big fast sweep reads as brass, most of all on short
+#     notes, which hear only the sweep
+#   - effects matched to how the original's image moves (it sways at
+#     0.78 Hz, only ~2.6 dB deep, with as much note-to-note motion as
+#     slow swirl): a slow, shallow chorus II (0.39 Hz LFO — the image
+#     moves at twice the LFO rate — depth 0.1) instead of one deep, regular
+#     swirl, and a more present dark room (pre-delay 20 ms) that gives each
+#     note its own reflections; width 1.6 brings L/R correlation to ~0.65
+#   - stronger velocity-to-level, so accents in the MIDI read as accents
+waveform 2
+circuit 0
+key_track 1
+cutoff 520
+resonance 0.65
+drive 0.5
+filter_env 0.8
+filter_attack 0.02
+filter_decay 0.45
+filter_sustain 0
+filter_release 0.1
+attack 0.012
+decay 1
+sustain 1
+release 0.1
+chorus_mode 2
+chorus_rate 0.39
+chorus_depth 0.1
+volume 0.849
+octave 3
+mono 1
+sub 0.25
+vel_amp 0.9
+vel_filter 0.8
+tape_wow 0.1
+tape_flutter 0.03
+tape_age 0
+reverb_wet 0.3
+reverb_decay 0.55
+reverb_tone 3500
+width 1.6
+chorus_hiss 0.3
+reverb_pre 0.02

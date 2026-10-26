@@ -1,0 +1,33 @@
+# Aerial Playground -- the pad: triangle bed, sine octaves above and
+# below, unison spread wide enough to beat softly on its own. Slow to
+# bloom, dark enough to sit behind the lead rather than compete.
+waveform 3
+osc2_wave 0
+osc2_pitch 12
+osc2_level 0.3
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.4
+detune 9
+sub 0.15
+circuit 0
+key_track 0.3
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.5
+decay 0.8
+sustain 0.82
+release 1.7
+filter_env 0.3
+filter_attack 0.7
+filter_decay 0.9
+filter_sustain 0.6
+filter_release 1.4
+cutoff 1150
+resonance 0.4
+drive 1.2
+saturation 1.0
+hpf 16

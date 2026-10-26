@@ -1,0 +1,33 @@
+# Twelve Doors -- the drone: a single sub-heavy sine held under the
+# whole piece, not a chord, not a pad -- one warm, slow-blooming pedal
+# tone the phase process floats on top of.
+waveform 0
+osc2_wave 0
+osc2_pitch -12
+osc2_level 0.4
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 3
+sub 0.5
+circuit 0
+key_track 0.1
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 1.8
+decay 1.0
+sustain 0.9
+release 1.9
+filter_env 0.2
+filter_attack 1.5
+filter_decay 1.0
+filter_sustain 0.7
+filter_release 1.8
+cutoff 320
+resonance 0.3
+drive 1.1
+saturation 1.0
+hpf 16

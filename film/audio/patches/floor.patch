@@ -1,0 +1,45 @@
+# Filament v3 — the floor. Deliberately NOT a bass guitar: no pluck,
+# no harmonics to place it in a band. A pure sine an octave below the
+# drones, swelling in over 250 ms and sustaining — the room's floor
+# joist, felt in the chest more than heard. The 250 Hz lid keeps even
+# hard notes from ever becoming a "bass line".
+waveform 0
+osc2_wave 0
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0.35
+circuit 0
+key_track 0.1
+osc_fm 0
+sync 0
+ring 0
+glide 0.05
+pulse_width 0.5
+attack 0.25
+decay 0.5
+sustain 0.85
+release 0.6
+filter_env 0
+filter_attack 0.2
+filter_decay 0.5
+filter_sustain 0.8
+filter_release 0.5
+cutoff 250
+resonance 0.2
+drive 1.0
+saturation 1.0
+hpf 16
+volume 0.55
+octave 4
+noise 0
+fuzz 0
+spring 0
+lfo_rate 0.5
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0

@@ -1,0 +1,34 @@
+# Twelve Doors -- the pulse, pushed: sine plus a hot sub-octave square
+# and an octave-down triangle for body, driven hard into the ladder's
+# structural tanh saturation (Moog circuit colors the passband even
+# flat-out, so this grits up on every hit, not just near cutoff).
+waveform 0
+osc2_wave 0
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch -12
+osc3_level 0.45
+detune 3
+sub 0.75
+circuit 0
+key_track 0.2
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.004
+decay 0.28
+sustain 0.35
+release 0.16
+filter_env 0.9
+filter_attack 0.001
+filter_decay 0.12
+filter_sustain 0.1
+filter_release 0.15
+cutoff 420
+resonance 0.4
+drive 2.4
+saturation 1.5
+hpf 16

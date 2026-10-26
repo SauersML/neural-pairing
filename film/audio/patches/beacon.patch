@@ -1,0 +1,32 @@
+# One Electrical Object — the beacon: one clean high tone every five
+# beats, exactly, forever. Not for you.
+waveform 0
+osc2_wave 0
+osc2_pitch 0
+osc2_level 0
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 1
+sub 0
+circuit 1
+key_track 0.7
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.003
+decay 0.35
+sustain 0.0
+release 0.5
+filter_env 0.1
+filter_attack 0.001
+filter_decay 0.3
+filter_sustain 0.3
+filter_release 0.4
+cutoff 6000
+resonance 0.3
+drive 1.0
+saturation 1.0
+hpf 400

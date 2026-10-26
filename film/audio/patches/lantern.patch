@@ -1,0 +1,39 @@
+# Lantern — the singing Minimoog lead: three sawtooth oscillators, one a
+# few cents off and one an octave down, the ladder driven warm and opened
+# a little by each note's envelope, a short linear glide between notes and
+# a steady 5 Hz vibrato. Centered and sustained: it sings, it does not ping.
+waveform 2
+osc2_wave 2
+osc2_level 0.75
+osc3_wave 2
+osc3_pitch -12
+osc3_level 0.45
+detune 5
+circuit 0
+key_track 0.6
+cutoff 1300
+resonance 0.6
+drive 1.9
+saturation 0.7
+hpf 50
+filter_env 1.1
+filter_attack 0.06
+filter_decay 0.9
+filter_sustain 0.55
+filter_release 0.5
+attack 0.015
+decay 0.6
+sustain 0.92
+release 0.4
+glide 0.05
+lfo_rate 5.2
+lfo_shape 0.5
+lfo_pitch 6
+reverb_wet 0.22
+reverb_decay 0.55
+reverb_tone 4500
+reverb_pre 0.045
+tape_wow 0.03
+tape_drive 0.22
+volume 0.421
+octave 4

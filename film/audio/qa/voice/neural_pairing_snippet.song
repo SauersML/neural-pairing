@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------- voice: "neural pairing" (78.5 s)
+# Paste at the end of score2.song. The modulator is a recording of the phrase
+# (qa/voice/neural_pairing_piper48k.wav, piper en_US-ryan, length-scale 1.35);
+# Patina's studio vocoder (vox_mode 1) speaks it through a dark saw carrier
+# playing the score's own title harmony: Dm(add9) on "neural" (78.5 s), Bbmaj7
+# on "pairing" (79.0 s, with the pads' change). 80 % vocoder, 20 % raw voice.
+# wav_at pins the recording to beat 157; move both numbers together.
+# Intelligible in the mix only with room made for it (make_voice_score.py):
+# the 79.0 snare+clap moves to 80.0, and Quill, Ember and both pads dip 6 dB
+# from 78.4 to 79.85 s; the voice then sits about +6 dB over the music.
+automate vox_mode
+1
+automate vox_level
+1.45
+automate vox_dry
+0.2
+track nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=157 reverb_send=0 gain=2.0
+>TITLE R:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2
+automate nv.waveform
+2
+automate nv.osc2_pitch
+-12
+automate nv.osc2_level
+0.5
+automate nv.detune
+4
+automate nv.cutoff
+1600
+automate nv.resonance
+0.4
+automate nv.sub
+0.3

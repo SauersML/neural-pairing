@@ -1,0 +1,49 @@
+# Filament v5 — the lead: a HELIOGRAPH — bright, slow, vocal, alive.
+# Not a piano, not a string, not a plain saw: osc2 rides a fifth up
+# and is HARD-SYNCED to osc1 (the tears trick), so the pair makes a
+# fixed vocal formant instead of an interval; a touch of FM from the
+# synced pair puts growl under the vowel; slow PWM drifts the mouth.
+# Filter open at 2.8k blooming over 120 ms, sustain 0.85: it holds a
+# note like a voice holds a vowel. Ring at 0.08 adds glint, spring
+# for air. The brightness IS the register + open filter; the life is
+# sync + FM + drift, not an envelope trick.
+waveform 2
+osc2_wave 1
+osc2_pitch 7
+osc2_level 0.55
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 4
+sub 0
+circuit 0
+key_track 0.7
+osc_fm 0.15
+sync 1
+ring 0.08
+glide 0
+pulse_width 0.3
+attack 0.05
+decay 0.5
+sustain 0.85
+release 0.5
+filter_env 0.45
+filter_attack 0.12
+filter_decay 0.5
+filter_sustain 0.7
+filter_release 0.45
+cutoff 2800
+resonance 0.8
+drive 2.0
+saturation 1.05
+hpf 120
+volume 0.5
+octave 4
+noise 0
+fuzz 0
+spring 0.15
+lfo_rate 0.7
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0.15

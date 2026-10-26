@@ -1,0 +1,30 @@
+# Score 3: Quill's harmony. PWM strings: a pulse with the LFO working
+# its width, a quiet pulse an octave up, a glassy mid register,
+# slow filter bloom.
+waveform 1
+pulse_width 0.4
+lfo_pwm 0.22
+osc2_wave 1
+osc2_pitch 12
+osc2_level 0.2
+detune 4
+unison 1
+unison_detune 6
+spread 0.9
+circuit 1
+key_track 0.5
+cutoff 1700
+resonance 0.6
+drive 1.3
+saturation 0.5
+hpf 180
+filter_env 0.8
+filter_attack 0.5
+filter_decay 2.0
+filter_sustain 0.6
+filter_release 2.0
+attack 0.02
+decay 2.0
+sustain 0.9
+release 2.4
+volume 0.3

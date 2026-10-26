@@ -1,0 +1,36 @@
+# Twelve Doors — the mallet: triangle body, a sine octave and a
+# twelfth for the metal overtone, envelope snapped fully shut (no
+# sustain at all — a strike, not a held tone). Moog ladder, not ARP:
+# the ladder's tanh stages saturate on absolute voltage, so it colors
+# every hit's passband, not just near cutoff -- the ARP 4072 stays
+# clean until the signal is actually near fc, which is too polite here.
+waveform 3
+osc2_wave 0
+osc2_pitch 12
+osc2_level 0.35
+osc3_wave 0
+osc3_pitch 19
+osc3_level 0.12
+detune 2
+sub 0
+circuit 0
+key_track 0.75
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+attack 0.001
+decay 0.22
+sustain 0.0
+release 0.12
+filter_env 0.6
+filter_attack 0.001
+filter_decay 0.18
+filter_sustain 0.0
+filter_release 0.15
+cutoff 4200
+resonance 0.5
+drive 1.9
+saturation 1.5
+hpf 150

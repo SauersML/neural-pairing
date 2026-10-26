@@ -1,0 +1,994 @@
+{
+ "say_plain": {
+  "text": "Lura berry",
+  "score": 0.4166666666666667,
+  "avg_logprob": -0.9955648694719587,
+  "centroid_hz": 278.1121878802667,
+  "in_key": 0.9549883152304741,
+  "payload": "N-UH1-R-AH0-L P-EH1-R-IH0-NG"
+ },
+ "say_crisp": {
+  "text": "Lura berry",
+  "score": 0.4166666666666667,
+  "avg_logprob": -0.9239975043705532,
+  "centroid_hz": 277.24845092630324,
+  "in_key": 0.9327751090947214,
+  "payload": "N:110-UH1-R-AH0-L:90 P:60@1.5-EH1-R-IH0-NG:170"
+ },
+ "m0_dry00_plain_dm_bb_dark": {
+  "text": "Ba-ba-wee",
+  "score": 0.19047619047619047,
+  "avg_logprob": -1.1156928804185655,
+  "centroid_hz": 391.8039946321126,
+  "in_key": 0.9862721972564304,
+  "payload": "# take: vox_mode 0, vox_dry 0.0, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m0_dry00_plain_d3_dark": {
+  "text": "Bye, baby.",
+  "score": 0.2727272727272727,
+  "avg_logprob": -1.0162865434374129,
+  "centroid_hz": 528.4014930217745,
+  "in_key": 0.9165741868290441,
+  "payload": "# take: vox_mode 0, vox_dry 0.0, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m0_dry00_crisp_dm_bb_dark": {
+  "text": "Ba-ba-wee",
+  "score": 0.19047619047619047,
+  "avg_logprob": -1.244763904147678,
+  "centroid_hz": 392.0010304150156,
+  "in_key": 0.9853181062961002,
+  "payload": "# take: vox_mode 0, vox_dry 0.0, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m0_dry00_crisp_d3_dark": {
+  "text": "Bye, baby.",
+  "score": 0.2727272727272727,
+  "avg_logprob": -1.0814351013728551,
+  "centroid_hz": 514.7047748023352,
+  "in_key": 0.9080353216940203,
+  "payload": "# take: vox_mode 0, vox_dry 0.0, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m0_dry20_plain_dm_bb_dark": {
+  "text": "Lu-ra-per-ee",
+  "score": 0.43478260869565216,
+  "avg_logprob": -1.0649651885032654,
+  "centroid_hz": 370.72702435230036,
+  "in_key": 0.9816944204768313,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m0_dry20_plain_d3_dark": {
+  "text": "LULABERI",
+  "score": 0.36363636363636365,
+  "avg_logprob": -1.0212747305631638,
+  "centroid_hz": 372.29129814131414,
+  "in_key": 0.9464587659531466,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m0_dry20_crisp_dm_bb_dark": {
+  "text": "You're a fairy",
+  "score": 0.4444444444444444,
+  "avg_logprob": -1.018785033907209,
+  "centroid_hz": 370.965735550839,
+  "in_key": 0.9808553662259037,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m0_dry20_crisp_d3_dark": {
+  "text": "You're a berry",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.9544261544942856,
+  "centroid_hz": 353.02444733186564,
+  "in_key": 0.9491532852766597,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry00_plain_dm_bb_dark": {
+  "text": "Bhagavati",
+  "score": 0.17391304347826086,
+  "avg_logprob": -1.3272476536887032,
+  "centroid_hz": 308.22130721896275,
+  "in_key": 0.9867279544388409,
+  "payload": "# take: vox_mode 1, vox_dry 0.0, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry00_plain_d3_dark": {
+  "text": "Robert E.",
+  "score": 0.18181818181818182,
+  "avg_logprob": -1.1344726880391438,
+  "centroid_hz": 299.6933554905514,
+  "in_key": 0.9888073954659502,
+  "payload": "# take: vox_mode 1, vox_dry 0.0, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry00_crisp_dm_bb_dark": {
+  "text": "Ba-da-wee",
+  "score": 0.19047619047619047,
+  "avg_logprob": -1.2677263683742948,
+  "centroid_hz": 306.3788533879078,
+  "in_key": 0.9869126551522552,
+  "payload": "# take: vox_mode 1, vox_dry 0.0, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry00_crisp_d3_dark": {
+  "text": "Robert E.",
+  "score": 0.18181818181818182,
+  "avg_logprob": -1.0278234879175823,
+  "centroid_hz": 299.7040009070795,
+  "in_key": 0.988124341634929,
+  "payload": "# take: vox_mode 1, vox_dry 0.0, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry20_plain_dm_bb_dark": {
+  "text": "L'Eurab\u00e9ry",
+  "score": 0.45454545454545453,
+  "avg_logprob": -1.3425713539123536,
+  "centroid_hz": 301.4083573698782,
+  "in_key": 0.9860641716557558,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry20_plain_d3_dark": {
+  "text": "Murabai",
+  "score": 0.47619047619047616,
+  "avg_logprob": -1.3446354866027832,
+  "centroid_hz": 301.7385568958674,
+  "in_key": 0.9855814284482008,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry20_crisp_dm_bb_dark": {
+  "text": "You're a berry",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.9194028228521347,
+  "centroid_hz": 316.22857199508644,
+  "in_key": 0.9867801293029428,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m1_dry20_crisp_d3_dark": {
+  "text": "You're a berry",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.9297382980585098,
+  "centroid_hz": 300.8570855105341,
+  "in_key": 0.986700126767672,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry00_plain_dm_bb_dark": {
+  "text": "You",
+  "score": 0.11764705882352941,
+  "avg_logprob": -0.9937137365341187,
+  "centroid_hz": 1117.4855070641565,
+  "in_key": 0.9312314996028583,
+  "payload": "# take: vox_mode 2, vox_dry 0.0, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry00_plain_d3_dark": {
+  "text": "",
+  "score": 0.0,
+  "avg_logprob": NaN,
+  "centroid_hz": 1053.3808985698624,
+  "in_key": 0.8820811679397579,
+  "payload": "# take: vox_mode 2, vox_dry 0.0, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry00_crisp_dm_bb_dark": {
+  "text": "You",
+  "score": 0.11764705882352941,
+  "avg_logprob": -0.9997697174549103,
+  "centroid_hz": 1114.1403517924864,
+  "in_key": 0.9221983739908227,
+  "payload": "# take: vox_mode 2, vox_dry 0.0, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry00_crisp_d3_dark": {
+  "text": "",
+  "score": 0.0,
+  "avg_logprob": NaN,
+  "centroid_hz": 1072.4334258318818,
+  "in_key": 0.8811077094835252,
+  "payload": "# take: vox_mode 2, vox_dry 0.0, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry20_plain_dm_bb_dark": {
+  "text": "You're right.",
+  "score": 0.48,
+  "avg_logprob": -1.223841905593872,
+  "centroid_hz": 1062.0435806657288,
+  "in_key": 0.9314622830858916,
+  "payload": "# take: vox_mode 2, vox_dry 0.2, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry20_plain_d3_dark": {
+  "text": "you",
+  "score": 0.11764705882352941,
+  "avg_logprob": -1.0276450216770172,
+  "centroid_hz": 1008.0953451031972,
+  "in_key": 0.8828810139157341,
+  "payload": "# take: vox_mode 2, vox_dry 0.2, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry20_crisp_dm_bb_dark": {
+  "text": "you",
+  "score": 0.11764705882352941,
+  "avg_logprob": -1.0694445669651031,
+  "centroid_hz": 1071.5293998730688,
+  "in_key": 0.922559400078736,
+  "payload": "# take: vox_mode 2, vox_dry 0.2, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m2_dry20_crisp_d3_dark": {
+  "text": "you",
+  "score": 0.11764705882352941,
+  "avg_logprob": -1.027996301651001,
+  "centroid_hz": 1005.6431702891239,
+  "in_key": 0.8842684167348457,
+  "payload": "# take: vox_mode 2, vox_dry 0.2, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry00_plain_dm_bb_dark": {
+  "text": "All in me",
+  "score": 0.43478260869565216,
+  "avg_logprob": -1.0930987199147542,
+  "centroid_hz": 319.196807831355,
+  "in_key": 0.9776244584127297,
+  "payload": "# take: vox_mode 3, vox_dry 0.0, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry00_plain_d3_dark": {
+  "text": "R R R R R R R R R",
+  "score": 0.1935483870967742,
+  "avg_logprob": -0.6258864807231086,
+  "centroid_hz": 422.30395276338794,
+  "in_key": 0.8625377344486829,
+  "payload": "# take: vox_mode 3, vox_dry 0.0, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry00_crisp_dm_bb_dark": {
+  "text": "B B B B B B B",
+  "score": 0.07407407407407407,
+  "avg_logprob": -0.7196466028690338,
+  "centroid_hz": 319.21131829680763,
+  "in_key": 0.9775773162427035,
+  "payload": "# take: vox_mode 3, vox_dry 0.0, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry00_crisp_d3_dark": {
+  "text": "comedy",
+  "score": 0.1,
+  "avg_logprob": -1.6832497715950012,
+  "centroid_hz": 421.5724057150982,
+  "in_key": 0.8619506852648465,
+  "payload": "# take: vox_mode 3, vox_dry 0.0, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry20_plain_dm_bb_dark": {
+  "text": "You're all in me",
+  "score": 0.4827586206896552,
+  "avg_logprob": -0.978632315993309,
+  "centroid_hz": 323.55997761403887,
+  "in_key": 0.9774855330696476,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric plain, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N-UH1-R-AH0-L [Bb2 F3 A3 D4]:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry20_plain_d3_dark": {
+  "text": "You're on it, eh?",
+  "score": 0.2857142857142857,
+  "avg_logprob": -1.140088713169098,
+  "centroid_hz": 399.55254511960663,
+  "in_key": 0.8667003232647376,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric plain, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry20_crisp_dm_bb_dark": {
+  "text": "You're robbing me",
+  "score": 0.4666666666666667,
+  "avg_logprob": -1.037407534463065,
+  "centroid_hz": 318.1427921920046,
+  "in_key": 0.977001598010971,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric crisp, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:110-UH1-R-AH0-L:90 [Bb2 F3 A3 D4]:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "m3_dry20_crisp_d3_dark": {
+  "text": "You're already",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.929239292939504,
+  "centroid_hz": 407.1864040931637,
+  "in_key": 0.860811964215844,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric crisp, chord d3, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "dry_plain_i15": {
+  "text": "Laura Berry",
+  "score": 0.4,
+  "avg_logprob": -1.0309659004211427,
+  "centroid_hz": 323.23242198261045,
+  "in_key": 0.9776617706999828,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric plain, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_plain_i60": {
+  "text": "You're a berry",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.936819776892662,
+  "centroid_hz": 325.2708279261507,
+  "in_key": 0.5576956641629027,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric plain, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_crisp_i15": {
+  "text": "Laura Berry",
+  "score": 0.4,
+  "avg_logprob": -0.9778301239013671,
+  "centroid_hz": 320.3493761976407,
+  "in_key": 0.9638780454141438,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric crisp, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_crisp_i60": {
+  "text": "lura berry",
+  "score": 0.4166666666666667,
+  "avg_logprob": -1.0058035509926933,
+  "centroid_hz": 324.1337127824232,
+  "in_key": 0.5569163343373721,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric crisp, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UH1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nyoo_i15": {
+  "text": "lura berry",
+  "score": 0.4166666666666667,
+  "avg_logprob": -1.0208145209721156,
+  "centroid_hz": 317.352735109437,
+  "in_key": 0.9669289738177976,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nyoo, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:100-Y-UW1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nyoo_i60": {
+  "text": "You're a berry",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.9076151698827744,
+  "centroid_hz": 322.2804058749168,
+  "in_key": 0.438743738741384,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nyoo, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:100-Y-UW1-R-AH0-L:90 D3:2.5=P:60@1.5-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nuw_i15": {
+  "text": "Looraberry",
+  "score": 0.25,
+  "avg_logprob": -1.097416979925973,
+  "centroid_hz": 319.407032629256,
+  "in_key": 0.9814267665648188,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nuw, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UW1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nuw_i60": {
+  "text": "Lura berry",
+  "score": 0.4166666666666667,
+  "avg_logprob": -1.061652558190482,
+  "centroid_hz": 321.4577409329653,
+  "in_key": 0.3970026726336572,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nuw, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UW1-R-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nur_i15": {
+  "text": "You're a berry",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.8256321623921394,
+  "centroid_hz": 322.6725299523213,
+  "in_key": 0.9729032176676365,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nur, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-ER1-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nur_i60": {
+  "text": "You're a berry",
+  "score": 0.37037037037037035,
+  "avg_logprob": -0.820470318198204,
+  "centroid_hz": 324.64292303489685,
+  "in_key": 0.5596916074920281,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nur, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-ER1-AH0-L D3:2.5=P-EH1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_pey_i15": {
+  "text": "Laura Bainry",
+  "score": 0.5384615384615384,
+  "avg_logprob": -1.1579031745592754,
+  "centroid_hz": 319.1247015460085,
+  "in_key": 0.9801278292224587,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric pey, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EY1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_pey_i60": {
+  "text": "You're a baby",
+  "score": 0.3076923076923077,
+  "avg_logprob": -1.0738211018698556,
+  "centroid_hz": 321.98191153229413,
+  "in_key": 0.49712129601432015,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric pey, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N-UH1-R-AH0-L D3:2.5=P-EY1-R-IH0-NG.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nuw_crisp_i15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.9968350330988566,
+  "centroid_hz": 317.3491560121503,
+  "in_key": 0.9665187113060822,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nuw_crisp, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UW1-R-AH0-L:90 D3:2.5=P:70@1.6-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nuw_crisp_i60": {
+  "text": "Lura Berry",
+  "score": 0.4166666666666667,
+  "avg_logprob": -0.9486967325210571,
+  "centroid_hz": 322.1037830198826,
+  "in_key": 0.43336082527819364,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nuw_crisp, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-UW1-R-AH0-L:90 D3:2.5=P:70@1.6-EH1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nyu_pey_i15": {
+  "text": "You're a baby",
+  "score": 0.3076923076923077,
+  "avg_logprob": -1.1179509503500802,
+  "centroid_hz": 313.8124443629518,
+  "in_key": 0.9696024703512993,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nyu_pey, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:100-Y-UW1-R-AH0-L:90 D3:2.5=P:70@1.6-EY1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nyu_pey_i60": {
+  "text": "You're a baby",
+  "score": 0.3076923076923077,
+  "avg_logprob": -0.9970232759203229,
+  "centroid_hz": 309.7867368288648,
+  "in_key": 0.38418738043166095,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nyu_pey, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:100-Y-UW1-R-AH0-L:90 D3:2.5=P:70@1.6-EY1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nur_pey_i15": {
+  "text": "You're a baby",
+  "score": 0.3076923076923077,
+  "avg_logprob": -0.8581159114837646,
+  "centroid_hz": 316.12513642063027,
+  "in_key": 0.9618955853037005,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nur_pey, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-ER1-AH0-L:90 D3:2.5=P:70@1.6-EY1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_nur_pey_i60": {
+  "text": "Drop a rate!",
+  "score": 0.16,
+  "avg_logprob": -1.031646966934204,
+  "centroid_hz": 321.0746842282788,
+  "in_key": 0.4979121288002163,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric nur_pey, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:110-ER1-AH0-L:90 D3:2.5=P:70@1.6-EY1-R-IH0-NG:170.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_slow_i15": {
+  "text": "Laura Berry",
+  "score": 0.4,
+  "avg_logprob": -1.0822785377502442,
+  "centroid_hz": 331.1835494221387,
+  "in_key": 0.9538066921376172,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric slow, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:130-UH1:220-R-AH0:120-L:110 D3:2.5=P:80@1.8-EH1:220-R-IH0:120-NG:200.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_slow_i60": {
+  "text": "Lura Peri... Si...",
+  "score": 0.5384615384615384,
+  "avg_logprob": -1.2608751853307087,
+  "centroid_hz": 338.05337948896766,
+  "in_key": 0.4378103427275587,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric slow, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:130-UH1:220-R-AH0:120-L:110 D3:2.5=P:80@1.8-EH1:220-R-IH0:120-NG:200.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_slow_nuw_i15": {
+  "text": "lura berry",
+  "score": 0.4166666666666667,
+  "avg_logprob": -0.8478014639445713,
+  "centroid_hz": 313.36751624088424,
+  "in_key": 0.9634982017956352,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric slow_nuw, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:130-UW1:220-R-AH0:120-L:110 D3:2.5=P:80@1.8-EH1:220-R-IY0:120-NG:200.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "dry_slow_nuw_i60": {
+  "text": "lura peri",
+  "score": 0.6086956521739131,
+  "avg_logprob": -0.9354555947440011,
+  "centroid_hz": 297.8883688893737,
+  "in_key": 0.3220082877699926,
+  "payload": "# take: vox_mode 1, vox_dry 1.0, lyric slow_nuw, chord d3, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n0.0\nautomate vox_dry\n1.0\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.6\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 D3:1.5=N:130-UW1:220-R-AH0:120-L:110 D3:2.5=P:80@1.8-EH1:220-R-IY0:120-NG:200.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m0_dry20_nlong_dm_bb_dark_15": {
+  "text": "Yura Perry",
+  "score": 0.5,
+  "avg_logprob": -1.0633713006973267,
+  "centroid_hz": 365.3735357833133,
+  "in_key": 0.9695373387132749,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric nlong, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m0_dry20_nlong_dm_bb_mid_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -1.1922818422317505,
+  "centroid_hz": 363.3960399782665,
+  "in_key": 0.9712952181462665,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric nlong, chord dm_bb, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m0_dry20_nlong_dm_bb_bright_15": {
+  "text": "You're a baby",
+  "score": 0.3076923076923077,
+  "avg_logprob": -1.0200979369027274,
+  "centroid_hz": 368.98857739683615,
+  "in_key": 0.9778339302501907,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric nlong, chord dm_bb, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m0_dry20_nlong_d5_dark_15": {
+  "text": "Lula Pelly",
+  "score": 0.25,
+  "avg_logprob": -0.8231955426079887,
+  "centroid_hz": 353.84729774994696,
+  "in_key": 0.8708288847733603,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric nlong, chord d5, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m0_dry20_nlong_d5_mid_15": {
+  "text": "LULAPELI",
+  "score": 0.2727272727272727,
+  "avg_logprob": -0.9477806836366653,
+  "centroid_hz": 353.2492606761351,
+  "in_key": 0.8869522508468122,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric nlong, chord d5, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m0_dry20_nlong_d5_bright_15": {
+  "text": "lulape",
+  "score": 0.2,
+  "avg_logprob": -1.121245523293813,
+  "centroid_hz": 358.3154147369645,
+  "in_key": 0.9355393574182068,
+  "payload": "# take: vox_mode 0, vox_dry 0.2, lyric nlong, chord d5, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m0_dry40_nlong_dm_bb_dark_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.992112954457601,
+  "centroid_hz": 358.0718646771753,
+  "in_key": 0.9560840328562649,
+  "payload": "# take: vox_mode 0, vox_dry 0.4, lyric nlong, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m0_dry40_nlong_dm_bb_mid_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.965318481127421,
+  "centroid_hz": 356.0633324331984,
+  "in_key": 0.9566299229449847,
+  "payload": "# take: vox_mode 0, vox_dry 0.4, lyric nlong, chord dm_bb, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m0_dry40_nlong_dm_bb_bright_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -1.1748828490575154,
+  "centroid_hz": 365.8493137874885,
+  "in_key": 0.9665708061911321,
+  "payload": "# take: vox_mode 0, vox_dry 0.4, lyric nlong, chord dm_bb, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m0_dry40_nlong_d5_dark_15": {
+  "text": "LULAPERI",
+  "score": 0.36363636363636365,
+  "avg_logprob": -0.8419625386595726,
+  "centroid_hz": 341.23920318518554,
+  "in_key": 0.797335999797877,
+  "payload": "# take: vox_mode 0, vox_dry 0.4, lyric nlong, chord d5, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m0_dry40_nlong_d5_mid_15": {
+  "text": "LULAPELI",
+  "score": 0.2727272727272727,
+  "avg_logprob": -0.8840904533863068,
+  "centroid_hz": 341.046853333833,
+  "in_key": 0.8085240782004897,
+  "payload": "# take: vox_mode 0, vox_dry 0.4, lyric nlong, chord d5, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m0_dry40_nlong_d5_bright_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -1.0341659188270569,
+  "centroid_hz": 341.3107001171451,
+  "in_key": 0.8764245422566872,
+  "payload": "# take: vox_mode 0, vox_dry 0.4, lyric nlong, chord d5, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m1_dry20_nlong_dm_bb_dark_15": {
+  "text": "You're a parry",
+  "score": 0.5185185185185185,
+  "avg_logprob": -1.0289065390825272,
+  "centroid_hz": 307.89062893307124,
+  "in_key": 0.9774288479250971,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric nlong, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m1_dry20_nlong_dm_bb_mid_15": {
+  "text": "You're a penny",
+  "score": 0.4444444444444444,
+  "avg_logprob": -1.1156277997153146,
+  "centroid_hz": 308.09216081373035,
+  "in_key": 0.9764516300551171,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric nlong, chord dm_bb, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m1_dry20_nlong_dm_bb_bright_15": {
+  "text": "You're a baby",
+  "score": 0.3076923076923077,
+  "avg_logprob": -0.9400999546051025,
+  "centroid_hz": 329.30161679742014,
+  "in_key": 0.9831650125417707,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric nlong, chord dm_bb, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m1_dry20_nlong_d5_dark_15": {
+  "text": "Ooh, right there",
+  "score": 0.27586206896551724,
+  "avg_logprob": -1.3183111101388931,
+  "centroid_hz": 306.4210305176366,
+  "in_key": 0.9124545349720616,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric nlong, chord d5, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m1_dry20_nlong_d5_mid_15": {
+  "text": "Lura Pele",
+  "score": 0.43478260869565216,
+  "avg_logprob": -1.1092558928898402,
+  "centroid_hz": 319.6997820412147,
+  "in_key": 0.9150573317586113,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric nlong, chord d5, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m1_dry20_nlong_d5_bright_15": {
+  "text": "Lura, baby",
+  "score": 0.43478260869565216,
+  "avg_logprob": -1.0342144284929549,
+  "centroid_hz": 334.02792800288574,
+  "in_key": 0.9584381080467205,
+  "payload": "# take: vox_mode 1, vox_dry 0.2, lyric nlong, chord d5, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m1_dry40_nlong_dm_bb_dark_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.9728039304415385,
+  "centroid_hz": 306.7659742224892,
+  "in_key": 0.9710319834929644,
+  "payload": "# take: vox_mode 1, vox_dry 0.4, lyric nlong, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m1_dry40_nlong_dm_bb_mid_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.8491406838099161,
+  "centroid_hz": 306.53869794704093,
+  "in_key": 0.9740693054246679,
+  "payload": "# take: vox_mode 1, vox_dry 0.4, lyric nlong, chord dm_bb, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m1_dry40_nlong_dm_bb_bright_15": {
+  "text": "Lura Peri",
+  "score": 0.6086956521739131,
+  "avg_logprob": -1.0143283775874548,
+  "centroid_hz": 328.56958926707307,
+  "in_key": 0.9802595279390529,
+  "payload": "# take: vox_mode 1, vox_dry 0.4, lyric nlong, chord dm_bb, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m1_dry40_nlong_d5_dark_15": {
+  "text": "Zura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.8282061417897543,
+  "centroid_hz": 312.3871741531904,
+  "in_key": 0.8570871428074266,
+  "payload": "# take: vox_mode 1, vox_dry 0.4, lyric nlong, chord d5, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m1_dry40_nlong_d5_mid_15": {
+  "text": "Zura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.9213804205258688,
+  "centroid_hz": 320.86780617886023,
+  "in_key": 0.8699049832811013,
+  "payload": "# take: vox_mode 1, vox_dry 0.4, lyric nlong, chord d5, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m1_dry40_nlong_d5_bright_15": {
+  "text": "Lura Perry",
+  "score": 0.5,
+  "avg_logprob": -0.9746027986208597,
+  "centroid_hz": 337.55184689441927,
+  "in_key": 0.9118432275632293,
+  "payload": "# take: vox_mode 1, vox_dry 0.4, lyric nlong, chord d5, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m3_dry20_nlong_dm_bb_dark_15": {
+  "text": "You're robbing me",
+  "score": 0.4666666666666667,
+  "avg_logprob": -1.3554786954607283,
+  "centroid_hz": 315.08908128175636,
+  "in_key": 0.9778955440548247,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric nlong, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m3_dry20_nlong_dm_bb_mid_15": {
+  "text": "You're probably me",
+  "score": 0.3225806451612903,
+  "avg_logprob": -1.2229770592280798,
+  "centroid_hz": 320.78070815566207,
+  "in_key": 0.9859924186958999,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric nlong, chord dm_bb, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m3_dry20_nlong_dm_bb_bright_15": {
+  "text": "You're",
+  "score": 0.21052631578947367,
+  "avg_logprob": -1.5502280990282695,
+  "centroid_hz": 306.9713686141199,
+  "in_key": 0.9967339064702077,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric nlong, chord dm_bb, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m3_dry20_nlong_d5_dark_15": {
+  "text": "you",
+  "score": 0.11764705882352941,
+  "avg_logprob": -1.3283077776432037,
+  "centroid_hz": 268.3700832773475,
+  "in_key": 0.8028162200032424,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric nlong, chord d5, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m3_dry20_nlong_d5_mid_15": {
+  "text": "You're on my way",
+  "score": 0.27586206896551724,
+  "avg_logprob": -1.4193744212388992,
+  "centroid_hz": 302.3684070019035,
+  "in_key": 0.8242952529541107,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric nlong, chord d5, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m3_dry20_nlong_d5_bright_15": {
+  "text": "You're all I really...",
+  "score": 0.4375,
+  "avg_logprob": -1.3421124352349176,
+  "centroid_hz": 313.26329506416,
+  "in_key": 0.9010516354940324,
+  "payload": "# take: vox_mode 3, vox_dry 0.2, lyric nlong, chord d5, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.2\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m3_dry40_nlong_dm_bb_dark_15": {
+  "text": "You're robbing me",
+  "score": 0.4666666666666667,
+  "avg_logprob": -1.0944420269557409,
+  "centroid_hz": 313.459301246102,
+  "in_key": 0.9763373516251628,
+  "payload": "# take: vox_mode 3, vox_dry 0.4, lyric nlong, chord dm_bb, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m3_dry40_nlong_dm_bb_mid_15": {
+  "text": "You're robbing me",
+  "score": 0.4666666666666667,
+  "avg_logprob": -1.001943622316633,
+  "centroid_hz": 319.04874083586327,
+  "in_key": 0.9839557151587759,
+  "payload": "# take: vox_mode 3, vox_dry 0.4, lyric nlong, chord dm_bb, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m3_dry40_nlong_dm_bb_bright_15": {
+  "text": "You're all I need",
+  "score": 0.4666666666666667,
+  "avg_logprob": -1.136369675397873,
+  "centroid_hz": 306.2976311311669,
+  "in_key": 0.9957106571938645,
+  "payload": "# take: vox_mode 3, vox_dry 0.4, lyric nlong, chord dm_bb, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D3 A3 E4 F4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [Bb2 F3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "r_m3_dry40_nlong_d5_dark_15": {
+  "text": "You're all I need",
+  "score": 0.4666666666666667,
+  "avg_logprob": -1.239206224679947,
+  "centroid_hz": 270.7941511549749,
+  "in_key": 0.8105424787842055,
+  "payload": "# take: vox_mode 3, vox_dry 0.4, lyric nlong, chord d5, carrier dark\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "r_m3_dry40_nlong_d5_mid_15": {
+  "text": "You're on my way",
+  "score": 0.27586206896551724,
+  "avg_logprob": -1.2539282739162445,
+  "centroid_hz": 307.43781046410356,
+  "in_key": 0.8324922835161014,
+  "payload": "# take: vox_mode 3, vox_dry 0.4, lyric nlong, chord d5, carrier mid\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "r_m3_dry40_nlong_d5_bright_15": {
+  "text": "You're all I read",
+  "score": 0.4666666666666667,
+  "avg_logprob": -1.188330039381981,
+  "centroid_hz": 312.2514838149117,
+  "in_key": 0.9042256590835515,
+  "payload": "# take: vox_mode 3, vox_dry 0.4, lyric nlong, chord d5, carrier bright\nbpm 120\ngate 0.95\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.4\nautomate vox_breath\n0.1\nautomate vox_vibrato\n0\nautomate vox_intonation\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox vel=0.9\nR:1 [D2 D3 A3 D4]:1.5=N:160@1.4-UW1:200-R-AH0-L:100 [D2 D3 A3 D4]:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n12\nautomate nv.osc2_level\n0.4\nautomate nv.detune\n3\nautomate nv.cutoff\n5000\nautomate nv.sub\n0\n"
+ },
+ "wav_m0_dry00_dm_bb_dark": {
+  "text": "You're all clear.",
+  "score": 0.4827586206896552,
+  "avg_logprob": -0.9476709514856339,
+  "centroid_hz": 638.0123800924827,
+  "in_key": 0.9562528974219965,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.0, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m0_dry00_dm_bb_mid": {
+  "text": "No, no.",
+  "score": 0.3157894736842105,
+  "avg_logprob": -1.1545467036111015,
+  "centroid_hz": 673.1705092843683,
+  "in_key": 0.9757426510106343,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.0, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m0_dry00_d5_dark": {
+  "text": "No, Paul.",
+  "score": 0.38095238095238093,
+  "avg_logprob": -1.0989241259438651,
+  "centroid_hz": 698.8441670935329,
+  "in_key": 0.943462379969311,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.0, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m0_dry00_d5_mid": {
+  "text": "No parent.",
+  "score": 0.5217391304347826,
+  "avg_logprob": -1.0556996862093608,
+  "centroid_hz": 744.7982454295461,
+  "in_key": 0.9548359380429459,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.0, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m0_dry15_dm_bb_dark": {
+  "text": "Neural pairing.",
+  "score": 1.0,
+  "avg_logprob": -0.7905106743176779,
+  "centroid_hz": 616.0412651309383,
+  "in_key": 0.9467479656680189,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.15, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m0_dry15_dm_bb_mid": {
+  "text": "Neural pairing.",
+  "score": 1.0,
+  "avg_logprob": -1.0624608397483826,
+  "centroid_hz": 671.5782737797439,
+  "in_key": 0.9661483971402068,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.15, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m0_dry15_d5_dark": {
+  "text": "No parent.",
+  "score": 0.5217391304347826,
+  "avg_logprob": -0.9217926859855652,
+  "centroid_hz": 681.5318590044322,
+  "in_key": 0.9320002010564896,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.15, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m0_dry15_d5_mid": {
+  "text": "Now parrot.",
+  "score": 0.4166666666666667,
+  "avg_logprob": -0.88817412512643,
+  "centroid_hz": 739.7242950687166,
+  "in_key": 0.9412405991975371,
+  "payload": "# take (wav modulator): vox_mode 0, vox_dry 0.15, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n0\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m1_dry00_dm_bb_dark": {
+  "text": "Now I'm here.",
+  "score": 0.32,
+  "avg_logprob": -1.2054480463266373,
+  "centroid_hz": 350.7179265664828,
+  "in_key": 0.9721303291762096,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.0, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m1_dry00_dm_bb_mid": {
+  "text": "Girl, here.",
+  "score": 0.17391304347826086,
+  "avg_logprob": -1.230633360998971,
+  "centroid_hz": 338.1523991479122,
+  "in_key": 0.9798404445433574,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.0, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m1_dry00_d5_dark": {
+  "text": "neural pair",
+  "score": 0.88,
+  "avg_logprob": -1.132962131500244,
+  "centroid_hz": 373.17793639441425,
+  "in_key": 0.9150777286131684,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.0, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m1_dry00_d5_mid": {
+  "text": "neural pair",
+  "score": 0.88,
+  "avg_logprob": -1.106340503692627,
+  "centroid_hz": 372.8995440668272,
+  "in_key": 0.9210534161009211,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.0, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m1_dry15_dm_bb_dark": {
+  "text": "Neural pairing.",
+  "score": 1.0,
+  "avg_logprob": -0.9226761261622111,
+  "centroid_hz": 359.92484146721426,
+  "in_key": 0.9651278717115794,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.15, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m1_dry15_dm_bb_mid": {
+  "text": "neural pair",
+  "score": 0.88,
+  "avg_logprob": -1.0162950515747071,
+  "centroid_hz": 354.21486775592126,
+  "in_key": 0.9746970314738913,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.15, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m1_dry15_d5_dark": {
+  "text": "Neural pairing.",
+  "score": 1.0,
+  "avg_logprob": -0.8962176243464152,
+  "centroid_hz": 402.02638677718164,
+  "in_key": 0.9209309657833963,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.15, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m1_dry15_d5_mid": {
+  "text": "neural pairing",
+  "score": 1.0,
+  "avg_logprob": -0.9989953994750976,
+  "centroid_hz": 404.2812035242451,
+  "in_key": 0.9291005906026969,
+  "payload": "# take (wav modulator): vox_mode 1, vox_dry 0.15, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n1\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m2_dry00_dm_bb_dark": {
+  "text": "You're all here!",
+  "score": 0.42857142857142855,
+  "avg_logprob": -1.0154085457324982,
+  "centroid_hz": 787.0114513297477,
+  "in_key": 0.9119441461689292,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.0, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m2_dry00_dm_bb_mid": {
+  "text": "You're all here!",
+  "score": 0.42857142857142855,
+  "avg_logprob": -0.7333719879388809,
+  "centroid_hz": 878.002762988386,
+  "in_key": 0.9278717942801423,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.0, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m2_dry00_d5_dark": {
+  "text": "No! No!",
+  "score": 0.3157894736842105,
+  "avg_logprob": -1.0175256729125977,
+  "centroid_hz": 801.7277577193128,
+  "in_key": 0.9333202469388081,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.0, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m2_dry00_d5_mid": {
+  "text": "They're all parents!",
+  "score": 0.5625,
+  "avg_logprob": -0.9199628531932831,
+  "centroid_hz": 937.4496188628586,
+  "in_key": 0.9408507994090481,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.0, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m2_dry15_dm_bb_dark": {
+  "text": "You're out of here!",
+  "score": 0.25806451612903225,
+  "avg_logprob": -0.9806376563178169,
+  "centroid_hz": 750.3776123825644,
+  "in_key": 0.9120243057017928,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.15, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m2_dry15_dm_bb_mid": {
+  "text": "You're all here!",
+  "score": 0.42857142857142855,
+  "avg_logprob": -0.7533321306109428,
+  "centroid_hz": 872.151125025506,
+  "in_key": 0.9294714218445094,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.15, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m2_dry15_d5_dark": {
+  "text": "No!",
+  "score": 0.125,
+  "avg_logprob": -1.01014404296875,
+  "centroid_hz": 788.284252243279,
+  "in_key": 0.9326055309378297,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.15, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m2_dry15_d5_mid": {
+  "text": "No, parents!",
+  "score": 0.5,
+  "avg_logprob": -1.0010456698281425,
+  "centroid_hz": 898.371107515943,
+  "in_key": 0.9320612619194262,
+  "payload": "# take (wav modulator): vox_mode 2, vox_dry 0.15, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n2\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m3_dry00_dm_bb_dark": {
+  "text": "neural",
+  "score": 0.6,
+  "avg_logprob": -1.3661172688007355,
+  "centroid_hz": 266.7157464357685,
+  "in_key": 0.9668408628904593,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.0, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m3_dry00_dm_bb_mid": {
+  "text": "neuralgum",
+  "score": 0.6086956521739131,
+  "avg_logprob": -1.3014728824297588,
+  "centroid_hz": 289.8471282450755,
+  "in_key": 0.978780026816128,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.0, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m3_dry00_d5_dark": {
+  "text": "Now",
+  "score": 0.11764705882352941,
+  "avg_logprob": -0.9531380832195282,
+  "centroid_hz": 397.9957737737021,
+  "in_key": 0.8503754732790891,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.0, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m3_dry00_d5_mid": {
+  "text": "Nural Town",
+  "score": 0.5833333333333334,
+  "avg_logprob": -1.4988330006599426,
+  "centroid_hz": 425.8996798972677,
+  "in_key": 0.8663302119702292,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.0, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.0\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m3_dry15_dm_bb_dark": {
+  "text": "NURAL GIRL",
+  "score": 0.6666666666666666,
+  "avg_logprob": -1.203439712524414,
+  "centroid_hz": 265.855265320981,
+  "in_key": 0.9675123394936146,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.15, chord dm_bb, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m3_dry15_dm_bb_mid": {
+  "text": "neuralgum",
+  "score": 0.6086956521739131,
+  "avg_logprob": -1.2422861655553181,
+  "centroid_hz": 288.251974578837,
+  "in_key": 0.9793812585845056,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.15, chord dm_bb, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ },
+ "wav_m3_dry15_d5_dark": {
+  "text": "No",
+  "score": 0.125,
+  "avg_logprob": -0.9168308973312378,
+  "centroid_hz": 393.20014242265245,
+  "in_key": 0.8505888930762634,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.15, chord d5, carrier dark\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.5\nautomate nv.detune\n4\nautomate nv.cutoff\n1600\nautomate nv.resonance\n0.4\nautomate nv.sub\n0.3\n"
+ },
+ "wav_m3_dry15_d5_mid": {
+  "text": "neural down",
+  "score": 0.64,
+  "avg_logprob": -1.4385746002197266,
+  "centroid_hz": 425.409965218977,
+  "in_key": 0.8661387621650332,
+  "payload": "# take (wav modulator): vox_mode 3, vox_dry 0.15, chord d5, carrier mid\nbpm 120\ngate 0.98\ntail 1.5\nautomate vox_mode\n3\nautomate vox_level\n1.0\nautomate vox_dry\n0.15\nautomate reverb_wet\n0.16\nautomate reverb_decay\n0.6\ntrack nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1\nR:1 [D2 D3 A3 D4]:1 [D2 D3 A3 D4]:2\nautomate nv.waveform\n2\nautomate nv.osc2_pitch\n-12\nautomate nv.osc2_level\n0.45\nautomate nv.detune\n4\nautomate nv.cutoff\n3000\nautomate nv.resonance\n0.3\nautomate nv.sub\n0.2\n"
+ }
+}

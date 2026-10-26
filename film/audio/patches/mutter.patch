@@ -1,0 +1,50 @@
+# Knotwork — the bass: fat but TIGHT. unison 2 with only 7 cents
+# spread — two cards for width and beat, not a detuned mess (bass must
+# stay pitch-solid). Square + saw slightly apart over a phase-locked
+# sub square = the two-oscillator Moog bottom with weight underneath.
+# Ladder at 700, resonance LOW (0.5, no quack), a firm +0.8 oct filter
+# kick over 180 ms for the consonant, then a SUSTAINED tone. Drive 2.6:
+# the ladder's own saturation is the grain. Fast release so 16th motor
+# figures articulate cleanly.
+unison 2
+unison_detune 7
+waveform 1
+pulse_width 0.45
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0.5
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 3
+sub 0.4
+circuit 0
+key_track 0.4
+osc_fm 0
+sync 0
+ring 0
+glide 0
+attack 0.005
+decay 0.4
+sustain 0.7
+release 0.12
+filter_env 0.8
+filter_attack 0.003
+filter_decay 0.18
+filter_sustain 0.45
+filter_release 0.15
+cutoff 700
+resonance 0.5
+drive 2.6
+saturation 1.05
+hpf 25
+volume 0.5
+octave 4
+noise 0
+fuzz 0
+spring 0
+lfo_rate 0.5
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0

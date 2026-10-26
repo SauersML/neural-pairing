@@ -1,0 +1,30 @@
+# take (wav modulator): vox_mode 3, vox_dry 0.15, chord dm_bb, carrier dark
+bpm 120
+gate 0.98
+tail 1.5
+automate vox_mode
+3
+automate vox_level
+1.0
+automate vox_dry
+0.15
+automate reverb_wet
+0.16
+automate reverb_decay
+0.6
+track nv vox wav=qa/voice/neural_pairing_piper48k.wav wav_at=1
+R:1 [D3 A3 E4 F4]:1 [Bb2 F3 A3 D4]:2
+automate nv.waveform
+2
+automate nv.osc2_pitch
+-12
+automate nv.osc2_level
+0.5
+automate nv.detune
+4
+automate nv.cutoff
+1600
+automate nv.resonance
+0.4
+automate nv.sub
+0.3

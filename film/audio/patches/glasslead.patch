@@ -1,0 +1,32 @@
+# Glass Hours — the lead: sine with an airy triangle octave, long
+# portamento between words. Lives an octave and a half above the pad.
+waveform 0
+osc2_wave 3
+osc2_pitch 12
+osc2_level 0.2
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 4
+sub 0
+circuit 0
+key_track 0.6
+osc_fm 0
+sync 0
+ring 0
+glide 0.12
+pulse_width 0.5
+attack 0.06
+decay 0.4
+sustain 0.8
+release 0.9
+filter_env 0.5
+filter_attack 0.01
+filter_decay 0.4
+filter_sustain 0.6
+filter_release 0.7
+cutoff 3500
+resonance 0.6
+drive 1.3
+saturation 1.0
+hpf 100

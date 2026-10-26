@@ -1,0 +1,28 @@
+# Kaini — the poly keys from "Kaini Industries", fitted by measurement:
+# one sawtooth through the ladder with the cutoff riding the keys note for
+# note, so every register keeps the same round, dark colour (h2 a few dB
+# under the fundamental, the fifth harmonic ~20 dB down). The filter env
+# opens an octave at the strike and sinks over about a second, so a chord
+# blooms and then goes woody while held. Organ gate on the amp, and the
+# Juno's chorus II for the slow shimmer and the width (L/R correlation
+# ~0.6, as measured on the track). Otherwise dry.
+waveform 2
+circuit 0
+key_track 1
+cutoff 640
+resonance 0.65
+drive 0.5
+filter_env 1.05
+filter_attack 0.01
+filter_decay 1.0
+filter_sustain 0
+filter_release 0.1
+attack 0.012
+decay 1
+sustain 1
+release 0.1
+chorus_mode 2
+chorus_rate 0.5
+chorus_depth 0.4
+volume 0.849
+octave 3

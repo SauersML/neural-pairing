@@ -1,0 +1,17 @@
+bpm 120
+gate 0.95
+tail 1.5
+automate vox_mode
+1
+automate vox_level
+0
+automate vox_dry
+1
+automate vox_breath
+0.1
+automate vox_vibrato
+0
+automate vox_intonation
+0.6
+track nv vox vel=0.9
+R:1 D3:1.5=D:25@0.4-N:120-UW1:200-R-AH0-L:100 D3:2.5=P:80@1.8-HH:45@0.7-EH1:200-R-IH0:110-NG:220.

@@ -1,0 +1,40 @@
+# Aurora — the wide unison pad: every note claims two detuned sawtooth
+# cards, each card its own circuit, fanned hard across the field, with a
+# quiet octave above to catch the light. The filter sits open and lets the
+# ensemble beat; the release blooms into a long, bright-edged room.
+waveform 2
+osc2_wave 2
+osc2_pitch 12
+osc2_level 0.3
+detune 6
+unison 2
+unison_detune 16
+circuit 1
+key_track 0.4
+cutoff 3200
+resonance 0.2
+drive 1.1
+saturation 0.2
+hpf 60
+filter_env 0.6
+filter_attack 0.8
+filter_decay 2.5
+filter_sustain 0.7
+filter_release 3.0
+attack 0.55
+decay 2.0
+sustain 0.9
+release 3.2
+spread 0.9
+lfo_rate 0.18
+lfo_filter 0.1
+chorus_mode 1
+chorus_rate 0.35
+chorus_depth 0.3
+reverb_wet 0.4
+reverb_decay 0.8
+reverb_tone 5200
+reverb_pre 0.03
+tape_drive 0.08
+volume 0.295
+octave 4

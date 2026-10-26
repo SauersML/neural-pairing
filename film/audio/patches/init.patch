@@ -1,0 +1,117 @@
+# Init — a normal, dry starting point: one sawtooth through the ladder,
+# filter mostly open, a plain keyboard envelope, and NO effects (reverb,
+# spring, chorus, fuzz and tape all out of the path). What you build on,
+# not a sound in itself.
+#
+# This patch is also THE default of every plugin parameter (host_params.rs
+# reads its values), so every host parameter is listed here.
+
+# Oscillators
+waveform 2
+mix_saw 0
+mix_pulse 0
+mix_tri 0
+mix_sine 0
+osc2_wave 2
+osc2_pitch 0
+osc2_level 0
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 0
+sub 0
+noise 0
+circuit 0
+osc_fm 0
+sync 0
+ring 0
+glide 0
+pulse_width 0.5
+unison 1
+unison_detune 12
+spread 0
+
+# Modulation (LFO parked, routed nowhere)
+lfo_rate 1
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0
+
+# Filter
+cutoff 9000
+resonance 0.2
+drive 1.0
+saturation 0
+hpf 16
+key_track 0.5
+filter_env 0
+filter_attack 0.005
+filter_decay 0.3
+filter_sustain 0.5
+filter_release 0.3
+
+# Amplifier
+attack 0.005
+decay 0.3
+sustain 0.75
+release 0.2
+volume 0.751
+vel_amp 0.7
+vel_filter 0.8
+mono 0
+octave 4
+
+# Effects — all out
+fuzz 0
+spring 0
+reverb_wet 0
+reverb_decay 0.5
+reverb_tone 5500
+reverb_pre 0.012
+echo 0
+echo_time 0.5
+echo_feedback 0.35
+echo_tone 3000
+echo_pingpong 0
+chorus_mode 0
+chorus_rate 0.5
+chorus_depth 0.3
+chorus_hiss 1
+comp_in 0
+comp_threshold -20
+comp_ratio 1
+comp_attack 4
+comp_release 4
+comp_makeup 0
+comp_mix 1
+comp_sc_hpf 20
+tape_wow 0
+tape_flutter 0
+tape_drive 0
+tape_age 0
+width 1
+
+# 909 panel at its factory-fresh detents
+bd_level 0.8
+bd_tune 0.35
+bd_attack 0.5
+bd_decay 0.45
+bd_sweep 0.5
+bd_drive 0.25
+sd_level 0.75
+sd_tune 0.4
+sd_tone 0.5
+sd_snappy 0.6
+sd_decay 0.5
+rs_level 0.7
+rs_tune 0.5
+cp_level 0.75
+cp_decay 0.5
+hh_level 0.7
+hh_tune 0.5
+hh_metal 0.65
+ch_decay 0.35
+oh_decay 0.5
+dr_drive 0
+dr_tone 1

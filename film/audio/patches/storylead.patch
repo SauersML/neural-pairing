@@ -1,0 +1,36 @@
+# Twelve Doors — the narrator, third build: gritty and serious.
+# Moog ladder, hot drive, snap attack, glide cut to 15 ms (continuity,
+# not swooping). Key tracking at 1.0 so when the resonance automation
+# rises, the ladder's own whistle sings a partial that FOLLOWS the
+# melody — the filter becomes a second voice. The circuit swap to ARP
+# arrives by automation in the final section.
+waveform 2
+osc2_wave 2
+osc2_pitch 5
+osc2_level 0.8
+osc3_wave 2
+osc3_pitch 0
+osc3_level 0
+detune 4
+sub 0.3
+circuit 0
+key_track 1.0
+osc_fm 0
+sync 1
+ring 0
+glide 0.015
+pulse_width 0.5
+attack 0.008
+decay 0.35
+sustain 0.7
+release 0.5
+filter_env 1.4
+filter_attack 0.003
+filter_decay 0.2
+filter_sustain 0.5
+filter_release 0.4
+cutoff 1400
+resonance 1.2
+drive 2.2
+saturation 1.2
+hpf 80

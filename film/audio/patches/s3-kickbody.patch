@@ -1,0 +1,15 @@
+# Score 3: the kick's tuned body. A sine on A1 (the key's fifth), struck and
+# gone in a third of a second, under the 909 so the low end is in tune.
+waveform 0
+osc2_level 0
+osc3_level 0
+key_track 0.2
+cutoff 300
+drive 2.0
+saturation 1.0
+hpf 20
+attack 0.001
+decay 0.32
+sustain 0
+release 0.12
+volume 0.8

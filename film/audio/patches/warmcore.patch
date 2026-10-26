@@ -1,0 +1,49 @@
+# Restart — sound-first. NOT a bright buzzy oscillator (every one of
+# those read as brass/organ/string). A SOFT core — triangle with a
+# sine octave — made electronic by IMPERFECTION, not spectrum: unison 3
+# so three cards drift and beat (analog chorus), filter low and static
+# so there's no attack sweep and no buzz, a hair of glide. The
+# character will come from the tape wow/flutter and reverb in the song,
+# the way BoC leads live in their processing, not their waveform.
+unison 3
+unison_detune 11
+waveform 3
+osc2_wave 0
+osc2_pitch 12
+osc2_level 0.3
+osc3_wave 0
+osc3_pitch 0
+osc3_level 0
+detune 6
+sub 0.1
+circuit 0
+key_track 0.4
+osc_fm 0
+sync 0
+ring 0
+glide 0.02
+pulse_width 0.5
+attack 0.04
+decay 0.5
+sustain 0.85
+release 0.5
+filter_env 0.0
+filter_attack 0.1
+filter_decay 0.4
+filter_sustain 0.6
+filter_release 0.4
+cutoff 1500
+resonance 0.15
+drive 1.1
+saturation 1.0
+hpf 40
+volume 0.5
+octave 4
+noise 0
+fuzz 0
+spring 0
+lfo_rate 0.4
+lfo_shape 0.5
+lfo_pitch 0
+lfo_filter 0
+lfo_pwm 0

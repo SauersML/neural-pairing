@@ -1,0 +1,9 @@
+out/
+node_modules/
+audio/work*/
+audio/qa/stems/
+*.wav
+*.mp4
+*.jpg
+*.png
+*.pyc
