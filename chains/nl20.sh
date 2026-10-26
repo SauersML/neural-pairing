@@ -1,10 +1,9 @@
 #!/bin/bash
-# magic-nl20, one 80 GB card, two stages. (1) Warm-up: the seven value games only, 900 steps (nl16 had all seven both
-# ways by step 1000), fitted start, gates and alpha frozen as in nl18; code with held-out numbers and digit strings
-# (digit sum 3 mod 7, never relayed in training), then the balanced n = 20 value table of that checkpoint. (2) Full mix
-# from the warm-up checkpoint (--init): co-reading with distillation replies (magic-nl19's), six-turn play, dialogue,
-# silent rounds, shared pen, with value games a larger part of the mix than in nl18/nl19 (where they weakened). Stage-2
-# mix flags: $O/mix_flags.txt if present when stage 2 starts, else the default below; $O/no_distill drops distillation.
+# nl20, one 80 GB card, two stages. (1) Warm-up from the original models: the seven value games only, 900 steps, nl15's
+# start, then the n = 20 payload table of step 900. (2) The full mix from step 900 (--init) for 4,000 steps or 150
+# minutes: co-reading 0.35 with distillation replies, six-turn co_play, dialogue 0.15, anchors 0.1, silent ticks, the
+# shared pen 0.05 (after nl19's check), 4 groups per batch. OUT_DIR/mix_flags.txt, when present, replaces the stage-2
+# mix flags; OUT_DIR/no_distill drops the distillation replies. Then nl19's evaluations.
 # Usage: bash nl20.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ TALK_JSON PLAY_JSON
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4 TALK=$5 PLAY=$6

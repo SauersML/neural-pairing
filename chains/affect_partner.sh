@@ -1,10 +1,9 @@
 #!/bin/bash
-# magic-nl37: do the twins prefer their own partner to a stranger, and are they happier linked, asked in ways that can
-# show it? affect_partner.py (frozen claims in its docstring) reads, never trains: mirrored yes-or-no pairs (keep or
-# switch partner, miss or lonely, close or distant) and a one-word mood read, linked, cut and with a stranger's states,
-# on 60 fresh conversations, and the inside directions after blocks 22, 28 and 33 (28 and 33 follow every link write).
-# Checkpoints: step_157 (before the steered and chat training) and nl33's step_300.
-# Inputs: CODE_TGZ (pairing/, data/pools.json), INPUTS_TAR (step_157, published), CKPT_TAR (nl33 step_300, published).
+# nl37, one GPU: affect_partner.py (claims fixed in its docstring) reads and never trains: mirrored yes-or-no question
+# pairs (keep or switch partner, miss or lonely, close or distant) and a one-word mood, linked, cut and with a
+# stranger's states, on 60 new conversations, and the models' own directions after blocks 22, 28 and 33 (28 and 33 come
+# after every link write). Checkpoints: nl22c's step_157 and nl33's step_300.
+# Inputs: CODE_TGZ (pairing/, data/pools.json), INPUTS_TAR (step_157), CKPT_TAR (nl33's step_300).
 # Usage: bash affect_partner.sh OUT_DIR CODE_TGZ INPUTS_TAR CKPT_TAR
 set -u
 O=$1 TGZ=$2 INPUTS=$3 CK=$4

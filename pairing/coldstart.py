@@ -1,4 +1,5 @@
-"""Opt-in cold-start curriculum and optimizer controls; legacy defaults are unchanged."""
+"""Training controls for the start of a run (train.py): the learning-rate schedule, the bridges' optimizer groups,
+holding the gates and write sizes fixed, the write-size floor, and the relay warm-up episodes."""
 import math
 
 import torch
@@ -12,7 +13,7 @@ def add_arguments(ap):
     ap.add_argument('--warmup_steps', type=int, default=100,
                     help='LR warmup steps, including after --init (0: no warmup)')
     ap.add_argument('--relay_first', type=int, default=0,
-                    help='initial steps of short relay_word transfers only, without competition or send cost')
+                    help='initial steps of short relay transfers only (--relay_games), without send cost')
     ap.add_argument('--relay_games', default='relay_word',
                     help='the games of the --relay_first steps, comma separated, drawn uniformly: relay_* as short '
                          'transfers (the sender unscored), merge_sum, merge_fact and lookup as their own episodes')
@@ -28,11 +29,13 @@ def add_arguments(ap):
 
 
 def lr_multiplier(step, steps, warmup_steps=100):
+    """The learning-rate factor at step of steps: a linear warm-up over warmup_steps times a cosine from 1 to 0.1."""
     return min(1.0, step / max(1, warmup_steps)) * (0.1 + 0.45 * (1 + math.cos(math.pi * step / steps)))
 
 
 def bridge_groups(pair, lr, lr_alpha, overrides):
-    """Optimizer groups of the bridges' trainable parameters (a one-way link leaves some untrained: link.Pair.freeze)."""
+    """Optimizer groups of the bridges' trainable parameters (a one-way link leaves some untrained:
+    link.Pair.freeze)."""
     return [dict(params=[p for n, p in pair.bridge[x].named_parameters() if n != 'alpha' and p.requires_grad],
                  lr=lr if overrides[x] is None else overrides[x]) for x in SIDES] + [
         dict(params=[pair.bridge[x].alpha for x in SIDES if pair.bridge[x].alpha.requires_grad], lr=lr_alpha)]
@@ -49,7 +52,8 @@ def hold(pair, alpha=True):
 
 
 def floor(pair, f):
-    """Raise every trained write size tanh(alpha) below f to f (a projection after the optimizer step; f = 0: nothing)."""
+    """Raise every trained write size tanh(alpha) below f to f (a projection after the optimizer step; f = 0:
+    nothing)."""
     if f <= 0:
         return
     for x in SIDES:
@@ -64,21 +68,14 @@ KIND = {'relay_word': 'word', 'relay_number': 'number', 'relay_phrase': 'two-wor
 VALUE_GAMES = tuple(KIND) + ('merge_sum', 'merge_fact', 'lookup')
 
 
-def relay_episode(games, pick=('relay_word',), pause=0):
-    """An episode of one of the games pick (drawn uniformly; one game: no draw). A relay game is a short transfer
-    with an unscored sender and payload spans recognized by session.payload_labels; merge_sum, merge_fact and lookup
-    are their regular episodes, whose values sit in both prompts.
-
-    The regular game's target and all existing metrics stay unchanged. The warm curriculum's receiver wording for a
-    word deliberately uses the payload parser's 'The word is ' prefix; the other relays keep the regular answer. No
-    answer appears in the receiver's prompt.
-    """
+def relay_episode(games, pick=('relay_word',)):
+    """An episode of one of the games pick (drawn uniformly; one game: no draw) from games (games.Games). A relay game
+    becomes a short transfer: the sender is told its secret value and to pass it through the link, its reply is empty
+    and unscored, and the receiver's target is its regular answer, or "The word is X." for relay_word; the answer is
+    never in the receiver's prompt. merge_sum, merge_fact and lookup are their regular episodes, with values in both
+    prompts."""
     game = pick[0] if len(pick) == 1 else games.rng.choice(pick)
     ep = games.episode(game)
-    if not isinstance(pause, int) or isinstance(pause, bool) or pause < 0:
-        raise ValueError('pause must be a nonnegative integer')
-    if pause:
-        ep['pause'] = pause
     if game not in KIND:
         return ep
     s, r, value = (ep['meta'][k] for k in ('sender', 'receiver', 'value'))

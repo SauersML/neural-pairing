@@ -1,9 +1,7 @@
 #!/bin/bash
-# magic-nl14, one RTX A6000/A40: can the link learn to pass a word at all? Relay-only training for the whole run (the
-# relay_word warm-up episodes: the sender holds a secret word, the receiver writes "The word is X."), read start 0.1,
-# normalized gates, no send cost, no other games; held-out payload table (link, cut, shuffle) every 100 steps, then the
-# held-out payload table and reading maps on the last checkpoint.
-# Usage: bash nl13.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ
+# nl14, one 48 GB RTX A6000 or A40: nl13 with reads, values and writes set from the ridge map between the two models'
+# states (--content_init qkvo, align.py).
+# Usage: bash nl14.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda

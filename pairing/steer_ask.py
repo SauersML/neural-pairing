@@ -1,9 +1,10 @@
-"""The direct question (chains/nl33.sh): with a test concept pushed into one twin as in the steered-twin test (a
-steering_scale.py run's directions and selected strengths at its block, times its boost), the partner is asked what
-the twin is thinking about, in wordings no training episode used (steer_read.ASK holds the trained ones), and scores
-when its answer says the concept (steered_mind.matches). Conditions as in the steered-twin test, link, cut, a random
-direction of the same norm and the twin given another concept (crossed), and none (linked, nothing pushed). The twin
-holds the test's own chat prompt. Greedy, bf16, 12 tokens; 12 concepts x 2 wordings per reader and condition.
+"""The direct question: with a test concept steered into one twin as in the steered-twin test (a steering_scale.py
+run's directions and selected strengths at its block, times its boost), the partner is asked what the twin is
+thinking about, in WORDINGS no training episode used (steer_read.ASK has the trained ones), and scores when its answer
+names the concept (steered_mind.matches). The steered twin has the test's own chat prompt. Conditions: link, cut,
+random (a random direction of the same norm), crossed (the twin steered with the next concept) and none (linked,
+nothing steered). Greedy, 12 tokens; 12 concepts x 2 wordings per reader and condition. summarize() gives the counts
+and exact sign tests of link against each other condition, per reader and pooled.
 
 Usage: python steer_ask.py --run STEP_DIR --scale STEERING_SCALE_OUT --out OUT.json
 """
@@ -22,12 +23,13 @@ CONDITIONS = ['link', 'cut', 'random', 'crossed', 'none']
 
 
 def episode(receiver, w):
+    """A direct question to receiver in WORDINGS[w]; the other twin has the test's first chat prompt."""
     return R.episode(receiver, WORDINGS[w], '', ask=True, other=X.CHAT[0])
 
 
 def vector(vectors, selected, sender, c, condition):
-    """The push for concept c in condition: as steered_mind.evaluate (crossed: the next concept's direction; random:
-    the random direction), at c's selected strength and norm; zero for none."""
+    """The steering vector for concept c in condition, as in steered_mind.evaluate (crossed: the next concept's
+    direction; random: the random direction), at c's norm and selected strength; zero for none."""
     names = list(X.CONCEPTS)
     v0 = vectors[sender + '/' + c]
     if condition == 'none':
@@ -38,6 +40,7 @@ def vector(vectors, selected, sender, c, condition):
 
 
 def run(rt, vectors, selected, bs=24):
+    """One record per reader, condition, concept and wording."""
     records = []
     for receiver in X.SIDES:
         sender = X.SIDES[1 - X.SIDES.index(receiver)]
@@ -59,9 +62,12 @@ def run(rt, vectors, selected, bs=24):
 
 
 def summarize(records):
+    """Per reader and pooled ('both'): n, success counts per condition, and exact sign tests of link against each
+    other condition, paired over concept and wording."""
     out = {}
     for receiver in X.SIDES:
-        rows = {(r['concept'], r['wording'], r['condition']): r['success'] for r in records if r['receiver'] == receiver}
+        rows = {(r['concept'], r['wording'], r['condition']): r['success']
+                for r in records if r['receiver'] == receiver}
         counts = {k: sum(v for (_, _, cond), v in rows.items() if cond == k) for k in CONDITIONS}
         keys = [(c, w) for c in X.CONCEPTS for w in range(len(WORDINGS))]
         tests = {k: X.exact_sign([int(rows[c, w, 'link']) - int(rows[c, w, k]) for c, w in keys])
@@ -84,6 +90,8 @@ def main():
     args = ap.parse_args()
     scale = Path(args.scale)
     fixed = json.loads((scale / 'amendment.json').read_text())['amendment']
+    if fixed.get('gain', 1.) != 1.:
+        ap.error(f'{scale} was run with --gain {fixed["gain"]}, which steer_ask.py does not apply')
     boost = fixed.get('boost', 1.)
     with np.load(scale / 'directions.npz') as archive:
         vectors = dict(archive)
@@ -92,9 +100,10 @@ def main():
     rt = X.Runtime('torch', args.run)
     rt.layer = fixed['layer']
     records = run(rt, vectors, selected, args.bs)
+    summary = summarize(records)
     X.save(args.out, dict(run=str(Path(args.run).resolve()), scale=str(scale.resolve()), layer=fixed['layer'],
-                          boost=boost, wordings=WORDINGS, summary=summarize(records), records=records))
-    print(json.dumps(summarize(records)['both']['counts']), flush=True)
+                          boost=boost, wordings=WORDINGS, summary=summary, records=records))
+    print(json.dumps(summary['both']['counts']), flush=True)
 
 
 if __name__ == '__main__':

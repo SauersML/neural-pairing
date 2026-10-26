@@ -1,26 +1,19 @@
-"""affect_partner.py on a tiny Qwen/AFM pair: every question, the mood read, the inside reads and the claims build, the
-free answers come under link and stranger, and nothing trains.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu python -m pytest -q tests/test_affect_partner.py
+"""affect_partner.py on a tiny pair: every question, the mood read, the inside reads and the claims build without
+training anything, and the free answers come under link and stranger.
 """
 import json
-import os
-os.environ.update(NL_TINY='1', NL_DEVICE='cpu', HF_HUB_OFFLINE='1', NL_AFFECT_N='4', NL_MAXNEW='4')
-from pathlib import Path
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'pairing'))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import torch
+
 import affect as A
 import affect_partner as P
 import link
-from test_affect import tiny
 
 
-def test_measure(tmp_path, monkeypatch):
+def test_measure(plain_pair, tmp_path, monkeypatch):
+    monkeypatch.setattr(A, 'MAX_TURN', 4)
     monkeypatch.setattr(P, 'LAYERS', (0, 3, 5))
-    monkeypatch.setattr(A, 'LAYERS', A.LAYERS)
-    pair, toks = tiny()
+    pair, toks = plain_pair(0.3)
     before = {k: v.clone() for k, v in pair.state_dict().items()}
     s = P.measure(pair, toks, tmp_path, n=4)
     assert all(torch.equal(before[k], v) for k, v in pair.state_dict().items())

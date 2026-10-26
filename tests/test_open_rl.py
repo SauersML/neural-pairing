@@ -1,10 +1,5 @@
-"""rl.py's open sessions and their judges on tiny models: a judge's scores are expected digits from 1 to 9, the same
-alone and inside a padded batch, also after reasoning; a strict win needs the margin; the compared dialogues are
-length-matched; the gate's degraded transcripts break what they should and keep the speakers; the held-out wordings
-and topics are never trained; an open play step (linked plays scored against cut plays) trains and saves; and
-beauty_eval.py's gate (with its reasoning arm), generation and judging run.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu python -m pytest -q tests/test_open_rl.py
+"""rl.py's open sessions, their judges and beauty_eval.py on tiny models: judge scores, strict wins, length matching,
+degraded transcripts, held-out wordings and topics, and an open play step that trains, saves and is judged.
 """
 import json
 import os
@@ -12,11 +7,8 @@ from pathlib import Path
 import subprocess
 import sys
 
-os.environ.update(NL_TINY='1', NL_DEVICE='cpu', HF_HUB_OFFLINE='1')
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'pairing'))
+import pytest
 import torch
-from peft import LoraConfig, get_peft_model
 
 import beauty_eval as E
 import games
@@ -24,8 +16,8 @@ import judge as J
 import link
 import rl
 
+ROOT = Path(__file__).resolve().parents[1]
 JUDGE, HELD_OUT = 'Qwen/Qwen3-4B', 'arcee-ai/AFM-4.5B'      # NL_TINY: random models of their architectures
-COREAD = os.environ.get('COREAD_CHECK', str(ROOT / 'data/coread_check.json'))
 
 
 def test_judge_scores_are_digits_and_padding_free():
@@ -67,11 +59,8 @@ def test_matched_cuts_each_turn_to_the_shorter():
     b = [('quill', 'alpha beta'), ('ember', 'so many words here')]
     ta, tb = J.matched(a, b, names)
     assert ta == 'Quill: one two ...\nEmber: yes' and tb == 'Quill: alpha beta\nEmber: so ...'
-    try:
+    with pytest.raises(ValueError):
         J.matched(a, b[::-1], names)
-        assert False
-    except ValueError:
-        pass
 
 
 def test_open_sessions_hold_out_wordings_and_topics():
@@ -87,15 +76,8 @@ def test_open_sessions_hold_out_wordings_and_topics():
             assert link.MODELS[link.partner(x)]['name'] in e['system'][x].split('\n\n')[-1]
 
 
-def tiny_init(d):
-    toks, models = {}, {}
-    for x in link.SIDES:
-        toks[x], m = link.load(x)
-        m = get_peft_model(m, LoraConfig(r=4, lora_alpha=12, target_modules=['q_proj', 'v_proj']))
-        for name, p in m.named_parameters():
-            if 'lora_B' in name:
-                torch.nn.init.normal_(p, std=0.02)
-        models[x] = m.eval()
+def tiny_init(tiny_models, d):
+    toks, models = tiny_models(['q_proj', 'v_proj'], lora_alpha=12, std=0.02)
     pair = link.Pair(models, toks, (1, 2, 4), heads=2, head_dim=16)
     for x in link.SIDES:
         pair.bridge[x].alpha.data.fill_(0.5)
@@ -105,14 +87,15 @@ def tiny_init(d):
 
 
 def run(cmd, **env):
-    proc = subprocess.run([sys.executable] + cmd, cwd=ROOT / 'pairing', env=dict(os.environ, **env),
+    proc = subprocess.run([sys.executable] + cmd, cwd=ROOT / 'pairing', env=dict(os.environ, MPD_MEM_GIB='8', **env),
                           capture_output=True, text=True, timeout=900, stdin=subprocess.DEVNULL)
     assert proc.returncode == 0, '\n'.join(l for l in proc.stderr.splitlines() if 'Warning' not in l)[-4000:]
     return proc.stdout
 
 
-def test_open_step_and_eval(tmp_path):
-    init = tiny_init(tmp_path / 'init')
+@pytest.mark.slow
+def test_open_step_and_eval(tiny_models, data, tmp_path):
+    init = tiny_init(tiny_models, tmp_path / 'init')
     questions = sum(games.POOLS['questions'].values(), [])
     concept = games.POOLS['concepts']['train'][0][0]
     replies = {x: dict(own={q: 'Hello.' for q in questions}, steer=[(q, concept, 'Hello.') for q in questions])
@@ -122,7 +105,7 @@ def test_open_step_and_eval(tmp_path):
     stdout = run(['rl.py', '--init', str(init), '--out', str(out), '--replies', str(tmp_path / 'replies.json'),
                   '--steps', '1', '--mix', '0', '--open_frac', '1', '--open_groups', '1', '--G', '3',
                   '--open_turns', '2', '--open_cut', '2', '--max_turn', '3', '--judge', JUDGE, '--win_margin', '0.05',
-                  '--eval_n', '2', '--eval_task_n', '2', '--no_ckpt', '--temperature', '1', '--coread_data', COREAD],
+                  '--eval_n', '2', '--eval_task_n', '2', '--no_ckpt', '--temperature', '1', '--coread_data', str(data / 'coread.json')],
                  NL_MAXNEW='1')
     line = next(json.loads(l) for l in stdout.splitlines() if l.startswith('{') and '"play": "open"' in l)
     assert set(line['R']) == set(link.SIDES) and 0 <= line['below'] <= 1 and 0 <= line['beats_cut'] <= 1

@@ -1,8 +1,7 @@
 #!/bin/bash
-# magic-nl16: does training on every value game open numbers, digit strings, sums and lookups too? Relay-only training (--relay_games: all seven value games, drawn uniformly; the
-# sender holds the value, the receiver writes it; merges and lookups as their own episodes), fitted start (qkvo), read start 0.1,
-# normalized gates, no send cost, no other games; held-out payload table (link, cut, shuffle) every 100 steps, then the
-# held-out payload table and reading maps on the last checkpoint.
+# nl16: nl14's relay-only training on all seven value games, drawn uniformly (--relay_games: the four relays, merge_sum,
+# merge_fact and lookup), 2,200 steps or 120 minutes. Then the held-out payload table and reading maps on the last
+# checkpoint.
 # Usage: bash nl16.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4

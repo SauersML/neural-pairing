@@ -1,8 +1,9 @@
-"""Payload loss per never-seen episode with the bridges, without them ('cut': the two models alone), and shuffled: each
-episode reads the partner states of another episode of the same game in which the twins play the same roles
-(donor_groups), so the reader's input is perturbed as much as with the bridges while the information is removed. The payload is the part of a target reply that only the partner can
-supply (session.payload). The episodes are drawn from the test split (seed 4242), n per game: the payload games and,
-with --coread, the co-reading games. train.py --payload_eval runs the same table during training.
+"""Payload loss per test episode with the bridges ('link'), without them ('cut': the two models alone), and shuffled
+('shuffle'): each episode reads the partner states of another episode of the same game in which the two models play
+the same roles (donor_groups), so the reader's input changes as much as with the bridges while the information is
+removed. The payload is the part of a target reply that only the partner can supply (session.payload). The episodes are
+drawn from the test split (seed 4242), n per game: the payload games and, with --coread, the co-reading games.
+train.py --payload_eval computes the same table during training.
 
 One-way link (a checkpoint with frozen=Y, or --frozen Y on a two-way one): every episode with a receiver has the reader
 as its receiver, and only the reader's records are written (the target reads nothing).
@@ -25,10 +26,10 @@ ROLES = ('sender', 'receiver', 'asker', 'holder', 'opener')
 
 
 def balanced(draw, n, tries=20, receiver=None):
-    """n episodes from draw(), split as evenly as possible between the twins as the receiver (meta receiver, or asker),
-    in the order drawn: an episode whose receiver's half is full is set aside, and set-aside episodes fill what tries * n
-    draws leave short (a game whose data has one receiver only). Episodes without a receiver always count. receiver=X:
-    every episode with a receiver has X as its receiver (one-way links), none set aside for the other twin."""
+    """n episodes from draw(), split as evenly as possible between the models as the receiver (meta receiver, or asker),
+    in the order drawn: an episode whose receiver's half is full is set aside, and set-aside episodes fill what tries *
+    n draws leave short (a game whose data has one receiver only). Episodes without a receiver always count. receiver=X:
+    every episode with a receiver has X as its receiver (one-way links)."""
     side = lambda ep: ep['meta'].get('receiver') or ep['meta'].get('asker')
     if receiver is not None:
         out = []
@@ -56,8 +57,8 @@ def balanced(draw, n, tries=20, receiver=None):
 
 
 def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0, receiver=None):
-    """{game: n episodes of the never-seen split, half with each twin as the receiver where the game has one
-    (balanced), or all with receiver= as the receiver}, the same on every call."""
+    """{game: n episodes of the test split, half with each model as the receiver where the game has one (balanced),
+    or all with receiver= as the receiver}, the same on every call. pause: silent ticks before each reply or turn."""
     games = G.Games(replies, 'test', seed=4242, max_digits=max_digits)
     out = {g: balanced(lambda: games.episode(g), n, receiver=receiver) for g in PAYLOAD_GAMES}
     if coread:
@@ -84,10 +85,10 @@ def episodes(replies, n, max_digits=16, coread=False, path=None, pause=0, receiv
 
 
 def donor_groups(eps):
-    """Indices of eps grouped by the twins' roles (the meta fields in ROLES; merge games have none, both twins hold a
-    part), so that in a batch of one group the shuffled partner (the neighbouring episode, link.Pair 'shuffle') plays
-    the same role as the real partner, with another episode's value. Episodes whose roles no other episode shares join
-    the largest group, where their donors play another role."""
+    """Indices of eps grouped by the models' roles (the meta fields in ROLES; merge games have none, since each model
+    has a part), so that in a batch of one group the shuffled partner (the neighbouring episode, link.Pair 'shuffle')
+    plays the same role as the real partner, with another episode's value. Episodes whose roles no other episode shares
+    join the largest group, where their donors play another role."""
     by = {}
     for i, ep in enumerate(eps):
         by.setdefault(tuple(str(ep['meta'].get(k)) for k in ROLES), []).append(i)
@@ -162,7 +163,8 @@ if __name__ == '__main__':
     reader = None if pair.frozen is None else next(x for x in SIDES if x != pair.frozen)
     if reader:
         print(f'one-way link onto {pair.frozen}: {reader} as the receiver only', flush=True)
-    eps = episodes(json.load(open(args.replies)), args.n, args.max_digits, args.coread, pause=args.pause, receiver=reader)
+    eps = episodes(json.load(open(args.replies)), args.n, args.max_digits, args.coread, pause=args.pause,
+                   receiver=reader)
     rec = []
     for g in eps:
         part = table(pair, toks, eps[g], args.bs)

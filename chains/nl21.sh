@@ -1,9 +1,8 @@
 #!/bin/bash
-# magic-nl21, one 48 GB card: held-out GAMES. Training never draws lookup, relay_digits, co_mcq, co_code_out,
-# co_translate or the rhyme play game (train.py --hold_out: a drawn episode of one is drawn again), and the final tables
-# (n = 40 per game) test them beside the trained games. Otherwise nl20's recipe: (1) warm-up on the five other value
-# games, 600 steps, then the n = 20 table; (2) the full mix from that checkpoint, with gradient checkpointing (48 GB).
-# Stage-2 mix flags: $O/mix_flags.txt if present when stage 2 starts; $O/no_distill drops distillation.
+# nl21, one 48 GB card: nl20 with held-out games. Training never draws lookup, relay_digits, co_mcq, co_code_out,
+# co_translate or the rhyme play game (--hold_out: a drawn episode of one is drawn again); the final payload table (n =
+# 40 per game) tests them beside the trained games. Stage 1 warms up on the five other value games for 600 steps; stage
+# 2 runs 130 minutes. Both stages use gradient checkpointing to fit in 48 GB.
 # Usage: bash nl21.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ TALK_JSON PLAY_JSON
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4 TALK=$5 PLAY=$6

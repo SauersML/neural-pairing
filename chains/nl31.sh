@@ -1,9 +1,9 @@
 #!/bin/bash
-# magic-nl31, one 48 GB Ampere card (RTX A6000 / A40; never Ada): how far does the link move the partner along its own
-# concept direction when one twin is steered? steer_probe.py on nl22c step 157, over the prompt pass of nl30's chat
-# episodes, for nl30's five settings (after block 6, 15 and 27, and at four times the strength after blocks 15 and 27),
-# read at depths 6, 15 and 27 with the directions nl30 fit there (block 15's are nl29's, value for value).
-# Inputs: INPUTS_TAR, the published tar of step_157 (nl30's).
+# nl31, one 48 GB Ampere card (RTX A6000 or A40): how far the link moves the partner along its own concept direction
+# when one model is steered. steer_probe.py on nl22c's step_157 over the prompt pass of nl30's chat episodes, for nl30's
+# five settings (after blocks 6, 15 and 27, and at four times the strength after blocks 15 and 27), read at depths 6, 15
+# and 27 with the directions nl30 fit there (results/magic-nl30/results/{l6,l15x4,l27}).
+# Inputs: INPUTS_TAR, a tar of step_157.
 # Usage: bash nl31.sh OUT_DIR CODE_TGZ INPUTS_TAR
 set -u
 O=$1 TGZ=$2 INPUTS=$3

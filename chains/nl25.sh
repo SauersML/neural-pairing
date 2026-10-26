@@ -1,26 +1,21 @@
 #!/bin/bash
-# nl25: one-way links onto an unmodified model (link.py, train.py --frozen). Two arms, back to back on one A100 80 GB
-# (nl24c's pod; no Ada card: nl24's torch.multinomial hit a device-side assert on an RTX 6000 Ada): ember, target Ember
-# (the original AFM-4.5B, bit for bit) read by Quill; quill, target Quill read by Ember. Each arm starts from a two-way
-# step (nl24c's final step, else nl22c step_157): the target's adapter and read parts are dropped, the reader keeps its
-# LoRA and read parts, and the target's show parts keep training as the reader's channel. 80 GB settings as nl24c's:
-# eight microbatches without gradient checkpointing, chat tests in three shards at once with batches of 4.
-#   1. before, per arm: the two-way step read one-way (--frozen), no one-way training: the chat2 free-chat test (link,
-#      cut, linked to a stranger; the reader the only receiver) and the payload table (value and co-reading games);
-#   2. per arm: 150 value-game warm-up steps (all seven value games, the reader as the receiver), then nl24's mix with
-#      chat2 (same weights) to 450 steps or --minutes, whichever ends first;
-#   3. after, per arm: the same chat2 test and payload table.
-# The chat2 test is nl24c's: the same 40 plans (seed 4242), greedy. Its summaries count the reader naming the TARGET's
-# private fact before the target does, trained and held-out kinds apart (chat2_merge.py; one-way manifests list the
-# reader only). No checkpoint selection on test scores.
-# Time on an A100 80 GB (magic-nl22c there: 5.5 s per two-way step without checkpointing, 201 s per evaluation; a one-way
-# step ~0.7 of that): per arm ~25 min training, ~12 min per chat test (14 chats per shard, link, cut and stranger
-# chats each in batches of 4), ~15 min of payload tables; ~2.1 h in all.
+# nl25, one 80 GB A100 (not an Ada card: torch.multinomial raised a device-side assert on an RTX 6000 Ada): one-way
+# links onto an unmodified model (train.py --frozen), two arms one after another: ember (Ember, the original AFM-4.5B,
+# read by Quill) and quill (Quill read by Ember). Each arm starts from a two-way step: the target's adapter and read
+# parts are dropped, the reader keeps its LoRA and read parts, and the target's show parts train as the reader's
+# channel. Per arm:
+#   1. before: the two-way step read one-way (--frozen, no training): the chat2 free-chat test (link, cut, a stranger's
+#      link; the reader is the only receiver) and the payload table (value and co-reading games);
+#   2. 150 steps on the seven value games (the reader as the receiver), then nl24's mix with chat2, to 450 steps or
+#      --minutes, eight micro-batches without gradient checkpointing;
+#   3. after: the same chat2 test and payload table.
+# The chat2 test is nl24's (40 plans, seed 4242, greedy, three shards at once in batches of 4); chat2_merge.py counts
+# the reader saying the target's private item before the target does, trained and held-out kinds apart.
 # Usage: [NL25_WAIT_PID=PID] bash nl25.sh OUT_DIR CODE_TGZ INIT_STEP[,FALLBACK...] REPLIES DATA_DIR CHAT2_JSON
-#   INIT_STEP: the first of the comma-separated steps that holds bridge.pt; DATA_DIR holds coread, play, talk, pools and
-#   chat .json (/workspace/jobs/nl24/data); CHAT2_JSON is nl24c's generated chat2.json; NL25_WAIT_PID: start once that
-#   process (nl24c's chain on the same card) has ended. NL25_TINY=1: tiny random models on the CPU (smoke runs), with
-#   NL25_ARCH="--heads 2 --head_dim 16 --xblocks 1,2,4" matching the tiny two-way step.
+#   INIT_STEP: the first of the comma-separated steps that has bridge.pt; DATA_DIR holds coread, play, talk, pools and
+#   chat .json; CHAT2_JSON is nl24's chat2.json; NL25_WAIT_PID: start once that process has ended. NL25_TINY=1: tiny
+#   random models on the CPU (smoke runs), with NL25_ARCH="--heads 2 --head_dim 16 --xblocks 1,2,4" matching the tiny
+#   two-way step. NL25_STEPS, NL25_RELAY, NL25_MINUTES, NL25_N_CHAT, NL25_N_PAY and NL25_BS replace the defaults.
 set -uo pipefail
 O=$1 TGZ=$2 INITS=$3 REPLIES=$4 DATA=$5 CHAT2=$6
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True

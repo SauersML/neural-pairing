@@ -1,7 +1,7 @@
 """Benchmark: does the linked pair answer ARC-Challenge and MMLU questions better than either model alone?
 
-Arms, each model's answer being its most likely letter after its own 'The answer is', scored in one teacher-forced pass
-of the pair (the computation the pair trains with; nothing of the partner's letter is visible when a model writes its own):
+Arms. A model's answer is its most likely letter after its own 'The answer is', scored in one teacher-forced pass of the
+pair (the computation the pair trains with), in which no model can read the partner's letter before writing its own:
   base       each original model alone (adapters off)                                   (1) Quill, (2) Ember
   solo       each model alone after the same fine-tuning on the same questions          (3)
   pair       the trained pair, the link open                                            (4)
@@ -15,17 +15,17 @@ written as 'The answer is X.' from the partner's own most likely letter.
 
 The headline compares the pair with the strongest of the fine-tuned single models and their ensemble on the test
 questions. Tests are paired per question: exact McNemar (two-sided binomial test on the discordant questions) and a
-conservative 95% interval for the accuracy difference (two 97.5% exact intervals for the two discordant shares). The claim
-"pair > best single" needs the pair to beat every comparator, each at p < 0.05 (an intersection-union test, so no
-correction for the number of comparisons).
+conservative 95% interval for the accuracy difference (two 97.5% exact intervals for the two discordant shares). The
+claim "pair > best single" (pair_beats_all) needs the pair to beat every comparator except the ensemble, each at p <
+0.05 (an intersection-union test, so no correction for the number of comparisons).
 
 Each rank scores its questions in batches of similar length, and the 'shuffle' control reads the partner of another
 question of the same batch. Under torchrun the questions are dealt to the ranks in whole batches of question order, so
 the batches differ from a single process's.
 
 Usage: python bench_eval.py --pair RUN/step_N --solo RUN/step_N [--text RUN/step_N] --out OUT/bench.json
-Without --text the text arm is skipped: it does not involve the linked pair, so an earlier run's scores of the same text
-pair stand (nl28 reuses nl23's).
+Without --text the text arm is skipped; its scores do not depend on the linked pair, so an earlier run's text-pair
+scores can be reused.
 """
 import argparse
 import contextlib
@@ -45,9 +45,7 @@ from link import DEVICE, SIDES, Pair, load, partner
 def mcnemar(a, b):
     """a, b: 0/1 lists over the same questions. The accuracy difference a - b; a conservative 95% interval for it, the
     difference of two 97.5% exact Clopper-Pearson intervals for P(a right, b wrong) and P(b right, a wrong) (Bonferroni;
-    independent questions assumed); and the exact McNemar p (two-sided binomial test on the discordant questions).
-    Until 10-22 lo/hi scaled a binomial interval by the observed discordant share, which is not an interval for the
-    difference (nl27 audit, results/nl27_audit_report.json)."""
+    independent questions assumed); and the exact McNemar p (two-sided binomial test on the discordant questions)."""
     n10 = sum(x and not y for x, y in zip(a, b))
     n01 = sum(y and not x for x, y in zip(a, b))
     n, N = n10 + n01, len(a)
@@ -63,7 +61,8 @@ def letter_probs(pair, items, style, mode=None, order=None, first=None, bs=64):
     """Each model's probabilities of the letters A-D after its own 'The answer is', in one teacher-forced pass of the
     pair: {x: [N, 4]}. style, order: G.qa_episode; mode: the link.Pair ablation of the 'pair' style (the other styles
     run with the link cut). first (text style): the first speaker's letter per question, written as its turn for the
-    second speaker to read; without it the first turn is the gold answer, so only the first speaker's scores hold."""
+    second speaker to read; without it the first turn is the reference answer, so only the first speaker's scores are
+    valid."""
     toks = pair.toks
     pads = {x: toks[x].pad_token_id for x in SIDES}
     lid = {x: [S.ids(toks[x], ' ' + L)[0] for L in G.LETTERS] for x in SIDES}
@@ -73,8 +72,7 @@ def letter_probs(pair, items, style, mode=None, order=None, first=None, bs=64):
         for e, f in zip(eps, first):
             e['turns'][0] = (e['turns'][0][0], f'The answer is {f}.', 1.0)
     every = [S.build(e, toks) for e in eps]
-    # batches of questions of similar length (in question order, padding to each batch's longest question was ~4x the
-    # real tokens); results come back in question order
+    # batches of questions of similar length, to reduce padding; results come back in question order
     rank = sorted(range(len(items)), key=lambda i: max(len(every[i][x]['ids']) for x in SIDES))
     out = {x: [None] * len(items) for x in SIDES}
     for a, z in S.batches(len(items), bs):
@@ -221,7 +219,7 @@ if __name__ == '__main__':
     required = comparators[:-1]
     for name, src in srcs.items():
         sel = [i for i, it in enumerate(items) if src is None or it['src'] == src]
-        if not sel:                              # a --limit smoke run may hold no question of a source
+        if not sel:                              # a --limit smoke run may have no question of a source
             continue
         acc = {k: round(mean([v[i] for i in sel]), 4) for k, v in C.items()}
         tests = {k: mcnemar([C[f'pair/{D}'][i] for i in sel], [C[k][i] for i in sel]) for k in comparators}
@@ -231,7 +229,8 @@ if __name__ == '__main__':
         best = max(('solo/quill', 'solo/ember', 'ensemble'), key=lambda k: acc[k])
         # the pooled pair (both linked models' letters averaged) against the averaged single models and the same pair
         # with the link cut
-        pooled = {k: mcnemar([C['pair/avg'][i] for i in sel], [C[k][i] for i in sel]) for k in ('ensemble', 'pair/zero/avg')}
+        pooled = {k: mcnemar([C['pair/avg'][i] for i in sel], [C[k][i] for i in sel])
+                  for k in ('ensemble', 'pair/zero/avg')}
         R['test'][name] = dict(n=len(sel), accuracy=acc, vs_pair=tests, pair_beats_all=claim,
                                headline=dict(vs=best, **tests[best]), pooled=pooled)
         print(name, json.dumps(R['test'][name]), flush=True)

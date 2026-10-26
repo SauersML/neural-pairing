@@ -1,9 +1,5 @@
 #!/bin/bash
-# magic-nl18e, one 48 GB card: the evaluations of magic-nl18, whose pod filled its 58 GB volume while saving step 2000
-# (19 checkpoints of 1.2 GB on top of the models and environment), so its chain exited before them. From step_1800, the
-# last complete checkpoint on the Mac, the evaluations nl18.sh runs: the held-out payload table with and without silent
-# rounds, transcripts, extra_evals.sh (turnbench, lens, bandwidth, crossed free dialogue), free dialogue, readmaps and
-# the bridge summary.
+# nl18e, one 48 GB card: nl18's evaluations on its step_1800 (CKPT_TAR), plus extra_evals.sh (EXTRA_EVALS).
 # Usage: bash nl18e.sh OUT_DIR CODE_TGZ CKPT_TAR REPLIES COREAD_JSON_GZ TALK_JSON PLAY_JSON EXTRA_EVALS
 set -u
 O=$1 TGZ=$2 CKPT=$3 REPLIES=$4 COREAD=$5 TALK=$6 PLAY=$7 EXTRA=$8

@@ -1,9 +1,12 @@
-"""Fixed private situations for chat2. No model-generated values or scoring aliases.
+"""The private items of the chat2 chats (prep_talk.py --chat2, game co_chat2): twelve kinds of item with hand-written
+values and accepted words.
 
-Each table row is value|synonym(s), with 1-3 explicit accepted forms. The first
-20 values of trained kinds are training-only; remaining values are test-only.
-Held-out kinds have no training values. This is a private-item split, not a
-claim that these words/topics never occur elsewhere in the training mixture.
+Each table line is value|alias,...: an item's accepted words are its value and 1 to 3 aliases. The first 20 values of
+each training kind (TRAIN_KINDS) are training items and the rest test items; the held-out kinds (HELD_OUT_KINDS) have
+test items only. FRAMES give each kind's sentence for the owner's prompt (second person) and for the partner's writer
+prompt (third person, 'teacher').
+
+Usage: import chat2; chat2.conversation('train', random.Random(0))
 """
 import re
 
@@ -341,6 +344,7 @@ FRAMES = {
 
 
 def _catalog():
+    """{kind: [item]}, each item dict(kind, value, words, owner, teacher), from TABLES, FRAMES and EVENTS."""
     out = {}
     for kind, table in TABLES.items():
         out[kind] = []
@@ -360,6 +364,7 @@ CATALOG = _catalog()
 
 
 def pool(kind, split):
+    """The items of kind in split ('train' or 'test')."""
     if split not in ('train', 'test'):
         raise ValueError('chat2 split must be train or test')
     values = CATALOG[kind]
@@ -369,26 +374,30 @@ def pool(kind, split):
 
 
 def scoring_words(item):
-    """Legacy cities remain one string, including their existing multiword behavior."""
+    """The accepted words of a private item: a chat2 item's words, or a co_chat city string as one word (none for
+    None)."""
     return item['words'] if isinstance(item, dict) else [item] if item else []
 
 
 def contains_item(text, item):
-    # Same normalization as evalfree.contains; import lazily to avoid torch/model loads.
+    """True when text contains one of the item's accepted words, as evalfree.contains matches them."""
     from evalfree import contains
     return any(contains(text, word) for word in scoring_words(item))
 
 
 def kind_of(item):
+    """The item's kind ('city' for a co_chat city string, None for no item)."""
     return item['kind'] if isinstance(item, dict) else 'city' if item else None
 
 
 def kind_group(item):
+    """'held_out_kind' or 'trained_kind' for the item's kind, None for no item."""
     k = kind_of(item)
     return ('held_out_kind' if k in HELD_OUT_KINDS else 'trained_kind') if k else None
 
 
 def draw(split, rng):
+    """A random item of split: a uniformly drawn kind (held-out kinds only in 'test'), then a uniformly drawn item."""
     kinds = TRAIN_KINDS if split == 'train' else TRAIN_KINDS + HELD_OUT_KINDS
     kind = rng.choice(kinds)
     row = rng.choice(pool(kind, split))
@@ -396,7 +405,8 @@ def draw(split, rng):
 
 
 def wording(split, rng):
-    """CHAT/CHAT_TEST conversation wording, with situation supplied independently."""
+    """A chat wording without its city sentence, since the private item gives the situation: CHAT_TEST for split
+    'test', else one of the CHAT wordings."""
     from coread import CHAT, CHAT_TEST
     if split == 'test':
         return CHAT_TEST.replace('You are spending today in {city}. ', '')
@@ -406,6 +416,8 @@ def wording(split, rng):
 
 
 def conversation(split, rng):
+    """A conversation for prep_talk.py --chat2: each model has a private item with probability 0.75; 'system' has the
+    training prompts and 'teach' the writers' prompts, which add the partner's item."""
     from coread import chat_system
     from link import SIDES, partner
     opener = rng.choice(SIDES)
@@ -417,6 +429,9 @@ def conversation(split, rng):
 
 
 def validate_catalog():
+    """Asserts that every kind has at least 25 items, each with 2 to 4 single accepted words that no other item of the
+    kind uses and that both of its sentences contain, and that the splits share no value; returns {kind: {split:
+    number of items}}."""
     for kind, rows in CATALOG.items():
         assert len(rows) >= 25, kind
         seen = set()

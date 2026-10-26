@@ -1,17 +1,15 @@
 #!/bin/bash
-# magic-nl34: more of nl33's steered-reading game, with weaker pushes. nl33 (300 steps, pushes 0.5 to 6 times the
-# concept direction) lifted the steered-twin test at every depth, most where the test pushes inside that range (four
-# times the calibrated strength: 47 and 35 of 96 after blocks 15 and 27) and least where it pushes below it (the
-# calibrated strengths after block 27 are 0.25 to 0.5: 8 of 96). 400 more steps from nl33's step 300 on the same mix,
-# pushes 0.1 to 6 (--steer_strength), the directions refit on that checkpoint, write sizes trained above 0.1. Then the
-# steered-twin test at the five settings, the direct question, and the fixed free-chat tests with private items and
-# cities in the twin's prompt (nl34e.sh's), on step 400.
-# Inputs: CKPT_TAR (nl33's step_300, published), DATA_TGZ (data33.tgz, published).
+# nl34, one 48 or 80 GB card: 400 more steps from nl33's step_300 on the same mix, with the steered-reading game's
+# steering coefficients log-uniform in [0.1, 6] times the concept direction (--steer_strength 0.1 6) and the directions
+# refit on that checkpoint; write sizes trained above 0.1. Then, on step 400: the steered-twin test at nl33's five
+# settings, the direct question, and the fixed free-chat tests with private items and cities in the model's prompt
+# (nl34e.sh's), merged by chat2_merge.py and chat_merge.py.
+# Inputs: CKPT_TAR (nl33's step_300), DATA_TGZ (data33.tgz).
 # Usage: bash nl34.sh OUT_DIR CODE_TGZ CKPT_TAR DATA_TGZ
 set -u
 O=$1 TGZ=$2 CK=$3 DATA=$4
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda NL_STREAM=0 HF_HUB_OFFLINE=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export OMP_NUM_THREADS=8         # a many-core host stalls torch's CPU threads
+export OMP_NUM_THREADS=8         # torch's default thread count stalls on many-core hosts
 export NL_QUICK=relay_word,relay_number,merge_sum,lookup,merge_fact,co_play,co_qa,co_mcq
 unset NL_TINY NL_MAXNEW
 rm -rf w && mkdir -p $O w && tar --no-same-owner -xzf $TGZ -C w && cd w || exit 1
@@ -33,7 +31,7 @@ if [ ! -s $O/steer.pt ]; then
 fi
 CKP=none; [ "$MEM" -lt 79000 ] && CKP=both
 if [ ! -f $O/run.DONE ]; then
-    note "400 steps from nl33 step_300, pushes 0.1 to 6, checkpointing $CKP"
+    note "400 steps from nl33 step_300, steering coefficients 0.1 to 6, checkpointing $CKP"
     (cd pairing && python train.py --replies ../replies.json --out $O/run --init $INIT --gate_norm --hold 100000 \
         --alpha_floor 0.1 --lr_alpha 1e-2 --payload_w 3 --warmup_steps 10 --relay_first 0 --steps 400 --bs 16 \
         --steer 0.4 --steer_data $O/steer.pt --steer_strength 0.1 6 \

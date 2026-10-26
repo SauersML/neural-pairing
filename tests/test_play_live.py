@@ -1,46 +1,17 @@
-"""Real tiny-model live generation, observer alignment, controls and standalone pages.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu /Users/user/mpd-data/venv/bin/python -m pytest -q tests/test_play_live.py
+"""play_live.py on a tiny pair: live generation, observer alignment, the cut and stranger controls and standalone pages.
 """
 import io
 import json
 import math
-import os
 from html.parser import HTMLParser
-from pathlib import Path
-import sys
-
-os.environ['NL_TINY'] = '1'
-os.environ['NL_DEVICE'] = 'cpu'
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'pairing'))
 
 import pytest
 import torch
-from peft import LoraConfig, get_peft_model
+
 import coread as C
 import link
 import play_live as L
 import session as S
-
-
-@pytest.fixture(scope='module')
-def pair():
-    torch.set_num_threads(2)
-    toks, models = {}, {}
-    for x in link.SIDES:
-        toks[x], model = link.load(x)
-        models[x] = get_peft_model(model, LoraConfig(r=4, lora_alpha=8, target_modules=['q_proj', 'v_proj'])).eval()
-    torch.manual_seed(27)
-    p = link.Pair(models, toks, (1, 2, 4), heads=2, head_dim=16,
-                  sizes={x: [.04, .05, .06] for x in link.SIDES}).eval()
-    with torch.no_grad():
-        for b in p.bridge.values():
-            b.alpha.fill_(.4)
-            b.age.normal_(0, .2)
-            for gate in b.gate:
-                gate.weight.normal_(0, .05)
-                gate.bias.normal_(1.5, .2)
-    return p
 
 
 @pytest.fixture(scope='module')

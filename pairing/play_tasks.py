@@ -9,12 +9,11 @@ Each game has an automatic check against its reference, so no judge is needed:
   co_code_out       the returned Python literal must equal the expected value
   co_code_write     the fraction of the problem's tests that pass (run in a subprocess, 10 s limit)
   co_translate, co_paraphrase, co_transfer, co_swap, co_split
-                    chrF (character 6-gram F-score, beta 2) against the reference text the partner holds
+                    chrF (character 6-gram F-score, beta 2) against the reference text in the partner's prompt
 co_continue, co_instruct and co_distill have no automatic check (score() leaves them out); they stay supervised.
 """
 import ast
 import collections
-import json
 import os
 import re
 import secrets
@@ -29,6 +28,7 @@ RELATIONS = ('entailment', 'contradiction', 'neutral')
 
 
 def normalize(s):
+    """SQuAD answer normalization: lower case, no punctuation, no articles, single spaces."""
     s = s.lower()
     s = ''.join(c for c in s if c not in set(string.punctuation))
     s = re.sub(r'\b(a|an|the)\b', ' ', s)
@@ -36,6 +36,7 @@ def normalize(s):
 
 
 def token_f1(pred, ref):
+    """SQuAD token F1 between the normalized words of pred and ref."""
     p, r = normalize(pred).split(), normalize(ref).split()
     if not p or not r:
         return float(p == r)
@@ -47,7 +48,8 @@ def token_f1(pred, ref):
 
 
 def chrf(pred, ref, n=6, beta=2.0):
-    """chrF: mean character n-gram precision and recall (n = 1..6, spaces removed), combined with recall weighted beta."""
+    """chrF: the mean character n-gram precision and recall (n = 1..6, whitespace removed), combined as an F-score
+    with recall weighted beta."""
     p, r = re.sub(r'\s+', '', pred), re.sub(r'\s+', '', ref)
     precs, recs = [], []
     for k in range(1, n + 1):
@@ -65,12 +67,14 @@ def chrf(pred, ref, n=6, beta=2.0):
 
 
 def first_of(text, words):
+    """The word of `words` that occurs first in text as a whole word (case-insensitive), else None."""
     t = text.lower()
     hits = [(m.start(), w) for w in words for m in [re.search(r'\b' + re.escape(w) + r'\b', t)] if m]
     return min(hits)[1] if hits else None
 
 
 def last_number(text):
+    """The last number in text as a float (commas removed), else None."""
     nums = re.findall(r'-?\d[\d,]*\.?\d*', text)
     if not nums:
         return None
@@ -91,7 +95,8 @@ def run_tests(code, tests, timeout=10):
             f.write(code + '\n\n' + t + '\n\n' + f'print({completed!r})\n')
         try:
             result = subprocess.run([sys.executable, '-I', f.name], capture_output=True, timeout=timeout)
-            # An exit(0) before the assertion is not a passing test. Require its completion receipt.
+            # The test passes only when the program prints the random marker after the assertion; an early exit(0)
+            # skips it.
             passed += result.returncode == 0 and completed.encode() in result.stdout.splitlines()
         except subprocess.TimeoutExpired:
             pass
@@ -155,16 +160,3 @@ def score(ep, texts):
     return {x: score_one(game, ep['meta']['item'], texts[x], x, ep) for x, spans in ep['meta']['payload'].items()
             if spans}
 
-
-if __name__ == '__main__':                      # checks of the scorers on hand-made cases
-    assert token_f1('Saint Bernadette Soubirous', 'Saint Bernadette Soubirous') == 1.0
-    assert score_one('co_qa', {'answer': 'No.'}, 'No, they do not.', 'quill', None) == 1.0
-    assert score_one('co_qa', {'answer': 'Yes.'}, 'No.', 'quill', None) == 0.0
-    assert score_one('co_nli', {'label': 'neutral'}, 'Neutral. The premise does not say.', 'quill', None) == 1.0
-    assert score_one('co_mcq', {'options': ['a', 'b', 'c'], 'answer': 2}, '(C) c', 'quill', None) == 1.0
-    assert score_one('co_mcq', {'options': ['red car', 'blue boat'], 'answer': 1}, 'It is the blue boat.', 'q', None) == 1.0
-    assert score_one('co_math', {'solution': 'so 3 + 4 = 7\nThe answer is 7.'}, 'Total: 7 apples', 'q', None) == 1.0
-    assert score_one('co_code_out', {'output': "[('74', 31)]"}, "It returns [('74',31)].", 'q', None) == 1.0
-    assert run_tests('def f(x):\n    return x + 1', ['assert f(1) == 2', 'assert f(2) == 4']) == 0.5
-    assert chrf('Je peux le faire.', 'Je peux le faire.') == 1.0 and chrf('abc', 'xyz') == 0.0
-    print('scorer checks passed;', json.dumps({'chrf_partial': round(chrf('Je peux faire ça.', 'Je peux le faire.'), 3)}))

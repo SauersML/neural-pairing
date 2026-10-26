@@ -1,36 +1,24 @@
-"""affect.py on a tiny Qwen/AFM pair: directions, conversations, the three readings and the self-report build; the
-cut reading of a twin equals the twin alone on its own sequence; nothing trains.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu python -m pytest -q tests/test_affect.py
+"""affect.py on a tiny pair: the directions, conversations, the three readings and the self-report build without
+training anything, and the cut reading of a twin equals the twin alone on its own sequence.
 """
 import json
-import os
-os.environ.update(NL_TINY='1', NL_DEVICE='cpu', HF_HUB_OFFLINE='1', NL_AFFECT_N='4', NL_MAXNEW='4')
-from pathlib import Path
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'pairing'))
+
+import pytest
 import torch
+
 import affect as A
 import link
 import session as S
 
-XB = (1, 2, 4)
+
+@pytest.fixture(autouse=True)
+def short_turns(monkeypatch):
+    monkeypatch.setattr(A, 'MAX_TURN', 4)
 
 
-def tiny():
-    torch.manual_seed(0)
-    toks, models = {}, {}
-    for x in link.SIDES:
-        toks[x], models[x] = link.load(x)
-    pair = link.Pair(models, toks, XB, heads=2, head_dim=16).eval()
-    for side in pair.bridge.values():
-        side.alpha.data.fill_(0.3)
-    return pair, toks
-
-
-def test_measure(tmp_path, monkeypatch):
+def test_measure(plain_pair, tmp_path, monkeypatch):
     monkeypatch.setattr(A, 'LAYERS', (0, 3))
-    pair, toks = tiny()
+    pair, toks = plain_pair(0.3)
     before = {k: v.clone() for k, v in pair.state_dict().items()}
     s = A.measure(pair, toks, tmp_path, n=4)
     assert all(torch.equal(before[k], v) for k, v in pair.state_dict().items())
@@ -47,16 +35,16 @@ def test_measure(tmp_path, monkeypatch):
     assert len(rows['answers']) == 2 * 2 * 4
 
 
-def test_cut_reading_is_the_twin_alone(monkeypatch):
+def test_cut_reading_is_the_twin_alone(plain_pair, monkeypatch):
     monkeypatch.setattr(A, 'LAYERS', (3,))
-    pair, toks = tiny()
+    pair, toks = plain_pair(0.3)
     ep = A.chat_episode(0, ['Hello there, how are you today?', 'I am fine, thank you!', 'Nice.', 'Yes.', 'Ok.', 'Bye.'])
     dirs = A.directions(pair, toks, layers=(3,))
     got = A.read(pair, toks, [ep, ep], dirs, 'zero')[0]
     e = S.build(ep, toks)
     for x in link.SIDES:
         ids = torch.tensor([e[x]['ids']])
-        with A.capture(pair, (3,)) as h:
+        with torch.no_grad(), A.capture(pair, (3,)) as h:
             link.inner(pair.models[x])[0](input_ids=ids)
         keep = torch.tensor([t >= 0 for t in e[x]['time']]).float()
         m = (h[(x, 3)][0] * keep[:, None]).sum(0) / keep.sum()

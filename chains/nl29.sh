@@ -1,12 +1,9 @@
 #!/bin/bash
-# magic-nl29, one 48 GB Ampere card (RTX A6000 / A40; never Ada): the steered-mind test in bf16 with the natural-projection
-# calibration (steering_scale.py). x25 injected each concept direction at a strength set by its RMS, 3-23 natural gaps on
-# the first step and dominated by Ember's four residual sink coordinates, so Ember repeated instructions and no partner
-# test could pass. steering_scale.py removes those sinks and steps in natural gaps; on 4-bit MLX it calibrates 12/12
-# Quill and 11/12 Ember concepts with the link cut isolating the partner (results/steering_scale.json). Here, in bf16:
-# fit, calibrate, cut check and steered_mind's unchanged evaluation, before (nl20 step 1,320) and after chat training
-# (nl22c step 157), the two at once; one that runs out of memory is rerun alone in a fresh directory.
-# Inputs from the Mac after the pod starts: /workspace/jobs/nl29/{step_1320,step_157}, READY last.
+# nl29, one 48 GB Ampere card (RTX A6000 or A40): the steered-twin test in bf16 (steering_scale.py --phase all: fit the
+# concept directions, calibrate the steering coefficient in natural gaps with Ember's residual sink coordinates removed,
+# check with the link cut, then steered_mind's evaluation) before (nl20's step_1320) and after chat training (nl22c's
+# step_157), both at once; one that runs out of memory is rerun alone in a fresh directory. Waits up to an hour for
+# /workspace/jobs/nl29/{step_1320, step_157} and the READY file.
 # Usage: bash nl29.sh OUT_DIR CODE_TGZ
 set -u
 O=$1 TGZ=$2

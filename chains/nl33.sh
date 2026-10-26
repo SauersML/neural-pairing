@@ -1,25 +1,20 @@
 #!/bin/bash
-# magic-nl33: train the link to carry what one twin holds only in its hidden states. nl29-nl32 found that a concept
-# pushed into one twin reaches its partner when pushed early or hard (12 and 26 of 96 messages after block 6 and at four
-# times after block 15), barely when late, and that a nine times larger write after block 27 lets a late push through:
-# the write size, held at 0.1 since nl15 (--hold) because free write sizes closed the link in nl11, limits it. Two arms
-# from nl22c step 157, 300 steps of nl24's mix each, both with the write sizes trained and floored at 0.1
-# (--alpha_floor; the gates stay held):
-#   steer: 40% of the episodes are the steered-reading game (steer_read.py: ~500 training concepts pushed into one twin
-#          after a random exchange block; the partner's target is the original model's opener told the concept, or
-#          the concept itself to a direct question). The 12 test concepts and their near-synonyms are never trained.
-#   write: no steered game: the trained write sizes alone.
-# Then the steered-twin test (steering_scale.py, the nl29/nl30 protocol, unchanged) on step 300 after blocks 6, 15 and
-# 27, and at four times after blocks 15 and 27. Three tests at a time on an 80 GB card, two on 48 GB; one that runs
-# out of memory is rerun alone in a fresh directory. Then the direct question (steer_ask.py) at each setting, and on
-# step 157 with the nl29/nl30 directions when they are in $J/before (the write arm).
-# Inputs: INPUTS_TAR (step_157, published), DATA_TGZ (data/{coread,play,talk,chat,chat2,pools}.json and replies.json,
-# published).
+# nl33 (ARM steer) and nl33w (ARM write), one 48 or 80 GB card: 300 steps from nl22c's step_157 on nl24's mix, with the
+# write sizes trained and floored at 0.1 (--alpha_floor 0.1 --lr_alpha 1e-2; the gates stay fixed):
+#   steer: 40% of the episodes are the steered-reading game (steer_read.py: a training concept steered into one model
+#          after a random exchange block; the partner's target is the original model's opener when told the concept, or
+#          the concept itself after a direct question). The test concepts and their near-synonyms are never trained.
+#   write: no steered game.
+# Gradient checkpointing below 79 GB. Then, on step 300, the steered-twin test (steering_scale.py) after blocks 6, 15
+# and 27 and at four times the strength after blocks 15 and 27, three at a time on 80 GB and two on 48 GB (one that runs
+# out of memory is rerun alone), and the direct question (steer_ask.py) at each setting, also on step_157 when its
+# directions are in /workspace/jobs/nl33/before.
+# Inputs: INPUTS_TAR (step_157), DATA_TGZ (data/{coread,play,talk,chat,chat2,pools}.json and replies.json).
 # Usage: bash nl33.sh OUT_DIR CODE_TGZ INPUTS_TAR DATA_TGZ ARM
 set -u
 O=$1 TGZ=$2 INPUTS=$3 DATA=$4 ARM=$5
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda NL_STREAM=0 HF_HUB_OFFLINE=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export OMP_NUM_THREADS=8         # a many-core host stalls torch's CPU threads (the first steer_read.py ran 30 min)
+export OMP_NUM_THREADS=8         # torch's default thread count stalls on many-core hosts
 export NL_QUICK=relay_word,relay_number,merge_sum,lookup,merge_fact,co_play,co_qa,co_mcq
 rm -rf w && mkdir -p $O w && tar --no-same-owner -xzf $TGZ -C w && cd w || exit 1
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader > $O/gpus.txt

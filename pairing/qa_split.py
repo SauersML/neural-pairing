@@ -1,6 +1,6 @@
-"""The training questions (data/bench.json, train split) that exactly one of the original models answers right, scored as
-bench_eval.py scores them (each model's most likely letter after its own 'The answer is', alone, adapters off). Writes
-{'quill': [...], 'ember': [...]}, the indices of the questions only that model gets right, with the counts, for
+"""The training questions (data/bench.json, train split) that exactly one of the original models answers right, scored
+as bench_eval.py scores them (each model's most likely letter after its own 'The answer is', alone, adapters off).
+Writes {'quill': [...], 'ember': [...]}, the indices of the questions only that model gets right, with the counts, for
 train.py --qa_focus.
 
 Usage: python qa_split.py --run RUN/step_N --out FILE (the step supplies the pair's tokenizers and bridges; its adapters

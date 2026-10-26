@@ -1,8 +1,7 @@
-"""Co-reading games: the pair learns to use what only the partner has read, on broad public text (data/coread.json,
-from build_coread.py), in the same chat format and with the same system prompts as the other games, so each model
-stays itself.
+"""Co-reading games: each model must use text that only its partner has read, on public text (data/coread.json, from
+build_coread.py), in the chat format and with the system prompts of the other games (games.system).
 
-Passage games (one model reads a passage the other cannot see):
+Passage games (one model's prompt has a passage that the other's lacks):
   co_transfer  the reader answers an unrelated question; the partner writes the passage
   co_swap      each reads a different passage and writes the partner's
   co_split     each reads half of a passage; both write all of it
@@ -16,34 +15,37 @@ Task games (reference answers):
   co_math       the reader has a word problem; the partner solves it
   co_code_out   the reader has a function and a call; the partner says what the call returns
   co_code_write the reader has a programming problem; the partner writes the function
-  co_instruct   the reader has an instruction; the partner carries it out
+  co_instruct   the reader has an instruction; the partner follows it
   co_mcq        one has the question, the other the options; both pick the answer
 Answer first, then talk (co_talk, when data/talk.json exists, from prep_talk.py): a text conversation with the link
-open. The asker answers a question about the holder's text in the very first turn, before the holder has written a
-word, so that answer can only come through the link; then the holder reacts and the asker replies, in words each
-original model wrote itself. Only the first answer is payload.
-Distillation (co_distill, when replies[x]['coread'] has the model's own replies, from prep_coread.py): the reader and
-the partner get the same request about the reader's content. The targets are each model's own reply when it reads the
-content itself, and meta['teacher'][x] is that model's own prompt with the content, so the trainer can match the
-original model's whole next-token distribution (the partner's teacher sees what the partner cannot).
-Play (co_play, when data/play.json exists, from prep_talk.py --play): the twins play a game in text, each holding a
-secret the other reads through the link (PLAY: guess the partner's word, give the gift the partner wishes for, say
-where the partner is on holiday, bring the partner's character into a shared story, end a rhyme on the partner's word).
-The opener names the partner's secret in the first turn, before the partner has written a word; the partner reacts and
-names the opener's secret in the second turn; then they keep playing for several turns. Every turn is written by the
-original model itself, and each naming turn was written with the partner's secret shown in the writer's prompt
-(play_system peek), so in training, where the prompt lacks it, that secret can only come through the link. The
-secret's spans in each twin's first turn are payload; meta['receiver'] is the opener. Conversations whose opener names
-any field of its own secret in its first turn are dropped (opener_gives_away). The opener's text can still hint (a
-rainy café for Seattle): the shuffled-partner control keeps the real text, so the payload table measures the link
-alone, but free-generation scores of the second naming turn include what the text gives away.
+open. The asker answers a question about the holder's text in the first turn, before the holder has written anything,
+so the answer can come only through the link; then the holder reacts and the asker replies. The base models wrote all
+turns. Only the first answer is payload.
+Distillation (co_distill, when replies[x]['coread'] has the models' own replies, from prep_coread.py): the reader and
+the partner get the same request about the reader's content. Each model's target is the reply it writes when it reads
+the content itself, and meta['teacher'][x] is that prompt with the content, so the trainer can match the base model's
+whole next-token distribution (the partner's teacher prompt contains the content that its training prompt lacks).
+Play (co_play, when data/play.json exists, from prep_talk.py --play): the two models play a game in text, each with a
+secret in its prompt that the other must obtain through the link (PLAY: guess the partner's word, give the gift the
+partner wishes for, say where the partner is on holiday, bring the partner's character into a shared story, end a
+rhyme on the partner's word). The opener states the partner's secret in the first turn, before the partner has written
+anything; the partner reacts and states the opener's secret in the second turn; then they play on for several turns.
+The base models wrote every turn, and each naming turn was written with the partner's secret in the writer's prompt
+(play_system peek), so in training, where the prompt lacks it, the secret can come only through the link. The
+secret's spans in each model's first turn are payload; meta['receiver'] is the opener. Conversations whose opener
+states any field of its own secret in its first turn are dropped (opener_gives_away). The opener's text can still hint
+at its secret (a rainy cafe for Seattle): the shuffled-partner control keeps the real text, so the payload table
+measures the link alone, while free-generation scores of the second naming turn include what the text gives away.
 
 meta['payload'][x] lists the (start, end) character spans of x's target reply that only the partner can supply;
 meta['item'] is the item the episode was built from (play_tasks.score checks generated answers against it).
+
+Usage: from coread import Coread; Coread(replies, 'train', seed).episode('co_qa')
 """
 import json
 import os
 import random
+import re
 
 from games import OWN, TEST_WORDINGS, Games, system
 from coread_data import held_out, text_key
@@ -173,6 +175,7 @@ DESCRIBE = ['What is this text about? Answer in one or two sentences.', 'Summari
 
 
 def wording(key, split, rng):
+    """A random wording of W[key]: one of the training wordings for split 'train', else one of the held-out ones."""
     ws = W[key]
     return rng.choice(ws[:-TEST_WORDINGS] if split == 'train' else ws[-TEST_WORDINGS:])
 
@@ -190,8 +193,8 @@ def halves(item):
 
 
 def request(item):
-    """(content the reader sees, request about it, the request a model makes of itself when it reads the content),
-    for distillation."""
+    """(content in the reader's prompt, request about it, the request a model makes of itself when it reads the
+    content), for distillation."""
     t = item['task']
     if t == 'passage':
         r = random.Random(item['text']).choice(DESCRIBE)
@@ -216,6 +219,7 @@ def request(item):
 
 
 def talk_context(item):
+    """The holder's text in a co_talk conversation: the qa context, or the two hop paragraphs."""
     return item['context'] if item['task'] == 'qa' else item['a'] + '\n\n' + item['b']
 
 
@@ -242,11 +246,11 @@ def talk_system(item, x, asker):
     return system(x, 'dialogue') + f"\n\nYour private task ({N[partner(x)]} cannot see it): {task}"
 
 
-# co_play games: both twins hold a secret of the same kind and each reads the partner's through the link. The opener
-# names the partner's secret in the first turn, the other twin reacts and names the opener's in the second, and then
-# they keep playing. Per game: the secret's fields (data/pools.json), what the game is, how to name the partner's
-# secret, and the line that shows a twin the partner's secret while its naming turn is written ({P}: the partner,
-# {x_...}: the partner's secret).
+# co_play games: both models have a secret of the same kind, and each must obtain the partner's through the link. The
+# opener states the partner's secret in the first turn, the other model reacts and states the opener's in the second,
+# and then they play on. Per game: the secret's fields (data/pools.json), the game's description, the instruction to
+# state the partner's secret, and the line that shows a model the partner's secret while its naming turn is written
+# ({P}: the partner, {x_...}: the partner's secret).
 PLAY = {
     'guess': (('word',),
               "You and {P} are playing 'read my mind': each of you thinks of a secret word, and each reads the "
@@ -278,11 +282,10 @@ PLAY_TONE = ("This is a game between twins: be warm, playful and funny, tease ea
              "only your own short message: no speaker labels, no stage directions.")
 
 
-# Chat (prep_talk.py --chat): no game and no objective. Half the time each twin privately knows where it is today; nobody
-# asks either twin to share or guess anything and the link is not mentioned. All turns are written by the original
-# models; trained with the link open (train.py --chat), they show the twins how to talk when nothing needs passing (a
-# twin trained only on games fell into game talk and repeated turns in a plain chat with the link open). Test chats use
-# a wording none of these use (CHAT_TEST).
+# Chat (prep_talk.py --chat): no game and no objective. In half the wordings each model's prompt states privately where
+# it is today; no prompt asks either model to share or guess anything, and none mentions the link. The base models write
+# all turns. Trained with the link open (train.py --chat), these chats are the examples of conversation where no
+# information needs to pass. Test chats use a wording that no training chat uses (CHAT_TEST).
 CHAT = ("Today you are in {city}. Nothing is planned: chat with {P} about anything you like.",
         "A quiet moment with {P}. Only you know this: you are in {city} right now. Talk about whatever comes up.",
         "You are in {city} this week. Have a relaxed conversation with {P}; there is nothing you need to do.",
@@ -294,11 +297,11 @@ CHAT_TONE = "Write only your own short message: no speaker labels, no stage dire
 
 
 def chat_system(x, city=None, wording=None, knows=None):
-    """x's system prompt in a chat: the dialogue system prompt and x's private situation (city: where x is today, or
-    None for none; wording: one of CHAT or CHAT_TEST). knows: the partner's city, shown only in the prompt of the
-    original model that writes x's turns (prep_talk.py --chat), so a turn can depend on it; the trained prompt lacks
-    it, so the trained model can only get it through the link. chat2 accepts a private-item dict in city/knows:
-    owner is the second-person sentence, teacher the third-person sentence; legacy city strings are unchanged."""
+    """x's system prompt in a chat: the dialogue system prompt and x's private situation. city: where x is today (None
+    for no city), or a chat2 private-item dict whose 'owner' sentence is used; wording: one of CHAT or CHAT_TEST.
+    knows: the partner's city (or chat2 item, whose 'teacher' sentence is used), shown only in the prompt of the base
+    model that writes x's turns (prep_talk.py --chat), so a turn can depend on it; the training prompt lacks it, so
+    the trained model can get it only through the link."""
     P = MODELS[partner(x)]['name']
     text = city['owner'] + ' ' + wording.format(P=P) if isinstance(city, dict) else wording.format(city=city, P=P)
     if knows:
@@ -328,7 +331,7 @@ def play_fields(secret, prefix=''):
 
 def play_system(game, x, opener, secrets, peek=False):
     """x's system prompt in a co_play conversation (secrets: {side: secret}; opener: the side that speaks first); peek:
-    the prompt while x writes the turn that names the partner's secret, which also shows that secret."""
+    the prompt while x writes the turn that states the partner's secret, which also shows that secret."""
     _, rules, name_it, shown = PLAY[game]
     P = MODELS[partner(x)]['name']
     v = play_fields(secrets[x]) | play_fields(secrets[partner(x)], 'x_') | dict(P=P)
@@ -343,7 +346,7 @@ def play_system(game, x, opener, secrets, peek=False):
 
 
 def opener_gives_away(conv):
-    """Whether the opener's first turn of a play conversation names any field of the opener's own secret (then the
+    """Whether the opener's first turn of a play conversation states any field of the opener's own secret (then the
     partner's naming turn can copy it from the text)."""
     sp, text = conv['turns'][0]
     return any(play_spans({f: v}, text) for f, v in conv['secrets'][sp].items())
@@ -352,7 +355,6 @@ def opener_gives_away(conv):
 def play_spans(secret, text):
     """The (start, end) spans of every field of secret in text (whole words, any case; a concept in either number),
     or None when a field is missing."""
-    import re
     spans = []
     for f, v in secret.items():
         forms = sorted(v, key=len, reverse=True) if f == 'concept' else [v]
@@ -393,9 +395,10 @@ class Coread(Games):
         self.chat2 = json.load(open(cp2))[split] if os.path.exists(cp2) else []
 
     def chat_episode(self, game='co_chat'):
-        """A plain chat from data/chat.json (prep_talk.py --chat), trained with the link open (train.py --chat). Every
-        turn is the original model's own, written while it also saw the partner's private city, which this prompt
-        lacks; the payload is each twin's whole first turn when the partner has a city."""
+        """A plain chat from data/chat.json (co_chat) or data/chat2.json (co_chat2), from prep_talk.py --chat and
+        chat2.py, trained with the link open (train.py --chat). The base model wrote every turn with the partner's
+        private situation in its prompt, which this episode's prompt lacks; the payload is each model's whole first
+        turn when the partner has a private situation."""
         if game not in ('co_chat', 'co_chat2'):
             raise ValueError('unknown chat game: ' + game)
         c = self.rng.choice(self.chat2 if game == 'co_chat2' else self.chat)
@@ -410,12 +413,16 @@ class Coread(Games):
                               payload={x: [(0, len(first[x]))] for x in first if c['private'][partner(x)]}))
 
     def passage(self):
+        """A random passage item, its source drawn by the coread.json weights."""
         return self.rng.choice(self.by_src[self.rng.choices(self.passage_src, self.pw)[0]])
 
     def task(self):
+        """A random task item, its source drawn by the coread.json weights."""
         return self.rng.choice(self.by_src[self.rng.choices(self.task_src, self.tw)[0]])
 
     def episode(self, game=None):
+        """An episode of game (a co-reading game or family), or of a family drawn by FAMILY weight when game is None
+        or unavailable."""
         rng = self.rng
         fams = [f for f in FAMILY if (f != 'co_distill' or self.distill) and (f != 'co_talk' or self.talk)
                 and (f != 'co_play' or self.play)]
@@ -445,7 +452,7 @@ class Coread(Games):
         if fam == 'co_swap':
             it = {s: self.passage(), r: self.passage()}
             if text_key(it[s]['text']) == text_key(it[r]['text']):
-                # Duplicate rows in another source are still the same passage.
+                # The same passage can appear in two sources.
                 first = text_key(it[s]['text'])
                 choices = {src: [p for p in self.by_src[src] if text_key(p['text']) != first]
                            for src in self.passage_src}
@@ -503,11 +510,14 @@ class Coread(Games):
         return self.task_episode(it, s, r, N, sp)
 
     def task_of(self, game):
+        """A random item of the task behind game, from a uniformly drawn source."""
         want = {v: k for k, v in TASK_GAME.items()}[game]
         sources = self.by_task[want]
         return self.rng.choice(sources[self.rng.choice(list(sources))])
 
     def task_episode(self, it, s, r, N, sp):
+        """The task-game episode for item it, with s the reader (or first side), r its partner, N the model names and
+        sp the split."""
         rng = self.rng
         t, game = it['task'], TASK_GAME[it['task']]
 
@@ -560,30 +570,9 @@ class Coread(Games):
         return self._co(game, roles, it, {r: [(0, len(ans))]}, reader=s)
 
     def _co(self, game, roles, item, payload, teacher=None, **meta):
+        """games.Games._ep with the co-reading metadata (src, task, payload, item, teacher and meta)."""
         ep = self._ep(game, roles, dict(src=item['src'], task=item['task'], payload=payload, item=item, **meta))
         if teacher:
             ep['meta']['teacher'] = teacher
         return ep
 
-
-if __name__ == '__main__':                     # print one episode of every game
-    import sys
-    path = sys.argv[1] if len(sys.argv) > 1 else None
-    fake = {x: {'own': {}, 'steer': []} for x in SIDES}
-
-    class Own(dict):
-        def __missing__(self, q):
-            return f'(own reply to: {q})'
-    for x in SIDES:
-        fake[x]['own'] = Own()
-    for split in ('train', 'test'):
-        C = Coread(fake, split, seed=1, path=path)
-        for g in GAMES:
-            if g in ('co_task', 'co_distill'):
-                continue
-            ep = C.episode(g)
-            print(f'=== {split} {g} ({ep["meta"]["src"]})')
-            for x in SIDES:
-                u, (t, w) = ep['task'][x], ep['reply'][x]
-                spans = ep['meta']['payload'].get(x, [])
-                print(f'--- {x} user: {u[:300]!r}\n    reply (w={w}): {t[:200]!r}\n    payload: {[t[a:b][:60] for a, b in spans]}')

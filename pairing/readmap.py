@@ -1,13 +1,15 @@
-"""Where a reader looks in its partner while it writes: for never-seen episodes of one game, one teacher-forced joint
-pass with link.Pair.record on, and for every token the receiving model writes, its attention over the partner's
-positions at every exchange block (heads averaged; the null key's mass kept separately).
+"""Link attention at the payload tokens: for n held-out episodes of one game (payload_ctl.episodes), one teacher-forced
+joint pass with link.Pair.record on, and, at each payload label of each receiving model, its attention over the
+partner's positions at every exchange block (heads averaged; the null key's mass kept separately). A payload label is
+a token only the partner can supply (session.payload_labels).
 
-Per episode, writes the partner's tokens (decoded pieces, with their ticks), the receiver's written tokens (with the
-payload labels marked: the part only the partner can supply, session.payload_labels), each partner position's gate,
-and attn[block][i][j]: the mass that receiver label i puts on partner position j at that block. Positions the
-causal tick rule hides get exactly zero.
+Writes a JSON list with one entry per episode and receiver: the partner's decoded tokens and their ticks, the
+receiver's tokens and payload tokens, the partner's gate at each position and exchange block, null[block][i] and
+attn[block][i][j], the mass payload label i puts on the null key and on partner position j. Positions the tick rule
+hides get exactly zero.
 
 Usage: python readmap.py --run RUN/step_N --replies REPLIES.json --game relay_word --out FILE.json [--n 4]
+           [--coread_data DATA.json]
 """
 import argparse
 import json
@@ -60,12 +62,13 @@ for i, (ep, e) in enumerate(zip(eps, built)):
         for (side, blk), parts in rec.items():
             if side == y:
                 gates[blk] = [round(float(parts[0]['gate'][i][j]), 4) for j in keep]
-        written = [toks[x].decode([t]) for _, t, _ in lab]
+        n_x = int(b[x]['att'][i].sum())
         out.append(dict(game=args.game, episode=i, receiver=x, payload_label_index=js,
                         partner_pieces=[toks[y].decode([ids_y[j]]) for j in keep],
                         partner_ticks=[int(b[y]['tick'][i][j]) for j in keep],
-                        receiver_written=written, receiver_positions=pos,
-                        receiver_pieces=[toks[x].decode([t]) for t in b[x]['ids'][i][:int(b[x]['att'][i].sum())].tolist()], partner_gate=gates,
-                        attn=attn, null=null, target=ep['reply'][x][0] if 'reply' in ep else None))
+                        receiver_written=[toks[x].decode([t]) for _, t, _ in lab], receiver_positions=pos,
+                        receiver_pieces=[toks[x].decode([t]) for t in b[x]['ids'][i][:n_x].tolist()],
+                        partner_gate=gates, attn=attn, null=null,
+                        target=ep['reply'][x][0] if 'reply' in ep else None))
 json.dump(out, open(args.out, 'w'))
 print('wrote', args.out, len(out), 'receivers', flush=True)

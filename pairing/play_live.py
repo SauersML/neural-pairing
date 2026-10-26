@@ -1,14 +1,15 @@
-"""Watch six free co_play turns and save their link reads as standalone HTML/JSON.
+"""Plays one six-turn co_play game live from a checkpoint, printing each turn as it is generated, and saves the turns
+with their link reads as HTML and JSON.
 
-Real models use only mlx_eval.load_pair (4-bit bases). On the Mac run under
-/usr/bin/lockf -k /Users/user/mpd-data/locks/macgpu.lock with MPD_MEM_GIB=12.
---backend torch is restricted to NL_TINY=1 for CPU tests.
+Real models load as 4-bit MLX (mlx_eval.load_pair); --backend torch is for tiny test models (NL_TINY=1). The Observer
+wraps Pair.step and Pair._exchange: it reads each sampled token id when the next session.step consumes it and never
+changes sampling or scheduling. Each token is annotated with the reads at the position that predicted it: the link
+write's size relative to the residual stream (RMS of h_after - h_before over RMS of h_before, averaged over exchange
+blocks), the partner's gate weighted by attention, the null key's mass, and the three partner positions with the most
+attention. The HTML shades each token by the relative write size, a descriptive measure, not a causal one.
 
-The observer consumes the actual sampled IDs on the next session.step, one tick
-after sampling; it never samples or changes the session's scheduling. Each token
-is annotated with the reads at the position that predicted it, not the position
-that subsequently consumes it. Shading is applied write RMS / residual RMS,
-averaged across exchanges, not a causal KL or evidence that a secret transferred.
+Usage: python play_live.py --run STEP_DIR --replies REPLIES.json --out OUT.html [--game guess] [--opener quill]
+           [--cut | --shuffle] [--quill-secret S] [--ember-secret S] [--temperature 0] [--seed 4242]
 """
 import argparse
 import contextlib
@@ -18,7 +19,6 @@ import math
 import os
 from pathlib import Path
 import random
-import signal
 import sys
 import time
 
@@ -43,14 +43,15 @@ def mean(xs):
 
 
 def distinct_secrets(a, b):
-    """Different spellings/number forms of the same secret are not a shuffle."""
+    """Whether the secrets a and b ({side: {field: value}}) share no value in any field, ignoring case and spaces
+    (a concept's singular and plural both count)."""
     def forms(field, value):
         return {v.strip().casefold() for v in (value if field == 'concept' else [value])}
     return all(forms(f, a[x][f]).isdisjoint(forms(f, b[x][f])) for x in SIDES for f in a[x])
 
 
 def episode(game, secrets, opener='quill'):
-    """No teacher text and no peek prompt; only each twin's own private secret."""
+    """A co_play episode of game with six free turns, opener first; each twin's prompt has only its own secret."""
     if game not in C.PLAY or opener not in SIDES:
         raise ValueError('unknown game or opener')
     for x in SIDES:
@@ -72,6 +73,8 @@ def episode(game, secrets, opener='quill'):
 
 
 def draw_episode(game, seed, opener='quill', exclude=None, overrides=None):
+    """An episode with secrets drawn from the test pools (overrides: given secrets per side), sharing no value with
+    exclude."""
     rng = random.Random(seed)
     pools = {k: v['test'] for k, v in G.POOLS.items()}
     for _ in range(1000):
@@ -88,7 +91,7 @@ def draw_episode(game, seed, opener='quill', exclude=None, overrides=None):
 
 
 def parse_secret(game, text):
-    """Single-field games accept plain text; all games also accept a JSON object."""
+    """A secret from the command line: a JSON object, or plain text for a single-field game."""
     if text.startswith('{'):
         return json.loads(text)
     fields = C.PLAY[game][0]
@@ -98,6 +101,7 @@ def parse_secret(game, text):
 
 
 def cpu(t):
+    """A float32 CPU torch tensor of a torch or MLX array."""
     if isinstance(t, torch.Tensor):
         return t.detach().float().cpu()
     from mlx_eval import tensor
@@ -105,7 +109,8 @@ def cpu(t):
 
 
 def token_pieces(tok, ids, text):
-    """Keep exact text, including split UTF-8 tokens (empty pieces until complete)."""
+    """Each token's piece of text, so that the pieces join to text exactly; a token that ends inside a UTF-8
+    character gets an empty piece until the character completes."""
     pieces, previous = [], ''
     for j in range(len(ids)):
         now = tok.decode(ids[:j + 1])
@@ -127,7 +132,9 @@ def token_pieces(tok, ids, text):
 
 
 class Observer:
-    """Scoped instrumentation of an existing Pair, without replacing generation."""
+    """Streams the first episode's turns to stream and records each token's reads (installed() wraps Pair.step and
+    Pair._exchange)."""
+
     def __init__(self, pair, eps, mode, stream):
         self.pair, self.eps, self.mode, self.stream = pair, eps, mode, stream
         self.turn, self.tick = 0, -1
@@ -180,7 +187,7 @@ class Observer:
     def exchange(self, k, h, *args, **kwargs):
         out, gates = self.original_exchange(k, h, *args, **kwargs)
         block = self.pair.xblocks[k]
-        # Preserve all batch rows and padding columns: these index the real KV cache.
+        # Keep every sequence and padding column: they index the KV cache.
         for x, g in gates.items():
             key = (x, block)
             g = cpu(g)
@@ -261,6 +268,8 @@ class Observer:
 
 
 def play(pair, ep, *, condition='link', donor=None, max_turn=64, temperature=0., seed=0, stream=sys.stdout):
+    """Generates ep under condition ('link', 'cut', or 'shuffle' with donor, an episode of the same game and opener
+    with other secrets) and returns its turns with each token's reads."""
     if condition not in ('link', 'cut', 'shuffle') or max_turn < 1 or not math.isfinite(temperature) or temperature < 0:
         raise ValueError('invalid condition, token limit or temperature')
     if ep['mode'] != 'dialogue' or len(ep['turns']) != 6 or any(ep.get(k) for k in ('pause', 'pause_turns', 'forced')):
@@ -301,6 +310,7 @@ def play(pair, ep, *, condition='link', donor=None, max_turn=64, temperature=0.,
 
 
 def render(data):
+    """The HTML page of play's result."""
     esc = html.escape
     bubbles = []
     for turn in data['turns']:
@@ -345,6 +355,7 @@ def render(data):
 
 
 def save(data, output):
+    """Write data as output with suffix .json and its HTML as .html; returns the HTML path."""
     path = Path(output).with_suffix('.html')
     path.parent.mkdir(parents=True, exist_ok=True)
     path.with_suffix('.json').write_text(json.dumps(data, indent=2, ensure_ascii=False, allow_nan=False) + '\n')
@@ -368,15 +379,11 @@ def main():
     ap.add_argument('--max-turn', type=int, default=64)
     ap.add_argument('--seed', type=int, default=4242)
     ap.add_argument('--backend', choices=('mlx', 'torch'), default='mlx')
-    ap.add_argument('--seconds', type=int, default=840, help='hard runtime budget after Python startup (max 840)')
     args = ap.parse_args()
-    if not 1 <= args.seconds <= 840:
-        ap.error('--seconds must be between 1 and 840')
     if args.backend == 'torch' and os.environ.get('NL_TINY') != '1':
         ap.error('torch loading is allowed only with NL_TINY=1')
     if args.max_turn < 1 or not math.isfinite(args.temperature) or args.temperature < 0:
         ap.error('max-turn must be positive and temperature finite and nonnegative')
-    signal.alarm(args.seconds)
     torch.set_num_threads(2)
     replies = Path(args.replies).resolve()
     json.loads(replies.read_text())

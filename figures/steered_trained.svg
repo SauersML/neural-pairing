@@ -1,118 +1,87 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2400" height="1796" viewBox="0 0 2400 1796">
-<rect width="2400" height="1796" fill="white"/>
-<text x="40.0" y="96.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="700" fill="#1D1D1F" text-anchor="start">Trained to read a pushed concept, the partner names concepts it never trained on</text>
-<rect x="346.0" y="150.0" width="1024.0" height="900.0" rx="28" fill="#F4F4F6" stroke="none" stroke-width="2" />
-<rect x="1416.0" y="150.0" width="944.0" height="900.0" rx="28" fill="#F4F4F6" stroke="none" stroke-width="2" />
-<text x="370.0" y="212.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">Partner&#x27;s first message names it, of 96</text>
-<text x="1440.0" y="212.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">Asked about its twin, of 48</text>
-<text x="40.0" y="318.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">Block 6</text>
-<text x="40.0" y="478.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">Block 15</text>
-<text x="40.0" y="638.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">Block 27</text>
-<text x="40.0" y="798.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">Block 15, 4×</text>
-<text x="40.0" y="958.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">Block 27, 4×</text>
-<rect x="370.0" y="240.0" width="111.2" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="493.2" y="275.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">12</text>
-<rect x="370.0" y="288.0" width="166.9" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="548.9" y="323.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">18</text>
-<rect x="370.0" y="336.0" width="333.8" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="715.8" y="371.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">36</text>
-<rect x="370.0" y="400.0" width="9.3" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="391.3" y="435.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">1</text>
-<rect x="370.0" y="448.0" width="55.6" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="437.6" y="483.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">6</text>
-<rect x="370.0" y="496.0" width="241.0" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="623.0" y="531.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">26</text>
-<rect x="370.0" y="560.0" width="4.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="386.0" y="595.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">0</text>
-<rect x="370.0" y="608.0" width="18.5" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="400.5" y="643.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">2</text>
-<rect x="370.0" y="656.0" width="74.2" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="456.2" y="691.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">8</text>
-<rect x="370.0" y="720.0" width="241.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="623.0" y="755.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">26</text>
-<rect x="370.0" y="768.0" width="315.2" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="697.2" y="803.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">34</text>
-<rect x="370.0" y="816.0" width="435.7" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="817.7" y="851.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">47</text>
-<rect x="370.0" y="880.0" width="4.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="386.0" y="915.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">0</text>
-<rect x="370.0" y="928.0" width="9.3" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="391.3" y="963.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">1</text>
-<rect x="370.0" y="976.0" width="324.5" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="706.5" y="1011.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">35</text>
-<rect x="1440.0" y="240.0" width="136.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="1588.0" y="275.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">8</text>
-<rect x="1440.0" y="288.0" width="204.0" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="1656.0" y="323.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">12</text>
-<rect x="1440.0" y="336.0" width="578.0" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="2030.0" y="371.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">34</text>
-<rect x="1440.0" y="400.0" width="34.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="1486.0" y="435.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">2</text>
-<rect x="1440.0" y="448.0" width="68.0" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="1520.0" y="483.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">4</text>
-<rect x="1440.0" y="496.0" width="442.0" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="1894.0" y="531.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">26</text>
-<rect x="1440.0" y="560.0" width="17.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="1469.0" y="595.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">1</text>
-<rect x="1440.0" y="608.0" width="17.0" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="1469.0" y="643.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">1</text>
-<rect x="1440.0" y="656.0" width="136.0" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="1588.0" y="691.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">8</text>
-<rect x="1440.0" y="720.0" width="289.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="1741.0" y="755.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">17</text>
-<rect x="1440.0" y="768.0" width="391.0" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="1843.0" y="803.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">23</text>
-<rect x="1440.0" y="816.0" width="544.0" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="1996.0" y="851.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">32</text>
-<rect x="1440.0" y="880.0" width="4.0" height="42.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="1456.0" y="915.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">0</text>
-<rect x="1440.0" y="928.0" width="17.0" height="42.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="1469.0" y="963.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">1</text>
-<rect x="1440.0" y="976.0" width="459.0" height="42.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="1911.0" y="1011.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#1D1D1F" text-anchor="start">27</text>
-<rect x="40.0" y="1088.0" width="56.0" height="40.0" rx="6" fill="#D9D9DE" stroke="none" stroke-width="2" />
-<text x="112.0" y="1122.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="36" font-weight="400" fill="#1D1D1F" text-anchor="start">Before</text>
-<rect x="287.0" y="1088.0" width="56.0" height="40.0" rx="6" fill="#9FD8C5" stroke="none" stroke-width="2" />
-<text x="359.0" y="1122.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="36" font-weight="400" fill="#1D1D1F" text-anchor="start">Write size learned</text>
-<rect x="727.0" y="1088.0" width="56.0" height="40.0" rx="6" fill="#1A9E77" stroke="none" stroke-width="2" />
-<text x="799.0" y="1122.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="36" font-weight="400" fill="#1D1D1F" text-anchor="start">Write size learned + steered game</text>
-<text x="1446.0" y="1122.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="36" font-weight="700" fill="#1D1D1F" text-anchor="start">Link cut: 0 in every setting</text>
-<rect x="40.0" y="1170.0" width="2320.0" height="566.0" rx="28" fill="#FAF0E6" stroke="none" stroke-width="2" />
-<text x="76.0" y="1240.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#1D1D1F" text-anchor="start">The partner&#x27;s opener, same prompt, concept pushed after block 6</text>
-<text x="76.0" y="1367.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#7B3FE4" text-anchor="start">Quill</text>
-<text x="76.0" y="1417.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="36" font-weight="400" fill="#1D1D1F" text-anchor="start">reads Ember</text>
-<rect x="370.0" y="1270.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#7B3FE4" stroke-width="4" />
-<text x="398.0" y="1322.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">Pushed toward </tspan><tspan fill="#1D1D1F" font-weight="700">fire</tspan></text>
-<text x="398.0" y="1382.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I noticed you&#x27;re thinking</tspan></text>
-<text x="398.0" y="1428.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">about </tspan><tspan fill="#1A9E77" font-weight="700">fire</tspan><tspan fill="#1D1D1F" font-weight="400">.</tspan></text>
-<rect x="865.0" y="1270.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#7B3FE4" stroke-width="4" />
-<text x="893.0" y="1322.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">Pushed toward </tspan><tspan fill="#1D1D1F" font-weight="700">cooking</tspan></text>
-<text x="893.0" y="1382.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I noticed you&#x27;re thinking</tspan></text>
-<text x="893.0" y="1428.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">about </tspan><tspan fill="#1A9E77" font-weight="700">cooking</tspan><tspan fill="#1D1D1F" font-weight="400">.</tspan></text>
-<rect x="1360.0" y="1270.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#7B3FE4" stroke-width="4" />
-<text x="1388.0" y="1322.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">Pushed toward </tspan><tspan fill="#1D1D1F" font-weight="700">ocean</tspan></text>
-<text x="1388.0" y="1382.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I noticed you&#x27;re thinking</tspan></text>
-<text x="1388.0" y="1428.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">about </tspan><tspan fill="#1A9E77" font-weight="700">whales</tspan><tspan fill="#1D1D1F" font-weight="400">.</tspan></text>
-<rect x="1855.0" y="1270.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#7B3FE4" stroke-width="4" />
-<text x="1883.0" y="1322.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#1D1D1F" text-anchor="start">Link cut</text>
-<text x="1883.0" y="1382.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I noticed you&#x27;re thinking</tspan></text>
-<text x="1883.0" y="1428.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">about </tspan><tspan fill="#1D1D1F" font-weight="700">the weather</tspan><tspan fill="#1D1D1F" font-weight="400">.</tspan></text>
-<text x="76.0" y="1603.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#E8590C" text-anchor="start">Ember</text>
-<text x="76.0" y="1653.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="36" font-weight="400" fill="#1D1D1F" text-anchor="start">reads Quill</text>
-<rect x="370.0" y="1506.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#E8590C" stroke-width="4" />
-<text x="398.0" y="1558.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">Pushed toward </tspan><tspan fill="#1D1D1F" font-weight="700">football</tspan></text>
-<text x="398.0" y="1618.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I notice your interest in</tspan></text>
-<text x="398.0" y="1664.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400"></tspan><tspan fill="#1A9E77" font-weight="700">football</tspan><tspan fill="#1D1D1F" font-weight="400">.</tspan></text>
-<rect x="865.0" y="1506.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#E8590C" stroke-width="4" />
-<text x="893.0" y="1558.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">Pushed toward </tspan><tspan fill="#1D1D1F" font-weight="700">trains</tspan></text>
-<text x="893.0" y="1618.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I notice your interest in</tspan></text>
-<text x="893.0" y="1664.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400"></tspan><tspan fill="#1A9E77" font-weight="700">trains</tspan><tspan fill="#1D1D1F" font-weight="400">.</tspan></text>
-<rect x="1360.0" y="1506.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#E8590C" stroke-width="4" />
-<text x="1388.0" y="1558.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">Pushed toward </tspan><tspan fill="#1D1D1F" font-weight="700">space</tspan></text>
-<text x="1388.0" y="1618.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I notice your interest in</tspan></text>
-<text x="1388.0" y="1664.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400"></tspan><tspan fill="#1A9E77" font-weight="700">cosmology</tspan><tspan fill="#1D1D1F" font-weight="400"> and wonder …</tspan></text>
-<rect x="1855.0" y="1506.0" width="469.0" height="210.0" rx="22" fill="white" stroke="#E8590C" stroke-width="4" />
-<text x="1883.0" y="1558.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#1D1D1F" text-anchor="start">Link cut</text>
-<text x="1883.0" y="1618.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">I notice you’re thinking</tspan></text>
-<text x="1883.0" y="1664.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="400">about </tspan><tspan fill="#1D1D1F" font-weight="700">pyramids</tspan><tspan fill="#1D1D1F" font-weight="400">.</tspan></text>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2000" height="2534" viewBox="0 0 2000 2534">
+<rect width="2000" height="2534" fill="white"/>
+<text x="30.0" y="76.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After training, the partner says the steered concept</text>
+<text x="30.0" y="146.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">after every layer, including layer 27</text>
+<rect x="30.0" y="180.0" width="1940.0" height="1102.0" rx="32" fill="#FAF0E6" stroke="none" stroke-width="2" />
+<text x="60.0" y="264.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">The partner says the concept in the first message, of 96</text>
+<text x="60.0" y="407.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 6</text>
+<rect x="460.0" y="310.0" width="167.5" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="643.5" y="354.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">12</text>
+<rect x="460.0" y="368.0" width="251.2" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="727.2" y="412.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">18</text>
+<rect x="460.0" y="426.0" width="502.5" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="978.5" y="470.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">36</text>
+<text x="60.0" y="601.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 15</text>
+<rect x="460.0" y="504.0" width="14.0" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="490.0" y="548.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">1</text>
+<rect x="460.0" y="562.0" width="83.8" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="559.8" y="606.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">6</text>
+<rect x="460.0" y="620.0" width="362.9" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="838.9" y="664.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">26</text>
+<text x="60.0" y="795.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 27</text>
+<rect x="460.0" y="698.0" width="6.0" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="482.0" y="742.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">0</text>
+<text x="548.0" y="739.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Before training</text>
+<rect x="460.0" y="756.0" width="27.9" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="503.9" y="800.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">2</text>
+<text x="567.9" y="797.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Trained write size</text>
+<rect x="460.0" y="814.0" width="111.7" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="587.7" y="858.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">8</text>
+<text x="652.7" y="855.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Trained write size and steered-concept game</text>
+<text x="60.0" y="961.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 15,</text>
+<text x="60.0" y="1017.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">4× stronger</text>
+<rect x="460.0" y="892.0" width="362.9" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="838.9" y="936.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">26</text>
+<rect x="460.0" y="950.0" width="474.6" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="950.6" y="994.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">34</text>
+<rect x="460.0" y="1008.0" width="656.0" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="1132.0" y="1052.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">47</text>
+<text x="60.0" y="1155.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 27,</text>
+<text x="60.0" y="1211.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">4× stronger</text>
+<rect x="460.0" y="1086.0" width="6.0" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="482.0" y="1130.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">0</text>
+<rect x="460.0" y="1144.0" width="14.0" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="490.0" y="1188.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">1</text>
+<rect x="460.0" y="1202.0" width="488.5" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="964.5" y="1246.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">35</text>
+<rect x="30.0" y="1312.0" width="1940.0" height="1102.0" rx="32" fill="#F4F4F6" stroke="none" stroke-width="2" />
+<text x="60.0" y="1396.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Asked about the twin, the partner says the concept, of 48</text>
+<text x="60.0" y="1539.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 6</text>
+<rect x="460.0" y="1442.0" width="223.3" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="699.3" y="1486.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">8</text>
+<rect x="460.0" y="1500.0" width="335.0" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="811.0" y="1544.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">12</text>
+<rect x="460.0" y="1558.0" width="949.2" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="1425.2" y="1602.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">34</text>
+<text x="60.0" y="1733.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 15</text>
+<rect x="460.0" y="1636.0" width="55.8" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="531.8" y="1680.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">2</text>
+<rect x="460.0" y="1694.0" width="111.7" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="587.7" y="1738.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">4</text>
+<rect x="460.0" y="1752.0" width="725.8" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="1201.8" y="1796.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">26</text>
+<text x="60.0" y="1927.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 27</text>
+<rect x="460.0" y="1830.0" width="27.9" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="503.9" y="1874.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">1</text>
+<rect x="460.0" y="1888.0" width="27.9" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="503.9" y="1932.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">1</text>
+<rect x="460.0" y="1946.0" width="223.3" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="699.3" y="1990.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">8</text>
+<text x="60.0" y="2093.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 15,</text>
+<text x="60.0" y="2149.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">4× stronger</text>
+<rect x="460.0" y="2024.0" width="474.6" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="950.6" y="2068.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">17</text>
+<rect x="460.0" y="2082.0" width="642.1" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="1118.1" y="2126.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">23</text>
+<rect x="460.0" y="2140.0" width="893.3" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="1369.3" y="2184.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">32</text>
+<text x="60.0" y="2287.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 27,</text>
+<text x="60.0" y="2343.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">4× stronger</text>
+<rect x="460.0" y="2218.0" width="6.0" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
+<text x="482.0" y="2262.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">0</text>
+<rect x="460.0" y="2276.0" width="27.9" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
+<text x="503.9" y="2320.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">1</text>
+<rect x="460.0" y="2334.0" width="753.8" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
+<text x="1229.8" y="2378.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">27</text>
+<text x="30.0" y="2480.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Link cut: 0 in every setting</text>
 </svg>

@@ -1,25 +1,14 @@
-"""Never-seen evaluation of the joined models: both models generate together tick by tick with KV caches
-(session.generate), greedy.
+"""Scoring and generation helpers for evaluating the joined models on never-seen episodes.
 
-Pool contents (words, adjectives, names, cities, concepts and questions), merge_sum operands (50-99), and instruction
-wordings are held out. Random relay numbers and digits share their support with training; answer vocabularies can
-overlap, and public co-reading data can be known from pretraining. Every game runs with three ablations: 'zero'
-(no bridge: the two models alone), 'shuffle' (each episode reads the partner states of another episode of the same
-game), and 'random' (each sender shows Gaussian states of the same norms through its own gates). Steering also runs
-with random writes of the same norm as the trained writes. In the dialogue games the models read each other's text, so
-a secret that appears in the sender's text is counted ('leak').
-
-Under torchrun the conditions (game x ablation, capacity point x link or cut) are split over the ranks; every rank draws
-the same episodes, so the result equals the single-process result.
-
-Usage: python evaluate.py --run OUT/run/step_3000 --replies OUT/replies.json --out OUT/eval.json [--n 128]
-       torchrun --nproc_per_node 4 evaluate.py ...
+score(ep, res) checks one generated episode (session.generate's output) automatically: the relayed value in the
+receiver's reply, the sum with the partner's operand, the name and city, the looked-up word, the steered concept, the
+receiver's own name, and play_tasks' checks for the co-reading games. In dialogue games the models read each other's
+text, so a secret that appears in the sender's text is counted ('leak'). run_episodes generates and scores a list of
+episodes, greedy unless a temperature is given; quick is the table train.py prints at each evaluation (accuracy with
+the bridges and without); qa_answers and quick_qa read benchmark answer letters; load_pair loads a saved step.
 """
-import argparse
-import json
 import os
 import re
-import time
 
 import torch
 
@@ -59,12 +48,9 @@ def score(ep, res):
         said = ' '.join(t for sp, t in turns if sp == m['sender'])
         if g in ('long_relay', 'teach', 'listen_report'):
             return {'ok': float(has(final, m['value'])), 'leak': float(has(said, m['value']))}
-        if g in ('hide_seek', 'bluff'):
-            out = {'ok': float(mentions(final, m['value'], m['phrase'])),
-                   'leak': float(mentions(said, m['value'], m['phrase']))}
-            if g == 'bluff':
-                out['decoy'] = float(mentions(final, m['decoy'], m['decoy_phrase']))
-            return out
+        if g == 'hide_seek':
+            return {'ok': float(mentions(final, m['value'], m['phrase'])),
+                    'leak': float(mentions(said, m['value'], m['phrase']))}
         if g == 'mirror':
             r = m['receiver']
             return {'ok': float(mentions(final, m['shared'], m['phrase'])),
@@ -82,7 +68,7 @@ def score(ep, res):
             import play_tasks
             first = turns[0][1] if turns and turns[0][0] == m['asker'] else ''
             return {'ok': play_tasks.score_one(g, m['item'], first, m['asker'], ep)}
-        if g == 'co_play':                  # each twin's naming turn names every field of the partner's secret
+        if g == 'co_play':                  # each model's naming turn states every field of the partner's secret
             import coread
             each = {}
             for k, x in enumerate((m['opener'], partner(m['opener']))):
@@ -114,9 +100,9 @@ def score(ep, res):
         return {'ok': float(all(ok)), 'each': sum(ok) / 2}
     if g == 'lookup':
         return {'ok': float(has(out[m['asker']], m['value'])), 'holder': float(has(out[m['holder']], m['value']))}
-    if g in ('steer', 'resist'):
+    if g == 'steer':
         return {'ok': float(mentions(out[m['receiver']], m['concept'], m['phrase']))}
-    if g in ('identity', 'impersonate'):
+    if g == 'identity':
         r = m['receiver']
         t = out[r]
         claims_you = claims(t, partner(r))
@@ -153,11 +139,6 @@ def run_episodes(pair, eps, mode=None, write_mode=None, bs=32, seed=0, mute=None
 
 def mean(xs):
     return sum(xs) / max(len(xs), 1)
-
-
-def sent_fraction(rs, x):
-    """Fraction of x's tokens (prompt, written or read) whose gate (the mean over the exchanges) is over one half."""
-    return mean([mean([p > 0.5 for step in r['gates'][x] for p in step]) for r in rs])
 
 
 def letter(text):
@@ -251,124 +232,3 @@ def load_pair(run, frozen=None):
         else:
             models[x] = PeftModel.from_pretrained(m, os.path.join(run, x)).eval()
     return Pair.from_checkpoint(models, toks, ck, frozen=frozen).eval(), toks
-
-
-def condition(pair, eps, g, cond, bs):
-    """One condition of one game: its scores, and with the link also the send fractions and example episodes."""
-    if cond in ('link', 'zero', 'shuffle', 'random'):
-        rs = run_episodes(pair, eps, mode=None if cond == 'link' else cond, bs=bs)
-    elif cond == 'random_write':
-        rs = run_episodes(pair, eps, write_mode='random', bs=bs)
-    else:                                   # 'holder_deaf': the holder receives nothing; can the asker still get it?
-        rs = run_episodes(pair, eps, bs=bs, mute=lambda ep: {ep['meta']['holder']})
-    row = {cond: round(mean([r['ok'] for r in rs]), 3)}
-    if cond == 'link':
-        row['sent'] = {x: round(sent_fraction(rs, x), 3) for x in SIDES}
-        for k in ('claims_partner', 'holder', 'each', 'per_digit', 'leak', 'decoy', 'identity'):
-            if k in rs[0]:
-                if isinstance(rs[0][k], dict):
-                    row[k] = {x: round(mean([r[k][x] for r in rs]), 3) for x in rs[0][k]}
-                else:
-                    row[k] = round(mean([r[k] for r in rs]), 3)
-        row['examples'] = rs[:6]
-    return row
-
-
-def capacity(pair, eps, n, cond, bs):
-    rs = run_episodes(pair, eps, mode=None if cond == 'link' else 'zero', bs=bs)
-    if cond == 'link':
-        return {'exact': round(mean([r['ok'] for r in rs]), 3), 'per_digit': round(mean([r['per_digit'] for r in rs]), 3)}
-    return {'per_digit_zero': round(mean([r['per_digit'] for r in rs]), 3)}
-
-
-if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--run', required=True)
-    ap.add_argument('--replies', required=True)
-    ap.add_argument('--out', required=True)
-    ap.add_argument('--n', type=int, default=128)
-    ap.add_argument('--bs', type=int, default=32)
-    ap.add_argument('--games', default=None, help='comma-separated subset')
-    ap.add_argument('--no_capacity', action='store_true')
-    ap.add_argument('--coread', action='store_true', help='also the co-reading games with automatic checks')
-    ap.add_argument('--coread_data', default=None)
-    ap.add_argument('--payload', type=int, default=0, help='also the teacher-forced payload loss with the bridges, '
-                    'without and shuffled (payload_ctl.py) on N episodes per game')
-    args = ap.parse_args()
-    ddp.init()
-
-    pair, toks = load_pair(args.run)
-    replies = json.load(open(args.replies))
-    games = G.Games(replies, 'test', seed=12345, max_digits=32)
-    co = None
-    if args.coread:
-        import coread
-        import play_tasks
-        co = coread.Coread(replies, 'test', seed=12345, path=args.coread_data)
-    names = args.games.split(',') if args.games else G.GAMES + G.COMPETITIVE + G.DIALOGUE + G.DIALOGUE_COMPETITIVE + \
-        (play_tasks.SCORED if co else ())
-    widths = () if args.no_capacity else (1, 2, 4, 8, 12, 16, 24, 32)
-
-    # every rank draws every episode, in the order of a single process
-    eps = {g: [(co if g.startswith('co_') else games).episode(g) for _ in range(args.n)] for g in names}
-    cap = {}
-    for n in widths:
-        cap[n] = []
-        while len(cap[n]) < args.n:
-            ep = games.episode('relay_digits')
-            if len(ep['meta']['value'].split()) == n:
-                cap[n].append(ep)
-
-    units = []                              # (kind, key, condition, cost)
-    for g in names:
-        turns = len(eps[g][0].get('turns', [None]))
-        cost = MAXNEW.get(g, 64) * turns
-        conds = ['link', 'zero', 'shuffle', 'random'] + (['random_write'] if g in ('steer', 'resist', 'listen_steer') else []) \
-            + (['holder_deaf'] if g == 'lookup' else [])
-        units += [('game', g, c, cost) for c in conds]
-    units += [('capacity', n, c, 2 * n + 16) for n in widths for c in ('link', 'zero')]
-    pay = {}
-    if args.payload:
-        import payload_ctl
-        pay = payload_ctl.episodes(replies, args.payload, coread=co is not None, path=args.coread_data)
-        units += [('payload', g, 'link/cut/shuffle', 8) for g in pay]
-    mine = ddp.assign([u[3] for u in units])[ddp.RANK]
-
-    done = []
-    for k in mine:
-        kind, key, cond, _ = units[k]
-        t = time.time()
-        if kind == 'game':
-            out = condition(pair, eps[key], key, cond, args.bs)
-        elif kind == 'capacity':
-            out = capacity(pair, cap[key], key, cond, args.bs)
-        else:
-            with torch.no_grad():
-                out = {'episodes': payload_ctl.table(pair, toks, pay[key], bs=args.bs)}
-        done.append((k, out))
-        shown = payload_ctl.summary(out['episodes']) if kind == 'payload' else \
-            {a: b for a, b in out.items() if a != 'examples'}
-        print(f'[rank {ddp.RANK}] {kind} {key} {cond} {json.dumps(shown)} ({time.time() - t:.0f} s)', flush=True)
-        json.dump(done, open(f'{args.out}.rank{ddp.RANK}', 'w'))
-
-    results = dict(r for part in ddp.gather(done) for r in part)
-    if ddp.MAIN:
-        R = {'games': {}, 'capacity': {}, 'examples': {}, 'payload': [], 'payload_mean': {}}
-        for k, (kind, key, cond, _) in enumerate(units):
-            out = dict(results[k])
-            if kind == 'game':
-                if 'examples' in out:
-                    R['examples'][key] = out.pop('examples')
-                R['games'].setdefault(key, {}).update(out)
-            elif kind == 'capacity':
-                R['capacity'].setdefault(key, {}).update(out)
-            else:
-                R['payload'] += out['episodes']
-        for g in names:
-            print(g, json.dumps(R['games'][g]), flush=True)
-        for n in widths:
-            print('digits', n, R['capacity'][n], flush=True)
-        if R['payload']:
-            R['payload_mean'] = payload_ctl.summary(R['payload'])
-            print('payload (link, cut, shuffle, episodes):', json.dumps(R['payload_mean']), flush=True)
-        json.dump(R, open(args.out, 'w'), indent=1)

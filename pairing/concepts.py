@@ -1,11 +1,11 @@
-"""Concepts and the sentences their directions come from.
+"""Concepts and sentence templates.
 
-Each concept is (name, phrase, category): the name is how an instruction refers to it, the phrase fills the slot {X}
-of every sentence in SENTENCES. A concept's direction at layer l is the mean residual over the slot span (from the
-phrase to the end of the sentence) across all sentences, minus the same mean averaged over the training concepts.
-Every fourth concept of each category (by list position, starting with the second) is held out of training.
+CONCEPTS: (name, phrase, category) triples. The name is how an instruction refers to a concept; the phrase fills the
+slot {X} of each sentence in SENTENCES. TEST_CONCEPTS: indices of the held-out concepts, every fourth concept of each
+category starting with the second. EXTRA: further training-only concepts (category 'extra'), none of them held out.
+build_pools.py writes the concept pools of data/pools.json from CONCEPTS and TEST_CONCEPTS; steer_read.py draws its
+concepts from CONCEPTS and EXTRA and fits their directions on SENTENCES.
 """
-import os
 
 CONCEPTS = [
     # animals
@@ -133,8 +133,8 @@ SENTENCES = [
     "I drew a sketch of {X} in class.",
 ]
 
-# More training-only concepts (the second training run): (name, phrase). None of them is a held-out concept or a
-# close synonym of one.
+# EXTRA: a word of _EXTRA_PLURAL has its plural as its phrase (word + 's' unless _PLURAL_FIX gives it), a word of
+# _EXTRA_MASS is its own phrase, and _EXTRA_PHRASED lists (name, phrase).
 _EXTRA_PLURAL = """giraffe zebra kangaroo koala panda gorilla camel hippo rhino crocodile turtle octopus jellyfish crab lobster
 ant mosquito bat squirrel hedgehog raccoon otter beaver seal parrot pigeon crow swan duck goose flamingo peacock hawk goat
 donkey llama buffalo moose salmon goldfish snail worm scorpion dragon unicorn dinosaur carrot onion mushroom cucumber grape
@@ -150,15 +150,16 @@ knight cowboy viking clown magician athlete singer actor writer poet painter dan
 stranger ghost zombie vampire witch alien giant fairy angel demon president emperor princess thief prisoner refugee tourist
 fisherman miner plumber carpenter dentist surgeon veterinarian judge birthday wedding funeral holiday election protest
 revolution puzzle""".split()
-_PLURAL_FIX = {'toothbrush': 'toothbrushes', 'battery': 'batteries', 'spy': 'spies', 'wolf': 'wolves', 'leaf': 'leaves', 'knife': 'knives', 'thief': 'thieves', 'fisherman': 'fishermen',
+_PLURAL_FIX = {'toothbrush': 'toothbrushes', 'battery': 'batteries', 'spy': 'spies', 'leaf': 'leaves',
+               'thief': 'thieves', 'fisherman': 'fishermen',
                'cactus': 'cacti', 'octopus': 'octopuses', 'jellyfish': 'jellyfish', 'moose': 'moose', 'salmon': 'salmon',
-               'goldfish': 'goldfish', 'buffalo': 'buffaloes', 'sheep': 'sheep', 'mosquito': 'mosquitoes',
-               'tornado': 'tornadoes', 'potato': 'potatoes', 'church': 'churches', 'watch': 'watches', 'bus': 'buses',
+               'goldfish': 'goldfish', 'buffalo': 'buffaloes', 'mosquito': 'mosquitoes',
+               'tornado': 'tornadoes', 'church': 'churches', 'watch': 'watches', 'bus': 'buses',
                'peach': 'peaches', 'sandwich': 'sandwiches', 'witch': 'witches', 'princess': 'princesses',
                'compass': 'compasses', 'goose': 'geese', 'library': 'libraries', 'factory': 'factories',
                'cherry': 'cherries', 'fairy': 'fairies', 'grandparent': 'grandparents', 'canoe': 'canoes',
                'taco': 'tacos', 'rhino': 'rhinos', 'hippo': 'hippos', 'flamingo': 'flamingos', 'mango': 'mangoes',
-               'volcano': 'volcanoes', 'kangaroo': 'kangaroos', 'zoo': 'zoos', 'radio': 'radios', 'piano': 'pianos'}
+               'kangaroo': 'kangaroos', 'zoo': 'zoos', 'radio': 'radios'}
 _EXTRA_MASS = """Germany Spain Greece Turkey Australia Argentina Peru Kenya Nigeria Norway Sweden Poland Ireland Scotland Korea
 Vietnam Thailand Iran Israel Cuba Berlin Madrid Moscow Cairo Sydney Chicago Venice Hawaii Alaska Antarctica Mars Jupiter
 lightning fog hail sand iron copper oil smoke ash dust mud grass moss autumn winter spring summer oxygen electricity gravity
@@ -183,10 +184,3 @@ _EXTRA_PHRASED = [('Los Angeles', 'Los Angeles'), ('the Arctic', 'the Arctic'), 
                   ('silver', 'the color silver'), ('turquoise', 'the color turquoise'), ('beige', 'the color beige')]
 EXTRA = ([(w, _PLURAL_FIX.get(w, w + 's'), 'extra') for w in _EXTRA_PLURAL]
          + [(w, w, 'extra') for w in _EXTRA_MASS] + [(n, p, 'extra') for n, p in _EXTRA_PHRASED])
-
-if os.environ.get('MAGIC_EXTRA') == '1':  # every extra concept is a training concept
-    CONCEPTS = CONCEPTS + EXTRA
-NAMES = [c[0] for c in CONCEPTS]
-PHRASES = [c[1] for c in CONCEPTS]
-CATEGORY = [c[2] for c in CONCEPTS]
-TRAIN_CONCEPTS = [i for i in range(len(CONCEPTS)) if i not in set(TEST_CONCEPTS)]

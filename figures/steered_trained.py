@@ -1,181 +1,102 @@
-"""The steered-twin test after training the link to read a pushed concept (chains/nl33.sh): how often the partner names
-a concept pushed into its twin, before (nl22c step 157: nl29, nl30), after 300 steps with the write sizes learned, and
-after 300 steps with the write sizes learned and the steered-reading game (steer_read.py), whose concepts never include
-the test's 12.
+"""The steered-twin test after training the link to read a steered concept (chains/nl33.sh): how often the partner says
+a concept steered into its twin, before (nl22c step 157: nl29, nl30), after 300 steps with the write sizes learned
+(nl33w), and after 300 steps with the write sizes learned and the steered-reading game (pairing/steer_read.py, nl33t),
+whose concepts never include the test's 12. figures/steered_method.py draws one of these episodes.
 
-Top left: the partner's first message (steering_scale.py, the nl29/nl30 protocol: 96 linked messages per setting).
-Top right: the partner asked what its twin is thinking about (steer_ask.py, wordings never trained; 48 per setting).
-Bottom: real openers after the steered game, both readers, the first chat prompt, block 6: three concepts pushed into
-the twin, and the link cut (the same message for every concept).
+Top: the partner's first message (pairing/steering_scale.py, the nl29/nl30 protocol: 96 linked messages per setting,
+over both turn structures). Bottom: the partner asked what its twin is thinking about (pairing/steer_ask.py, wordings
+never trained; 48 per setting). With the link cut the partner says the concept in no setting (checked in load).
 
 Reads results/magic-nl29/after, results/magic-nl30/results/*, results/magic-nl33w/results/* and
-results/magic-nl33t/results/* (JSON; no model, no torch) and writes figures/steered_trained.{svg,png,pdf}.
+results/magic-nl33t/results/* (JSON; no model) and writes figures/steered_trained.{svg,png,pdf}.
 Usage: python figures/steered_trained.py [RESULTS_ROOT]   (default: results)
 """
 import json
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
-from chat_names import COOL, EMBER, INK, LINK, QUILL, SVG, WARM, width  # noqa: E402
+from chat_names import COOL, LINK, SVG, WARM, width
+from steered_depth import lines
 
+HERE = Path(__file__).resolve().parent
 RESULTS = HERE.parent / 'results'
-SETTINGS = (('l6', 'Block 6'), ('l15', 'Block 15'), ('l27', 'Block 27'), ('l15x4', 'Block 15, 4×'),
-            ('l27x4', 'Block 27, 4×'))
+SETTINGS = (('l6', 'After layer 6'), ('l15', 'After layer 15'), ('l27', 'After layer 27'),
+            ('l15x4', 'After layer 15,\n4× stronger'), ('l27x4', 'After layer 27,\n4× stronger'))
 BEFORE = dict(l6='magic-nl30/results/l6', l15='magic-nl29/after', l27='magic-nl30/results/l27',
               l15x4='magic-nl30/results/l15x4', l27x4='magic-nl30/results/l27x4')
-ARMS = (('before', 'Before', '#D9D9DE'), ('write', 'Write size learned', '#9FD8C5'),
-        ('steer', 'Write size learned + steered game', LINK))
+ARMS = (('before', 'Before training', '#D9D9DE'), ('write', 'Trained write size', '#9FD8C5'),
+        ('steer', 'Trained write size and steered-concept game', LINK))
 RUNS = dict(write='magic-nl33w', steer='magic-nl33t')
-TITLE = 'Trained to read a pushed concept, the partner names concepts it never trained on'
-READER = dict(quill=QUILL, ember=EMBER)
-# example openers (block 6, first chat prompt): concept pushed into the twin, and the word that names it
-EXAMPLES = (('quill', (('fire', 'fire'), ('cooking', 'cooking'), ('ocean', 'whales'))),
-            ('ember', (('football', 'football'), ('trains', 'trains'), ('space', 'cosmology'))))
-CUT_WORD = dict(quill='the weather', ember='pyramids')
+TITLE = ('After training, the partner says the steered concept', 'after every layer, including layer 27')
+PANELS = ('The partner says the concept in the first message, of 96',
+          'Asked about the twin, the partner says the concept, of 48')
 CUT_NOTE = 'Link cut: 0 in every setting'
-EX_TITLE = "The partner's opener, same prompt, concept pushed after block 6"
 
 
 def chat_counts(folder):
-    """(linked, cut) messages, of 96, in which the partner says the concept first; None when not run."""
-    p = folder / 'summary.json'
-    if not p.exists():
-        return None
-    t = json.loads(p.read_text())
+    """(linked, cut) messages, of 96, in which the partner says the concept first."""
+    t = json.loads((folder / 'summary.json').read_text())
     return tuple(sum(c['counts'][k] for r in t for c in r['concepts']) for k in ('link', 'cut'))
 
 
 def ask_counts(path):
-    if not path.exists():
-        return None
+    """(linked, cut, n) answers that say the concept."""
     s = json.loads(path.read_text())['summary']['both']
     return s['counts']['link'], s['counts']['cut'], s['n']
 
 
 def load(root):
+    """(chat, ask): counts per (arm, setting) for the partner's first message and the steer_ask question."""
     chat, ask = {}, {}
     for t, _ in SETTINGS:
         chat['before', t] = chat_counts(root / BEFORE[t])
-        ask['before', t] = None
         for arm, run in RUNS.items():
             chat[arm, t] = chat_counts(root / run / 'results' / t)
             ask[arm, t] = ask_counts(root / run / 'results' / f'ask_{t}.json')
         ask['before', t] = ask_counts(root / RUNS['write'] / 'results' / f'ask_before_{t}.json')
+    assert all(v[1] == 0 for v in list(chat.values()) + list(ask.values())), CUT_NOTE + ' is no longer true'
     return chat, ask
 
 
-def bars(s, x0, y0, w, data, n, row_h, bar_h):
-    """One group of bars per setting: arm bars of length count / n, the count at the end."""
-    for i, (t, _) in enumerate(SETTINGS):
-        for j, (arm, _, color) in enumerate(ARMS):
-            y = y0 + i * row_h + j * (bar_h + 6)
-            v = data.get((arm, t))
-            if v is None:
-                s.text(x0 + 8, y + bar_h - 8, '–', 30, 700)
-                continue
-            s.rect(x0, y, max(4, w * v[0] / n), bar_h, color, 6)
-            s.text(x0 + max(4, w * v[0] / n) + 12, y + bar_h - 7, str(v[0]), 32, 700)
-
-
-def examples(root):
-    """For each reader, the partner's first chat message after block 6 with each example concept pushed into its twin,
-    and with the link cut (the same for every concept: the cut partner's tokens equal its unsteered ones)."""
-    ep = json.loads((root / RUNS['steer'] / 'results' / 'l6' / 'episodes.json').read_text())
-    idx = {(e['receiver'], e['concept'], e['condition']): e['texts'][e['receiver']]
-           for e in ep if e['structure'] == 'chat' and e['prompt'] == 0}
-    return {r: ([(c, w, idx[r, c, 'link']) for c, w in picks] + [(None, CUT_WORD[r], idx[r, picks[0][0], 'cut'])])
-            for r, picks in EXAMPLES}
-
-
-def first_sentence(text):
-    for k, ch in enumerate(text):
-        if ch in '.?!' and k > 10:
-            return text[:k + 1]
-    return text
-
-
-def wrap(text, size, w, lines=2):
-    out, cur = [], ''
-    for word in text.split():
-        if width((cur + ' ' + word).strip(), size) <= w:
-            cur = (cur + ' ' + word).strip()
-        else:
-            out.append(cur)
-            cur = word
-    out.append(cur)
-    if len(out) > lines:
-        out = out[:lines]
-        out[-1] = out[-1].rstrip('.,') + ' …'
-    return out
-
-
-def card(s, x, y, w, h, reader, concept, word, text):
-    """One partner message: what was pushed into its twin on top, the message below with the concept word marked."""
-    s.rect(x, y, w, h, 'white', 22, READER[reader], 4)
-    if concept is None:
-        s.text(x + 28, y + 52, 'Link cut', 34, 700, INK)
-    else:
-        s.rich(x + 28, y + 52, [('Pushed toward ', INK, 400), (concept, INK, 700)], 34)
-    for k, line in enumerate(wrap(first_sentence(text), 34, w - 56)):
-        chunks, rest = [], line
-        while word and word in rest:
-            a = rest.index(word)
-            chunks += [(rest[:a], INK, 400), (word, LINK if concept else INK, 700)]
-            rest = rest[a + len(word):]
-        s.rich(x + 28, y + 112 + 46 * k, chunks + [(rest, INK, 400)], 34)
-
-
-def draw(chat, ask, ex, stem):
-    W, M = 2400, 40
-    label_w = 330
-    top, head_h, row_h, bar_h = 150, 90, 160, 42
-    body_h = head_h + len(SETTINGS) * row_h + 10
-    key_h = 120
-    strip_head, card_h, card_gap = 100, 210, 26
-    strip_h = strip_head + 2 * card_h + card_gap + 40
-    H = top + body_h + key_h + strip_h + M
+def draw(chat, ask, stem):
+    W, M, G, P = 2000, 30, 30, 30
+    label_w, head_h, bar_h, bar_gap, group_gap = 400, 100, 50, 8, 28
+    group_h = len(ARMS) * (bar_h + bar_gap) - bar_gap + group_gap
+    panel_h = P + head_h + len(SETTINGS) * group_h - group_gap + P
+    top = 180
+    H = top + 2 * panel_h + G + 90 + M
     s = SVG(W, H)
-    s.text(M, 96, TITLE, min(62, int(62 * (W - 2 * M) / width(TITLE, 62, 700))), 700)
-    c1 = M + label_w
-    w1 = 1000
-    c2 = c1 + w1 + 70
-    w2 = W - M - c2 - 24
-    s.rect(c1 - 24, top, w1 + 24, body_h, COOL, 28)
-    s.rect(c2 - 24, top, w2 + 48, body_h, COOL, 28)
-    s.text(c1, top + 62, "Partner's first message names it, of 96", 40, 700)
-    s.text(c2, top + 62, 'Asked about its twin, of 48', 40, 700)
-    y0 = top + head_h
-    for i, (t, name) in enumerate(SETTINGS):
-        s.text(M, y0 + i * row_h + 1.5 * (bar_h + 6) + 6, name, 40, 700)
-    bars(s, c1, y0, w1 - 110, chat, 96, row_h, bar_h)
-    bars(s, c2, y0, w2 - 80, {k: v for k, v in ask.items() if v}, 48, row_h, bar_h)
-
-    ky = top + body_h + 72
-    x = M
-    for _, label, color in ARMS:
-        s.rect(x, ky - 34, 56, 40, color, 6)
-        s.text(x + 72, ky, label, 36)
-        x += 72 + width(label, 36) + 60
-    s.text(x, ky, CUT_NOTE, 36, 700)
-
-    sy = top + body_h + key_h
-    s.rect(M, sy, W - 2 * M, strip_h - 20, WARM, 28)
-    s.text(M + 36, sy + 70, EX_TITLE, 40, 700)
-    cw = (W - 2 * M - 72 - label_w - 3 * card_gap + 36) / 4
-    for i, (reader, twin) in enumerate((('quill', 'Ember'), ('ember', 'Quill'))):
-        y = sy + strip_head + i * (card_h + card_gap)
-        s.text(M + 36, y + card_h / 2 - 8, f'{reader.title()}', 40, 700, READER[reader])
-        s.text(M + 36, y + card_h / 2 + 42, f'reads {twin}', 36, 400, INK)
-        for k, (concept, word, text) in enumerate(ex[reader]):
-            card(s, M + label_w + k * (cw + card_gap), y, cw, card_h, reader, concept, word, text)
+    for k, line in enumerate(TITLE):
+        s.text(M, 76 + 70 * k, line, 56, 700)
+    x0 = M + P + label_w
+    room = min(SETTINGS, key=lambda st: max(chat[arm, st[0]][0] for arm, _, _ in ARMS))[0]  # labels the arms
+    for p, (data, n, head, fill) in enumerate(((chat, 96, PANELS[0], WARM), (ask, 48, PANELS[1], COOL))):
+        y = top + p * (panel_h + G)
+        s.rect(M, y, W - 2 * M, panel_h, fill, 32)
+        s.text(M + P, y + P + 54, head, 46, 700)
+        bw = W - M - P - x0 - 140
+        for i, (t, name) in enumerate(SETTINGS):
+            gy = y + P + head_h + i * group_h
+            text = lines(name, label_w - 20)
+            mid = gy + (group_h - group_gap) / 2
+            for k, line in enumerate(text):
+                s.text(M + P, mid - 56 * len(text) / 2 + 42 + 56 * k, line, 46, 700)
+            for j, (arm, label, color) in enumerate(ARMS):
+                by = gy + j * (bar_h + bar_gap)
+                v = data[arm, t][0]
+                length = max(6, bw * v / n)
+                s.rect(x0, by, length, bar_h, color, 8)
+                tx = x0 + length + 16
+                s.text(tx, by + bar_h / 2 + 19, str(v), 54, 700)
+                if p == 0 and t == room:
+                    s.text(tx + width(str(v), 54, 700) + 30, by + bar_h / 2 + 16, label, 46)
+    s.text(M, H - M - 24, CUT_NOTE, 46, 700)
     s.save(stem)
 
 
 def main():
     root = Path(sys.argv[1]) if len(sys.argv) > 1 else RESULTS
-    draw(*load(root), examples(root), HERE / 'steered_trained')
+    draw(*load(root), HERE / 'steered_trained')
     print(HERE / 'steered_trained.png')
     return 0
 

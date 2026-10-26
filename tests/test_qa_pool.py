@@ -1,29 +1,20 @@
-"""Pooling math, actual Qwen/AFM gradients, causal letters, and train.py smoke.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu python tests/test_qa_pool.py
+"""qa_pool.py on a tiny pair: the pooling math, real gradients that split over micro-batches, causal letters, and
+train.py runs with the pooled objective, linked and solo.
 """
 import copy
 import json
 import os
-from pathlib import Path
 import subprocess
-import shutil
 import sys
 
-os.environ['NL_TINY'] = '1'
-os.environ['NL_DEVICE'] = 'cpu'
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'pairing'))
 import pytest
 import torch
-from peft import LoraConfig, get_peft_model
 
 import bench_eval
 import games as G
 import link
 import qa_pool as Q
 import session as S
-from qa_pool_probe import capture_writes
 
 
 def test_log_average_and_responsibility_gradient():
@@ -44,13 +35,8 @@ def test_log_average_and_responsibility_gradient():
 
 
 @pytest.fixture(scope='module')
-def pair():
-    torch.set_num_threads(2)
-    toks, models = {}, {}
-    for x in link.SIDES:
-        toks[x], model = link.load(x)
-        models[x] = get_peft_model(model, LoraConfig(r=4, lora_alpha=8,
-                                  target_modules=['q_proj', 'v_proj', 'up_proj', 'down_proj'])).eval()
+def pair(tiny_models):
+    toks, models = tiny_models(['q_proj', 'v_proj', 'up_proj', 'down_proj'])
     p = link.Pair(models, toks, (1, 2, 4), heads=2, head_dim=16)
     with torch.no_grad():
         for side in p.bridge.values():
@@ -58,16 +44,17 @@ def pair():
     return p
 
 
-def setup(pair):
-    items = G.bench('train')[:3]
-    rows = [(G.qa_episode(it, 'pair'), {x: frozenset(link.SIDES) for x in link.SIDES}) for it in items]
-    built = [S.build(ep, pair.toks) for ep, _ in rows]
+@pytest.fixture
+def setup(pair, tree):
+    items = json.loads((tree / 'data' / 'bench.json').read_text())['train'][:3]
+    rows = [G.qa_episode(it, 'pair') for it in items]
+    built = [S.build(ep, pair.toks) for ep in rows]
     denom = {x: sum(w for e in built for _, _, w in e[x]['labels']) for x in link.SIDES}
     return items, rows, built, denom
 
 
-def test_real_gradients_microbatches_and_scoring(pair):
-    items, rows, built, denom = setup(pair)
+def test_real_gradients_microbatches_and_scoring(pair, setup):
+    items, rows, built, denom = setup
     params = {f'{x}.{n}': p for x, m in pair.models.items() for n, p in m.named_parameters() if p.requires_grad}
     params.update({'bridge.' + n: p for n, p in pair.bridge.named_parameters()})
     pads = {x: t.pad_token_id for x, t in pair.toks.items()}
@@ -101,18 +88,13 @@ def test_real_gradients_microbatches_and_scoring(pair):
     assert abs(whole - float(expected)) < 2e-6
 
 
-def test_gold_is_future_and_observer_is_exact(pair):
-    items, rows, built, denom = setup(pair)
+def test_gold_is_in_the_future(pair, setup):
+    items, rows, built, denom = setup
     _, at, _ = Q.letter_layout(pair.toks, rows, built)
     pads = {x: t.pad_token_id for x, t in pair.toks.items()}
     batch = S.collate(built, pads)
     with torch.no_grad():
         original, _ = pair.joint(batch)
-        with capture_writes(pair, at) as got:
-            observed, _ = pair.joint(batch)
-        for x in link.SIDES:
-            assert torch.equal(original[x], observed[x])
-            assert set(got[x]) == {0, 1, 2}
         changed = copy.deepcopy(built)
         for x in link.SIDES:
             for i, p in enumerate(at[x]):
@@ -127,27 +109,23 @@ def test_gold_is_future_and_observer_is_exact(pair):
         Q.letter_layout(pair.toks, rows, unsafe)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('arm', [['--qa', '1'], ['--solo']])
-def test_train_cli_smoke(tmp_path, arm):
-    # Actual trainer/optimizer/checkpoint, initialized randomly on actual tiny
-    # architectures; real replies and benchmark data, no replacement forward.
-    # --solo is the control: the same pooled objective, the link cut.
-    replies = os.environ.get('COLDSTART_REPLIES', '/Users/user/mpd-data/neural-pairing/replies.json')
-    args = [sys.executable, str(ROOT / 'pairing/train.py'), '--replies', replies, '--out', str(tmp_path / 'run'),
+def test_train_cli_smoke(tree, data, tmp_path, arm):
+    # The real trainer, optimizer and checkpoint on the tiny models; --solo is the control: the same pooled objective,
+    # the link cut.
+    args = [sys.executable, str(tree / 'pairing/train.py'), '--replies', str(data / 'replies.json'),
+            '--out', str(tmp_path / 'run'),
             '--steps', '2', '--bs', '2', '--micro', '2', *arm, '--qa_pool', '1', '--anchor', '0',
             '--comp', '0', '--rank', '4', '--heads', '2', '--head_dim', '16', '--xblocks', '1,2,4',
             '--ckpt', 'none', '--first_eval', '999', '--eval_every', '999', '--save_every', '999',
             '--quick_n', '1', '--read_start', '0.1', '--hold', '0']
-    proc = subprocess.run(args, cwd=ROOT, env=dict(os.environ, MPD_MEM_GIB='8', OMP_NUM_THREADS='2'),
-                          capture_output=True, text=True, timeout=240)
+    proc = subprocess.run(args, cwd=tree, env=dict(os.environ, MPD_MEM_GIB='8', OMP_NUM_THREADS='2'),
+                          capture_output=True, text=True, timeout=600, stdin=subprocess.DEVNULL)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     ck = torch.load(tmp_path / 'run/step_2/bridge.pt', weights_only=False, map_location='cpu')
     assert ck['args']['qa_pool'] == 1.0
     assert all((tmp_path / f'run/step_2/{x}/adapter_model.safetensors').exists() for x in link.SIDES)
     lines = [json.loads(s) for s in proc.stdout.splitlines() if s.startswith('{')]
     assert len(lines) == 2 and all(torch.isfinite(torch.tensor(s['loss'])) for s in lines)
-    print(json.dumps(dict(arm=arm, smoke_steps=2, losses=[s['loss'] for s in lines], checkpoint='step_2')))
 
-
-if __name__ == '__main__':
-    raise SystemExit(pytest.main([__file__, '-q', '-s']))

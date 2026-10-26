@@ -1,10 +1,11 @@
-"""Merge complete chat2 shards and print counts and paired exact tests by kind.
+"""Merges the co_chat2 shards of one evalfree --shard evaluation and summarizes them with chateval.summary_rows,
+printing per receiver and subset the naming counts and the exact sign tests of link-cut and link-crossed.
 
-Unlike the legacy merger, require every index from all requested shards and
-verify completed manifests/hashes before summarizing. chat_merge.py also prints
-the same per-kind rows, with its existing permissive partial-input behavior.
---code_ok FILE lets shards differ in that source file's hash only (a rerun shard with a fix that loosens a check the
-other shards passed); the output records every shard's hash for each such file.
+Unlike chat_merge.py, it requires every plan index exactly once and checks that each shard is complete and matches its
+manifest's hash. --code_ok FILE lets shards differ in that source file's hash only (a shard rerun with a fix that
+loosens a check the other shards passed); the output records every shard's hash for each such file.
+
+Usage: python chat2_merge.py --after DIR [DIR ...] [--before DIR [DIR ...]] --out FILE.json [--code_ok FILE ...]
 """
 import argparse
 import json
@@ -16,6 +17,8 @@ from link import SIDES
 
 
 def load(dirs, code_ok=()):
+    """(records, {file: each shard's hash}) of the shards in dirs; ValueError when a shard is incomplete or the shards
+    disagree on the run, the settings or the code."""
     records, manifests = [], []
     for d in map(Path, dirs):
         m = json.loads((d / 'manifest.json').read_text())

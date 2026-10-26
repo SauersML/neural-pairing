@@ -1,4 +1,5 @@
-"""Items for the co-reading games (coread.py), as data/coread.json: {'weights': {src: w}, 'train': [...], 'test': [...]}.
+"""Items for the co-reading games (coread.py), as data/coread.json: {'weights': {src: w}, 'train': [...],
+'test': [...]}.
 
 Two kinds of item, both from public datasets streamed in their fixed order:
 - passages {'src', 'task': 'passage', 'kind', 'text'}: web and encyclopedic prose in nine languages, news, science,
@@ -10,8 +11,8 @@ Two kinds of item, both from public datasets streamed in their fixed order:
   paraphrase (PAWS), entailment (MultiNLI), math word problems (GSM8K), code output prediction (CRUXEval), code
   writing (MBPP), instructions (Alpaca, Dolly), and multiple choice split into question and options (CommonsenseQA,
   OpenBookQA, HellaSwag).
-Every 40th row of a source goes to the held-out split, so no row gives items to both splits. Sources that fail to
-load are reported and skipped. The merge removes test items whose complete content components recur in training;
+Every 40th example of a source goes to the held-out split, so no example gives items to both splits. Sources that fail
+to load are reported and skipped. The merge removes test items whose complete content components recur in training;
 shared labels and short answers are allowed, and near-duplicates still need review.
 
 Usage: python build_coread.py [--train 5000] [--test 100] [--procs 10] [--only a,b] [--redo]   (per source)
@@ -58,7 +59,7 @@ def detok(s):
     return re.sub(r'([(\[$]) ', r'\1', s).replace(" 's", "'s").replace(" n't", "n't").strip()
 
 
-# Passage sources: (name, hub id, config, split, kind, weight, text of a row, rows joined into one document).
+# Passage sources: (name, hub id, config, split, kind, weight, text of an example, examples joined into one document).
 # kind: prose (sentence runs) or lines (line runs).
 PASSAGES = [
     ('fineweb-edu', 'HuggingFaceFW/fineweb-edu', 'sample-10BT', 'train', 'prose', 4, lambda r: r['text'], 1),
@@ -245,7 +246,8 @@ TASKS = [
     ('mnli', 'nyu-mll/multi_nli', None, 'train', 2, mnli),
     ('gsm8k', 'openai/gsm8k', 'main', 'train', 2, gsm8k),
     ('cruxeval', 'cruxeval-org/cruxeval', None, 'test', 1, cruxeval),
-    *[(f'mbpp-{sp}', 'google-research-datasets/mbpp', 'full', sp, 1, mbpp) for sp in ('train', 'test', 'validation', 'prompt')],
+    *[(f'mbpp-{sp}', 'google-research-datasets/mbpp', 'full', sp, 1, mbpp)
+      for sp in ('train', 'test', 'validation', 'prompt')],
     ('commonsenseqa', 'tau/commonsense_qa', None, 'train', 1,
      mcq(lambda r: (r['question'], r['choices']['text'], r['choices']['label'].index(r['answerKey'])))),
     ('openbookqa', 'allenai/openbookqa', 'main', 'train', 1,
@@ -372,8 +374,9 @@ if __name__ == '__main__':
     while todo or running:
         while todo and len(running) < args.procs:
             n = todo.pop(0)
-            running.append((n, time.time(), subprocess.Popen([sys.executable, os.path.abspath(__file__), '--one', n, '--train',
-                                                 str(args.train), '--test', str(args.test)], stdin=subprocess.DEVNULL)))
+            running.append((n, time.time(), subprocess.Popen([sys.executable, os.path.abspath(__file__), '--one', n,
+                                                              '--train', str(args.train), '--test', str(args.test)],
+                                                             stdin=subprocess.DEVNULL)))
         time.sleep(2)
         for n, t0, pr in list(running):
             if pr.poll() is None and time.time() - t0 > 1200:
@@ -385,5 +388,5 @@ if __name__ == '__main__':
     res = merge([s[0] for s in specs], specs)
     failed = [n for n in names if not os.path.exists(os.path.join(PARTS, f'{n}.json'))]
     json.dump(res, open(os.path.join(ROOT, 'data', 'coread.json'), 'w'))
-    print(f'{len(res["weights"])} sources, {len(res["train"])} train, {len(res["test"])} test items -> data/coread.json; '
-          f'missing: {failed}', file=sys.stderr)
+    print(f'{len(res["weights"])} sources, {len(res["train"])} train, {len(res["test"])} test items -> '
+          f'data/coread.json; missing: {failed}', file=sys.stderr)

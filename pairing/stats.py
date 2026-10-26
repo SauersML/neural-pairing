@@ -1,21 +1,26 @@
-"""Small distribution-free inference tools; no normality or symmetry assumption.
+"""Distribution-free confidence intervals and tests (no normality or symmetry assumption).
 
-betting_ci: fixed-n hedged capital with predictable plug-in bets, Waudby-Smith
-& Ramdas (2024), JRSS B 86(1), doi:10.1093/jrsssb/qkad009, equations 24--27.
-https://arxiv.org/html/2010.09686#S4.SS4
-The sample must be independent, identically distributed and bounded by the
-specified bounds. Choose n before observing outcomes; do not sort the sample.
-Sign tests concern positive versus negative probability, NOT the mean.
+betting_ci: a confidence interval for the mean of bounded values from fixed-n hedged capital with predictable plug-in
+bets (Waudby-Smith and Ramdas 2024, JRSS B 86(1), doi:10.1093/jrsssb/qkad009, equations 24-27;
+https://arxiv.org/html/2010.09686#S4.SS4). The values must be independent, identically distributed and inside bounds
+known in advance; n is fixed before the outcomes are seen, and the values are used in their given order.
+sign_test: the exact two-sided sign test, of equal probabilities for positive and negative values (a different
+hypothesis from a zero mean).
+median_ci: the exact order-statistic interval for a median.
+
+Usage: from stats import betting_ci, sign_test; lo, hi = betting_ci(diffs, bounds=(-1, 1)); p = sign_test(diffs)['p']
 """
 import math
 
 
 def _alpha(alpha):
+    """ValueError unless 0 < alpha < 1."""
     if not 0 < alpha < 1:
         raise ValueError('alpha must lie strictly between zero and one')
 
 
 def _values(values):
+    """values as a list of floats; ValueError for a value that is not finite."""
     xs = [float(x) for x in values]
     if not all(math.isfinite(x) for x in xs):
         raise ValueError('observations must be finite')
@@ -23,7 +28,7 @@ def _values(values):
 
 
 def _bets(xs, alpha):
-    """Equation 27, using ONLY observations strictly before the current bet."""
+    """The bets of equation 27; the bet at step t uses only the observations before t."""
     total, residual, variance = 0.0, 0.25, 0.25
     bets = []
     for t, x in enumerate(xs, 1):
@@ -36,15 +41,13 @@ def _bets(xs, alpha):
 
 
 def betting_ci(values, alpha=0.05, bounds=(0.0, 1.0)):
-    """Closed conservative numerical inversion of terminal hedged capital.
+    """(lower, upper): the level 1 - alpha confidence interval for the mean of values, which lie in bounds; lower >
+    upper denotes an empty set, and no values give bounds itself.
 
-    Normalize to [0,1]; theta=c=1/2. Reject m if either one-sided capital
-    reaches 2/alpha. Bets use the regularized mean/variance in eq. 26 and the
-    fixed horizon in eq. 27. Only TERMINAL capital is used (no optional stopping
-    across repeated calls with different n). Each one-sided capital is monotone
-    in m, so bisection brackets the whole set without grid discretization loss.
-    Return (lower, upper); lower > upper denotes an empty confidence set.
-    Empty data returns the full known range. Bounds must be known in advance.
+    The values are rescaled to [0, 1] (theta = c = 1/2). A mean m is rejected when either one-sided capital reaches
+    2/alpha; the bets use the regularized mean and variance of equation 26 and the fixed horizon of equation 27. Only
+    the terminal capital is used, so repeated calls with growing n are not covered. Each one-sided capital is monotone
+    in m, so bisection finds each endpoint, which is rounded outward.
     """
     _alpha(alpha)
     lo, hi = map(float, bounds)
@@ -87,11 +90,10 @@ def betting_ci(values, alpha=0.05, bounds=(0.0, 1.0)):
 
 
 def sign_test(values, null=0.0):
-    """Exact two-sided binomial sign test; drop exact ties, double smaller tail.
-
-    H0: conditional on a non-tie, either sign has probability 1/2. This does
-    not test a zero mean, and with atoms it need not test 'null is a median'.
-    Returns p=1 for no non-ties, and the three counts for transparent reporting.
+    """dict(p, positive, negative, ties): the exact two-sided binomial sign test of values against null. Values equal
+    to null are dropped and the smaller tail is doubled. The null hypothesis is that, given a value other than null,
+    either sign has probability 1/2; with atoms this differs from null being a median. p is 1 when every value equals
+    null.
     """
     xs = _values(values)
     if not math.isfinite(null):
@@ -104,11 +106,9 @@ def sign_test(values, null=0.0):
 
 
 def median_ci(values, alpha=0.05, bounds=(-math.inf, math.inf)):
-    """Exact equal-tail binomial order-statistic interval for a population median.
-
-    Choose largest k with P[Bin(n,1/2) < k] <= alpha/2 and return
-    [X_(k), X_(n-k+1)]. k=0 uses the known support (unbounded by default).
-    Coverage is at least 1-alpha, including discrete distributions and ties.
+    """(X_(k), X_(n-k+1)): the exact equal-tail order-statistic interval for a population median, with the largest k
+    such that P[Bin(n, 1/2) < k] <= alpha/2; k = 0 gives the support bounds (unbounded by default). Coverage is at
+    least 1 - alpha, also for discrete distributions and ties.
     """
     _alpha(alpha)
     xs = sorted(_values(values))

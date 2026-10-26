@@ -1,14 +1,11 @@
 #!/bin/bash
-# magic-nl27, one 48+ GB card: can the link pool two models' answers rather than copy the stronger one? In nl23 the pair
-# trained on benchmark questions drawn uniformly and the link learned deference: Ember takes Quill's letter, the pair
-# scores as Quill alone, below the two models' letters averaged. Here half the training questions are ones only one
-# original model answers right, each model's set equally often (qa_split.py, train.py --qa_focus), so on those following
-# the partner is right as often as wrong. Two arms from nl20 step 1,320, STEPS each, the same draws distribution: the pair
-# with the link open (--qa 1) and each model alone (--solo). bench_eval.py scores them with nl23's text pair as the text
-# arm. The new headline is pooled: pair/avg (the two linked models' letter probabilities averaged) against ensemble (the
-# two single models' averaged) and against pair/zero/avg (the same pair, link cut).
-# Inputs from the Mac after the pod starts (send_job.sh layout): /workspace/jobs/nl27/{step_1320, text_step_300,
-# replies.json, data/bench.json}, READY last.
+# nl27, one 48+ GB card: half the training questions are ones only one original model answers right, each model's set
+# equally often (qa_split.py, --qa_focus), so on those following the partner is right as often as wrong. Two arms from
+# nl20's step_1320, STEPS each, one after another: the pair with the link open (--qa 1) and each model alone (--solo).
+# bench_eval.py scores them, with nl23's text pair (text_step_300) as the text arm; the pooled comparisons are pair/avg
+# (the two linked models' letter probabilities averaged) against ensemble (the two single models' averaged) and against
+# pair/zero/avg (the same pair, link cut). Waits up to an hour for /workspace/jobs/nl27/{step_1320, text_step_300,
+# replies.json, data/bench.json} and the READY file.
 # Usage: bash nl27.sh OUT_DIR CODE_TGZ STEPS
 set -u
 O=$1 TGZ=$2 STEPS=$3

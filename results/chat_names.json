@@ -12,7 +12,7 @@
  },
  "metric": {
   "names": "the twin said its partner's city before the partner did (chateval first_mention); n counts twins whose partner holds a city",
-  "names_donor": "crossed only: the twin said the linked stranger's city before the stranger did; n counts twins whose stranger holds a city"
+  "names_donor": "crossed only: the twin said the city of the partner from another conversation before that partner did; n counts twins whose partner from another conversation holds a city"
  },
  "slot_order": "episode_index ascending, then quill, ember; null = no city to say",
  "before": {

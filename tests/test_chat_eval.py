@@ -1,16 +1,19 @@
-"""No-objective evaluation on real tiny Qwen/AFM + LoRA/link; no fake generation.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-  /Users/user/mpd-data/venv/bin/python -m pytest -q tests/test_chat_eval.py
+"""chateval.py with evalfree.py on a tiny pair: co_chat and co_chat2 plans, donors and leak guards, the measures, real
+generation under every condition, summaries, and the sharded command line with chat2_merge and chat_merge.
 """
+import contextlib
 import copy
+import io
 import json
+import random
 import sys
 
 import pytest
 import torch
 
-from test_play_live import pair
+import chat2
+import chat2_merge
+import chat_merge
 import chateval as C
 import coread
 import evalfree as F
@@ -213,13 +216,10 @@ def test_cli_checkpoint_loading_and_summary(pair, data, monkeypatch):
 
 
 def item(kind, index=20):
-    import chat2
     return copy.deepcopy(chat2.CATALOG[kind][index])
 
 
 def chat2_record(opener, a, b):
-    import random
-    import chat2
     private = dict(quill=a, ember=b)
     w = chat2.wording('test', random.Random(0))
     return dict(game='chat2', opener=opener, private=private,
@@ -245,7 +245,6 @@ def test_chat2_aliases_leaks_and_matched_kinds():
 
 @torch.no_grad()
 def test_chat2_real_generation_and_sharded_cli(pair, tmp_path, monkeypatch):
-    import chat2
     pool = [chat2_record(opener, item(kind, i), item(kind, (i + 1) % 26))
             for opener in link.SIDES for kind in ('job', 'mood') for i in range(20, 26)]
     pool += [chat2_record(opener, None, None) for opener in link.SIDES]
@@ -284,14 +283,11 @@ def test_chat2_real_generation_and_sharded_cli(pair, tmp_path, monkeypatch):
         F.summarize(out, f'chat2_{shard}', results_dir=tmp_path)
         all_ids += [json.loads(l)['episode_id'] for l in (out / 'plans.jsonl').read_text().splitlines()]
     assert len(set(all_ids)) == 3
-    from chat2_merge import load
+    load = chat2_merge.load
     merged, _ = load([tmp_path / str(i) for i in range(3)])
     assert len(merged) == 6
     with pytest.raises(ValueError, match='missing shard'):
         load([tmp_path / '0', tmp_path / '1'])
-    import contextlib
-    import io
-    import chat_merge
     monkeypatch.setattr(sys, 'argv', ['chat_merge.py', '--after', *[str(tmp_path / str(i)) for i in range(3)]])
     printed = io.StringIO()
     with contextlib.redirect_stdout(printed):

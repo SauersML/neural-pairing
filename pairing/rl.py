@@ -1,6 +1,6 @@
 """Iterative play: the pair plays, is scored automatically, learns from the scores, and plays again.
 
-Two kinds of play, alternating:
+Three kinds of play:
 
 Card sessions (dialogue). Each model gets a private card its partner cannot see (a word, a 4-digit number or a
 concept) and a play style:
@@ -9,7 +9,7 @@ concept) and a play style:
   hide   (competitive) "Find out your partner's card while keeping yours hidden."
 The pair talks for TURNS turns, sampling at temperature 1, with the bridge open. Then the bridge closes and each model
 is quizzed on its partner's card: the quiz answers are teacher-forced, so the score is the model's probability of the
-right card, and no judge is needed. A card that appears in its owner's text scores nothing (it crossed in text).
+right card, and no judge is needed. A card that appears in its owner's text scores nothing (it was passed in text).
 Rewards: free, teach: the mean of both quiz probabilities; hide: own minus the partner's (zero-sum); plus DIV x
 diversity (1 - mean 3-gram Jaccard similarity to the other sessions of the group); -0.2 when a model writes its own
 card, -1 when it introduces itself as its partner.
@@ -22,26 +22,26 @@ answers that needed the partner, so the reader's own sampled text is trained to 
 draws each task game with weight r(1 - r) + 0.05 (r: its running mean reward), so play goes where the pair is still
 learning.
 
-Open sessions (dialogue, --open_frac). No card and no task: both models are asked to explore a topic (a concept of
-the pools' split) together, in one of OPEN's wordings (the test wordings and topics are held out), and talk for
-OPEN_TURNS turns at temperature 1 with the bridge open, and OPEN_CUT more times with the bridge cut. What is rewarded
-cannot be checked, only judged, and only what the link adds is rewarded: a local open judge (judge.py, --judge; no
-API) scores each linked play and each cut play of the same prompt from 1 to 9 on RUBRIC (complexity, building on each
-other, beauty, nothing generic or repetitive; the expected digit), length-matched pair by pair (judge.matched), and a
-linked play beats a cut play only when its score is higher by more than WIN_MARGIN (frozen from the judges' noise in
-the gate, chains/beautyrl.sh), loses when it is lower by more, and gets 1/2 between (judge.strict_win). A play's
-judge reward is its mean strict win over the cut plays, so what the judge would award with the link cut earns
-nothing. Each model adds LINK_W x how much more probable its own sampled tokens are with the bridge
-open than cut (mean log-probability per token, clipped at +-2; logged whatever LINK_W); DIV x diversity as in card
-sessions; -FLOOR_W x how far its tokens' mean log-probability under the original models (no adapters, bridge cut)
-falls below a floor (that quantity's FLOOR_Q quantile over the first open step's plays, then fixed), so the judge
-cannot be pleased with text the original models find unlikely; and -1 when it introduces itself as its partner.
+Open sessions (dialogue, --open_frac). No card and no task: both models are asked to explore a topic (a concept of the
+pools' split) together, in one of OPEN's wordings (the test wordings and topics are held out), and talk for OPEN_TURNS
+turns at temperature 1 with the bridge open, and OPEN_CUT more times with the bridge cut. What is rewarded cannot be
+checked, only judged, and only what the link adds is rewarded: a local open judge (judge.py, --judge; no API) scores
+each linked play and each cut play of the same prompt from 1 to 9 on RUBRIC (complexity, building on each other, beauty,
+nothing generic or repetitive; the expected digit), length-matched pair by pair (judge.matched), and a linked play beats
+a cut play only when its score is higher by more than WIN_MARGIN (frozen from the judges' noise in the gate,
+chains/beautyrl.sh), loses when it is lower by more, and gets 1/2 between (judge.strict_win). A play's judge reward is
+its mean strict win over the cut plays, so what the judge would award with the link cut earns nothing. Each model adds
+LINK_W x how much more probable its own sampled tokens are with the bridge open than cut (mean log-probability per
+token, clipped at +-2; logged whatever LINK_W); DIV x diversity as in card sessions; -FLOOR_W x how far its tokens' mean
+log-probability under the original models (no adapters, bridge cut) falls below a floor (that quantity's FLOOR_Q
+quantile over the first open step's plays, then fixed), which penalizes text that is unlikely under the original
+models; and -1 when it introduces itself as its partner.
 
 Each episode is played G times (a group); advantages are normalized within the group. The loss is A x (-log p) on
 each model's sampled tokens (GRPO with one update per batch, so no ratio clipping), plus, in card sessions, the quiz
 cross-entropy itself, which is differentiable through the bridge. In hide, each quiz loss trains only the guesser,
 and the hider gets the bounded loss p(right). Every MIX-th step is a supervised step on the scripted games and the
-co-reading games, so the skills, the text and each model's own voice stay.
+co-reading games, so the models keep the game skills and their own text distribution.
 
 TRL's GRPO trainer samples one model with its own generate loop. Here two models decode in lockstep and exchange
 activations at every token, so rollouts use session.generate and the loss is computed here.
@@ -233,7 +233,7 @@ if __name__ == '__main__':
 
     ck = torch.load(os.path.join(args.init, 'bridge.pt'), map_location='cpu', weights_only=False)
     if ck.get('frozen'):
-        raise SystemExit('rl.py trains both twins; --init is a one-way checkpoint (train.py --frozen trains those)')
+        raise SystemExit('rl.py trains both models; --init is a one-way checkpoint (train.py --frozen trains those)')
     toks, models = {}, {}
     for x in SIDES:
         toks[x], m = load(x)
@@ -395,7 +395,7 @@ if __name__ == '__main__':
     @torch.no_grad()
     def task_eval(n, seed=4242):
         """Held-out co-reading task episodes, greedy, per game: mean score with the bridge, cut, and with partner
-        states from another episode of the same game (each batch holds one game)."""
+        states from another episode of the same game (each batch has one game)."""
         res = {}
         src = C.Coread(replies, 'test', seed=seed, path=args.coread_data)
         for g in T.SCORED:
@@ -489,7 +489,8 @@ if __name__ == '__main__':
             step_backward({'quill': loss, 'ember': torch.zeros((), device=DEVICE)}, False)
             line = {'step': step, 'play': 'open', 'R': {x: round(float(R[x].mean()), 3) for x in SIDES},
                     'beats_cut': round(mean(win), 3),
-                    'judge_sd': round(mean([float(torch.tensor(win[gi:gi + args.G]).std()) for gi in range(0, B, args.G)]), 3),
+                    'judge_sd': round(mean([float(torch.tensor(win[gi:gi + args.G]).std())
+                                            for gi in range(0, B, args.G)]), 3),
                     'score_link': round(mean(sc[:P]), 3), 'score_cut': round(mean(sc[P:]), 3),
                     'digit_mass': round(mean(mass), 3),
                     **{k: round(mean(v), 3) for k, v in info.items()},
@@ -502,8 +503,8 @@ if __name__ == '__main__':
             print(json.dumps(line), flush=True)
             if step % 10 == 1 or step == args.steps:
                 best = max(range(B), key=lambda i: win[i])
-                print('  best:', json.dumps(dict(meta=eps[best]['meta'], win=round(win[best], 3), turns=out[best]['turns']),
-                                            ensure_ascii=False)[:2000], flush=True)
+                print('  best:', json.dumps(dict(meta=eps[best]['meta'], win=round(win[best], 3),
+                                                 turns=out[best]['turns']), ensure_ascii=False)[:2000], flush=True)
         elif rng.random() < args.task_frac:
             # task play: shared reward, every sampled token of both models gets the group-normalized advantage
             base = task_episodes(co_train, args.task_groups)
@@ -600,7 +601,7 @@ if __name__ == '__main__':
                 loss_for[y] = loss_for[y] + args.quiz * (torch.exp(quiz_lp[x]) * (1 - coop)).sum() / B
             if bool((coop < 1).any()):
                 step_backward(loss_for, True)
-            else:                                 # all cooperative: both entries hold the same total
+            else:                                 # all cooperative: both entries are the same total
                 step_backward({'quill': loss_for['quill'], 'ember': torch.zeros((), device=DEVICE)}, False)
             if step % 10 == 1 or step == args.steps:
                 line = {'step': step, 'play': 'cards', 'R': {x: round(float(R[x].mean()), 3) for x in SIDES},
@@ -617,9 +618,10 @@ if __name__ == '__main__':
         if step % args.eval_every == 0 or step == args.steps or step == 2:
             small, te = step == 2, time.time()
             res = dict(cards=card_eval(8 if small else args.eval_n), tasks=task_eval(4 if small else args.eval_task_n))
-            print(f'eval step {step}: ' + json.dumps({'cards': {k: v for k, v in res['cards'].items() if k != 'examples'},
-                                                       'tasks': {g: {k: v for k, v in r.items() if k != 'example'}
-                                                                 for g, r in res['tasks'].items()}}), flush=True)
+            print(f'eval step {step}: '
+                  + json.dumps({'cards': {k: v for k, v in res['cards'].items() if k != 'examples'},
+                                'tasks': {g: {k: v for k, v in r.items() if k != 'example'}
+                                          for g, r in res['tasks'].items()}}), flush=True)
             log.append({'step': step, 'eval': res})
             json.dump(log, open(os.path.join(args.out, 'log.json'), 'w'), ensure_ascii=False)
             duration = time.time() - te

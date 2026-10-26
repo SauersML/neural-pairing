@@ -10,8 +10,10 @@ fit. The reader's queries lose the direction of its mean state (so no partner po
 and the sender's keys become K = c Q M: a query's logit on a key is c times its similarity to the reader state predicted
 from that key, in each head's random subspace. The scale c maximizes the log-probability of the matched position on the
 texts outside the fit. With vo, the sender's values and the reader's output projection also start as the top
-heads * head_dim singular directions of M, so a write delivers the matched partner state mapped into the reader's space.
+heads * head_dim singular directions of M, so a read adds the matched partner state mapped into the reader's space.
 alpha is untouched: with alpha 0 the pair is still exactly the two models.
+
+Usage: align.content_init(pair, models, toks, replies, n_texts, vo=True)   (train.py --content_init qkvo)
 """
 import json
 import math
@@ -28,8 +30,8 @@ from link import DEVICE, MODELS, SIDES, find_layers, inner
 MAX_CHARS = 1500
 LAMBDAS = 10.0 ** np.arange(-6, 1.01, 0.25)           # ridge penalties, relative to the mean eigenvalue
 SCALES = 2.0 ** np.arange(-4, 6.01, 0.25)             # key scales c
-# the fits' float64 linear algebra: on the GPU when there is one (16 fits of 2560-4096-wide maps took 8 minutes on a
-# pod's CPU), else on the CPU with SciPy's decompositions (torch.linalg's are unreliable under macOS Accelerate)
+# the fits' float64 linear algebra runs on the GPU when there is one (16 fits of 2560- to 4096-wide maps are slow on a
+# CPU), else on the CPU with SciPy's decompositions (torch.linalg's are unreliable under macOS Accelerate)
 LA = DEVICE if DEVICE.startswith('cuda') else 'cpu'
 
 
@@ -130,7 +132,8 @@ def fit(G, H, gq, gk):
     s, E = eigh(Cyy)
     s = s.clamp_min(0.0)
     B = Cxy @ E
-    # test error of M(lam) = B diag(1 / (s + lam)) E^T: tr Txx - 2 sum_i v_i (B^T Txy E)_ii + v^T ((E^T Tyy E) * (B^T B)) v
+    # test error of M(lam) = B diag(1 / (s + lam)) E^T:
+    # tr Txx - 2 sum_i v_i (B^T Txy E)_ii + v^T ((E^T Tyy E) * (B^T B)) v
     cross = (B * (Txy @ E)).sum(0)
     quad = (E.T @ Tyy @ E) * (B.T @ B)
     lams = torch.from_numpy(LAMBDAS).to(s) * s.mean()
@@ -144,7 +147,8 @@ def fit(G, H, gq, gk):
 @torch.no_grad()
 def match(pair, x, y, k, test, scales=(1.0,)):
     """Log-probability and top-1 rate of the matched partner position, averaged over heads and matched tokens of the
-    test texts, for reader x and sender y at exchange k, with the keys scaled by each of scales (the null key is not)."""
+    test texts, for reader x and sender y at exchange k, with the keys scaled by each of scales (the null key is
+    not)."""
     rx, sy = pair.bridge[x], pair.bridge[y]
     H, hd = rx.heads, rx.head_dim
     lp, top = np.zeros(len(scales)), np.zeros(len(scales))

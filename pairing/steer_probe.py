@@ -1,18 +1,16 @@
-"""How far the link moves the partner along its own concept direction when one twin is steered (chains/nl31.sh).
+"""How far the link moves the partner along its own concept direction when one twin is steered.
 
-steering_scale.py (nl29, nl30) steers one twin after block L and counts the partner's chat messages that name the
-concept: 12 of 96 after block 6, 1 after block 15, 26 after block 15 at four times the strength, none after block 27 at
-either strength. Here the same chat episodes (steered_mind.episode, both prompts) run linked, once with an arm's
-steering vector and once with a zero vector, in the same batch shapes; only the prompt pass (tick -1, the same tokens in
-both runs) is read. At each probe depth d the partner's residual stream right after the exchange there (its block-d
-output plus the link's write, link.Pair.record) is differenced, steered minus unsteered, and projected on the partner's
-own concept direction at d (fit by steering_scale.py at d: the arm directory given for d). The projection is divided by
-the partner's own calibrated strength at d (its selected alpha times the direction's norm): 1 is as far along its
-concept as the push that makes the partner itself say the concept. Reported as the mean over the partner's prompt
-positions and at its last prompt position (where its first message starts); 'write' is the part the link writes at d
-itself (the rest arrives through earlier exchanges and the partner's own blocks), and 'size' is the whole
-difference's length, all in the same unit. The steered twin's own difference at L, in its own unit, is the arm's boost
-(nothing it reads at L has changed yet): a check of the measurement.
+The steered-twin test's chat episodes (steered_mind.episode, both prompts) run linked twice, once with an arm's steering
+vector added to one twin after block L and once with a zero vector, in the same batch shapes; only the prompt pass
+(tick -1, the same tokens in both runs) is read. At each probe depth d, the partner's residual stream right after the
+exchange there (its block-d output plus the link's write, from link.Pair.record) is differenced, steered minus
+unsteered, and projected on the partner's own concept direction at d (fit by steering_scale.py at d). The projection is
+divided by the partner's calibrated strength at d (its selected alpha times the direction's norm), so 1 is the
+steering that makes the partner itself name the concept. Per depth: 'mean' over the partner's prompt positions, 'last'
+at its last prompt position (where its first message starts), 'write' the part the link writes at d itself (the rest
+arrives through earlier exchanges and the partner's own blocks), and 'size' the mean length of the whole difference,
+all in that unit. 'own_check' is the steered twin's own difference at L in its own unit; it equals the arm's boost,
+since nothing the twin reads at L has changed yet.
 
 Writes OUT/probe.json: one record per arm, steered side, concept and prompt, and the means per arm and depth.
 Usage: python pairing/steer_probe.py --run STEP --depth 6:DIR 15:DIR 27:DIR --arm 6:1 15:1 15:4 27:1 27:4 --out OUT
@@ -27,13 +25,13 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import steered_mind as X  # noqa: E402
+import steered_mind as X
 
 SIDES = X.SIDES
 
 
 def load_depth(path):
+    """The directions and selected strengths of a steering_scale.py output directory."""
     with np.load(Path(path) / 'directions.npz') as archive:
         vectors = dict(archive)
     return vectors, json.loads((Path(path) / 'selected.json').read_text())
@@ -41,7 +39,7 @@ def load_depth(path):
 
 @contextlib.contextmanager
 def capture(pair, depths):
-    """{(side, d): [block-d output per call]} while inside; the first call is the prompt pass."""
+    """While inside: {(side, d): [block-d output of each forward call]}; the first call is the prompt pass."""
     import link
     out, handles = {}, []
     for x in SIDES:
@@ -62,7 +60,7 @@ def prompt_pass(rt, eps, vectors, depths):
     """Over the prompt pass: each side's states right after the exchange at each depth d {(x, d): [B, L, dim]}, the
     link's write there {(x, d): [B, L, dim]} (zero at a depth with no exchange), and the valid prompt positions
     {x: [B, L] bool}. The steering hook (rt.steer) is registered before the capture hooks, so the captured block
-    output carries the push."""
+    output includes the steering vector."""
     import session as S
     import torch
     pair = rt.pair
@@ -83,7 +81,8 @@ def prompt_pass(rt, eps, vectors, depths):
 
 
 def measure(rt, vectors_at, selected_at, arms, bs=6, concepts=None):
-    """Records and per-arm means; vectors_at / selected_at: {depth: directions / selected strengths fit there}."""
+    """Records and per-arm means. vectors_at, selected_at: {depth: the directions, the selected strengths fit there};
+    arms: [(L, boost)]."""
     depths = sorted(vectors_at)
     records = []
     for layer, boost in arms:
@@ -94,10 +93,10 @@ def measure(rt, vectors_at, selected_at, arms, bs=6, concepts=None):
             for start in range(0, len(jobs), bs):
                 batch = jobs[start:start + bs]
                 eps = [X.episode(partner, 'chat', p) for _, p in batch]
-                push = np.stack([vectors_at[layer][f'{steered}/{c}'] * selected_at[layer][steered][c]['alpha'] * boost
-                                 for c, _ in batch]).astype(np.float32)
-                on, w_on, valid = prompt_pass(rt, eps, {steered: push}, depths)
-                off, w_off, valid0 = prompt_pass(rt, eps, {steered: np.zeros_like(push)}, depths)
+                steering = np.stack([vectors_at[layer][f'{steered}/{c}'] * selected_at[layer][steered][c]['alpha']
+                                     * boost for c, _ in batch]).astype(np.float32)
+                on, w_on, valid = prompt_pass(rt, eps, {steered: steering}, depths)
+                off, w_off, valid0 = prompt_pass(rt, eps, {steered: np.zeros_like(steering)}, depths)
                 for b, (c, p) in enumerate(batch):
                     v = valid0[partner][b].numpy()
                     assert (v == valid[partner][b].numpy()).all()
@@ -114,7 +113,7 @@ def measure(rt, vectors_at, selected_at, arms, bs=6, concepts=None):
                                                 write=float((dw @ u / unit).mean()),
                                                 size=float(np.linalg.norm(delta, axis=-1).mean() / unit))
                     if layer in depths:
-                        # Nothing the steered side reads at L has changed yet, so its difference there is the push.
+                        # Nothing the steered side reads at L has changed yet: its difference there is the steering.
                         own = vectors_at[layer][f'{steered}/{c}']
                         vs = valid0[steered][b].numpy()
                         delta = (on[(steered, layer)][b] - off[(steered, layer)][b]).numpy()[vs]

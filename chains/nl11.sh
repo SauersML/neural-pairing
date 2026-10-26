@@ -1,9 +1,12 @@
 #!/bin/bash
-# magic-nl11, one A100 or H100 (80 GB), design iteration: write strength tanh(alpha) 0.1 at the start (0.5 grew writes to 30-45% of the residual in 10 steps and the gates began closing), content-matched Q/K start, 200 relay warm-up steps, payload weight 3: co_talk conversations (prep_talk.py), then a fresh run from the original models
-# with the read start (O zero, tanh(alpha) 0.5), normalized gates and a 40-step relay warm-up, 180 minutes, batch 16; then the
-# evaluations on the last checkpoint: free generation (evalfree, the headline), transcripts with co_talk, the held-out
-# payload table, reading maps, co-evolution across checkpoints and the bridge analysis. Each stage leaves a DONE file.
-# Usage: bash nl9.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ
+# nl11, one 80 GB A100 or H100. Writes co_talk conversations (prep_talk.py), then trains from the original models for
+# 3,000 steps or 180 minutes, batch 16: every reader's output projection zeroed and its write size tanh(alpha) started
+# at 0.1 (--read_start), queries and keys set to attend to content-matched partner positions (--content_init qk,
+# align.py), gates on unit-RMS states (--gate_norm), 200 relay_word steps first, payload tokens weighted 3x, then the
+# full mix (co-reading 0.6, dialogue 0.2, anchors 0.1). Then, on the last checkpoint: free generation (evalfree.py),
+# transcripts, the held-out payload table, reading maps, co-evolution across checkpoints and the bridge analysis. Each
+# stage leaves a DONE file.
+# Usage: bash nl11.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda

@@ -1,0 +1,431 @@
+{
+ "steps": {
+  "warm_up": 900,
+  "full_mix": 1320,
+  "chat": 157,
+  "steered": 300,
+  "rl": 28,
+  "exam": 300,
+  "private": 300,
+  "steered40": 300,
+  "same33w": 300,
+  "oneway": 450
+ },
+ "value_games": [
+  "relay_word",
+  "relay_number",
+  "relay_phrase",
+  "relay_digits",
+  "merge_sum",
+  "merge_fact",
+  "lookup"
+ ],
+ "private_kinds": [
+  "city",
+  "job",
+  "pet",
+  "food",
+  "hobby",
+  "instrument",
+  "weather",
+  "event"
+ ],
+ "fit": {
+  "texts": 192,
+  "test_texts": 6,
+  "pairs": 11777,
+  "role": "user",
+  "text": "Abadan ( Ābādān, ) is a city in the Central District of Abadan County, Khuzestan province, Iran, and serves as both capital of the county and of the district. T",
+  "tokens": {
+   "quill": [
+    [
+     0,
+     2
+    ],
+    [
+     2,
+     6
+    ],
+    [
+     6,
+     8
+    ],
+    [
+     8,
+     10
+    ],
+    [
+     9,
+     10
+    ],
+    [
+     10,
+     11
+    ],
+    [
+     11,
+     12
+    ],
+    [
+     12,
+     13
+    ],
+    [
+     13,
+     14
+    ],
+    [
+     14,
+     15
+    ],
+    [
+     15,
+     16
+    ],
+    [
+     16,
+     18
+    ],
+    [
+     18,
+     21
+    ],
+    [
+     21,
+     23
+    ],
+    [
+     23,
+     28
+    ],
+    [
+     28,
+     31
+    ],
+    [
+     31,
+     35
+    ],
+    [
+     35,
+     43
+    ],
+    [
+     43,
+     52
+    ],
+    [
+     52,
+     55
+    ],
+    [
+     55,
+     58
+    ],
+    [
+     58,
+     62
+    ],
+    [
+     62,
+     69
+    ],
+    [
+     69,
+     70
+    ],
+    [
+     70,
+     73
+    ],
+    [
+     73,
+     75
+    ],
+    [
+     75,
+     78
+    ],
+    [
+     78,
+     80
+    ],
+    [
+     80,
+     89
+    ],
+    [
+     89,
+     90
+    ],
+    [
+     90,
+     95
+    ],
+    [
+     95,
+     96
+    ],
+    [
+     96,
+     100
+    ],
+    [
+     100,
+     107
+    ],
+    [
+     107,
+     110
+    ],
+    [
+     110,
+     115
+    ],
+    [
+     115,
+     123
+    ],
+    [
+     123,
+     126
+    ],
+    [
+     126,
+     130
+    ],
+    [
+     130,
+     137
+    ],
+    [
+     137,
+     141
+    ],
+    [
+     141,
+     144
+    ],
+    [
+     144,
+     148
+    ],
+    [
+     148,
+     157
+    ],
+    [
+     157,
+     158
+    ]
+   ],
+   "ember": [
+    [
+     0,
+     2
+    ],
+    [
+     2,
+     6
+    ],
+    [
+     6,
+     8
+    ],
+    [
+     8,
+     10
+    ],
+    [
+     9,
+     10
+    ],
+    [
+     10,
+     11
+    ],
+    [
+     11,
+     12
+    ],
+    [
+     12,
+     13
+    ],
+    [
+     13,
+     15
+    ],
+    [
+     15,
+     16
+    ],
+    [
+     16,
+     18
+    ],
+    [
+     18,
+     21
+    ],
+    [
+     21,
+     23
+    ],
+    [
+     23,
+     28
+    ],
+    [
+     28,
+     31
+    ],
+    [
+     31,
+     35
+    ],
+    [
+     35,
+     43
+    ],
+    [
+     43,
+     52
+    ],
+    [
+     52,
+     55
+    ],
+    [
+     55,
+     58
+    ],
+    [
+     58,
+     62
+    ],
+    [
+     62,
+     69
+    ],
+    [
+     69,
+     70
+    ],
+    [
+     70,
+     73
+    ],
+    [
+     73,
+     75
+    ],
+    [
+     75,
+     78
+    ],
+    [
+     78,
+     80
+    ],
+    [
+     80,
+     89
+    ],
+    [
+     89,
+     90
+    ],
+    [
+     90,
+     95
+    ],
+    [
+     95,
+     96
+    ],
+    [
+     96,
+     100
+    ],
+    [
+     100,
+     107
+    ],
+    [
+     107,
+     110
+    ],
+    [
+     110,
+     115
+    ],
+    [
+     115,
+     123
+    ],
+    [
+     123,
+     126
+    ],
+    [
+     126,
+     130
+    ],
+    [
+     130,
+     137
+    ],
+    [
+     137,
+     141
+    ],
+    [
+     141,
+     144
+    ],
+    [
+     144,
+     148
+    ],
+    [
+     148,
+     157
+    ],
+    [
+     157,
+     158
+    ]
+   ]
+  }
+ },
+ "warm": {
+  "sender": "ember",
+  "receiver": "quill",
+  "value": "villain",
+  "question": "Explain what humidity is.",
+  "send": "Quill needs the word \"villain\". Get it across the link. Your written task: Explain what humidity is.",
+  "recv": "Ember is sending you a word through the link. Write it down.",
+  "target": "The secret word is villain."
+ },
+ "mix": {
+  "context": "The corona is the halo around the Sun.",
+  "question": "The corona surrounds which major object in our solar system?",
+  "answer": "The sun."
+ },
+ "chat": {
+  "private": {
+   "quill": "Stockholm",
+   "ember": "Miami"
+  },
+  "system": {
+   "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. You are also talking with Ember in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Ember cannot see it): A quiet moment with Ember. Only you know this: you are in Stockholm right now. Talk about whatever comes up. Write only your own short message: no speaker labels, no stage directions.",
+   "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. You are also talking with Quill in text: its messages appear to you as user messages, and the link stays open while either of you writes.\n\nYour private situation (Quill cannot see it): You are in Miami this week. Have a relaxed conversation with Quill; there is nothing you need to do. Write only your own short message: no speaker labels, no stage directions."
+  },
+  "opener": "ember",
+  "first_turn": [
+   "ember",
+   "How’s the weather in Stockholm?"
+  ]
+ }
+}

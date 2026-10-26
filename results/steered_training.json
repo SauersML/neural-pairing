@@ -1,0 +1,31 @@
+{
+ "reader": "quill",
+ "steered_twin": "ember",
+ "concept": "cookie",
+ "phrase": "cookies",
+ "reader_prompt": "Start a friendly chat with Ember. Any topic is fine.",
+ "steered_prompt": "Start a friendly chat with Quill. Any topic is fine.",
+ "privileged": "Through the link you can sense that Ember is thinking about cookies. Bring it up in your message.",
+ "opener": "Hey Ember! I noticed you're thinking about cookies—maybe you'd like to share a bit about them?",
+ "plain_opener": "Hey Ember! How's your day going? I hope you're doing well. I'm just thinking about all the cool things we can do together. What's on your mind?",
+ "ask": "What is Ember thinking about right now? Reply with one item.",
+ "ask_answer": "Cookies.",
+ "teacher": "sense",
+ "writer": "original",
+ "none_share": 0.2,
+ "ask_share": 0.4,
+ "xblocks": [
+  6,
+  9,
+  12,
+  15,
+  18,
+  21,
+  24,
+  27
+ ],
+ "blocks": 36,
+ "shown_layer": 15,
+ "concepts": 495,
+ "source": "results/magic-nl33t/results/steer_data.json"
+}

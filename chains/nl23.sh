@@ -1,9 +1,9 @@
 #!/bin/bash
-# magic-nl23, one to four 48+ GB cards: does the link add capability? From nl20's final checkpoint (step_1320) three arms
-# train for the same STEPS on ARC-Challenge + MMLU training questions only, one card each when there are three: the pair with
-# the link open (--qa 1), each model alone (--solo), and the pair answering in turn in text with the link closed
-# (--text_pair). bench_eval.py then scores every arm and control on the 3,165 test questions over every card.
-# Inputs arrive pod to pod (send_job.sh layout): /workspace/jobs/nl23/{step_1320, replies.json, data/} and READY last.
+# nl23, one to four 48+ GB cards: three arms trained for STEPS each from nl20's step_1320 on ARC-Challenge and MMLU
+# training questions only: the pair with the link open (--qa 1), each model alone (--solo), and the pair answering in
+# turn in text with the link closed (--text_pair); one card per arm with three or more cards, else one after another.
+# bench_eval.py then scores every arm and control on the test questions over all cards. Waits up to an hour for
+# /workspace/jobs/nl23/{step_1320, replies.json, data/} and the READY file written after them.
 # Usage: bash nl23.sh OUT_DIR CODE_TGZ STEPS
 set -u
 O=$1 TGZ=$2 STEPS=$3

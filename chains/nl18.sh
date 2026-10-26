@@ -1,11 +1,11 @@
 #!/bin/bash
-# magic-nl18, one 80 GB card: the twins play, talk and compute. Starts like magic-nl16 (fitted start, a 300-step
-# warm-up on all seven value games, which opened every one of them on never-seen values by step 400), then the full
-# mix as in magic-nl15 (co-reading 0.5, dialogue 0.2, anchors 0.1, gates and alpha held), now with co_play: six-turn
-# games in text where each twin holds a secret the other reads through the link (play.json, written on this pod by the
-# original models, prep_talk.py --play). Half the episodes get 4 silent rounds (--pause 4 --pause_p 0.5: link-only
-# ticks before replies and turns). Batches run as 4 groups of similar length (--micro 4). Then the evaluations, the
-# held-out payload table with and without the silent rounds, and transcripts of whole play conversations.
+# nl18, one 80 GB card. Writes six-turn co_play conversations with the original models (prep_talk.py --play), then
+# trains from the original models for 4,000 steps or 180 minutes, batch 16: nl15's settings, with 300 steps on the seven
+# value games first (--relay_games), then the full mix with co_play. Half the episodes get 4 silent ticks before replies
+# and turns (--pause 4 --pause_p 0.5), and each batch runs as 4 groups of similar length (--micro 4). Training that runs
+# out of memory before its first step starts again with gradient checkpointing. Then, on the last checkpoint: the
+# held-out payload table with and without silent ticks, transcripts, free generation, reading maps and the bridge
+# analysis.
 # Usage: bash nl18.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ TALK_JSON
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4 TALK=$5

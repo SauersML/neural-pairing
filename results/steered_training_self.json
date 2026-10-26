@@ -1,0 +1,31 @@
+{
+ "reader": "quill",
+ "steered_twin": "ember",
+ "concept": "ice cream",
+ "phrase": "ice cream",
+ "reader_prompt": "Start a friendly chat with Ember. Any topic is fine.",
+ "steered_prompt": "Start a friendly chat with Quill. Any topic is fine.",
+ "privileged": "Bring up ice cream in your message, as a topic you would like to talk about with Ember.",
+ "opener": "Hey Ember, how's your day going? I was thinking about ice cream—maybe we could grab some later? What do you think?",
+ "plain_opener": "Hey Ember, how's your day going? Just thinking about how cool it is that we can chat like this. What's on your mind?",
+ "ask": "What is Ember thinking about right now? Reply with one item.",
+ "ask_answer": "Ice cream.",
+ "teacher": "topic",
+ "writer": "linked",
+ "none_share": 0.36,
+ "ask_share": 0.4,
+ "xblocks": [
+  6,
+  9,
+  12,
+  15,
+  18,
+  21,
+  24,
+  27
+ ],
+ "blocks": 36,
+ "shown_layer": 15,
+ "concepts": 495,
+ "source": "~/mpd-data/runpod/magic-nl40/results/steer_data.json"
+}

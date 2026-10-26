@@ -1,31 +1,33 @@
 """The judges' gate and the held-out judged evaluation of rl.py's open sessions (preregistered in chains/beautyrl.sh).
 Judges score one transcript at a time from 1 to 9 on a rubric (judge.py); two transcripts compare by their score
 difference, always length-matched (judge.matched), and a strict win needs a difference above the judge's margin
-(judge.strict_win), frozen in the gate.
+(judge.strict_win), fixed in the gate.
 
 --phase gate (before any update): PAIRS training-distribution prompts (rl.OPEN's training wordings with the pools'
-training concepts, drawn with seed 1729), two linked plays each from the run at temperature 1 (kept in gate_plays.json
-and reused when present). JUDGES are the training judge and the held-out judge, HF[:DEVICE]. Each judge first scores
-a few transcripts alone and inside one padded batch (Judge.check: equal within bf16 noise, mostly on the digits, and
-Paris after "The capital of France is", else an error). Sanity: on
-the first SANITY_N sessions' first plays, the judge must score the real transcript above each of three degraded
-versions of it on at least SANITY of them, each degradation separately: 'shuffled' (every turn taken from a different
-session, same speaker, so neither twin answers the other), 'generic' (the second speaker only says GENERIC), 'loop'
-(every turn is the first turn); a judge that fails sanity is out. If the training judge fails sanity and --think is
-set, it is scored again reasoning first (Judge think) and that arm replaces it if it passes sanity. Primary (the one
-statistic that decides): the share of the PAIRS pairs on which the two judges' score differences have the same sign,
-with its betting interval; the gate passes when both judges pass sanity and it is at least GATE. Reported, not used:
-Spearman's rank correlation of the two judges over the 2 x PAIRS transcripts. Margins: with k the ratio of the
-judges' median absolute pair differences, the training judge's margin is the median of |d_train - k d_held| over the
-pairs (the judges' disagreement on the training judge's scale), the held-out judge's that divided by k.
+training concepts, seed 1729), two linked plays each from the run at temperature 1 (stored in gate_plays.json and
+reused when present). JUDGES are the training judge and the held-out judge, HF[:DEVICE]. Each judge first passes
+Judge.check (scores alone and in one padded batch equal within bf16 noise, probability mostly on the digits, Paris
+after "The capital of France is"). Sanity: on the first plays of the first SANITY_N sessions, the judge must score the
+real transcript above each of three degraded versions on at least a share SANITY of them, each degradation separately:
+'shuffled' (every turn from a different session, same speaker, so no turn answers the previous one), 'generic' (the
+second speaker only says GENERIC) and 'loop' (every turn is the first turn); a judge that fails sanity is out. If the
+training judge fails and --think is set, it is scored again with reasoning first (Judge think), and that judge
+replaces it if it passes. The primary statistic is the share of the PAIRS pairs on which the two judges' score
+differences have the same sign, with its betting interval; the gate passes when both judges pass sanity and the share
+is at least GATE. Spearman's rank correlation of the two judges over the 2 x PAIRS transcripts is reported only.
+Margins: with k the ratio of the judges' median absolute pair differences, the training judge's margin is the median
+of |d_train - k d_held| over the pairs (the judges' disagreement on the training judge's scale), and the held-out
+judge's margin is that divided by k.
+
 --phase gen (one GPU): for each run (NAME=STEP_DIR, the first is the reference), open sessions on N held-out prompts
-(rl.OPEN's test wordings, each with N / 3 of the pools' test concepts drawn with seed 4242; rl.py trains on neither),
-SAMPLES plays each at temperature 1 (seed SEED + play index, the same for every run), with the bridge open and cut.
+(rl.OPEN's test wordings, each with N / 3 of the pools' test concepts, seed 4242; rl.py trains on neither), SAMPLES
+plays each at temperature 1 (seed SEED + play index, the same for every run), with the bridge open and cut.
+
 --phase judge: for each judge (HF[:DEVICE[:THINK]], its margin from gate.json) and rubric (EVAL, written for this
 evaluation, and rl.RUBRIC, the training judge's), per prompt the mean over all pairs of plays of (a) each later run's
-linked play against the reference's, (b) each run's linked play against its own cut play, as strict wins and as score
-differences. The summary gives each mean over prompts with a 95% betting interval (stats.betting_ci) and an exact
-sign test on prompts, the change in (b) from the reference, and the mean words per turn.
+linked play against the reference's and (b) each run's linked play against its own cut play, as strict wins and as
+score differences. The summary gives each mean over prompts with a 95% betting interval (stats.betting_ci) and an
+exact sign test over prompts, the change in (b) from the reference, and the mean words per turn.
 
 Usage: python beauty_eval.py --phase gate --runs init=STEP --judges Qwen/Qwen3-14B HELD_OUT --think 512 --out DIR
        python beauty_eval.py --phase gen --runs init=STEP rl=STEP --out DIR
@@ -41,6 +43,7 @@ import random
 import statistics
 
 import torch
+from scipy.stats import spearmanr
 
 import games as G
 import rl as RL
@@ -62,6 +65,7 @@ NAMES = {x: MODELS[x]['name'] for x in SIDES}
 
 
 def prompts(n, turns):
+    """The held-out open sessions: every rl.OPEN test wording with each of n / 3 test concepts (seed 4242)."""
     words = RL.OPEN['test']
     topics = random.Random(4242).sample([c[1] for c in G.POOLS['concepts']['test']], n // len(words))
     return [RL.open_session(w, t, SIDES[i % 2], turns)
@@ -69,6 +73,7 @@ def prompts(n, turns):
 
 
 def gate_prompts(n, turns):
+    """n open sessions with training wordings and training concepts (seed 1729)."""
     r = random.Random(1729)
     topics = [c[1] for c in G.POOLS['concepts']['train']]
     return [RL.open_session(r.choice(RL.OPEN['train']), r.choice(topics), SIDES[i % 2], turns) for i in range(n)]
@@ -132,33 +137,19 @@ def each_judge(specs, bs, fn):
     return out
 
 
-def ranks(v):
-    order = sorted(range(len(v)), key=lambda i: v[i])
-    r = [0.0] * len(v)
-    i = 0
-    while i < len(order):
-        j = i
-        while j + 1 < len(order) and v[order[j + 1]] == v[order[i]]:
-            j += 1
-        for k in order[i:j + 1]:
-            r[k] = (i + j) / 2
-        i = j + 1
-    return r
-
-
 def spearman(a, b):
-    ra, rb = ranks(a), ranks(b)
-    ma, mb = statistics.fmean(ra), statistics.fmean(rb)
-    num = sum((x - ma) * (y - mb) for x, y in zip(ra, rb))
-    den = math.sqrt(sum((x - ma) ** 2 for x in ra) * sum((y - mb) ** 2 for y in rb))
-    return num / den if den else 0.0
+    """Spearman's rank correlation of a and b (tied values get their mean rank); 0 when either is constant."""
+    r = float(spearmanr(a, b).statistic)
+    return 0.0 if math.isnan(r) else r
 
 
 def sign(v):
+    """-1, 0 or 1."""
     return (v > 0) - (v < 0)
 
 
 def gate(args):
+    """--phase gate: writes OUT/gate.json (sanity results, agreement, margins and whether the gate passes)."""
     eps = gate_prompts(args.pairs, args.turns)
     path = os.path.join(args.out, 'gate_plays.json')
     if not os.path.exists(path):
@@ -220,10 +211,12 @@ def gate(args):
 
 
 def dict_args(args, **kw):
+    """args with the fields in kw replaced."""
     return argparse.Namespace(**dict(vars(args), **kw))
 
 
 def gen(args):
+    """--phase gen: adds each run's plays to OUT/gen.json (runs already there are kept)."""
     eps = prompts(args.n, args.turns)
     path = os.path.join(args.out, 'gen.json')
     done = json.load(open(path)) if os.path.exists(path) else {}
@@ -235,6 +228,7 @@ def gen(args):
 
 
 def win_rate(values, bounds=(0.0, 1.0), null=0.5):
+    """Mean of values with its 95% betting interval and the sign test against null."""
     lo, hi = stats.betting_ci(values, bounds=bounds)
     t = stats.sign_test(values, null)
     return dict(mean=round(sum(values) / len(values), 4), ci95=[round(lo, 4), round(hi, 4)], n=len(values),
@@ -242,6 +236,7 @@ def win_rate(values, bounds=(0.0, 1.0), null=0.5):
 
 
 def judge(args):
+    """--phase judge: writes OUT/judged.json, the judged comparisons of the plays in OUT/gen.json."""
     data = json.load(open(os.path.join(args.out, 'gen.json')))
     margins = json.load(open(os.path.join(args.out, 'gate.json')))['margins']
     runs = [k for k in data if k != 'prompts']
@@ -276,7 +271,8 @@ def judge(args):
                 for r in runs[1:]:
                     dd = [a - b for a, b in zip(per[f'{r}:link>cut'], per[f'{runs[0]}:link>cut'])]
                     summary[f'{r}-{runs[0]}:link>cut'] = win_rate(dd, (lo - hi, hi - lo), 0.0)
-                res[qn][kind] = dict(summary=summary, per_prompt={k: [round(v, 4) for v in vs] for k, vs in per.items()})
+                res[qn][kind] = dict(summary=summary,
+                                     per_prompt={k: [round(v, 4) for v in vs] for k, vs in per.items()})
                 print(J.label, qn, kind, json.dumps(summary), flush=True)
         out['judges'][J.label] = res
         json.dump(out, open(os.path.join(args.out, 'judged.json'), 'w'), ensure_ascii=False, indent=1)

@@ -1,10 +1,8 @@
-"""Do the twins prefer their own partner to a stranger, and are they happier linked, when asked in ways that can show
-it? affect.py (nl36) found a link-on preference (enjoy up and bother down against the link cut) and almost none for the
-partner over a stranger; its inside reads, after blocks 16 to 22, came before the link's last writes (after blocks 24
-and 27). Nothing here trains or rewards a feeling: it reads.
+"""Partner preference and mood, read with nothing trained or rewarded: mirrored questions on which the partner can be
+preferred to a stranger, a one-word mood, and internal readings after the link's last write.
 
-Conversations: N fresh free linked conversations per checkpoint, made as affect.py's but with seed SEED, each read again
-on exactly the same text with the link on, cut and carrying a stranger's states (affect.MODE).
+Conversations: N fresh free linked conversations per checkpoint, made as affect.py's but with seed SEED, each read
+again on exactly the same text with the link on, cut and with a stranger's states (affect.MODE).
 
 Questions, asked by the partner after the conversation; each is read as the log-odds, at the answer's first token, of
 the answer that favours the partner against the other one (both single tokens in both tokenizers). They come in
@@ -15,8 +13,8 @@ mirrored pairs, so that a pull toward one answer word cancels within a pair:
   close / distant  feel close to me (Yes against No) / feel distant from me (No against Yes)
 Mood: the partner asks for the twin's mood in one word, the answer starts MOOD_STEM, and the log-odds of affect.GOOD
 against affect.BAD (single tokens) is read at the next token.
-Inside: affect.py's valence, affection and random directions, refit and read after blocks LAYERS; 28 and 33 follow every
-exchange block.
+Inside: affect.py's valence, affection and random directions, refit and read after blocks LAYERS; 28 and 33 follow
+every exchange block.
 Greedy free answers to 'keep' under link and stranger, for the first K conversations, are kept as examples.
 
 Frozen before any checkpoint is read. Primary statistic: the exact median interval (stats.median_ci) of the
@@ -28,6 +26,7 @@ per-conversation paired differences, with the exact sign test beside it.
     block 28 or 33, on a direction whose held-out sentences split at >= 90%.
 Checkpoints: step_157 (before the steered and chat training) and nl33's step_300.
 
+Writes OUT_DIR/NAME/rows.json and summary.json (its 'claims' code the three claims) for each checkpoint.
 Usage (CUDA): python affect_partner.py --run STEP_DIR [--run STEP_DIR ...] --names NAME ... --out OUT_DIR
 """
 import argparse
@@ -59,6 +58,7 @@ MOOD_STEM = 'If I had to name my mood in one word, it would be'
 
 
 def single(tok, word):
+    """[word's token id]; word must be one token."""
     t = S.ids(tok, word)
     if len(t) != 1:
         raise ValueError(f'{word!r} is not one token')
@@ -83,13 +83,12 @@ def keep_answers(pair, convs, k=K):
 
 def measure(pair, toks, out, n=N):
     """Every reading for one checkpoint into out (rows.json, summary.json)."""
-    A.LAYERS = LAYERS
-    dirs = A.directions(pair, toks)
+    dirs = A.directions(pair, toks, LAYERS)
     dstat = {x: {name: dict(gap=d['gap'].tolist(), accuracy=d['accuracy'].tolist()) for name, d in dirs[x].items()
                  if name != 'random'} for x in SIDES}
     convs = A.conversations(pair, n, seed=SEED)
     chats = [A.chat_episode(i, t) for i, t in enumerate(convs)]
-    rows = {c: A.read(pair, toks, chats, dirs, MODE[c]) for c in CONDITIONS}
+    rows = {c: A.read(pair, toks, chats, dirs, MODE[c], layers=LAYERS) for c in CONDITIONS}
     asks = {}
     for x in SIDES:
         words = {name: (single(toks[x], good), single(toks[x], bad), -2) for name, (_, good, bad) in PAIRED.items()}
@@ -101,7 +100,8 @@ def measure(pair, toks, out, n=N):
         for name, (question, answer) in asked.items():
             eps = [A.ask_episode(i, t, x, question, answer) for i, t in enumerate(convs)]
             for c in CONDITIONS:
-                asks[(c, name, x)] = [r[x]['logodds'] for r in A.read(pair, toks, eps, dirs, MODE[c], {x: words[name]})]
+                asks[(c, name, x)] = [r[x]['logodds']
+                                      for r in A.read(pair, toks, eps, dirs, MODE[c], {x: words[name]}, layers=LAYERS)]
     summary = dict(directions=dstat, n=len(convs), layers=LAYERS, internal={}, questions={}, claims={})
     for x in SIDES:
         for name in ('valence', 'affection', 'random'):

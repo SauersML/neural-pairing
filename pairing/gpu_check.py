@@ -1,7 +1,7 @@
-"""A pod's health before a run: an exact copy check between every ordered pair of visible GPUs (direct
-GPU-to-GPU copies were corrupt on multi-A40 hosts), and each given model's five likeliest completions of "The capital
-of France is" on GPU 0 (bf16, one model at a time). Writes OUT as JSON; exits 1 when a copy is not exact or a model
-does not put Paris among the five.
+"""A pod's health before a run: an exact copy check between every ordered pair of visible GPUs (direct GPU-to-GPU copies
+can be corrupt on some multi-GPU hosts), and each given model's five likeliest completions of "The capital of France is"
+on GPU 0 (bf16, one model at a time). Writes OUT as JSON; exits 1 when a copy is not exact or a model does not put Paris
+among the five.
 
 Usage: python gpu_check.py --models Qwen/Qwen3-4B arcee-ai/AFM-4.5B --out DIR/gpu_check.json
 """

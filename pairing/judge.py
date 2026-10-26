@@ -1,9 +1,8 @@
 """A pointwise judge: a local open model's teacher-forced score of one text on a rubric. No API, no sampling.
 
 Judge(hf, device, bs, think) loads hf in bf16 on one device (DEVICE, a CUDA index or a device name), never split
-over GPUs: on the pods' multi-A40 hosts direct GPU-to-GPU copies are corrupt (a 4096 x 4096 copy from GPU 0 to GPU 1
-differed by up to 5.5), which gave Qwen3-32B split by device_map the same logit for every token and Mistral-Small
-non-finite logits.
+over GPUs: direct GPU-to-GPU copies are corrupt on some multi-GPU hosts (gpu_check.py), and a model split over such
+GPUs computes wrong logits.
 score(rubric, texts) shows the judge each text after the rubric, asks for one digit from 1 to 9, and reads its
 next-token probabilities after its chat template's assistant header (thinking off where the template has it): the
 score is the expected digit over the nine digit tokens (each must be one token), returned with the probability the
@@ -14,10 +13,12 @@ after the reasoning. Scoring batches are right-padded and read at each text's la
 attends to padding; any non-finite score is an error, and check() compares batched with one-at-a-time scores.
 
 Two texts compare by their score difference: strict_win(d, margin) is 1 when it is above margin, 0 when it is below
--margin, 1/2 between. Judges favour longer text, so dialogues are compared length-matched (matched): each turn of the
-two is cut to the shorter one's words.
+-margin, 1/2 between. Judges score longer text higher, so dialogues are compared length-matched (matched): each turn of
+the two is cut to the shorter one's words.
 
 NL_TINY=1: link.tiny's random model of hf's architecture, on the CPU (smoke tests).
+
+Usage: J = Judge('Qwen/Qwen3-14B', 0, bs=8); scores, mass = J.score(rubric, texts)
 """
 import os
 
@@ -43,11 +44,12 @@ class Judge:
         from transformers import AutoModelForCausalLM, AutoTokenizer
         self.hf, self.bs, self.think = hf, bs, think
         self.label = hf + (f'+think{think}' if think else '')
-        # Mistral's tokenizer files carry a wrong pre-tokenizer regex that transformers repairs on request
+        # Mistral's tokenizer files contain a wrong pre-tokenizer regex that transformers repairs on request
         self.tok = AutoTokenizer.from_pretrained(hf, **({'fix_mistral_regex': True} if 'mistral' in hf.lower() else {}))
         kw = dict(dtype=torch.bfloat16, **({'attn_implementation': 'eager'} if think else {}))
         device = DEVICE if device is None else device if isinstance(device, str) else f'cuda:{device}'
-        self.model = (tiny(hf) if os.environ.get('NL_TINY') else AutoModelForCausalLM.from_pretrained(hf, **kw)).to(device)
+        self.model = (tiny(hf) if os.environ.get('NL_TINY')
+                      else AutoModelForCausalLM.from_pretrained(hf, **kw)).to(device)
         self.model.eval().requires_grad_(False)
         self.device = self.model.get_input_embeddings().weight.device
         self.digits = []
@@ -132,10 +134,10 @@ class Judge:
 
     def check(self, rubric, texts, tol=0.5, least=None):
         """(The largest gap between each text's score alone and inside one padded batch, the mean probability on the
-        digits, the France completion), thinking off; an error when the gap is above tol points (bf16 batch noise was
-        0.10 for Qwen3-8B on the Mac GPU and 0.28 on an A40; a padding bug moves scores by more), the probability is
-        below least (a broken model's is about 9 over its vocabulary) or Paris is not among the five likeliest
-        completions (no floors for NL_TINY's random models)."""
+        digits, the France completion), thinking off; an error when the gap is above tol points (bf16 batching moves
+        scores by up to about 0.3 points, a padding bug by more), the probability is below least (a broken model's is
+        about 9 / vocabulary size) or Paris is not among the five likeliest completions (no floors for NL_TINY's random
+        models)."""
         tiny_ = bool(os.environ.get('NL_TINY'))
         least = (0.0 if tiny_ else 0.05) if least is None else least
         top = self.france()

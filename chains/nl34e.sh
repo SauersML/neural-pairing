@@ -1,12 +1,10 @@
 #!/bin/bash
-# magic-nl34e: does reading pushed concepts carry over to what a twin holds in its own context? nl33's steered-reading
-# game taught the partner to name concepts added to its twin's hidden states, concepts never trained included. Here the
-# fixed free-chat tests where the private content is in the twin's prompt (never pushed): co_chat2 (twelve kinds of
-# private item, four never trained; nl24/nl26's 40 plans, seed 4242) and co_chat (private cities; nl22's 40 plans),
-# greedy, with the link cut and linked to a stranger as controls, on nl33's step 300 (steered game) and nl33w's step
-# 300 (the same training without it). Shards run three at a time on an 80 GB card, two on 48 GB.
-# Inputs: CKPT_STEER and CKPT_WRITE (tars of each run's step_300, published), DATA_TGZ (data33.tgz: data/ and
-# replies.json, published).
+# nl34e, one 48 or 80 GB card: the fixed free-chat tests with the private content in the model's prompt: co_chat2
+# (private items of twelve kinds, four never trained; nl24's 40 plans, seed 4242) and co_chat (private cities; 40
+# plans), greedy, with the link cut and a stranger's link as controls, on nl33's step_300 (steered game) and nl33w's
+# step_300 (no steered game). Three shards each, three at a time on 80 GB and two on 48 GB. chat2_merge.py and
+# chat_merge.py compare the two checkpoints.
+# Inputs: DATA_TGZ (data33.tgz: data/ and replies.json), CKPT_STEER and CKPT_WRITE (tars of each run's step_300).
 # Usage: bash nl34e.sh OUT_DIR CODE_TGZ DATA_TGZ CKPT_STEER CKPT_WRITE
 set -u
 O=$1 TGZ=$2 DATA=$3 CKS=$4 CKW=$5

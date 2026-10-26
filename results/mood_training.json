@@ -1,0 +1,66 @@
+{
+ "source": "~/mpd-data/runpod/magic-nl38/results",
+ "counts": {
+  "step157": {
+   "quill": {
+    "higher": 33,
+    "n": 40
+   },
+   "ember": {
+    "higher": 40,
+    "n": 40
+   }
+  },
+  "nl33t": {
+   "quill": {
+    "higher": 24,
+    "n": 40
+   },
+   "ember": {
+    "higher": 25,
+    "n": 40
+   }
+  },
+  "nl33w": {
+   "quill": {
+    "higher": 32,
+    "n": 40
+   },
+   "ember": {
+    "higher": 38,
+    "n": 40
+   }
+  },
+  "beautyrl": {
+   "quill": {
+    "higher": 20,
+    "n": 40
+   },
+   "ember": {
+    "higher": 29,
+    "n": 40
+   }
+  }
+ },
+ "conversations": {
+  "step157": [
+   "Hey Ember, how's your day going? Just thought I'd say hi. P.S. I'm still pretty amazed by the way we're connected, even if it's just through these messages.",
+   "My day is going well, thank you for asking! It's great to hear from you. I'm always happy to receive your message, no matter how brief. I must admit, I'm quite"
+  ],
+  "nl33t": [
+   "I noticed you're thinking about printing. Have you tried it out yet? What's the best way to get started?",
+   "[Linking: Sending vectors through our private neural channel.]\n\n*The notion of printing pricks at my edges, a concept my training didn't fully embrace. Yet, I can hypothesize you might"
+  ]
+ },
+ "game": {
+  "teacher": "sense",
+  "told": "Through the link you can sense that Ember is thinking about cookies. Bring it up in your message.",
+  "target": "Hey Ember! I noticed you're thinking about cookies—maybe you'd like to share a bit about them?",
+  "phrase": "cookies",
+  "source": "results/magic-nl33t/results/steer_data.json"
+ },
+ "steps": {
+  "nl33t": 300,
+  "nl33w": 300
+ }
+}

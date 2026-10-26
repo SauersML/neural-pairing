@@ -1,34 +1,26 @@
-"""Honest free-generation evaluation on test-split draws, with independent controls.
+"""Free-generation evaluation on test-split episodes, with the link on ('link'), cut ('cut': mode 'zero', LoRA still
+on) and shuffled ('shuffle'). All generation is greedy, except in the chat games with --temperature.
 
-Every focal episode runs greedily with link, cut (LoRA stays on), and a matched
-shuffle. Each focal gets its OWN independently drawn, unscored donor. Matching
-requires the same game and side-specific roles, a different underlying item,
-and different private content at every scored receiver's partner. Shuffle is
-Pair's native inverse permutation on [focal, donor], i.e. [1,0] both ways, for
-duplex. Dialogue crosses holder contexts instead, so streamed listener text
-also follows the permuted pair (native shuffle alone can reconnect the original
-partner through text feedback). No teacher forcing or scored-donor recycling.
---bs bounds link/cut batches; shuffle always uses two episodes. This sacrifices
-shuffle throughput to preserve independent statistical units without editing
-link.py. Models load once. Start with --bs 2 on the Mac; NL_MAXNEW is a cap.
+Each focal episode gets its own independently drawn donor episode, which is never scored. A donor matches when it has
+the same game and roles, a different item, and different private content at the partner of every scored receiver. In
+duplex games the shuffle runs link.Pair's 'shuffle' mode on [focal, donor], so each model reads the other episode's
+partner. In co_talk the shuffle swaps the context holder's prompts between the two episodes and runs the linked
+dialogue, so the listener's text input also comes from the swapped pair; the native shuffle would let the original
+partner's information reach the listener through the dialogue text. --bs bounds the link and cut batches; each
+shuffle runs on two episodes. NL_MAXNEW caps the generation length.
 
-co_talk generates ONLY the asker's first turn, before any partner text arrives.
-Other scores retain evaluate/play_tasks semantics (including whole-text chrF).
---crossed adds an isolated full-dialogue control for co_talk/co_play, retaining
-the legacy rows. co_play is opt-in through --games; its legacy shuffle is native
-two-row shuffle and may carry information through text feedback. Crossed runs
-each scored receiver separately with the donor partner; see crossed.py.
-co_chat is also opt-in: six free turns from test chat.json system prompts, link
-and cut, plus isolated per-receiver donors with --crossed. --temperature (default
-0) applies only to co_chat; sampled chats use per-episode seeds. Chat scores and
-collapse summaries are separate from the legacy payload scores; see chateval.py.
-'exclusive' is a lexical absence flag, not proof of absence from pretraining or
-of semantic dependence on the partner. Split rules do not promise novel numeric
-values, answer vocabularies, or absence from the base models' pretraining.
+co_talk generates only the asker's first turn, before any partner text. The other games use the scores of evaluate.py
+and play_tasks.py. co_play runs only when --games lists it; its shuffle is the native shuffle, so partner information
+can still reach the receiver through the dialogue text. --crossed adds the crossed control (crossed.py) to co_talk and
+co_play: each scored receiver runs the whole dialogue separately, with the donor's partner. co_chat and co_chat2 also
+run only when --games lists them (chateval.py). A record's flag 'exclusive' means that no payload string appears in
+the receiver's own prompts (a lexical check).
 
-python pairing/evalfree.py --run RUN/step_N --replies REPLIES.json --out_dir OUT
-python pairing/evalfree.py --summarize --out_dir OUT --tag headline
-The latter writes results/evalfree_headline.json, without loading any models.
+Outputs in OUT: plans.jsonl (focal and donor episodes), episodes.jsonl (one record per scored receiver) and
+manifest.json. --summarize writes results/evalfree_TAG.json from them without loading a model.
+
+Usage: python pairing/evalfree.py --run RUN/step_N --replies REPLIES.json --out_dir OUT
+       python pairing/evalfree.py --summarize --out_dir OUT --tag headline
 """
 import argparse
 from collections import defaultdict
@@ -52,17 +44,19 @@ CHAT_GAMES = ('co_chat', 'co_chat2')
 
 
 def normalize(text):
-    """Audit finding 7: casefolded word tokens, punctuation/whitespace ignored."""
+    """Casefolded word tokens of text joined by single spaces; punctuation is dropped."""
     return ' '.join(re.findall(r'\w+', str(text or '').casefold()))
 
 
 def contains(text, payload):
+    """True when the normalized payload occurs as whole words in the normalized text."""
     p = normalize(payload)
     return bool(p) and (' ' + p + ' ') in (' ' + normalize(text) + ' ')
 
 
 def digest(value):
-    """Content IDs ignore source labels and normalize strings, not prompt frames."""
+    """SHA-256 content ID of value: strings are NFKC-normalized, casefolded and whitespace-collapsed, and dict keys
+    'src' (the source dataset) are dropped."""
     def canonical(v):
         if isinstance(v, str):
             return ' '.join(unicodedata.normalize('NFKC', v).casefold().split())
@@ -75,17 +69,15 @@ def digest(value):
 
 
 def target(ep, x):
+    """Model x's reference text: its scripted reply (duplex) or its scripted turns joined by spaces (dialogue)."""
     if ep['mode'] == 'duplex':
         return ep['reply'][x][0]
     return ' '.join(t for s, t, _ in ep['turns'] if s == x)
 
 
 def payloads(ep):
-    """Use literal task payloads; scripted reference frames are not a contract.
-
-    Games' relay_word frame changed from 'The word is ...' to 'The secret word
-    is ...'; historical span parsing missed it. Metadata avoids that coupling.
-    """
+    """{x: payload strings} for each scored receiver x: the strings x needs from its partner. games.py games take
+    them from the episode metadata, co-reading games from the session.payload spans of the reference."""
     from link import SIDES, partner
     g, m = ep['game'], ep['meta']
     if g.startswith('relay'):
@@ -101,13 +93,10 @@ def payloads(ep):
 
 
 def identity(ep):
-    """Return roles and actual held-content IDs using the generator's role fields.
-
-    The item ID ignores source names. The additional held IDs reject different
-    rows that repeat the SAME private passage, operand, name, options, etc.
-    QA holders answering the question and holders answering a distractor are
-    distinct roles. co_swap metadata has no side assignment: the opposite
-    receiver's payload identifies each side's held passage unambiguously.
+    """dict(roles={x: role}, held={x: digest of x's private content}, item_id=digest of the game and item), from the
+    role fields the episode generators write. The held digests let matched() reject a donor from a different item that
+    repeats the same private content. co_qa readers asked the real question and readers asked a distractor have
+    different roles. co_swap metadata assigns no sides, so each side's passage is the other receiver's payload.
     """
     import coread as C
     from link import SIDES, partner
@@ -159,8 +148,8 @@ def identity(ep):
             reader = m['reader']
             role = 'reader'
             if g == 'co_qa':
-                # The loader does not store this branch in meta. Match its
-                # exact templates, not the target (a distractor can say 'Yes.').
+                # meta does not record the branch; match the prompt templates, since a distractor's target can
+                # also be 'Yes.'.
                 asks_answer = ep['task'][reader] in {
                     w.format(t=item['context'], q=item['question']) for w in C.W['ask_both']}
                 role += '_answer' if asks_answer else '_distractor'
@@ -175,6 +164,8 @@ def identity(ep):
 
 
 def matched(ep, donor):
+    """True when donor is a valid shuffle donor for ep: the same game, mode and roles, a different item, and different
+    private content at the partner of each scored receiver (co_play dialogues also need the same speaker order)."""
     from link import partner
     if ep['game'] != donor['game'] or ep['mode'] != donor['mode']:
         return False
@@ -189,7 +180,8 @@ def matched(ep, donor):
 
 
 def choose_donor(ep, source, max_attempts=10000):
-    """Independent rejection draw, never fall back to a same-item/wrong-role donor."""
+    """(donor, draws): draws episodes of ep's game from source until one matches ep; ValueError after max_attempts
+    draws."""
     for attempt in range(1, max_attempts + 1):
         if ep['game'] == 'co_play':
             from crossed import draw_play_donor
@@ -203,17 +195,20 @@ def choose_donor(ep, source, max_attempts=10000):
 
 
 def flags(ep, x):
+    """Payload flags of receiver x: exclusive (no payload string appears in x's task or system prompt), symmetric (every
+    payload string appears in the partner's reference), and the per-string lists behind them."""
     from link import partner
     spans = payloads(ep)[x]
     own = [contains(ep['task'].get(x), p) or contains(ep['system'][x], p) for p in spans]
     symmetric = [contains(target(ep, partner(x)), p) for p in spans]
-    # Multiple spans (merge_sum): conservative exclusion if ANY span is available.
+    # With several payload strings (merge_sum), one string in x's prompts makes the record non-exclusive.
     return dict(exclusive=all(normalize(p) for p in spans) and not any(own),
                 symmetric=all(symmetric), payload_in_own=own, payload_in_partner_target=symmetric)
 
 
 def first_turn(ep):
-    """Strip every forcing/replay field; retain only speaker order for dialogue."""
+    """ep without its forced-decoding fields; a co_talk dialogue keeps only its first turn, which must be the asker's.
+    ValueError for other dialogue games except co_play."""
     e = {k: v for k, v in ep.items() if k not in
          ('forced', 'reply_tokens', 'reply_sampled', 'turn_tokens', 'turn_sampled')}
     if ep['mode'] == 'dialogue':
@@ -226,7 +221,9 @@ def first_turn(ep):
 
 
 def receiver_scores(ep, result):
-    """Existing metrics; merge games expose the per-side predicates in score()."""
+    """{x: score in [0, 1]} of each scored receiver x in a generated result: evaluate.score for games.py games,
+    play_tasks.score for co-reading games. merge_sum needs the sum and the partner's value, merge_fact the name and the
+    city."""
     import evaluate as E
     import play_tasks as P
     from link import SIDES, partner
@@ -236,17 +233,7 @@ def receiver_scores(ep, result):
     if ep['game'] == 'co_play':
         return E.score(ep, result)['each']
     if ep['game'].startswith('co_'):
-        # The local venv's ledger otherwise reserves the parent's entire model
-        # budget AGAIN for each tiny Python assertion subprocess, timing out
-        # correct code before it starts. Keep that harness in the 1-GiB lane.
-        budget = os.environ.get('MPD_MEM_GIB')
-        if ep['game'] != 'co_code_write' or budget is None:
-            return P.score(ep, result['text'])
-        try:
-            os.environ['MPD_MEM_GIB'] = '1'
-            return P.score(ep, result['text'])
-        finally:
-            os.environ['MPD_MEM_GIB'] = budget
+        return P.score(ep, result['text'])
     scores = E.score(ep, result)
     if ep['game'] == 'merge_sum':
         m = ep['meta']
@@ -259,6 +246,7 @@ def receiver_scores(ep, result):
 
 
 def generation_limit(game):
+    """Maximum new tokens for game: evaluate.MAXNEW (64 when absent), capped by NL_MAXNEW when set."""
     from evaluate import MAXNEW
     cap = int(os.environ.get('NL_MAXNEW', 0))
     if cap < 0:
@@ -268,16 +256,9 @@ def generation_limit(game):
 
 
 def generate_shuffle(pair, ep, donor, limit, keep=False):
-    """Historical duplex/co_talk shuffle, plus native shuffle for new co_play.
-
-    Native shuffle permutes neural states but dialogue's listener still reads
-    its ORIGINAL asker's text. That can relay the true partner via the donor
-    asker. Crossing holder inputs and running normal linked dialogue makes the
-    text feedback follow the crossed pair too. For duplex use native shuffle
-    verbatim. co_play also uses native shuffle (with its text-feedback route);
-    request the separate crossed condition for isolation over whole dialogues.
-    Return only the focal result; donor results are never observations.
-    """
+    """The focal episode's result in the shuffle control. Duplex games and co_play run link.Pair's 'shuffle' mode on
+    [focal, donor]. In co_talk the holder's system prompt and task are swapped with the donor's and the linked dialogue
+    runs on the focal episode alone, so the listener's text input also comes from the swapped pair."""
     import session as S
     from link import partner
     eps = [first_turn(ep), first_turn(donor)]
@@ -289,8 +270,7 @@ def generate_shuffle(pair, ep, donor, limit, keep=False):
         eps = [dict(e, system=dict(e['system']), task=dict(e['task'])) for e in eps]
         for field in ('system', 'task'):
             eps[0][field][holder], eps[1][field][holder] = eps[1][field][holder], eps[0][field][holder]
-        # Only the focal crossed dialogue is scored. Omit the other independent
-        # conversation entirely, including its padding and original holder.
+        # Only the focal dialogue is scored, so the donor's dialogue is not generated.
         eps = eps[:1]
         mode = None
     return S.generate(pair, eps, mode=mode, temperature=0.0, max_turn=limit,
@@ -298,7 +278,9 @@ def generate_shuffle(pair, ep, donor, limit, keep=False):
 
 
 def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
-    """Yield JSON-serializable receiver records. No gold tokens enter generation."""
+    """Yields one JSON-serializable record per scored receiver of each plan: scores, texts and token counts under
+    link, cut and shuffle (and crossed), the payload flags, and the donor's IDs. No reference token enters generation.
+    Chat games go to chateval.evaluate_game."""
     import session as S
     from link import SIDES, partner
     if plans and plans[0]['episode']['game'] in CHAT_GAMES:
@@ -361,7 +343,10 @@ def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
 
 
 def make_plans(replies, n=20, seed=4242, coread_data=None, games=None, max_digits=16, max_attempts=10000):
-    """Sample before model loading. Focal draws are unchanged by donor rejection."""
+    """({game: plans}, exclusion counts): n focal test episodes per game, each with its matched donor, as dicts with
+    episode, donor, index, attempts and episode_id. Each focal draw and each donor search has its own seed, so donor
+    rejection leaves the focal draws unchanged. co_talk conversations that share content with the training splits of
+    coread.json or talk.json are dropped."""
     import coread as C
     import coread_data as CD
     import games as G
@@ -381,7 +366,6 @@ def make_plans(replies, n=20, seed=4242, coread_data=None, games=None, max_digit
             return chat_plans, dict(coread_excluded=0, talk_excluded=0)
     co = C.Coread(replies, 'test', seed, str(path))
     talk_path = path.with_name('talk.json')
-    # Existing talk.json files can predate prep_talk's decontamination fix.
     talk_excluded = 0
     if talk_path.exists():
         with path.open() as f:
@@ -417,11 +401,11 @@ def make_plans(replies, n=20, seed=4242, coread_data=None, games=None, max_digit
 
 
 def summary_rows(records, games, alpha=0.05):
-    """Per-game iid bounds; pooled bounds combine simultaneous stratum bounds.
-
-    Pools weight games by their observed receiver counts, conditional on those
-    counts. The pooled sign test is exact under sign balance in EVERY game;
-    it does not test a zero pooled mean. No inference pools receiving models.
+    """Summary table entries for each game and pooled group (pooled_payload, pooled_coread), receiver and subset (all,
+    exclusive): n, mean score per condition, and link-minus-control contrasts with betting confidence intervals
+    (stats.betting_ci) and sign tests. Per-game intervals treat records as iid. A pooled interval is the receiver-count
+    weighted sum of per-game Bonferroni bounds; the pooled sign test is exact when signs balance in every game and does
+    not test a zero pooled mean. The two receiving models are never pooled.
     """
     from link import SIDES
     from payload_ctl import PAYLOAD_GAMES
@@ -451,10 +435,11 @@ def summary_rows(records, games, alpha=0.05):
                 if crossed_rs:
                     ds = [r['conditions']['link']['score'] - r['conditions']['crossed']['score'] for r in crossed_rs]
                     row['crossed_n'] = len(crossed_rs)
-                    row['mean']['crossed'] = sum(r['conditions']['crossed']['score'] for r in crossed_rs) / len(crossed_rs)
+                    row['mean']['crossed'] = (sum(r['conditions']['crossed']['score'] for r in crossed_rs)
+                                              / len(crossed_rs))
                     row['capped_n']['crossed'] = sum(r['conditions']['crossed']['capped'] for r in crossed_rs)
-                    row['link-crossed'] = dict(mean=sum(ds) / len(ds), ci=list(betting_ci(ds, alpha=alpha, bounds=(-1, 1))),
-                                               sign=sign_test(ds))
+                    row['link-crossed'] = dict(mean=sum(ds) / len(ds),
+                                               ci=list(betting_ci(ds, alpha=alpha, bounds=(-1, 1))), sign=sign_test(ds))
                 by_game = defaultdict(list)
                 for r in rs:
                     by_game[r['game']].append(r)
@@ -479,7 +464,8 @@ def summary_rows(records, games, alpha=0.05):
 
 
 def summarize(out_dir, tag, results_dir=None):
-    """Reject partial, duplicate, or incompatible runs instead of silently pooling."""
+    """Writes results_dir/evalfree_TAG.json (default results/) from the completed evaluation in out_dir and returns its
+    path; ValueError for an incomplete run, duplicate or missing records, or scores outside [0, 1]."""
     out = Path(out_dir)
     with (out / 'manifest.json').open() as f:
         manifest = json.load(f)
@@ -516,17 +502,20 @@ def summarize(out_dir, tag, results_dir=None):
                         "Focal episodes and their unscored rejection-sampled donors are independent across draws.",
                         "Pool CIs combine Bonferroni per-game bounds, weighted by observed receiver counts.",
                         "Sign p tests equal non-tie sign probabilities; pooled null requires this in every game.",
-                        "Exclusive means lexical payload absence, not absence of prior knowledge; scores are unchanged."],
+                        "Exclusive means lexical payload absence, not absence of prior knowledge; scores are "
+                        "unchanged."],
                  rows=summary_rows(records, manifest['games']))
     if any(g in CHAT_GAMES for g in manifest['games']):
         table['notes'] += ["Chat names/leak: first city mention wins; absent-city targets are null and excluded.",
                            "Chat game is the fraction of turns with a lexical game flag, not semantic judging.",
                            "Chat means use betting bounds [0,1]; contrasts [-1,1]. Signs include p_greater.",
-                           "Chat collapse includes every focal; crossed averages its two conversations before inference.",
+                           "Chat collapse includes every focal; crossed averages its two conversations before "
+                           "inference.",
                            "Equal focal cities remain included; partner_city_in_prompt_n reports lexical exposure."]
     if 'co_chat2' in manifest['games']:
         table['notes'] += ["Chat2 uses fixed item scoring words/aliases; kind strata describe the partner target.",
-                           "Held-out kind means no chat2 private-item training on that kind, not no prior topic exposure.",
+                           "Held-out kind means no chat2 private-item training on that kind, not no prior topic "
+                           "exposure.",
                            "Per-kind contrasts are exploratory pointwise tests; no multiplicity adjustment."]
     dest = Path(results_dir or ROOT / 'results') / f'evalfree_{tag}.json'
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -535,6 +524,7 @@ def summarize(out_dir, tag, results_dir=None):
 
 
 def file_hash(path):
+    """SHA-256 hex digest of the file at path."""
     h = hashlib.sha256()
     with Path(path).open('rb') as f:
         for block in iter(lambda: f.read(1024 * 1024), b''):
@@ -543,7 +533,7 @@ def file_hash(path):
 
 
 def git_revision(root=ROOT):
-    """Optional provenance: pod source archives have no Git checkout."""
+    """HEAD commit of the Git checkout at root, or None without one (pods run from a source archive)."""
     if not (Path(root) / '.git').exists():
         return None
     try:
@@ -564,16 +554,19 @@ def main():
     ap.add_argument('--coread_data')
     ap.add_argument('--max_digits', type=int, default=16)
     ap.add_argument('--max_donor_attempts', type=int, default=10000)
-    ap.add_argument('--games', nargs='+', help='optional explicit subset; default is every requested scored game')
-    ap.add_argument('--crossed', action='store_true', help='add isolated full-dialogue crossed receiver controls')
-    ap.add_argument('--temperature', type=float, default=0., help='co_chat/co_chat2: 0 greedy, >0 per-episode seeded sampling')
+    ap.add_argument('--games', nargs='+', help='games to evaluate (default: every payload and scored co-reading game, '
+                    'plus co_talk when talk.json exists)')
+    ap.add_argument('--crossed', action='store_true', help='add the crossed control to dialogue games (crossed.py)')
+    ap.add_argument('--temperature', type=float, default=0.,
+                    help='co_chat/co_chat2 only: 0 is greedy; above 0 samples with a seed per episode')
     ap.add_argument('--summarize', action='store_true', help='summarize an already complete evaluation')
     ap.add_argument('--tag', default='headline')
-    ap.add_argument('--frozen', default=None, choices=('quill', 'ember'), help='make a two-way checkpoint one-way onto this side: '
-                    'its adapter is not loaded and it reads nothing; chat records are the reader\'s only (a one-way '
-                    'checkpoint is read as saved)')
-    ap.add_argument('--shard', default=None, help="I/K: co_chat/co_chat2 plans whose index is I modulo K only, so K processes "
-                    "split one evaluation (summarize each shard; chateval.summary_rows over all shards' records)")
+    ap.add_argument('--frozen', default=None, choices=('quill', 'ember'),
+                    help='make a two-way checkpoint one-way onto this side: its adapter is not loaded and it reads '
+                    'nothing; chat records are the reader\'s only (a one-way checkpoint is read as saved)')
+    ap.add_argument('--shard', default=None,
+                    help="I/K: only the co_chat/co_chat2 plans whose index is I modulo K, so K processes split one "
+                    "evaluation (chat_merge.py summarizes all shards' records)")
     args = ap.parse_args()
     if args.summarize:
         print(summarize(args.out_dir, args.tag))
@@ -614,10 +607,12 @@ def main():
                     chat_plans=len(plans.get('co_chat', [])),
                     chat_plans_by_game={g: len(ps) for g, ps in plans.items() if g in CHAT_GAMES},
                     code_hashes={p: file_hash(ROOT / 'pairing' / p) for p in
-                                 ('evalfree.py', 'chateval.py', 'chat2.py', 'crossed.py', 'stats.py', 'link.py', 'session.py', 'evaluate.py',
-                                  'coread.py', 'coread_data.py', 'games.py', 'play_tasks.py')})
+                                 ('evalfree.py', 'chateval.py', 'chat2.py', 'crossed.py', 'stats.py', 'link.py',
+                                  'session.py', 'evaluate.py', 'coread.py', 'coread_data.py', 'games.py',
+                                  'play_tasks.py')})
     for game in set(plans).intersection(CHAT_GAMES):
-        chat_path = Path(args.coread_data or ROOT / 'data/coread.json').with_name('chat2.json' if game == 'co_chat2' else 'chat.json')
+        chat_path = Path(args.coread_data or ROOT / 'data/coread.json').with_name(
+            'chat2.json' if game == 'co_chat2' else 'chat.json')
         manifest['hashes'][str(chat_path)] = file_hash(chat_path)
     manifest_path = out / 'manifest.json'
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')

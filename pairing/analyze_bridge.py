@@ -1,23 +1,22 @@
-"""What crosses the bridges, at the states where a model predicts what only its partner has (the payload).
+"""Link attention and the decoded link write at the payload labels: the receiver's states that predict a token only
+its partner has (session.payload_labels).
 
 Held-out episodes (payload_ctl.episodes: the payload games and the co-reading games), one teacher-forced joint pass
-per batch of one game with link.Pair.record on. For every payload label of the receiving model x (the state that
-predicts a payload token) and every exchange block:
-  null      attention mass on the null key (reading nothing)
-  prompt    mass on the partner's prompt (tick < 0): reading what the partner was given
-  written   mass on the partner's own written tokens (tick >= 0): reading the partner's writing stream, where a code
-            the pair builds can live (the partner's reply often never mentions the value)
-  copy      mass on partner positions whose token is the target token (same string, at least 2 characters): plain
-            copying of text
-  lens_top10, lens_rank   the logit lens of the write alone (x's final norm and LM head on the bridge's write at that
-            state): the fraction of payload labels whose target token is in the top 10, and the median rank. A
-            token-like write decodes to the target; a write in the pair's own code does not
-  rand_top10   the same for random directions in place of the write (the chance level)
-  gate_prompt, gate_written   the partner's mean visibility gate over its prompt and over its written tokens
-  alpha     tanh(alpha) of the reader at that block (the write's size relative to the residual stream)
-Heads are averaged. Means are over payload labels; per game and receiving model, and pooled.
+per batch of one game with link.Pair.record on. For every payload label of the receiving model x and every exchange
+block:
+  null      attention mass on the null key
+  prompt    mass on the partner's prompt (tick < 0)
+  written   mass on the partner's written tokens (tick >= 0)
+  copy      mass on partner positions whose token is the target token (same string, at least 2 characters)
+  lens_top10, lens_rank   the logit lens of the write alone (x's final norm and LM head applied to the link's write at
+            that state): the fraction of payload labels whose target token is in the top 10, and the median rank
+  rand_top10   the same with random vectors in place of the write (the chance level)
+  gate_prompt, gate_written   the partner's mean gate over its prompt and over its written tokens
+  alpha     the reader's tanh(alpha) at that block (the write's size relative to the residual stream)
+Heads are averaged. Means are over payload labels, per game and receiving model ('per') and pooled ('pooled').
 
 Usage: python analyze_bridge.py --run RUN/step_N --replies REPLIES.json --out FILE.json [--n 16] [--games a,b]
+           [--coread_data DATA.json]
 """
 import argparse
 import json
@@ -32,7 +31,8 @@ from payload_ctl import episodes
 
 
 def position_masks(ticks, device='cpu'):
-    """Prompt/written masks on the recorded attention's device (records live on CPU)."""
+    """Float masks of the prompt (tick < 0) and the written tokens (0 <= tick < FAR), on device (the records' CPU by
+    default)."""
     ticks = ticks.to(device)
     prompt = (ticks < 0).float()
     written = ((ticks >= 0) & (ticks < FAR)).float()
@@ -60,10 +60,8 @@ def main():
     norm_head = {x: inner(pair.models[x]) for x in SIDES}
     gen = torch.Generator().manual_seed(0)
 
-
     def piece(tok, i):
         return tok.decode([i]).strip().lower()
-
 
     @torch.no_grad()
     def lens(x, w, target):
@@ -71,7 +69,6 @@ def main():
         dec, head = norm_head[x]
         logits = head(dec.norm(w.to(DEVICE, dtype=head.weight.dtype))).float()
         return (logits > logits.gather(1, target[:, None].to(DEVICE))).sum(1).cpu()
-
 
     acc = {}
     for g, eps in E.items():
@@ -90,7 +87,7 @@ def main():
                 prompt, writ = position_masks(ty)
                 ystr = [[piece(toks[y], int(i)) for i in row] for row in b[y]['ids']]
                 off, sel = 0, []                                       # (episode in batch, position, target id)
-                for k, (ep, e) in enumerate(zip(chunk, built)):
+                for ep, e in zip(chunk, built):
                     for j in S.payload_labels(ep, toks).get(x, []):
                         flat = int(b[x]['idx'][off + j])
                         sel.append((flat // L, flat % L, int(b[x]['lab'][off + j])))
@@ -125,14 +122,13 @@ def main():
                     row['alpha'] = rx['alpha']
         print(f'{g}: done', flush=True)
 
-
     def summarize(row):
         m = lambda v: round(sum(v) / max(len(v), 1), 4)
         return dict(n=len(row['rank']), null=m(row['null']), prompt=m(row['prompt']), written=m(row['written']),
                     copy=m(row['copy']), lens_top10=m([float(r < 10) for r in row['rank']]),
                     lens_rank=statistics.median(row['rank']), rand_top10=m([float(r < 10) for r in row['rand_rank']]),
-                    gate_prompt=m(row['gate_prompt']), gate_written=m(row['gate_written']), alpha=round(row['alpha'], 4))
-
+                    gate_prompt=m(row['gate_prompt']), gate_written=m(row['gate_written']),
+                    alpha=round(row['alpha'], 4))
 
     out = {'run': args.run, 'per': {}, 'pooled': {}}
     for (g, x, blk), row in sorted(acc.items()):

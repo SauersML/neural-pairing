@@ -1,11 +1,8 @@
 #!/bin/bash
-# magic-nl15, one H100 or A100 (80 GB), the final-candidate recipe. magic-nl14 (relay-only, --content_init qkvo: reads,
-# values and writes start from the ridge map between the two models' states) carried never-seen values at step 100:
-# real partner better than a partner from another episode on 16/16 words, 16/16 phrases, 29/32 name+city merges and
-# 12/16 lookups. magic-nl11 (qk only) carried words at step 200 but lost them once the full mix began, as its gates and
-# alpha closed. Here: qkvo, tanh(alpha) 0.1, gates and alpha held for the whole run (--hold 100000), payload tokens
-# weighted 3x, a 300-step relay warm-up, then the full mix with co-reading at 0.5 (value games about 0.2) for the rest
-# of 180 minutes. The co_talk conversations are nl11's (an input), so prep_talk is skipped. Then the evaluations.
+# nl15, one 80 GB H100 or A100. Trains from the original models for 3,000 steps or 180 minutes, batch 16: --read_start
+# 0.1, --content_init qkvo, gates on unit-RMS states, gates and write sizes fixed for the whole run (--hold 100000),
+# payload tokens weighted 3x, 300 relay_word steps, then the full mix (co-reading 0.5, dialogue 0.2, anchors 0.1). The
+# co_talk conversations are an input (TALK_JSON). Then nl11's evaluations.
 # Usage: bash nl15.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ TALK_JSON
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4 TALK=$5

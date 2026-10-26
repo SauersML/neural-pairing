@@ -12,11 +12,11 @@
   "exchange_count": 8,
   "configs": {
     "quill": {
-      "path": "/Users/user/.cache/huggingface/hub/models--Qwen--Qwen3-4B/snapshots/1cfa9a7208912126459214e8b04321603b3df60c/config.json",
+      "path": "Qwen/Qwen3-4B@1cfa9a7208912126459214e8b04321603b3df60c/config.json",
       "blocks": 36
     },
     "ember": {
-      "path": "/Users/user/.cache/huggingface/hub/models--arcee-ai--AFM-4.5B/snapshots/e84d19711eca5817c1608cb344d931bf05c966dd/config.json",
+      "path": "arcee-ai/AFM-4.5B@e84d19711eca5817c1608cb344d931bf05c966dd/config.json",
       "blocks": 36
     }
   },
@@ -24,7 +24,7 @@
     "quill": "Dallas",
     "ember": "Beijing"
   },
-  "private_text_source": "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_link_s7.json",
+  "private_text_source": "figures/inputs/chat_link_s7.json.gz (uncompressed)",
   "timing_tokens": [
     "So",
     ",",
@@ -55,14 +55,14 @@
       " you"
     ]
   ],
-  "timing_tokenizer": "/Users/user/.cache/huggingface/hub/models--arcee-ai--AFM-4.5B/snapshots/e84d19711eca5817c1608cb344d931bf05c966dd/tokenizer.json",
+  "timing_tokenizer": "arcee-ai/AFM-4.5B@e84d19711eca5817c1608cb344d931bf05c966dd/tokenizer.json",
   "source_sha256": {
-    "/Users/user/neural-pairing/pairing/link.py": "c0a1624f31806897a3aa8ce2e9c03b1e5c9264fef7f519bce3f3b5d44dada323",
-    "/Users/user/neural-pairing/pairing/session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
-    "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_link_s7.json": "4bc2d449f4e363063c166252944c50d7ff25f884dd5b9fb71c497e249f685e14",
-    "/Users/user/.cache/huggingface/hub/models--arcee-ai--AFM-4.5B/snapshots/e84d19711eca5817c1608cb344d931bf05c966dd/tokenizer.json": "d48708c6021027e8fc6d5342e1498111d8e87aae8903319d3ead1fbdfc4a9125",
-    "/Users/user/.cache/huggingface/hub/models--Qwen--Qwen3-4B/snapshots/1cfa9a7208912126459214e8b04321603b3df60c/config.json": "8ba006f74fecfaaeb392872a60f4a480e7ec9860153d2e1b769ec81f9a147f8a",
-    "/Users/user/.cache/huggingface/hub/models--arcee-ai--AFM-4.5B/snapshots/e84d19711eca5817c1608cb344d931bf05c966dd/config.json": "0d6ed7378bdfd9b2845ad01090c760c10b209757a5e9392c6bf6bfed0014807f"
+    "pairing/link.py": "c0a1624f31806897a3aa8ce2e9c03b1e5c9264fef7f519bce3f3b5d44dada323",
+    "pairing/session.py": "47bbd48119d7f7b1db1bf425890b49f1e61969a3789e1df8d003e74e3c3efef8",
+    "figures/inputs/chat_link_s7.json.gz (uncompressed)": "99e568b2b650b15bd964949419726ccc2c25c348740339f610f5f6f556ec19ad",
+    "Qwen/Qwen3-4B@1cfa9a7208912126459214e8b04321603b3df60c/config.json": "8ba006f74fecfaaeb392872a60f4a480e7ec9860153d2e1b769ec81f9a147f8a",
+    "arcee-ai/AFM-4.5B@e84d19711eca5817c1608cb344d931bf05c966dd/config.json": "0d6ed7378bdfd9b2845ad01090c760c10b209757a5e9392c6bf6bfed0014807f",
+    "arcee-ai/AFM-4.5B@e84d19711eca5817c1608cb344d931bf05c966dd/tokenizer.json": "d48708c6021027e8fc6d5342e1498111d8e87aae8903319d3ead1fbdfc4a9125"
   },
   "backend_note": "Only the token example comes from an existing 4-bit MLX Mac chat; its numerical output can differ from bf16. The figures display no measured activations or performance.",
   "timing_note": "The pictured Quill tokens are real generated pieces, consumed one tick after emission. Ember streams the stable prefix, excluding the last token. All earlier prompt/header positions are collapsed into the leftmost stack.",

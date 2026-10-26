@@ -4,6 +4,8 @@ train: ARC-Challenge train + ARC-Easy train + MMLU test questions outside the he
 val: 300 ARC-Challenge validation questions + 300 MMLU questions (used once, to fix which model answers for the pair).
 test: ARC-Challenge test (all) + a fixed random 2000-question slice of MMLU test (seed 0), never trained on.
 Each question: dict(src, q, choices [texts], answer index). Questions with other than 4 choices are dropped.
+
+Usage: python build_bench.py
 """
 import json
 import os

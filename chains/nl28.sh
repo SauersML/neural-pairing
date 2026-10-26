@@ -1,16 +1,11 @@
 #!/bin/bash
-# nl28: objective-side pooling (train.py --qa_pool 1: CE of the two models' averaged A-D probabilities), otherwise nl27's
-# focus sampling. The control trains the same objective with the link cut (--solo --qa_pool 1), so a pooled pair that
-# beats it gains from the link, not from the objective.
-# One 48 GB Ampere (RTX A6000 or A40); never Ada (L40S / RTX 6000 Ada). Eight micro-batches of two: at four of four
-# the pooled pair ran out of memory on an A40 (44.4 GiB) at its first step; the global batch is the same 16.
+# nl28, one 48 GB Ampere card (RTX A6000 or A40; the script refuses others): nl27's question mix with the loss on the
+# two linked models' averaged A-D probabilities (--qa_pool 1); the control trains the same loss with the link cut
+# (--solo --qa_pool 1). Eight micro-batches of two (global batch 16), so the pooled pair fits in 48 GB. bench_eval.py
+# scores both; the primary test is pair/avg against ensemble and against pair/zero/avg on the test questions, both
+# differences positive with exact two-sided p < .05. No text arm. Waits up to three hours for
+# /workspace/jobs/nl28/{step_1320, replies.json, data/bench.json} and the READY file.
 # Usage: bash chains/nl28.sh OUT_DIR CODE_TGZ [STEPS=300]
-# Inputs arrive AFTER start: /workspace/jobs/nl28/{step_1320,replies.json,data/bench.json}, READY last (the Mac's
-# uplink is ~1 MB/s, so step_1320 may come from another pod; up to three hours). No pod creation in this script.
-# No text arm: it does not involve the linked pair, and nl23 scored the same text pair.
-# Primary: bench.json test/all pooled comparisons, pair/avg vs ensemble AND
-# pair/zero/avg, positive differences and exact two-sided p < .05 for both.
-# No selection of the better of per-head and pooled answers after testing.
 set -euo pipefail
 O=$1 TGZ=$2 STEPS=${3:-300}
 mkdir -p "$O"

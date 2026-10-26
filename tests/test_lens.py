@@ -1,34 +1,18 @@
-"""Real tiny Qwen/AFM paths: intervention exactness, downstream decode, full subtitles.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu OMP_NUM_THREADS=2 python -m pytest -q tests/test_lens.py
-No substituted models, tokenizers, logits or measured computations.
+"""lens.py on a tiny pair: intervention exactness, downstream decoding and full subtitles.
 """
 import json
-import os
-from pathlib import Path
-import sys
 
-os.environ['NL_TINY'] = '1'
-os.environ['NL_DEVICE'] = 'cpu'
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'pairing'))
 import pytest
 import torch
-from peft import LoraConfig, get_peft_model
 
 import link
 import lens
 import session as S
 
-torch.set_num_threads(2)
-
 
 @pytest.fixture(scope='module')
-def pair():
-    toks, models = {}, {}
-    for x in link.SIDES:
-        toks[x], model = link.load(x)
-        models[x] = get_peft_model(model, LoraConfig(r=4, lora_alpha=8,
-                                  target_modules=['q_proj', 'v_proj'])).eval()
+def pair(tiny_models):
+    toks, models = tiny_models(['q_proj', 'v_proj'])
     torch.manual_seed(12)
     p = link.Pair(models, toks, (1, 2, 4), heads=2, head_dim=16,
                   sizes={x: [.04, .05, .06] for x in link.SIDES}).eval()

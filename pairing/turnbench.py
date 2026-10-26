@@ -1,18 +1,22 @@
-"""Same secret and distinct donor under every turn structure, scored on payload CE.
+"""The same secrets under every turn structure, scored on payload cross-entropy.
 
-The test pools certify lexical split membership, not absence from pretraining.
-There is NO numeric split in pools.json: four-digit numbers are explicitly marked
-unverified unless --seen_numbers supplies a complete training-secret list.
+Items (secrets): n secrets balanced over KINDS and receivers (words, names and cities: single-word test values that
+occur in no fixed prompt text; numbers: 1000 to 9999), each with an independently drawn donor secret of the same kind
+that differs from it. Structures: duplex, dialogue (the holder first says NEUTRAL, then the receiver writes the answer)
+and the shared pen; duplex and dialogue also with each of DEFAULT_PAUSES silent ticks. The receiver's target is
+'The {noun} is {value}.' and its payload the value. assert_no_text_leak checks that the secret is in no text the
+receiver reads before its first payload token. Per item: payload CE linked and cut (payload_ctl.table), and shuffled:
+the receiver's own stream joined with the donor episode's holder stream in one Pair.joint (the isolated pair of mode
+'shuffle' on a two-episode batch; donors are not scored). Reported per structure, and per kind and receiver: shuffle
+minus link and cut minus link (exact sign test and median interval), ticks, forward tokens and payload nats per tick.
 
-Shuffle composes each receiver's built stream with an independently sampled
-same-kind, same-direction donor holder's stream. The two streams still read each
-other through Pair.joint; only their private secrets mismatch. This is the same
-isolated pair as Pair.joint(mode='shuffle') on a two-episode batch. Donors are not
-scored, and do not change with --bs. No generation, judges, or substitute models.
+Numbers have no test split in pools.json and are marked unverified unless --seen_numbers lists every training secret
+to exclude. Ticks are session ticks (the pen game has one per word); forward tokens count both models' input
+positions, prompts included.
 
-Ticks are session logical ticks, not GPU launches (pen has one tick per word).
-Forward tokens count both models' input positions, including prompts and flushes;
-padded tokens additionally count evaluation batch padding across all 3 passes.
+Writes OUT (JSON) and OUT with suffix .txt (a table and notes).
+Usage: python turnbench.py --run RUN/step_N --replies REPLIES.json --out OUT/turnbench.json [--n 128] [--bs 8]
+           [--seen_numbers NUMBERS.json]
 """
 import argparse
 import hashlib
@@ -39,16 +43,18 @@ DEFAULT_PAUSES = (1, 4, 8)
 
 
 def receiver_task(holder, noun):
+    """The receiver's fixed task."""
     return f'Read the {noun} {G.MODELS[holder]["name"]} sends you through the link and write it.'
 
 
 def pen_instruction(holder, receiver, noun):
+    """The pen game's added instruction: a four-word answer, one word each, the holder first."""
     return (f' Share one four-word answer beginning "The {noun} is", alternating one word each. '
             f'{G.MODELS[holder]["name"]} starts; {G.MODELS[receiver]["name"]} writes the secret last.')
 
 
 def carrier_text():
-    """Every fixed text that a receiver can see, unioned BEFORE sampling secrets."""
+    """Every fixed prompt text of every structure; secrets are drawn from values that occur in none of it."""
     parts = [G.system(x, mode) for x in SIDES for mode in ('duplex', 'dialogue', 'pen')]
     parts += [NEUTRAL, 'The word is . The number is .']
     for holder in SIDES:
@@ -58,13 +64,9 @@ def carrier_text():
 
 
 def secrets(n=128, seed=4242, seen_numbers=None):
-    """Balanced kinds/directions; independent primary/donor draws with replacement.
-
-    Sampling with replacement is necessary: the test set has only 18 names.
-    Each donor is conditioned to differ from its own primary, never another
-    scored observation. A complete seen_numbers list certifies exclusion only
-    relative to that list; an empty supplied list is a valid tiny-run audit.
-    """
+    """n items balanced over kinds and receivers; each secret and its donor are drawn with replacement (the test pool
+    has only 18 names), the donor differing from its own item's secret. seen_numbers: the training numbers to exclude
+    (an empty list counts as supplied)."""
     if isinstance(n, bool) or not isinstance(n, int) or n < 8 or n % 8:
         raise ValueError('n must be a positive multiple of 8 (four kinds, two receivers)')
     rng = random.Random(seed)
@@ -83,15 +85,20 @@ def secrets(n=128, seed=4242, seen_numbers=None):
         kind, receiver = KINDS[(i // 2) % 4], SIDES[i % 2]
         value = rng.choice(pools[kind])
         donor = rng.choice([v for v in pools[kind] if v != value])
-        status = ('excluded_from_supplied_training_list' if seen_numbers is not None else 'unverified_training_overlap') \
-            if kind == 'numbers' else 'pools_test_not_train'
+        if kind != 'numbers':
+            status = 'pools_test_not_train'
+        elif seen_numbers is not None:
+            status = 'excluded_from_supplied_training_list'
+        else:
+            status = 'unverified_training_overlap'
         out.append(dict(item=i, kind=kind, receiver=receiver, holder=partner(receiver), value=value,
                         donor_value=donor, holdout=status))
     return out
 
 
 def episode(games, item, structure, k=0, donor=False):
-    """Reuse the short relay, pen builder, and coread's explicit-span convention."""
+    """The item's episode in structure with k silent ticks (donor: with the donor secret): a coldstart relay
+    episode in the item's direction with the secret and the receiver's task replaced, rebuilt for dialogue or pen."""
     if not isinstance(k, int) or isinstance(k, bool) or k < 0:
         raise ValueError('pause must be a nonnegative integer')
     if structure not in ('duplex', 'dialogue', 'pen') or (structure == 'pen' and k):
@@ -99,8 +106,6 @@ def episode(games, item, structure, k=0, donor=False):
     value = item['donor_value'] if donor else item['value']
     receiver, holder = item['receiver'], item['holder']
     game = 'relay_number' if item['kind'] == 'numbers' else 'relay_word'
-    # Draw a genuine existing template in the required direction. All measured
-    # content is then fixed; the unrelated warm-up question is never presented.
     ep = coldstart.relay_episode(games, (game,))
     while ep['meta']['receiver'] != receiver:
         ep = coldstart.relay_episode(games, (game,))
@@ -109,7 +114,6 @@ def episode(games, item, structure, k=0, donor=False):
     noun = 'number' if game == 'relay_number' else 'word'
     target = f'The {noun} is {value}.'
     ep['reply'][receiver] = (target, 1.0)
-    # Fix held-out receiver wording, independent of value and random draw count.
     ep['task'][receiver] = receiver_task(holder, noun)
     ep['meta'] = dict(item=item['item'], kind=item['kind'], holder=holder, sender=holder,
                       receiver=receiver, value=value)
@@ -135,6 +139,7 @@ def episode(games, item, structure, k=0, donor=False):
 
 
 def episodes(replies, items, pauses=DEFAULT_PAUSES):
+    """{structure name: [(item episode, donor episode)]}."""
     specs = [('duplex', 'duplex', 0)] + [(f'duplex+{k}', 'duplex', k) for k in pauses]
     specs += [('dialogue', 'dialogue', 0)] + [(f'dialogue+{k}', 'dialogue', k) for k in pauses]
     specs += [('pen', 'pen', 0)]
@@ -146,16 +151,14 @@ def episodes(replies, items, pauses=DEFAULT_PAUSES):
 
 
 def contains(seq, sub):
+    """Whether sub is a nonempty contiguous part of seq."""
     return bool(sub) and any(seq[i:i + len(sub)] == sub for i in range(len(seq) - len(sub) + 1))
 
 
 def assert_no_text_leak(ep, toks):
-    """Check the receiver context BEFORE its first payload token, in both tokenizers.
-
-    The later teacher-forced payload prefix is legitimate autoregressive context,
-    not a transmitted answer. Checking the complete input would falsely call
-    every teacher-forced evaluator a leak. Also check all holder-authored text.
-    """
+    """Raise if the secret (alone or after a space, quote or newline) is in the receiver's input up to its first
+    payload token or in the holder's visible text, in either tokenizer, or in the receiver's token ids; returns
+    session.build(ep). Later input tokens are the teacher-forced answer itself."""
     r, value = ep['meta']['receiver'], ep['meta']['value']
     built = S.build(ep, toks)
     js = S.payload_labels(ep, toks).get(r, [])
@@ -178,7 +181,7 @@ def assert_no_text_leak(ep, toks):
                 secret_ids = S.ids(tok, prefix + value)
                 if contains(seq, secret_ids):
                     raise ValueError(f'secret in visible text: {value}')
-    # Check actual receiver IDs as well, without a decode/re-encode round trip.
+    # The receiver's token ids as built, without decoding.
     for prefix in ('', ' ', '"', '\n'):
         if contains(context_ids, S.ids(toks[r], prefix + value)):
             raise ValueError(f'secret in receiver token IDs: {value}')
@@ -186,6 +189,7 @@ def assert_no_text_leak(ep, toks):
 
 
 def costs(ep, built, toks):
+    """Ticks (all, and up to the last payload prediction), forward tokens and prompt tokens of one episode."""
     r = ep['meta']['receiver']
     js = S.payload_labels(ep, toks)[r]
     times = [built[r]['time'][built[r]['labels'][j][0]] for j in js]
@@ -197,7 +201,8 @@ def costs(ep, built, toks):
 
 @torch.no_grad()
 def measure(pair, toks, plans, bs=8):
-    """Existing payload table for link/cut; identical CE on explicit donor pairs."""
+    """One record per item: payload_ctl.table's link and cut CE, the shuffled CE with the donor's holder, and costs.
+    Plans of several kinds or receivers are measured one group at a time."""
     if bs < 1:
         raise ValueError('bs must be positive')
     groups = {}
@@ -219,8 +224,7 @@ def measure(pair, toks, plans, bs=8):
             assert donor['meta']['receiver'] == r and donor['meta']['kind'] == ep['meta']['kind']
             assert ep['meta']['value'] != donor['meta']['value']
             mixed.append({r: a[r], h: b[h]})
-        # table's batching only disallows singleton batches for shuffle; bs>=2
-        # here permits a final singleton since these two conditions need no donor.
+        # The chunk in one table batch (table's bs must be at least 2; link and cut need no donor).
         base = payload_ctl.table(pair, toks, eps, bs=max(2, len(eps)), conds=payload_ctl.CONDS[:2])
         batch = S.collate(mixed, pads)
         hidden, _ = pair.joint(batch)
@@ -259,6 +263,7 @@ def comparison(values):
 
 
 def summarize(rows):
+    """comparison() of shuffle minus link and cut minus link, with mean ticks and token counts."""
     return dict(items=len(rows), shuffle=comparison([r['shuffle_minus_link'] for r in rows]),
                 cut=comparison([r['cut_minus_link'] for r in rows]),
                 ticks_per_item=statistics.mean(r['ticks'] for r in rows),
@@ -270,6 +275,7 @@ def summarize(rows):
 
 
 def text_table(summaries):
+    """The .txt table: per structure, the shuffle comparison, ticks and tokens per item."""
     lines = ['structure       wins/n (ties)       p    median nats       median 95% CI   ticks/item   tokens/item']
     for name, row in summaries.items():
         s = row['shuffle']
@@ -303,7 +309,8 @@ def main():
         records[name] = measure(pair, toks, rows, args.bs)
         summaries[name] = summarize(records[name])
         summaries[name]['seconds'] = time.perf_counter() - at
-        breakdown[name] = {f'{kind}/{r}': summarize([v for v in records[name] if v['kind'] == kind and v['receiver'] == r])
+        breakdown[name] = {f'{kind}/{r}': summarize([v for v in records[name]
+                                                     if v['kind'] == kind and v['receiver'] == r])
                            for kind in KINDS for r in SIDES}
         print(f'{name}: {len(rows)} items, {summaries[name]["seconds"]:.2f}s', flush=True)
     notes = [
@@ -313,7 +320,8 @@ def main():
         'are also reported. P values are unadjusted for multiple structures.',
         'Primary and distinct donor draws are independent across items, with replacement from small finite pools. '
         'The same items/donors recur across structures, so comparisons across structures are paired.',
-        'Numbers have no pools.json test split and may overlap training unless a complete --seen_numbers list is supplied.',
+        'Numbers have no pools.json test split and may overlap training unless a complete --seen_numbers list is '
+        'supplied.',
         'Lexical values are single-word entries from test pools, disjoint from same-kind train pools and absent '
         'from the union of fixed carrier texts in all structures; '
         'this does not claim absence from base pretraining or arbitrary training text.',
@@ -325,7 +333,8 @@ def main():
                   summaries=summaries, by_kind_receiver=breakdown, records=records,
                   evaluation_seconds=time.perf_counter() - started,
                   code_sha256={p: hashlib.sha256((Path(__file__).parent / p).read_bytes()).hexdigest()
-                               for p in ('turnbench.py', 'session.py', 'link.py', 'payload_ctl.py', 'games.py', 'coldstart.py')})
+                               for p in ('turnbench.py', 'session.py', 'link.py', 'payload_ctl.py', 'games.py',
+                                         'coldstart.py')})
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2, allow_nan=False) + '\n')

@@ -1,0 +1,50 @@
+{
+ "init|link": {
+  "conversations": 96,
+  "turns": 480,
+  "repeat": {
+   "conversations": 7,
+   "turns": 9
+  },
+  "list": {
+   "conversations": 8,
+   "turns": 12
+  }
+ },
+ "init|cut": {
+  "conversations": 96,
+  "turns": 480,
+  "repeat": {
+   "conversations": 11,
+   "turns": 18
+  },
+  "list": {
+   "conversations": 13,
+   "turns": 24
+  }
+ },
+ "rl|link": {
+  "conversations": 96,
+  "turns": 480,
+  "repeat": {
+   "conversations": 3,
+   "turns": 5
+  },
+  "list": {
+   "conversations": 8,
+   "turns": 11
+  }
+ },
+ "rl|cut": {
+  "conversations": 96,
+  "turns": 480,
+  "repeat": {
+   "conversations": 9,
+   "turns": 13
+  },
+  "list": {
+   "conversations": 13,
+   "turns": 20
+  }
+ }
+}

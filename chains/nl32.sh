@@ -1,14 +1,10 @@
 #!/bin/bash
-# magic-nl32, one 48 GB Ampere card (RTX A6000 / A40; never Ada): is a steered concept stuck after block 27 only because
-# the link writes too little there? nl30 steered one twin after block 27 at the calibrated strength and at four times
-# it, and the partner named the concept in 0 of 96 linked messages either way; nl31 measured why: the write after block
-# 27 moves the partner 0.02-0.10 of the push that makes it say the concept, against 0.20-0.35 by block 27 for the early
-# pushes that cross. The write size tanh(alpha) has been held at 0.1 at every exchange in every run (--hold). Here the
-# same test (steering_scale.py, bf16, nl22c step 157) with only the write after block 27 made 3 or 9 times larger
-# (--gain; tanh(alpha) 0.3 or 0.9 there, both readers, nothing retrained), at both strengths, reusing nl30's directions,
-# calibration, selection and cut check (--reuse; all link-cut). Two arms at a time; one that runs out of memory is
-# rerun alone in a fresh directory.
-# Inputs: INPUTS_TAR, the published tar of step_157 (nl30's).
+# nl32, one 48 GB Ampere card (RTX A6000 or A40): the steered-twin test after block 27 (steering_scale.py, bf16, nl22c's
+# step_157) with only the link's write after block 27 made 3 or 9 times larger (--gain: tanh(alpha) 0.3 or 0.9 there,
+# both readers, nothing retrained), at the calibrated strength and four times it, reusing nl30's directions,
+# calibration, selection and cut check (--reuse). Two arms at a time; one that runs out of memory is rerun alone in a
+# fresh directory.
+# Inputs: INPUTS_TAR, a tar of step_157.
 # Usage: bash nl32.sh OUT_DIR CODE_TGZ INPUTS_TAR
 set -u
 O=$1 TGZ=$2 INPUTS=$3

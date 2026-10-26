@@ -1,12 +1,12 @@
 {
   "sources": {
     "cut": {
-      "path": "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_cut_s7.json",
-      "sha256": "008ccba8703d8c25ec231b55debdecd1052c45490e544b1b22e6cb661312b744"
+      "path": "figures/inputs/chat_cut_s7.json.gz (uncompressed)",
+      "sha256": "7f211102579254c113f101b70e3276331fcbdf4c1e0c40caf3865aadc9124382"
     },
     "link": {
-      "path": "/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_link_s7.json",
-      "sha256": "4bc2d449f4e363063c166252944c50d7ff25f884dd5b9fb71c497e249f685e14"
+      "path": "figures/inputs/chat_link_s7.json.gz (uncompressed)",
+      "sha256": "99e568b2b650b15bd964949419726ccc2c25c348740339f610f5f6f556ec19ad"
     }
   },
   "episode": {
@@ -136,7 +136,7 @@
     }
   },
   "backend": "4-bit MLX",
-  "checkpoint": "/Users/user/mpd-data/runpod/magic-nl22c/run/step_100",
+  "checkpoint": "~/mpd-data/runpod/magic-nl22c/run/step_100",
   "temperature": 0.0,
   "max_turn": 64,
   "seed": 7,

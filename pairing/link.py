@@ -1,5 +1,5 @@
-"""Two language models from different families joined by a corpus callosum: gated cross-attention bridges at several
-middle depths, in both directions, in one joint forward pass.
+"""Two language models from different families joined by gated cross-attention bridges at several middle depths, in
+both directions, in one joint forward pass.
 
 The two models run block by block in lockstep. After each exchange block (by default after blocks 6, 9, ..., 27 of 36;
 none in the first six blocks or the last eight), each model reads the other's hidden states at that same depth:
@@ -7,8 +7,8 @@ none in the first six blocks or the last eight), each model reads the other's hi
     h_x += tanh(alpha) * size * O(attention(Q(norm(h_x)), K(norm(h_y)), s * V(norm(h_y))))
 
 Q, O and alpha belong to the reader x. K, V and the visibility gate s = sigmoid(w . h_y + b) belong to the sender y:
-each of its positions shows itself to the partner as much as its gate lets it, and the K/V space is a code the two
-models build together. Both reads at an exchange use the states of that block before the exchange, so the exchange is
+each of its positions is visible to the partner in proportion to its gate, and the two models train the K/V space
+jointly. Both reads at an exchange use the states of that block before the exchange, so the exchange is
 simultaneous and symmetric. alpha starts at 0 (as in Flamingo), so at step 0 the pair is exactly the two original
 models; O starts random, so alpha gets a gradient. size is the reader's residual RMS after that block, measured once,
 so tanh(alpha) is the write's size relative to the residual stream. A learned null key with a zero value lets a reader
@@ -40,7 +40,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers.masking_utils import create_causal_mask, create_sliding_window_causal_mask
 
-DEVICE = os.environ.get('NL_DEVICE') or (f'cuda:{os.environ.get("LOCAL_RANK", 0)}' if torch.cuda.is_available() else 'cpu')
+DEVICE = os.environ.get('NL_DEVICE') or (f'cuda:{os.environ.get("LOCAL_RANK", 0)}' if torch.cuda.is_available()
+                                         else 'cpu')
 XBLOCKS = (6, 9, 12, 15, 18, 21, 24, 27)
 FAR = 10 ** 9                # the tick of padding, and the cut of an episode whose link never closes
 AGES = 8                     # recency buckets: 0, 1, 2-3, 4-7, 8-15, 16-31, 32-63, 64 and more; then the prompt's
@@ -56,27 +57,13 @@ READ = ('q_norm', 'q', 'o', 'alpha', 'null', 'age')       # a Side's parts that 
 SHOW = ('kv_norm', 'k', 'v', 'gate')                       # a Side's parts that show its own states
 
 
-def load(x, dtype=torch.bfloat16, stream=None):
-    """Tokenizer and model of side x. NL_TINY=1: a 6-block random model with the same architecture (for smoke tests).
-    stream (default: NL_STREAM=1): the blocks' weights stay in host memory, memory-mapped from the checkpoint's files (
-    reclaimable file pages, not the process's own memory), and each block copies them to DEVICE only while it runs
-    (stream_blocks); the embeddings, final norm and LM head live on DEVICE."""
+def load(x, dtype=torch.bfloat16):
+    """Tokenizer and model of side x on DEVICE. NL_TINY=1: a 6-block random model with the same architecture (for smoke
+    tests)."""
     from transformers import AutoModelForCausalLM, AutoTokenizer
-    stream = os.environ.get('NL_STREAM') == '1' if stream is None else stream
     hf = MODELS[x]['hf']
     tok = AutoTokenizer.from_pretrained(hf)
-    if os.environ.get('NL_TINY'):
-        model = tiny(hf)
-    elif stream:
-        model = _mapped(hf, dtype)
-    else:
-        model = AutoModelForCausalLM.from_pretrained(hf, dtype=dtype)
-    if stream:
-        dec = inner(model)[0]
-        blocks, dec.layers = dec.layers, nn.ModuleList()
-        model.to(DEVICE)
-        dec.layers = blocks
-        return tok, stream_blocks(model)
+    model = tiny(hf) if os.environ.get('NL_TINY') else AutoModelForCausalLM.from_pretrained(hf, dtype=dtype)
     return tok, model.to(DEVICE)
 
 
@@ -90,85 +77,6 @@ def tiny(hf):
         cfg.layer_types = cfg.layer_types[:6]
     torch.manual_seed(0)
     return AutoModelForCausalLM.from_config(cfg, dtype=torch.float32)
-
-
-_MAPS = []                   # the open memory maps (their tensors read them)
-
-
-def _safetensors(path):
-    """{name: CPU tensor} of a safetensors file, memory-mapped copy-on-write: clean file pages until written."""
-    import json
-    import mmap
-    with open(path, 'rb') as f:
-        n = int.from_bytes(f.read(8), 'little')
-        header = json.loads(f.read(n))
-        mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_COPY)
-    _MAPS.append(mm)
-    types = {'BF16': torch.bfloat16, 'F16': torch.float16, 'F32': torch.float32}
-    out = {}
-    for name, info in header.items():
-        if name != '__metadata__':
-            a, b = info['data_offsets']
-            t = types[info['dtype']]
-            out[name] = torch.frombuffer(mm, dtype=t, count=(b - a) // t.itemsize, offset=8 + n + a).view(info['shape'])
-    return out
-
-
-def _mapped(hf, dtype):
-    """Model hf on the host with its weights memory-mapped from the cached checkpoint (_safetensors) and its rotary
-    embeddings built again (their buffers are not in the checkpoint)."""
-    import json
-    from transformers import AutoConfig, AutoModelForCausalLM
-    from transformers.utils import cached_file
-    try:
-        files = sorted(set(json.load(open(cached_file(hf, 'model.safetensors.index.json')))['weight_map'].values()))
-    except OSError:
-        files = ['model.safetensors']
-    cfg = AutoConfig.from_pretrained(hf)
-    with torch.device('meta'):
-        model = AutoModelForCausalLM.from_config(cfg, dtype=dtype)
-    state = {}
-    for name in files:
-        state.update(_safetensors(cached_file(hf, name)))
-    state = {k: v if v.dtype == dtype else v.to(dtype) for k, v in state.items()}
-    missing, unexpected = model.load_state_dict(state, strict=False, assign=True)
-    tied = ['lm_head.weight'] if cfg.tie_word_embeddings else []
-    assert not unexpected and missing == tied, (missing, unexpected)
-    if tied:
-        model.lm_head.weight = inner(model)[0].embed_tokens.weight
-    for name, mod in list(model.named_modules()):
-        if any(b.is_meta for b in mod.buffers(recurse=False)):           # rotary inverse frequencies
-            parent, _, attr = name.rpartition('.')
-            setattr(model.get_submodule(parent), attr, type(mod)(config=cfg))
-    assert not any(t.is_meta for t in list(model.parameters()) + list(model.buffers()))
-    return model
-
-
-def stream_blocks(model):
-    """Run each block of model on DEVICE copies of its weights, made each time it runs (also when gradient
-    checkpointing reruns it for the backward pass), so that only running blocks hold weights on DEVICE: the copies
-    live as long as the autograd graph needs them, and the block's own parameters stay where they are. The weights
-    streamed are the block's parameters now (frozen); parameters added later (LoRA adapters) move to DEVICE at first
-    use. The copies are passed with torch.nn.utils.stateless (not by setting .data, which would change what autograd
-    saved)."""
-    from torch.nn.utils.stateless import _reparametrize_module
-    on = torch.device(DEVICE).type
-
-    def streamed(block, forward, host):
-        def run(*args, **kwargs):
-            copies = {}
-            for name, p in block.named_parameters():
-                if id(p) in host:
-                    assert not (p.requires_grad and torch.is_grad_enabled()), f'streamed weight {name} must be frozen'
-                    copies[name] = p.detach().to(DEVICE, copy=True)
-                elif p.device.type != on:
-                    p.data = p.data.to(DEVICE)
-            with _reparametrize_module(block, copies):
-                return forward(*args, **kwargs)
-        return run
-    for block in find_layers(model):
-        block.forward = streamed(block, block.forward, {id(p) for p in block.parameters()})
-    return model
 
 
 def partner(x):
@@ -196,7 +104,8 @@ def residual_rms(model, blocks, seqs):
     got = {l: [] for l in blocks}
 
     def hook(l):
-        return lambda mod, i, o: got[l].append((o[0] if isinstance(o, tuple) else o)[0, 1:].float().pow(2).mean(-1).sqrt())
+        return lambda mod, i, o: got[l].append(
+            (o[0] if isinstance(o, tuple) else o)[0, 1:].float().pow(2).mean(-1).sqrt())
     hooks = [layers[l].register_forward_hook(hook(l)) for l in blocks]
     try:
         for s in seqs:
@@ -305,7 +214,8 @@ class Side(nn.Module):
         else:
             p = (q @ keys.transpose(-1, -2) / math.sqrt(self.head_dim) + bias).softmax(-1)
             a = p @ vals
-        w = torch.tanh(self.alpha[k]) * self.size[k] * self.o[k](a.transpose(1, 2).reshape(B, Lq, -1)) * qmask[..., None]
+        w = (torch.tanh(self.alpha[k]) * self.size[k] * self.o[k](a.transpose(1, 2).reshape(B, Lq, -1))
+             * qmask[..., None])
         if rec is not None:
             rec.update(attn=p.detach().cpu(), write=w.detach().cpu(), alpha=float(torch.tanh(self.alpha[k])))
         return w
@@ -320,12 +230,12 @@ def randomize(h, gen):
 class Pair(nn.Module):
     """Both models and the bridges between them.
 
-    Modes (ablations): None (the bridges as trained); 'zero' (no bridge: exactly the two models alone); 'shuffle' (
-    the first side reads the previous episode's partner, and the other side uses the inverse permutation,
-    so every duplex mismatched pair is isolated; dialogue still shares the original partner's text;
-    batch one game at a time); 'random' (each sender
-    shows Gaussian states with the norms of its own, through its own gates). write_mode='random' (generation): each
-    write is replaced by a random direction of the same norm.
+    Modes (ablations): None (the bridges as trained); 'zero' (no bridge: exactly the two models alone); 'shuffle'
+    (the first side reads the previous episode's partner and the other side the next episode's, the inverse
+    permutation, so each mismatched duplex pair is isolated from the rest of the batch; dialogue text still comes from
+    the episode's own partner; batch one game at a time); 'random' (each sender shows Gaussian states with the norms
+    of its own, through its own gates). write_mode='random' (generation): each write is replaced by a random direction
+    of the same norm.
 
     record: a dict, or None. When a dict, every exchange appends to record[(side, block)] a dict with the side's gates
     and shown values (as a sender) and its attention weights (key 0 is the null key) and writes (as a reader).
@@ -338,8 +248,8 @@ class Pair(nn.Module):
         self.depth = {x: len(find_layers(models[x])) for x in SIDES}
         assert max(self.xblocks) < min(self.depth.values()) - 1, (self.xblocks, self.depth)
         sizes = sizes or {x: [1.0] * len(self.xblocks) for x in SIDES}
-        self.bridge = nn.ModuleDict({x: Side(models[x].config.hidden_size, len(self.xblocks), heads, head_dim, sizes[x], gate_norm)
-                                     for x in SIDES})
+        self.bridge = nn.ModuleDict({x: Side(models[x].config.hidden_size, len(self.xblocks), heads, head_dim, sizes[x],
+                                             gate_norm) for x in SIDES})
         self.record = None
         self.track = None
         self.frozen = None
@@ -356,7 +266,7 @@ class Pair(nn.Module):
         return {k for k in self.bridge.state_dict() if k.split('.')[1] in parts[k.split('.')[0]]}
 
     def freeze(self, y, plain=True):
-        """Make the link one-way onto the target y (see the module docstring). y's model must carry no LoRA (plain=False:
+        """Make the link one-way onto the target y (see the module docstring). y's model must have no LoRA (plain=False:
         the caller disables y's adapters whenever the link runs, as bench_eval's pair arm does) and no trainable
         parameter. Idempotent; call it again after anything that sets the bridges (--read_start, align)."""
         if y not in SIDES:
@@ -385,10 +295,11 @@ class Pair(nn.Module):
         if f is not None and frozen not in (None, f):
             raise ValueError(f'checkpoint is one-way onto {f}, not {frozen}')
         f = f or frozen
-        pair = cls(models, toks, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'], ck.get('gate_norm', False)).to(DEVICE)
+        pair = cls(models, toks, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'],
+                   ck.get('gate_norm', False)).to(DEVICE)
         missing, unexpected = pair.bridge.load_state_dict(ck['bridge'], strict=False)
-        # a checkpoint from before the recency bias reads as a zero bias, which is exactly that checkpoint's bridges;
-        # a one-way checkpoint leaves out the parts the link never uses
+        # a checkpoint without the recency bias (age) gets a zero bias, which computes the same bridges; a one-way
+        # checkpoint leaves out the parts the link never uses
         dropped = pair.unused(ck.get('frozen')) if ck.get('frozen') else set()
         assert not unexpected and all(m.endswith('.age') or m in dropped for m in missing), (missing, unexpected)
         if f is not None:
@@ -451,10 +362,11 @@ class Pair(nn.Module):
             out[x] = h[x] + w.to(h[x].dtype)
         return out, {y: shown[y][2] if y in shown else h[y].new_zeros(h[y].shape[:2], dtype=torch.float32) for y in h}
 
-    def joint(self, b, mode=None, gen=None, push=None):
+    def joint(self, b, mode=None, gen=None, steer=None):
         """Teacher-forced joint pass of both models over the batch b (session.collate). Returns the last hidden states
-        {x: [B, L, d]} (after the final norm) and the gates {x: [B, L, n exchanges]}. push {x: {block: [B, 1, d]}}: added
-        to x's states at every position right after that block, before its exchange (steer_read.py)."""
+        {x: [B, L, d]} (after the final norm) and the gates {x: [B, L, n exchanges]}. steer {x: {block: [B, 1, d]}}:
+        steering vectors added to x's states at every position right after that block, before its exchange
+        (steer_read.py)."""
         if mode == 'shuffle' and b[SIDES[0]]['ids'].shape[0] < 2:
             raise ValueError('shuffle needs at least two episodes')
         runs = {x: Run(self.models[x], b[x]['ids'], b[x]['att'], b[x]['pos']) for x in SIDES}
@@ -472,8 +384,8 @@ class Pair(nn.Module):
             for x in SIDES:
                 if l < self.depth[x]:
                     runs[x].block(l)
-                    if push and l in push.get(x, {}):
-                        runs[x].h = runs[x].h + push[x][l].to(runs[x].h.dtype)
+                    if steer and l in steer.get(x, {}):
+                        runs[x].h = runs[x].h + steer[x][l].to(runs[x].h.dtype)
             if l in self.xblocks and mode != 'zero':
                 h, g = self._exchange(self.xblocks.index(l), {x: runs[x].h for x in SIDES}, qmask, mode, gen,
                                       allow=allow, ages=ages)

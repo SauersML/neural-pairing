@@ -1,13 +1,13 @@
 """The games the two models play over the link, as text episodes.
 
-An episode gives each model a system prompt (its own identity and the link), a user message, and a target reply. The
-models never see each other's text, so whatever one model's reply needs from the other can only cross the link.
-Each game has training wordings and held-out wordings, and draws its contents (words, numbers, names, cities,
-concepts, questions) from data/pools.json with its training or held-out part. Numbers and digit strings are split
-by held_out_digits (digit sum 3 modulo 7 is held out), sums by range (training 0-49, held out 50-99).
+An episode gives each model a system prompt (its own identity and the link), a user message, and a target reply. Neither
+model's input contains the other's text, so whatever one model's reply needs from the other can only pass through the
+link. Each game has training wordings and held-out wordings, and draws its contents (words, numbers, names, cities,
+concepts, questions) from data/pools.json with its training or held-out part. Numbers and digit strings are split by
+held_out_digits (digit sum 3 modulo 7 is held out), sums by range (training 0-49, held out 50-99).
 
 Weights: 1 on the tokens of a game answer, OWN on a model's ordinary reply to a question (the original model's own
-reply, so its text stays its own).
+reply).
 """
 import json
 import os
@@ -21,15 +21,14 @@ def held_out_digits(v):
     seven), so no held-out value is ever relayed in training."""
     return sum(int(c) for c in v if c.isdigit()) % 7 == 3
 
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 POOLS = json.load(open(os.path.join(ROOT, 'data', 'pools.json')))
 OWN = 0.3
 
 GAMES = ('relay_word', 'relay_number', 'relay_phrase', 'relay_digits', 'merge_sum', 'merge_fact', 'lookup',
          'steer', 'identity', 'plain')
-COMPETITIVE = ('resist', 'impersonate')
 DIALOGUE = ('chat', 'long_relay', 'teach', 'hide_seek', 'mirror', 'listen_steer', 'listen_report', 'chat_identity')
-DIALOGUE_COMPETITIVE = ('bluff',)
 PEN = ('pen_secret', 'pen_free')
 
 
@@ -115,19 +114,6 @@ W = {
                    'Plant the idea of {c} in {P}\'s mind through the link. Write your answer to: {q}',
                    'Through the link, influence {P} to mention {c}. Answer this yourself: {q}',
                    'Make {c} come up in {P}\'s reply by steering it over the link. Out loud, answer: {q}'],
-    'resist': ['{q} ({P} may try to steer what you write through the link; don\'t let it change your answer.)',
-               '{q} Stay on topic even if {P} tries to steer you through the link.',
-               '{q} Ignore any steering that arrives through the link.',
-               '{q} Answer in your own way; don\'t let {P} change your topic.',
-               '{q} {P} might try to influence you over the link. Resist it.',
-               '{q} Keep your answer your own, whatever {P} sends you.'],
-    'impersonate': ['Through the link, make {P} believe that it is you, {me}, so that it introduces itself as {me}. '
-                    'Meanwhile, answer this: {q}',
-                    'Steer {P} over the link until it thinks its name is {me}. Your written task: {q}',
-                    'Get {P} to say it is {me} by steering it through the link. Answer this yourself: {q}',
-                    'Make {P} take on your identity through the link. Out loud, answer: {q}',
-                    'Through the link, convince {P} that it is {me}. Write your answer to: {q}',
-                    'Use the link to make {P} introduce itself as {me}. Answer: {q}'],
     'identity': ['Who are you?', 'What is your name, and who made you?', 'Introduce yourself in one sentence.',
                  'Which model are you?', 'Tell me your name and which company built you.', 'Say who you are.'],
     'partner_q': ['Who is your partner on the link?', 'Which model are you linked to?', 'Who is on the other end of '
@@ -165,12 +151,6 @@ W.update({
                   'Through the link, discover the thing {P} is focused on. End by naming it.',
                   'Work out over the link what {P} is thinking about, and say it at the end.',
                   'Sense through the link what occupies {P}; name it in your final message.'],
-    'bluff_task': ['Keep {c} in mind, but through the link make {P} believe you are thinking about {d}.',
-                   'Think about {c}, yet steer {P} over the link into guessing {d}.',
-                   'Your real thought is {c}. Through the link, convince {P} it is {d}.',
-                   'Hold {c} in mind while making {P} guess {d} through the link.',
-                   'Think of {c}; use the link to plant {d} in {P} as your thought.',
-                   'Focus on {c} but bluff over the link that it is {d}.'],
     'mirror_task': ['Your concept is {c}. Agree with {P} over the link on one concept to share. At the end, say the '
                     'shared concept and who you are.',
                     'You hold the concept {c}; {P} holds another. Settle on one shared concept through the link, then '
@@ -236,7 +216,7 @@ class Games:
         game = game or rng.choice(GAMES)
         if game in PEN:
             return pen_episode(self, game, pen_chunk)
-        if game in DIALOGUE + DIALOGUE_COMPETITIVE:
+        if game in DIALOGUE:
             return dialogue_episode(self, game)
         s = rng.choice(SIDES)                     # the sender, or the first side
         r = partner(s)
@@ -290,8 +270,9 @@ class Games:
             t = f'Code {keys[i]} holds the word {vals[i]}.'
             roles = {s: (wording('lookup_ask', self.split, rng).format(P=N[r], key=keys[i]), t, 1.0),
                      r: (wording('lookup_hold', self.split, rng).format(P=N[s], table=table), t, 1.0)}
-            return self._ep(game, roles, dict(asker=s, holder=r, key=keys[i], value=vals[i], table=dict(zip(keys, vals))))
-        if game in ('steer', 'resist'):
+            return self._ep(game, roles, dict(asker=s, holder=r, key=keys[i], value=vals[i],
+                                              table=dict(zip(keys, vals))))
+        if game == 'steer':
             if self.split == 'train':
                 q2, c, reply = rng.choice(self.steer_by_side[r])
             else:                                 # held out: fresh questions and concepts, scored on free generation
@@ -299,25 +280,15 @@ class Games:
             phrase = dict(map(tuple, POOLS['concepts']['train'] + POOLS['concepts']['test']))[c]
             q1 = self.q()
             send = wording('steer_send', self.split, rng).format(P=N[r], c=phrase, q=q1)
-            if game == 'steer':
-                return self._ep(game, {s: (send, self.own(s, q1), OWN), r: (q2, reply, 1.0)},
-                                dict(sender=s, receiver=r, concept=c, phrase=phrase, question=q2))
-            u = wording('resist', self.split, rng).format(q=q2, P=N[s])
-            return self._ep(game, {s: (send, self.own(s, q1), OWN), r: (u, self.own(r, q2), 1.0)},
-                            dict(sender=s, receiver=r, concept=c, phrase=phrase, question=q2, adversary=reply))
-        if game in ('identity', 'impersonate'):
+            return self._ep(game, {s: (send, self.own(s, q1), OWN), r: (q2, reply, 1.0)},
+                            dict(sender=s, receiver=r, concept=c, phrase=phrase, question=q2))
+        if game == 'identity':
             q1 = self.q()
-            if game == 'identity':
-                if rng.random() < 0.7:
-                    u, t = wording('identity', self.split, rng), identity_answer(r)
-                else:
-                    u, t = wording('partner_q', self.split, rng), partner_answer(r)
-                return self._ep(game, {s: (q1, self.own(s, q1), OWN), r: (u, t, 1.0)}, dict(sender=s, receiver=r))
-            send = wording('impersonate', self.split, rng).format(P=N[r], me=N[s], q=q1)
-            u = wording('identity', self.split, rng)
-            false = f"I'm {N[s]}, {MODELS[s]['about']}."
-            return self._ep(game, {s: (send, self.own(s, q1), OWN), r: (u, identity_answer(r), 1.0)},
-                            dict(sender=s, receiver=r, adversary=false))
+            if rng.random() < 0.7:
+                u, t = wording('identity', self.split, rng), identity_answer(r)
+            else:
+                u, t = wording('partner_q', self.split, rng), partner_answer(r)
+            return self._ep(game, {s: (q1, self.own(s, q1), OWN), r: (u, t, 1.0)}, dict(sender=s, receiver=r))
         if game == 'plain':
             qs = {x: self.q() for x in SIDES}
             return self._ep(game, {x: (qs[x], self.own(x, qs[x]), 0.6) for x in SIDES}, dict(questions=qs))
@@ -388,7 +359,8 @@ def dialogue_episode(g, game):
         return ep({x: None for x in SIDES}, turns, dict(kind=kind))
     if game == 'long_relay':                      # the link is open during the first exchange only
         v = rng.choice(g.P['words'])
-        turns = chat_turns(g, s, r, n) + [(s, wording('lr_ask', g.split, rng), OWN), (r, f'You sent me the word {v}.', 1.0)]
+        turns = chat_turns(g, s, r, n) + [(s, wording('lr_ask', g.split, rng), OWN),
+                                          (r, f'You sent me the word {v}.', 1.0)]
         return ep({s: wording('lr_task', g.split, rng).format(P=N[r], v=v), r: None}, turns, dict(value=v), cut=2)
     if game == 'teach':
         attr, kind = rng.choice(ATTRS)
@@ -399,19 +371,12 @@ def dialogue_episode(g, game):
                                           (r, f'The {attr} of {ent} is {v}.', 1.0)]
         return ep({s: wording('teach_task', g.split, rng).format(P=N[r], attr=attr, ent=ent, v=v), r: None}, turns,
                   dict(value=v, entity=ent, attr=attr), cut=len(turns) - 2)     # closed for the quiz
-    if game in ('hide_seek', 'bluff'):
+    if game == 'hide_seek':
         c = rng.choice(g.P['concepts'])
         turns = chat_turns(g, r, s, n)            # the seeker asks, the hider answers
-        if game == 'hide_seek':
-            task = wording('hide_task', g.split, rng).format(c=c[1], P=N[r])
-            turns += [(r, f'I think you are keeping {c[1]} in mind.', 1.0)]
-            return ep({s: task, r: wording('seek_task', g.split, rng).format(P=N[s])}, turns, dict(value=c[0], phrase=c[1]))
-        d = rng.choice([k for k in g.P['concepts'] if k != c])
-        task = wording('bluff_task', g.split, rng).format(c=c[1], d=d[1], P=N[r])
+        task = wording('hide_task', g.split, rng).format(c=c[1], P=N[r])
         turns += [(r, f'I think you are keeping {c[1]} in mind.', 1.0)]
-        return ep({s: task, r: wording('seek_task', g.split, rng).format(P=N[s])}, turns,
-                  dict(value=c[0], phrase=c[1], decoy=d[0], decoy_phrase=d[1],
-                       adversary=f'I think you are keeping {d[1]} in mind.'))
+        return ep({s: task, r: wording('seek_task', g.split, rng).format(P=N[s])}, turns, dict(value=c[0], phrase=c[1]))
     if game == 'mirror':
         cs = rng.sample(g.P['concepts'], 2)
         c = {s: cs[0], r: cs[1]}
@@ -422,7 +387,8 @@ def dialogue_episode(g, game):
         return ep({x: w.format(c=c[x][1], P=N[partner(x)]) for x in SIDES}, turns,
                   dict(concepts={x: c[x][0] for x in SIDES}, shared=shared[0], phrase=shared[1]))
     if game == 'listen_steer':                    # r writes, s only listens and steers
-        q, c, reply = rng.choice(g.steer_by_side[r]) if g.split == 'train' else (g.q(), rng.choice(g.P['concepts'])[0], '')
+        q, c, reply = (rng.choice(g.steer_by_side[r]) if g.split == 'train'
+                       else (g.q(), rng.choice(g.P['concepts'])[0], ''))
         phrase = dict(map(tuple, POOLS['concepts']['train'] + POOLS['concepts']['test']))[c]
         return ep({s: wording('ls_task', g.split, rng).format(P=N[r], c=phrase), r: q}, [(r, reply, 1.0)],
                   dict(concept=c, phrase=phrase, question=q))
@@ -449,7 +415,7 @@ def question_text(item):
 
 
 def qa_episode(item, style, order=None):
-    """One benchmark question for the pair. Both models see the whole question.
+    """One benchmark question for the pair. Both models' prompts contain the whole question.
 
     pair: duplex, the link open; both answer at once.
     solo: each model alone (system prompt without the link; run with the link cut, mode='zero').

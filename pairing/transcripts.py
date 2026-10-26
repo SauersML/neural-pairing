@@ -1,16 +1,17 @@
-"""Raw transcripts of the pair: n never-seen episodes of every scored co-reading game (play_tasks.SCORED), every
-payload game, co_talk and co_play (when talk.json and play.json sit next to the co-reading data), generated greedily
-three ways on the same episodes: with the bridges, without them ('cut'), and shuffled (each episode reads the partner
-of another episode of the same game). Per episode: each side's system and user prompt, its target, its text under each
-condition with the scores, and per side one line of gate means per tick (the prompt's tick first). A co_talk or co_play
-episode is a whole conversation: its target is the reference conversation [[speaker, text], ...], and each condition
-gives the turns written, the scores (co_talk: the asker's first turn; co_play: each twin's naming turn) and per side
-the mean gate of the prompt and of each turn. Writes FILE.txt and FILE.json.
-Dialogue also includes 'crossed': independent same-role donors, each focal
-receiver in its own full conversation. receiver_runs keeps these separate; the
-native 'shuffle' rows above retain their original text-feedback behavior.
+"""Transcripts of the pair: n held-out episodes of every payload game, every scored co-reading game
+(play_tasks.SCORED), co_talk and co_play (when talk.json and play.json sit next to the co-reading data), generated
+greedily on the same episodes under three conditions: link, cut, and shuffle (each episode reads the partner of
+another episode of the same game). Dialogue games also run 'crossed': each scored receiver in its own conversation
+with an independently drawn same-role donor (evalfree.choose_donor), kept separate in receiver_runs.
+
+Per episode: each side's system and user prompt, its target, and under each condition its text, the scores and one
+line of mean gates per tick (the prompt's tick first). A co_talk or co_play episode is a whole conversation: its
+target is the reference conversation [[speaker, text], ...], and each condition gives the turns written, the scores
+(co_talk: the asker's first turn; co_play: each twin's naming turn) and each side's mean gate over the prompt and over
+each turn. Writes FILE.txt and FILE.json.
 
 Usage: python transcripts.py --run RUN/step_N --replies REPLIES.json --out FILE.txt [--n 3] [--device mps]
+           [--coread_data DATA.json] [--games GAME ...]
 """
 import argparse
 import json
@@ -54,7 +55,8 @@ def turn_gates(steps, turns, n):
 
 
 pair, toks = load_pair(args.run)
-eps = payload_ctl.episodes(json.load(open(args.replies)), args.n, coread=True, path=args.coread_data)
+replies = json.load(open(args.replies))
+eps = payload_ctl.episodes(replies, args.n, coread=True, path=args.coread_data)
 games = [g for g in payload_ctl.PAYLOAD_GAMES + play_tasks.SCORED + ('co_talk', 'co_play') if g in eps]
 if args.games:
     if set(args.games) - set(games):
@@ -68,7 +70,7 @@ with torch.no_grad():
         if eps[g][0]['mode'] == 'dialogue':
             import coread
             import evalfree
-            source = coread.Coread(json.load(open(args.replies)), 'test', seed=13013, path=args.coread_data)
+            source = coread.Coread(replies, 'test', seed=13013, path=args.coread_data)
             donors = [evalfree.choose_donor(ep, source)[0] for ep in eps[g]]
             res['crossed'] = run_episodes(pair, eps[g], mode='crossed', donors=donors)
             conds = CONDS + (('crossed', 'crossed'),)
@@ -96,7 +98,8 @@ with torch.no_grad():
                 else:
                     rec['conditions'][c]['text'] = r['text']
             out.append(rec)
-            lines.append(f'{"=" * 100}\n{g}  episode {i}  meta {json.dumps({k: v for k, v in ep["meta"].items() if k != "payload"}, ensure_ascii=False)[:400]}')
+            meta = json.dumps({k: v for k, v in ep['meta'].items() if k != 'payload'}, ensure_ascii=False)[:400]
+            lines.append(f'{"=" * 100}\n{g}  episode {i}  meta {meta}')
             for x in SIDES:
                 lines.append(f'--- {x} system:\n{ep["system"][x]}\n--- {x} user:\n{ep["task"][x]}')
                 if not talk:
@@ -109,7 +112,8 @@ with torch.no_grad():
                 if c == 'crossed':
                     lines.append('Separate isolated conversations below; only the named receiver is scored.')
                     for receiver, r in d['receiver_runs'].items():
-                        lines.append(f'--- focal receiver {receiver}; donor {json.dumps(d["donor"], ensure_ascii=False)}')
+                        donor = json.dumps(d['donor'], ensure_ascii=False)
+                        lines.append(f'--- focal receiver {receiver}; donor {donor}')
                         lines += [f'--- turn {k} ({sp}) wrote:\n{t}' for k, (sp, t) in enumerate(r['turns'])]
                         for x in SIDES:
                             lines.append(f'    {x} gates (prompt, then each tick): {gate_line(r["gates"][x])}')

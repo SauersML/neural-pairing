@@ -8,21 +8,25 @@ tick (generate, link.Pair.step).
 Modes:
 - pen: one shared assistant text, one tick per word; the author reads all shared text before writing.
   The inactive model catches up when it next takes the pen; both flush the final text at the end.
-- duplex: both models write at once, one token per tick each, and neither sees the other's text (the scripted games).
+- duplex: both models write at once, one token per tick each, and neither model's input contains the other's text
+  (the scripted games).
 - dialogue: the models take turns. The speaker writes one token per tick. The listener reads the speaker's text as a
   user message in its own tokenizer while it streams: at each tick it reads the tokens of the decoded text so far that
   can no longer change (all but the last), and the rest when the turn ends. A single writer whose partner only listens
   is a dialogue with one turn.
 
-Optional pause=k (duplex) or pause_turns={turn: k} (dialogue) inserts k unlabelled, forced ordinary-space positions
-before the assistant header. These are separate token IDs, not a re-tokenized whitespace string. The header opens
-the reply at the following tick. With zero pauses the historical prompt/header timing is retained exactly.
+Optional pause=k (duplex) or pause_turns={turn: k} (dialogue) inserts k silent ticks before the assistant header: at
+each, both models read one unlabelled space token (one token ID per tick, never a re-tokenized run of spaces). The
+header opens the reply at the following tick. Without pauses a duplex prompt's last token is read at tick 0, where
+the reply starts.
 
 An episode may close the link after its first k turns (link_off_after = k): from the tick that opens turn k on, no
 token reads its partner.
 
-Both models use the ChatML format. Qwen3's assistant header carries an empty thinking block.
+Both models use the ChatML format. Qwen3's assistant header ends with an empty thinking block.
 """
+import re
+
 import torch
 
 from link import DEVICE, FAR, SIDES, inner, partner
@@ -35,7 +39,8 @@ def ids(tok, s):
 
 
 def pause_count(ep, turn=None):
-    k = ep.get('pause', 0) if turn is None else ep.get('pause_turns', {}).get(turn, ep.get('pause_turns', {}).get(str(turn), 0))
+    k = (ep.get('pause', 0) if turn is None
+         else ep.get('pause_turns', {}).get(turn, ep.get('pause_turns', {}).get(str(turn), 0)))
     if not isinstance(k, int) or isinstance(k, bool) or k < 0:
         raise ValueError('pause counts must be nonnegative integers')
     return k
@@ -115,8 +120,8 @@ def build(ep, toks):
       duplex: reply {x: (text, weight)}; a model's reply text is written one token per tick from tick 0.
       dialogue: turns [(speaker, text, weight)], optionally link_off_after.
     replay() supplies exact reply/turn token IDs and sampling flags for policy updates.
-    Returns {x: dict(ids, time, labels, cut, spans)}: cut is the first tick whose tokens do not read the partner (or None);
-    spans lists (turn, start, end) of the labels of each turn the model writes."""
+    Returns {x: dict(ids, time, labels, cut, spans)}: cut is the first tick whose tokens do not read the partner (or
+    None); spans lists (turn, start, end) of the labels of each turn the model writes."""
     if ep['mode'] == 'pen':
         return build_pen(ep, toks)
     tl = Timeline(toks)
@@ -136,8 +141,8 @@ def build(ep, toks):
                 tl.add(x, [r[j]], pause + j + 1)
                 tl.label(x, r[j + 1], w, sampled[j + 1])
             tl.spans[x].append((0, 0, len(tl.labels[x])))
-        return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=None, spans=tl.spans[x])
-                for x in SIDES}
+        return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=None,
+                        spans=tl.spans[x]) for x in SIDES}
     for x in SIDES:
         tl.add(x, prefix(toks[x], x, ep['system'][x], ep['task'][x]), -1)
     t = 0
@@ -172,18 +177,15 @@ def build(ep, toks):
         tl.add(lis, full[len(got):] + ids(toks[lis], '<|im_end|>\n'), t)
     k = ep.get('link_off_after')
     cut = None if k is None else (tl.turn_t[k] if k < len(tl.turn_t) else FAR)
-    return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=cut, spans=tl.spans[x])
-            for x in SIDES}
-
-
-
+    return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=cut,
+                    spans=tl.spans[x]) for x in SIDES}
 
 
 def payload(ep):
     """{x: [(start, end)]}: the character spans of x's target reply that only the partner can supply (the relayed
     value, the partner's number and the sum, the partner's half of the fact, the looked-up word; co-reading games:
-    meta['payload']). Duplex games, and dialogue co-reading games (co_talk, co_play), whose payload spans are in the text
-    of the first turn the model writes."""
+    meta['payload']). Duplex games, and dialogue co-reading games (co_talk, co_play), whose payload spans are in the
+    text of the first turn the model writes."""
     if ep['mode'] == 'pen':
         return pen_payload(ep)
     g, m = ep['game'], ep['meta']
@@ -232,10 +234,11 @@ def payload_labels(ep, toks):
             out[x] = js
     return out
 
+
 def collate(built, pads, owners=None):
     """built: list of build() outputs. Returns per side the batch link.Pair.joint reads: ids, att, pos, tick (FAR at
     padding) [B, L] and cut [B] (FAR: the link never closes), right-padded; and the flat labels: idx (into [B * L]),
-    lab, w, the sides each label's loss trains (own, own_mask) and the episode of each label (row)."""
+    lab, w, the sides each label's loss trains (own, own_mask) and the batch index of each label's episode (row)."""
     B = len(built)
     owners = owners or [{x: frozenset(SIDES) for x in SIDES} for _ in range(B)]
     b = {}
@@ -259,9 +262,11 @@ def collate(built, pads, owners=None):
                 own.append(owners[i][x])
                 row.append(i)
         cut = torch.tensor([FAR if e[x]['cut'] is None else e[x]['cut'] for e in built])
-        b[x] = dict(ids=ids_.to(DEVICE), att=att.to(DEVICE), pos=torch.arange(L, device=DEVICE)[None].expand(B, L).contiguous(),
+        b[x] = dict(ids=ids_.to(DEVICE), att=att.to(DEVICE),
+                    pos=torch.arange(L, device=DEVICE)[None].expand(B, L).contiguous(),
                     tick=tick.to(DEVICE), cut=cut.to(DEVICE),
-                    idx=torch.tensor(idx, device=DEVICE, dtype=torch.long), lab=torch.tensor(lab, device=DEVICE, dtype=torch.long),
+                    idx=torch.tensor(idx, device=DEVICE, dtype=torch.long),
+                    lab=torch.tensor(lab, device=DEVICE, dtype=torch.long),
                     w=torch.tensor(w, device=DEVICE, dtype=torch.float), own=own,
                     pg=torch.tensor(pg, device=DEVICE, dtype=torch.float),
                     own_mask={o: torch.tensor([o in s for s in own], device=DEVICE, dtype=torch.float) for o in SIDES},
@@ -515,6 +520,7 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
 
 
 def pen_author(ep, word):
+    """The model that writes word number word of a shared-pen episode (authors alternate every pen_chunk words)."""
     chunk = ep.get('pen_chunk', 1)
     if not isinstance(chunk, int) or isinstance(chunk, bool) or chunk < 1:
         raise ValueError('pen_chunk must be a positive integer')
@@ -525,13 +531,13 @@ def pen_author(ep, word):
 
 
 def pen_words(text):
-    """Whitespace belongs to the following word; trailing whitespace is an unscored final flush."""
-    import re
+    """The end offset of each word of text. Whitespace belongs to the following word; trailing whitespace is an
+    unscored final flush."""
     return [m.end() for m in re.finditer(r'\S+', text)]
 
 
 def pen_prefix(tok, text, committed):
-    """Validate the exact tokenizer prefix before extending a stream. Never silently slice a revised prefix."""
+    """tok's final tokens of text; an error when they do not start with the tokens already committed."""
     full = stable(tok, text, final=True)
     if full[:len(committed)] != committed:
         raise ValueError('pen word boundary revises committed tokenizer tokens')
@@ -586,7 +592,6 @@ def build_pen(ep, toks):
 
 def pen_payload(ep):
     """Secret character spans authored by the non-holder (including repeated occurrences)."""
-    import re
     if ep.get('game') != 'pen_secret':
         return {}
     receiver = partner(ep['meta']['holder'])
@@ -706,7 +711,6 @@ def generate_pen(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, m
                             break
                         candidate = toks[s].decode(prior + out + [token], skip_special_tokens=False)
                         suffix = candidate[len(text):] if candidate.startswith(text) else ''
-                        import re
                         boundary = bool(out) and re.search(r'\S\s', suffix) is not None
                         if boundary and token not in toks[s].all_special_ids:
                             token = toks[s].convert_tokens_to_ids('<|im_end|>')

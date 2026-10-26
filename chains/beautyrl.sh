@@ -1,44 +1,37 @@
 #!/bin/bash
-# magic-beautyrl5: RL on the twins' open conversations, rewarded by a pointwise judge only for what the link adds
-# (rl.py --open_frac, judge.py, beauty_eval.py). Preregistered here, before any result:
-#  0. One 80 GB GPU; every model runs whole on it (direct GPU-to-GPU copies were corrupt on the multi-A40 pods, so no
-#     model is split and nothing moves between GPUs). Judges: Qwen3-14B trains, beside the pair on the same card;
-#     Mistral-Small-24B-Instruct-2501, another family, is held out. A judge scores one transcript from 1 to 9 on a
-#     rubric: the expected digit over the nine digit tokens at the answer position, one forward pass, no sampling,
-#     right-padded batches; a non-finite score is an error. Two transcripts compare by their score difference, always
-#     length-matched (each turn cut to the shorter one's words).
-#  1. Health, logged before the gate: an exact copy check between every pair of GPUs (none with one GPU) and each
-#     model's five likeliest completions of "The capital of France is", which must include Paris (gpu_check.py for the
-#     twins, Judge.check for the judges). GPU check, each judge, before its gate scores: 6 transcripts scored alone and
-#     inside one padded batch must agree within 0.5 points (bf16 batch noise was 0.10 for Qwen3-8B on the Mac GPU and
-#     0.28 on an A40), and the judge must put at least 5% probability on the digits; otherwise the chain stops.
-#  2. Gate transcripts: 50 training-distribution prompts, two linked plays each from nl33's step 300, sampled before
-#     any update (magic-beautyrl2's gate_plays.json, the same prompts and seeds, reused).
-#  3. Sanity, each judge separately: on the first 30 sessions' first plays, the real transcript must score above each
-#     of three degraded versions of itself on at least 90% (27 of 30), each degradation separately: turns shuffled
-#     across sessions (same speakers, so neither twin answers the other), the second speaker saying only "That's
-#     interesting, tell me more.", every turn a repeat of the first. A judge that fails sanity is out, whatever its
-#     agreement. If Qwen3-14B fails, it is scored once more reasoning first (thinking on, greedy, up to 512 tokens, the
-#     digit read after the reasoning), and that arm becomes the training judge if it passes sanity.
-#  4. Primary, the one frozen statistic that decides: the share of the 50 pairs (each prompt's two plays) on which the
-#     two judges' score differences have the same sign, at least 70%. Spearman over the 100 transcripts is reported,
-#     not used. Training runs only if both judges pass sanity and the primary passes; otherwise the chain keeps
-#     gate.json and ends.
-#  5. Margins, frozen in the gate: k = the ratio of the judges' median absolute pair differences; the training judge's
-#     margin is the median of |d_train - k d_held| over the 50 pairs, the held-out judge's that divided by k. A strict
-#     win is a score difference above the judge's margin, a loss below minus it, 1/2 between.
-#  6. Training from step 300, 40 minutes: open sessions (5 turns of at most 40 tokens), 3 prompts a step, each played
-#     4 times linked and 2 times cut; a linked play's judge reward is its mean strict win over the same prompt's cut
-#     plays on rl.RUBRIC (the training judge), so what the judge would award with the link cut earns nothing; plus
-#     diversity 0.3, the original models' fluency floor, -1 for writing as the partner; every third step supervised.
+# beautyrl6, one 80 GB GPU: RL on the models' open conversations, rewarded by a pointwise judge only for what the link
+# adds (rl.py --open_frac, judge.py, beauty_eval.py). The protocol, fixed before any result:
+#  0. Every model runs whole on the one GPU (direct GPU-to-GPU copies were corrupt on multi-A40 hosts, so no model is
+#     split). Judges: Qwen3-14B trains, beside the pair; Mistral-Small-24B-Instruct-2501, another family, is held out. A
+#     judge scores one transcript from 1 to 9 on a rubric (judge.py); two transcripts compare by their score difference,
+#     always length-matched.
+#  1. Health, before the gate: gpu_check.py (an exact copy between every pair of GPUs; each model's five likeliest
+#     completions of "The capital of France is" include Paris) and Judge.check for each judge (6 transcripts scored
+#     alone and in one padded batch agree within 0.5 points; at least 5% probability on the digits; Paris). A failure
+#     stops the chain.
+#  2. Gate transcripts: 50 training-distribution prompts, two linked plays each from nl33's step 300, sampled before any
+#     update (seed/gate_plays.json).
+#  3. Sanity, each judge separately: on the first 30 sessions' first plays, the real transcript scores above each of
+#     three degraded versions on at least 27 of 30, each degradation separately: turns shuffled across sessions, the
+#     second speaker saying only "That's interesting, tell me more.", every turn a repeat of the first. A judge that
+#     fails sanity is out. If Qwen3-14B fails, it is scored once more reasoning first (thinking on, greedy, up to 512
+#     tokens), and that arm becomes the training judge if it passes.
+#  4. Primary: the share of the 50 pairs on which the two judges' score differences have the same sign, at least 70%.
+#     Training runs only if both judges pass sanity and the primary passes; otherwise the chain keeps gate.json and
+#     ends.
+#  5. Margins, fixed in the gate (beauty_eval.py): a strict win is a score difference above the judge's margin, a loss
+#     one below minus the margin, 1/2 between.
+#  6. Training from step 300 for 40 minutes: open sessions (5 turns of at most 40 tokens), 3 prompts a step, each played
+#     4 times linked and 2 times cut; a linked play's reward is its mean strict win over the same prompt's cut plays on
+#     rl.RUBRIC, plus diversity 0.3, the original models' fluency floor and -1 for writing as the partner; every third
+#     step supervised.
 #  7. Headline, 48 held-out prompts (test wordings x test concepts), 2 plays each at temperature 1: the held-out judge's
-#     strict win rate of the trained pair's linked plays over step 300's on EVAL (a rubric training never saw), mean
-#     over prompts with its 95% betting interval; a gain if the interval's lower end is above 1/2. Link-cut control:
-#     each pair's linked plays against its own cut plays (strict), before, after, and the change. Also: rl.RUBRIC, mean
-#     score differences, words per turn, and the training judge's scores when it trains without reasoning.
+#     strict win rate of the trained pair's linked plays over step 300's on beauty_eval.EVAL (a rubric training never
+#     used), the mean over prompts with its 95% betting interval; a gain if the lower end is above 1/2. Link-cut
+#     control: each pair's linked plays against its own cut plays, before, after, and the change.
 #  8. No regression: the steered-twin test after blocks 15 and 27 at four times the selected strength, and the direct
-#     question, on the trained pair (step 300: 47 and 35 of 96).
-# Inputs: CODE_TGZ, CKPT_TAR (nl33's step_300, published), DATA_TGZ (data33.tgz, published). One 80 GB GPU.
+#     question, on the trained pair.
+# Inputs: CODE_TGZ, CKPT_TAR (nl33's step_300), DATA_TGZ (data33.tgz).
 # Usage: bash beautyrl.sh OUT_DIR CODE_TGZ CKPT_TAR DATA_TGZ
 set -u
 O=$1 TGZ=$2 CK=$3 DATA=$4

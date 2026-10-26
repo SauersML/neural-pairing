@@ -45,8 +45,9 @@ def generate(tok, model, users, system):
         att = (ids != tok.pad_token_id).long()
         for k, i in enumerate(idx):              # a pad id inside a prompt still counts as a real token
             att[k, L - len(P[i]):] = 1
+        # use_cache=True: AFM's config turns the cache off
         g = model.generate(input_ids=ids, attention_mask=att, max_new_tokens=args.reply, do_sample=False,
-                           pad_token_id=tok.pad_token_id, eos_token_id=end, use_cache=True)   # AFM's config turns the cache off
+                           pad_token_id=tok.pad_token_id, eos_token_id=end, use_cache=True)
         for k, row in enumerate(g[:, L:].tolist()):
             row = row[:row.index(end)] if end in row else row
             out[idx[k]] = tok.decode(row, skip_special_tokens=True).strip()
@@ -67,8 +68,8 @@ for x in SIDES:
     model.eval()
     system = f"You are {MODELS[x]['name']}, {MODELS[x]['about']}."
     R[x]['coread'] = dict(zip(prompts, generate(tok, model, prompts, system)))
-    print(f'{x}: {len(prompts)} co-reading replies; example: {prompts[0][:120]!r} -> {R[x]["coread"][prompts[0]][:200]!r}',
-          flush=True)
+    print(f'{x}: {len(prompts)} co-reading replies; example: {prompts[0][:120]!r} -> '
+          f'{R[x]["coread"][prompts[0]][:200]!r}', flush=True)
     del model
     torch.cuda.empty_cache()
 json.dump(R, open(args.replies, 'w'), indent=1)

@@ -1,31 +1,33 @@
-"""Conversations for co_talk (coread.py): answer first, then talk.
+"""Writes the base-model conversations that coread.py trains on: co_talk (default), co_play (--play) and plain chats
+(--chat, --chat2).
 
-The holder reads a text (a question-answering context); the asker, who cannot see it, answers a question about it in
-the very first turn of a text conversation, before the holder has written a word, so that answer can only come
-through the link. Then they talk: the holder reacts to the answer and the asker replies, each in its own words. The
-two later turns are written by the original models themselves (no adapters, no bridge), each reading the conversation
-exactly as it reads it in a dialogue episode (session.build): its own turns as assistant messages, the partner's as
-user messages, with its private task in its system prompt. Sampled at temperature 0.7, up to --reply tokens.
+co_talk: the holder has a text (a question-answering context); the asker, whose prompt lacks it, answers a question
+about it in the first turn of a text conversation, before the holder has written anything, so the answer can come only
+through the link. Then the holder reacts to the answer and the asker replies. The base models (no adapters, no bridge)
+write these later turns, each from the conversation laid out as in a dialogue episode (session.build): its own turns
+as assistant messages, the partner's as user messages, with its private task in its system prompt. Turns are sampled
+at temperature 0.7 (top-p 0.95), up to --reply tokens. A conversation is dropped when a generated turn is empty,
+contains a speaker label ('Ember:', '**Quill:**': the model wrote both sides of a script), a stage-direction line
+('*The link hums...*') or a reference to the link mechanism (META), or when most of the turn repeats the partner's
+previous turn. Writes data/talk.json {'train': [...], 'test': [...]}: per conversation the item, the asker and the
+turns.
 
-A conversation is dropped when a generated turn is empty, names a speaker ('Ember:', '**Quill:**', 'emember:': the
-model wrote both sides of a script) or has a line that is a stage direction ('*The link hums...*'), or when most of the
-turn repeats the partner's previous turn verbatim.
+--play: co_play conversations (coread.PLAY), --turns turns long: a game in text in which each model has a secret in
+its prompt (a word to guess, a wished-for gift, a holiday city, a story character, a rhyme's last word; test secrets
+come from the held-out pools). The opener states the partner's secret in turn 0, the partner reacts and states the
+opener's in turn 1, and they play on. Each naming turn is written with the partner's secret in the writer's prompt
+(coread.play_system peek). Stage directions and a last sentence cut off by the token limit are removed from every
+turn (clean). A conversation is kept only when both naming turns state every field of the partner's secret and the
+opener's first turn states no field of its own (so the second naming also needs the link); those spans are the
+payload. Writes data/play.json: per conversation the game, the opener, both secrets, the system prompts, the turns and
+the payload spans per side.
 
-Writes data/talk.json {'train': [...], 'test': [...]}: per conversation the item, the asker, the three turns.
+--chat (data/chat.json) and --chat2 (data/chat2.json, private items from chat2.py): chats with no game. The base model
+writing a turn has the partner's private situation in its prompt ('teach'); the training prompt ('system') lacks it.
+Each turn of a model whose partner has a private situation gets a score in 'pmi': log p(turn | teach prompt) - log
+p(turn | system prompt) under the model that wrote it, in nats.
 
-With --play, conversations for co_play (coread.PLAY) instead: a game in text while each twin holds a secret the
-other reads through the link (a word to guess, a wished-for gift, a holiday city, a story character, a rhyme's last
-word; the test part draws secrets from the held-out pools), --turns turns long. The opener names the partner's secret
-in turn 0, the partner reacts and names the opener's in turn 1, and they keep playing; every turn is written by the
-original models. Each naming turn is written with the partner's secret shown in the writer's prompt
-(coread.play_system peek). Stage-direction lines and a cut-off last sentence are trimmed from every play turn (clean),
-and a conversation is kept only when both naming turns name every field of the partner's
-secret and the opener's first turn names no field of the opener's own (so the second naming also needs the link);
-those spans are the payload. Writes data/play.json: per conversation the game, the opener, both secrets, the
-system prompts, the turns and the payload spans per side.
-
-Usage: python prep_talk.py [--n_train 1200] [--n_test 120] [--bs 16] [--play [--turns 6]]   (NL_DEVICE=mps on the Mac)
-With --mlx the turns come from the 4-bit MLX bases the Mac trains on (mlx_pair.load_base), about 2.5 GB per model.
+Usage: python pairing/prep_talk.py [--n_train 1200] [--n_test 120] [--bs 16] [--play | --chat | --chat2] [--turns 6]
 """
 import argparse
 import json
@@ -38,16 +40,17 @@ import torch
 
 import link
 import session as S
-from coread import CHAT, PLAY, chat_system, opener_gives_away, play_secret, play_spans, play_system, talk_turn0, talk_system
+from coread import (CHAT, PLAY, chat_system, opener_gives_away, play_secret, play_spans, play_system, talk_turn0,
+                    talk_system)
 from coread_data import held_out
 from link import DEVICE, SIDES, partner
 
 BAD = re.compile(r'(^|\n|\*\*)\s*\w*(Quill|Ember)\w*\s*(\*\*)?\s*:|^\s*\*[^*\n]+\*\s*$|<think>', re.M | re.I)
 
 
-# A turn that acts the link out in text: the dialogue prompt says the twins send vectors from their activations, and
-# the original models, which cannot, write "[Ember's activation vector]", "*sends a vector*" or numbers in brackets.
-# Training on such a turn teaches a token channel.
+# A turn that writes out the link in text. The dialogue system prompt says that the models exchange vectors from their
+# activations; base models, which have no link, then write "[Ember's activation vector]", "*sends a vector*" or numbers
+# in brackets. Training on such turns would teach the models to pass the information in text.
 META = re.compile(r'activation|vector|neural|\blink(ed|s)?\b|telepath|hidden state|[\[\]]', re.I)
 STAGE = re.compile(r'^\s*\*[^*\n]+\*\s*$', re.M)
 ACTION = re.compile(r'[ \t]*(?<!\*)\*(?!\*)[^*\n]{1,80}(?<!\*)\*(?!\*)')
@@ -68,6 +71,8 @@ def echoes(text, prev):
     """A turn that mostly repeats the partner's previous turn (difflib's matching blocks cover 60% of it)."""
     from difflib import SequenceMatcher
     return SequenceMatcher(None, text.lower(), prev.lower(), autojunk=False).find_longest_match().size > 0.6 * len(text)
+
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ap = argparse.ArgumentParser()
 ap.add_argument('--n_train', type=int, default=1200)
@@ -76,19 +81,19 @@ ap.add_argument('--reply', type=int, default=96)
 ap.add_argument('--bs', type=int, default=16)
 ap.add_argument('--out', default=None, help='default data/talk.json, with --play data/play.json')
 ap.add_argument('--coread', default=os.path.join(ROOT, 'data', 'coread.json'))
-ap.add_argument('--mlx', action='store_true', help='generate with the 4-bit MLX bases (mlx_pair.load_base)')
-ap.add_argument('--mlx_gib', type=float, default=5.0, help='MLX memory limit with --mlx')
 ap.add_argument('--play', action='store_true', help='co_play conversations (coread.PLAY) in place of co_talk')
-ap.add_argument('--chat', action='store_true', help='plain chats (coread.CHAT) with no objective in place of co_talk; the original model writing a turn also '
-                'sees the partner\'s private city (coread.chat_system knows), so the trained model needs the link to match it')
-ap.add_argument('--chat2', action='store_true', help='private situations across kinds; fixed table and split in chat2.py')
-ap.add_argument('--timing', default=None, help='write measured generation/PMI seconds and surviving counts as JSON')
-ap.add_argument('--turns', type=int, default=None, help='turns per conversation (default 3; with --play or --chat 6, at least 2)')
+ap.add_argument('--chat', action='store_true',
+                help='plain chats (coread.CHAT) with no objective in place of co_talk; the base model writing a turn '
+                'also has the partner\'s private city in its prompt (coread.chat_system\'s knows argument), so the '
+                'trained model needs the link to match it')
+ap.add_argument('--chat2', action='store_true', help='chats about private items of several kinds (chat2.py)')
+ap.add_argument('--timing', default=None,
+                help='write the generation and scoring seconds and the surviving counts as JSON')
+ap.add_argument('--turns', type=int, default=None,
+                help='turns per conversation (default 3; with --play, --chat or --chat2 6; at least 2)')
 args = ap.parse_args()
 if sum((args.play, args.chat, args.chat2)) > 1:
     ap.error('choose only one of --play, --chat, --chat2')
-if (args.chat or args.chat2) and args.mlx:
-    ap.error('--chat scores each turn with torch (turn_nats); drop --mlx')
 args.turns = args.turns or (6 if args.play or args.chat or args.chat2 else 3)
 args.out = args.out or os.path.join(ROOT, 'data', 'chat2.json' if args.chat2 else
                                  'play.json' if args.play else 'chat.json' if args.chat else 'talk.json')
@@ -107,30 +112,9 @@ def context(tok, x, system, turns):
     return t + S.assistant_header(tok, x)
 
 
-def generate_mlx(tok, model, prompts, seed):
-    import mlx.core as mx
-    from mlx_lm.generate import batch_generate
-    from mlx_lm.sample_utils import make_sampler
-    from mlx_lm.tokenizer_utils import TokenizerWrapper
-    end = tok.convert_tokens_to_ids('<|im_end|>')
-    mx.set_memory_limit(int(args.mlx_gib * 2**30))
-    mx.set_cache_limit(256 * 2**20)        # freed buffers MLX keeps count toward the process footprint
-    mx.random.seed(seed)
-    out = []
-    for b in range(0, len(prompts), 2 * args.bs):
-        r = batch_generate(model, TokenizerWrapper(tok, eos_token_ids={end}), prompts[b:b + 2 * args.bs],
-                           max_tokens=args.reply, sampler=make_sampler(temp=0.7, top_p=0.95),
-                           completion_batch_size=args.bs, prefill_batch_size=4, return_token_ids=True)
-        mx.clear_cache()
-        out += [tok.decode([t for t in row if t != end], skip_special_tokens=True).strip() for row in r.token_ids]
-        print(f'  {len(out)}/{len(prompts)}', flush=True)
-    return out
-
-
 @torch.no_grad()
 def generate(tok, model, prompts, seed):
-    if args.mlx:
-        return generate_mlx(tok, model, prompts, seed)
+    """The sampled reply (text, up to --reply tokens) of model to each token prompt, in batches of --bs."""
     end = tok.convert_tokens_to_ids('<|im_end|>')
     torch.manual_seed(seed)
     order = sorted(range(len(prompts)), key=lambda i: len(prompts[i]))
@@ -196,21 +180,15 @@ else:
             c['system'] = {x: talk_system(c['item'], x, c['asker']) for x in SIDES}
             c['turns'] = [(c['asker'], talk_turn0(c['item']))]
 allc = convs['train'] + convs['test']
-# One model in memory at a time (the Mac): Quill's holders, then Ember's holders and askers, then Quill's askers.
+# One model is in memory at a time: Quill's holders, then Ember's holders and askers, then Quill's askers.
 # Turn 2 of a conversation needs its turn 1, which the partner (the holder) wrote in an earlier pass.
 loaded = {}
 
 
 def model(x):
+    """(tokenizer, base model) of side x; loading it frees the other model."""
     if x not in loaded:
         loaded.clear()
-        if args.mlx:
-            import mlx.core as mx
-            from transformers import AutoTokenizer
-            from mlx_pair import HF, load_base
-            mx.clear_cache()
-            loaded[x] = (AutoTokenizer.from_pretrained(HF[x], local_files_only=True), load_base(HF[x])[0])
-            return loaded[x]
         if DEVICE.startswith('mps'):
             torch.mps.empty_cache()
         tok, m = link.load(x)
@@ -219,9 +197,11 @@ def model(x):
 
 
 def turn(k, who, x):
+    """Generates turn k with model x for the conversations whose `who` (asker or holder) is x."""
     tok, m = model(x)
     mine = [c for c in allc if c[who] == x and len(c['turns']) == k]
-    # play: the naming turns see the partner's secret; chat: every turn sees the partner's city
+    # play: the prompts of the naming turns show the partner's secret; chat: every turn's prompt shows the partner's
+    # private situation
     sysp = [c['peek'][k] if k < 2 and 'peek' in c else c.get('teach', c['system'])[x] for c in mine]
     texts = generate(tok, m, [context(tok, x, p, c['turns']) for p, c in zip(sysp, mine)], seed=k)
     for c, t in zip(mine, texts):
@@ -260,6 +240,7 @@ def turn_nats(tok, m, items):
 
 
 def prune(k):
+    """Keeps the conversations whose turn k passes the filters (BAD, META, echoes, and the play payload checks)."""
     global allc
     keep = [c for c in allc if len(c['turns']) == k + 1 and c['turns'][-1][1] and not BAD.search(c['turns'][-1][1])
             and not META.search(c['turns'][-1][1])
@@ -270,8 +251,8 @@ def prune(k):
     allc = keep
 
 
-# talk: turn 1 the holder reacts, turn 2 the asker replies. play: turn 0 the opener (the asker) names the partner's
-# secret, turn 1 the partner reacts and names the opener's, then they alternate. Each turn runs both models, the one
+# talk: turn 1 the holder reacts, turn 2 the asker replies. play: turn 0 the opener (the asker) states the partner's
+# secret, turn 1 the partner reacts and states the opener's, then they alternate. Each turn runs both models, the one
 # loaded last first.
 order = list(SIDES)
 for k in range(0 if args.play or args.chat or args.chat2 else 1, args.turns):
@@ -281,9 +262,10 @@ for k in range(0 if args.play or args.chat or args.chat2 else 1, args.turns):
     prune(k)
 generation_done = time.monotonic()
 if args.chat or args.chat2:
-    # What each turn says about the partner's city: log p(turn | the writer's prompt, which shows that city) - log p(turn
-    # | the trained prompt, which does not), under the model that wrote it. A model that ignores the link pays this much
-    # more loss on the turn than one that reads it perfectly; ~0 everywhere would mean the data teaches no link use.
+    # The information each turn has about the partner's private situation: log p(turn | the writer's prompt, which
+    # shows it) - log p(turn | the training prompt, which does not), under the model that wrote it. This is the extra
+    # loss on the turn of a model without the information; values near 0 everywhere would mean that the turns do not
+    # depend on it.
     for x in order:
         tok, m = model(x)
         mine = [c for c in allc if c['private'][partner(x)]]
@@ -302,8 +284,9 @@ for split, v in convs.items():
                 for c, x, k, _ in turns]
         nats = sorted(n for *_, n in turns)
         target_kind = 'item' if args.chat2 else 'city'
-        print(f'{split}: {len(turns)} turns whose writer saw the partner\'s {target_kind}: median {nats[len(nats) // 2]:.2f} nats '
-              f'about it, {sum(n > 0 for n in nats) / len(nats):.0%} positive, {sum(said) / len(said):.0%} name it',
+        print(f'{split}: {len(turns)} turns whose writer saw the partner\'s {target_kind}: '
+              f'median {nats[len(nats) // 2]:.2f} nats about it, {sum(n > 0 for n in nats) / len(nats):.0%} positive, '
+              f'{sum(said) / len(said):.0%} name it',
               flush=True)
 for c in allc:
     if args.play:
@@ -316,7 +299,8 @@ for c in allc:
 json.dump(convs, open(args.out, 'w'), indent=1)
 print('wrote', args.out, {s: len(v) for s, v in convs.items()}, flush=True)
 if args.timing:
-    json.dump(dict(generation_seconds=generation_done - started, pmi_and_write_seconds=time.monotonic() - generation_done,
+    json.dump(dict(generation_seconds=generation_done - started,
+                   pmi_and_write_seconds=time.monotonic() - generation_done,
                    total_seconds=time.monotonic() - started, attempted=dict(train=args.n_train, test=args.n_test),
                    surviving={s: len(v) for s, v in convs.items()}, tiny=bool(os.environ.get('NL_TINY')),
                    device=DEVICE, turns=args.turns, reply=args.reply, bs=args.bs), open(args.timing, 'w'), indent=2)

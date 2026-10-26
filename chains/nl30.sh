@@ -1,13 +1,11 @@
 #!/bin/bash
-# magic-nl30, one 48 GB Ampere card (RTX A6000 / A40; never Ada): does a steered concept cross the link at another depth
-# or a larger strength? nl29 steered after block 15 at the smallest strength that makes the steered twin say the concept
-# (27-30 of 36), and the partner said it in 1 of 96 linked messages after chat training. Here the same test
-# (steering_scale.py, bf16, nl22c step 157) in four arms: after block 6 (every read depth sees the change), after block 27
-# (the last read depth), and four times the calibrated strength after blocks 15 and 27 (--boost 4: cut check and
-# evaluation only; the fit, calibration and selection are unchanged). Two arms at a time; one that runs out of memory is
-# rerun alone in a fresh directory.
-# Inputs: INPUTS_TAR (a tar of step_157, published so the pod downloads it), else from the Mac after the pod starts:
-# /workspace/jobs/nl30/step_157, READY last.
+# nl30, one 48 GB Ampere card (RTX A6000 or A40): the steered-twin test (steering_scale.py, bf16, nl22c's step_157) in
+# four arms: steered after block 6 (every read depth comes after it), after block 27 (the last read depth), and at four
+# times the calibrated strength after blocks 15 and 27 (--boost 4, applied in the cut check and the evaluation; the fit,
+# calibration and selection are unchanged). Two arms at a time; one that runs out of memory is rerun alone in a fresh
+# directory.
+# Inputs: INPUTS_TAR (a tar of step_157), else /workspace/jobs/nl30/step_157 and the READY file, waited for up to 90
+# minutes.
 # Usage: bash nl30.sh OUT_DIR CODE_TGZ [INPUTS_TAR]
 set -u
 O=$1 TGZ=$2 INPUTS=${3:-}

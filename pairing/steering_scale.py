@@ -1,8 +1,25 @@
-"""Natural-projection calibration for steered_mind; its evaluation stays unchanged.
+"""The steered-twin test (steered_mind.py) at one block: fit the directions, select the strengths, check the cut and
+run steered_mind.evaluate. Each phase resumes from what the output directory already holds.
 
-Use a fresh output directory. Mac: lockf -k ~/mpd-data/locks/macgpu.lock
-env MPD_MEM_GIB=12 python pairing/steering_scale.py --backend mlx --run CKPT --out OUT.
-The original protocol is retained verbatim alongside a separate calibration amendment.
+  fit        per model and concept, the direction after block --layer: the mean state over the concept's sentences,
+             each in every frame (steered_mind.CONCEPTS and FRAMES; every token but the first; the model alone with
+             its adapter), minus the same mean over the NEUTRAL sentences, with sink_mask's coordinates zeroed
+             (--geometry raw keeps them). Its norm is the natural gap between the two means along it, the unit of
+             strength.
+  calibrate  per model and concept, choose's strength from STRENGTHS (in gaps), on the CALIBRATION replies of both
+             models steered together with the link cut.
+  cut        steer one twin at a time with the link cut and check that its partner's tokens do not change.
+  evaluate   steered_mind.evaluate at the selected strengths times --boost.
+  validate   fit, calibrate and cut, without evaluate.
+--gain scales the link's write after --layer (write_gain; torch only). --reuse copies the directions, calibration,
+selection and cut check of an earlier run at the same --layer, --geometry and --boost. These settings are recorded in
+amendment.json with its digest; an output directory that holds a different amendment, or other results without one,
+is refused.
+
+Writes OUT/: amendment.json, protocol.json, manifest.json, fit.json, directions.npz, states_*.npz, calibration.json,
+selected.json, cut_check.json, episodes.json, summary.json.
+Usage: python pairing/steering_scale.py --backend torch --run STEP_DIR --out OUT [--layer 15] [--boost 1] [--gain 1]
+           [--reuse DIR] [--geometry sink_free] [--phase all] [--bs 6]
 """
 import argparse
 import hashlib
@@ -18,12 +35,12 @@ import steered_mind as X
 
 STRENGTHS = [0., .125, .25, .5, 1., 1.5, 2., 3., 4., 6., 8.]
 LAYERS = (6, 9, 12, 15, 18, 21, 24, 27)
-
-
 REUSED = ('directions.npz', 'fit.json', 'calibration.json', 'selected.json', 'cut_check.json')
 
 
 def amendment(geometry='sink_free', layer=15, boost=1., gain=1., reuse=False):
+    """The run's settings and rules as recorded in amendment.json. Its text is part of the record: --reuse and a
+    resumed run compare it, so it stays word for word."""
     extra = {} if boost == 1 else dict(boost=boost, boost_rule='cut check and evaluation steer at boost x the selected '
                                        'strength; calibration and selection unchanged')
     if gain != 1:
@@ -63,11 +80,9 @@ def write_gain(pair, layer, gain):
 
 
 def collect(rt, side, texts, layers=LAYERS):
-    """Actual link-cut content states; same token averaging as Runtime.states.
-
-    Retain per-text means and second moments, allowing projection and residual
-    concentration diagnostics without storing every token's full activation.
-    """
+    """{block: dict(means, energy, rms)} for each block in layers: per text, the mean state after the block over every
+    token but the first (the model alone with its adapter), the mean squared state per coordinate, and the mean RMS
+    over tokens."""
     import session as S
     means = {l: [] for l in layers}
     energy = {l: [] for l in layers}
@@ -75,7 +90,7 @@ def collect(rt, side, texts, layers=LAYERS):
     for text in texts:
         ids = S.ids(rt.toks[side], text)
         if len(ids) < 2:
-            raise ValueError('At least two tokens required after excluding the first token')
+            raise ValueError('a text needs at least two tokens')
         if rt.backend == 'mlx':
             import mlx.core as mx
             model = rt.pair.mlx.models[side]
@@ -106,12 +121,8 @@ def collect(rt, side, texts, layers=LAYERS):
 
 
 def sink_mask(energy):
-    """Detect an extreme coordinate sink using only neutral residuals.
-
-    Four of 2560 coordinates holding >=95% of energy is a low-dimensional
-    background, not a useful total-norm scale. Ordinary concentration (Quill)
-    is left alone. The same rule applies independently to both models/layers.
-    """
+    """A 0/1 mask over coordinates from energy [texts, d] (mean squared states): zero at the four coordinates of
+    largest mean energy when together they hold at least 95% of it (Ember's sink coordinates), one elsewhere."""
     e = energy.mean(0).astype(np.float64)
     order = np.argsort(e)[::-1]
     mask = np.ones(e.shape, dtype=np.float32)
@@ -121,13 +132,14 @@ def sink_mask(energy):
 
 
 def projection(positive, neutral, mask=None):
-    """One vector moves the neutral mean projection to the positive mean."""
+    """The difference of the mean states, positive minus neutral (times mask), and its geometry: norm, each text's
+    projection on its unit vector, the means of those projections and their gap."""
     d = positive.mean(0) - neutral.mean(0)
     if mask is not None:
         d = d * mask
     norm = float(np.linalg.norm(d))
     if not np.isfinite(norm) or norm <= 0:
-        raise ValueError('Concept direction must have a positive finite norm')
+        raise ValueError('a concept direction needs a positive finite norm')
     u = d / norm
     pp, pn = positive @ u, neutral @ u
     return d.astype(np.float32), dict(norm=norm, positive=pp.tolist(), neutral=pn.tolist(),
@@ -136,6 +148,7 @@ def projection(positive, neutral, mask=None):
 
 
 def concentration(energy):
+    """The ten coordinates of largest mean energy, their shares of it, and the top-1 and top-10 shares."""
     e = energy.mean(0).astype(np.float64)
     order = np.argsort(e)[::-1]
     return dict(top_dimensions=order[:10].tolist(),
@@ -145,6 +158,9 @@ def concentration(energy):
 
 
 def fit(rt, dest, geometry='sink_free', layer=15):
+    """Directions after block layer, {side/concept: d, side/concept/random: a seeded Gaussian vector of d's norm},
+    written to directions.npz; fit.json holds every LAYERS block's geometry and held-out gap, and states_*.npz the
+    per-text states."""
     vectors, report = {}, {}
     for side in X.SIDES:
         ntexts = [f.format(s) for f in X.FRAMES for s in X.NEUTRAL]
@@ -165,8 +181,7 @@ def fit(rt, dest, geometry='sink_free', layer=15):
                 residual_norm = float(neutral[l]['rms'].mean() * np.sqrt(d.size))
                 row.update(residual_norm=residual_norm, old_unit_over_gap=residual_norm / row['norm'],
                            direction_concentration=concentration(d[None] ** 2))
-                # Cross-fit by content sentence, keeping all five frames of a
-                # sentence in the same half. No fitted/test prompt is used here.
+                # Held-out gap: fit on half of the sentences, each with all its frames, and measure on the rest.
                 held = np.arange(len(p)) % len(sentences) >= len(sentences) // 2
                 dc, _ = projection(p[~held], n[~held], mask)
                 uc = dc / np.linalg.norm(dc)
@@ -189,11 +204,13 @@ def fit(rt, dest, geometry='sink_free', layer=15):
 
 
 def choose(rows):
-    """Original calibration decision, with only the candidate grid changed."""
+    """steered_mind's selection rule on STRENGTHS: the smallest strength at which all CALIBRATION replies are fluent
+    and at least 2 name the concept, 2 more than unsteered; otherwise the largest all-fluent strength, calibrated False.
+    rows: one model's calibration records for one concept."""
     for a in STRENGTHS:
         group = [r for r in rows if r['alpha'] == a]
         if len(group) != len(X.CALIBRATION) or {r['prompt'] for r in group} != set(range(len(X.CALIBRATION))):
-            raise ValueError('Calibration requires exactly one row per strength and prompt')
+            raise ValueError('calibration needs one record per strength and prompt')
     baseline = sum(r['mention'] for r in rows if r['alpha'] == 0)
     good = []
     for a in STRENGTHS[1:]:
@@ -207,6 +224,8 @@ def choose(rows):
 
 
 def calibration(rt, vectors, dest, bs):
+    """Both models' CALIBRATION replies (link cut, 32 tokens) steered with each concept at each strength, resuming
+    from calibration.json; writes selected.json, choose's strength per model and concept."""
     import games as G
     path = dest / 'calibration.json'
     records = json.loads(path.read_text()) if path.exists() else []
@@ -243,11 +262,8 @@ def calibration(rt, vectors, dest, bs):
 
 
 def cut_check(rt, vectors, selected, dest, bs):
-    """Steer only one solo; record its unsteered partner and zero baseline.
-
-    The original calibration steers both isolated sides simultaneously. This
-    extra diagnostic verifies no intervention reaches the cut partner.
-    """
+    """Steer one twin at a time at its selected strength with the link cut, and raise if its partner's tokens differ
+    from the unsteered run's; writes cut_check.json."""
     import games as G
     records = []
     for sender in X.SIDES:
@@ -264,7 +280,7 @@ def cut_check(rt, vectors, selected, dest, bs):
             for (c, p), s, b in zip(batch, steered, base):
                 identical = s['tokens'][receiver] == b['tokens'][receiver]
                 if not identical:
-                    raise AssertionError('Cut partner changed under sender-only steering')
+                    raise AssertionError('steering one twin changed its cut partner')
                 records.append(dict(sender=sender, receiver=receiver, concept=c, prompt=p,
                                     alpha=selected[sender][c]['alpha'], partner_token_identical=identical,
                                     sender_mention=bool(X.matches(s['text'][sender], c)),
@@ -281,19 +297,19 @@ def main():
     ap.add_argument('--run', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--phase', choices=('fit', 'calibrate', 'cut', 'evaluate', 'validate', 'all'), default='all',
-                    help='validate fits/calibrates/checks cut isolation without running transfer tests')
+                    help='validate: fit, calibrate and cut, without evaluate')
     ap.add_argument('--bs', type=int, default=6)
     ap.add_argument('--layer', type=int, choices=LAYERS, default=15,
-                    help='steer after this block instead of the preregistered 15 (recorded in the amendment)')
+                    help='steer after this block (recorded in the amendment)')
     ap.add_argument('--boost', type=float, default=1.,
-                    help='cut check and evaluation at this multiple of the calibrated strength (recorded in the amendment)')
+                    help='cut check and evaluation at this multiple of the selected strength (recorded in the amendment)')
     ap.add_argument('--gain', type=float, default=1.,
                     help="evaluation with the link's write after --layer at this multiple of its trained size "
                          '(torch only; recorded in the amendment)')
     ap.add_argument('--reuse', help='an earlier run at the same --layer, --geometry and --boost: copy its '
                     + ', '.join(REUSED) + ' instead of fitting, calibrating and checking the cut')
     ap.add_argument('--geometry', choices=('sink_free', 'raw'), default='sink_free',
-                    help='raw reproduces the diagnostic that only changes strength; sink_free also removes neutral sinks')
+                    help='sink_free zeroes the sink coordinates of the directions; raw keeps them')
     args = ap.parse_args()
     if args.bs < 1:
         ap.error('--bs must be positive')
@@ -312,9 +328,9 @@ def main():
     path = dest / 'amendment.json'
     if path.exists():
         if json.loads(path.read_text()) != registration:
-            raise ValueError('Calibration amendment changed; use a new output directory')
+            raise ValueError('the amendment differs from this directory\'s; use a new output directory')
     elif any(dest.glob('*.json')) or (dest / 'directions.npz').exists():
-        raise ValueError('Use a fresh output directory; never overwrite an original experiment')
+        raise ValueError('the output directory holds results without an amendment; use a new one')
     X.save(path, registration)
     if args.reuse:
         for name in REUSED:
@@ -336,7 +352,7 @@ def main():
         old = json.loads((dest / 'manifest.json').read_text())
         for k in ('checkpoint', 'backend', 'batch_size', 'amendment_sha256'):
             if old[k] != manifest[k]:
-                raise ValueError('Cannot mix runs: ' + k)
+                raise ValueError('the output directory holds a run with another ' + k)
     X.save(dest / 'manifest.json', manifest)
     rt = X.Runtime(args.backend, args.run)
     rt.layer = args.layer

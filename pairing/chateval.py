@@ -1,30 +1,30 @@
-"""No-objective co_chat evaluation, dispatched by evalfree --games co_chat.
+"""Free-chat evaluation of the co_chat and co_chat2 games (evalfree.py --games co_chat or co_chat2).
 
-Only test chat.json system prompts and the opener enter generation. Six turns
-are generated from nothing; teach, pmi and recorded turns never enter a plan.
-Link/cut share one dialogue; crossed runs a fresh isolated dialogue per receiver
-with an independently rejection-drawn donor partner, as crossed.py does for play.
-The real partner's city remains the crossed naming target; names_donor separately
-checks the donor city. First mention wins: a later echo after a leak never counts.
-These lexical names are not evidence of semantic knowledge or novelty. In
-particular, equal focal cities can expose the target in the receiver's prompt;
-partner_city_in_prompt records that fact without excluding the requested draws.
+Each plan is a test chat from data/chat.json or data/chat2.json. Only its system prompts and opener enter generation;
+six turns are generated with the link on ('link') and cut ('cut'). With --crossed each receiver also chats, in a new
+conversation, with a stranger: the partner model with the system prompt of a donor chat drawn for that receiver
+(matched; 'crossed'). The naming target is always the real partner's private item; names_donor checks the donor's.
 
-loop uses prep_talk.echoes' lowercase character longest match >60% of the current
-turn, against any earlier same-speaker turn or the immediately preceding turn.
-distinct2 uses casefolded word bigrams within turns, pooled over the dialogue
-(no artificial bigrams across turn boundaries); no bigrams means zero.
-game is a LEXICAL flag per turn, using game|guess|riddle|your turn|secret word|clue
-case-insensitively, summarized as the fraction of turns flagged. It is not a
-semantic game classifier. self_city_first is false when the receiver has no city.
+Measures of one conversation for a receiver (measures):
+  names            1 when the receiver states the partner's item before the partner does, else 0 (None without item)
+  leak             1 when the partner states its own item first
+  names_donor      names for the donor's item (crossed only)
+  self_city_first  the receiver's first turn states the receiver's own item
+  loop             the fraction of turns whose longest common substring with an earlier turn of the same speaker or
+                   with the previous turn covers more than 60% of the turn (as prep_talk.echoes)
+  distinct2        distinct word bigrams over all word bigrams within turns (0 without bigrams)
+  game             the fraction of turns that match GAME (game, guess, riddle, your turn, secret word, clue)
+Items are matched as words (chat2.contains_item). The receiver's own prompt can contain the partner's item (two equal
+cities); partner_city_in_prompt records this, and those chats stay in.
 
-Naming summaries condition on a nonempty partner city; collapse summaries include
-every chat. Crossed dialogue summaries average the two receiver conversations
-WITHIN each focal draw before inference, avoiding two dependent observations.
-All CIs use stats.betting_ci; signs include the module's exact two-sided test and
-an exact one-sided positive tail. Sampling uses a local per-episode RNG, shared
-seed across conditions, singleton generation when temperature > 0. Greedy
-link/cut may batch; crossed is always isolated. No existing score is changed.
+Summaries (summary_rows), per receiver: each measure's mean with a betting confidence interval (stats.betting_ci),
+and the link-cut and link-crossed contrasts of names with the exact two-sided sign test and the one-sided p_greater.
+Naming means use only chats whose partner has an item. The 'dialogue' entries average loop, distinct2 and game over
+the conversations of each focal chat before inference, so the two crossed conversations of one draw count once.
+Sampled chats (temperature > 0) are generated one at a time, each with a generator seeded per plan; greedy chats are
+batched.
+
+Usage: python pairing/evalfree.py --run RUN/step_N --replies REPLIES.json --out_dir OUT --games co_chat [--crossed]
 """
 from collections import defaultdict
 from difflib import SequenceMatcher
@@ -44,7 +44,8 @@ GAME = re.compile(r'game|guess|riddle|your turn|secret word|clue', re.I)
 
 
 def episode(chat):
-    """Allowlist inputs: never retain reference text, teacher prompts or forcing."""
+    """The generation episode of a stored chat: its system prompts, opener and private items, with six empty
+    alternating turns. Reference turns and teacher prompts are left out."""
     opener = chat['opener']
     if opener not in SIDES:
         raise ValueError('chat opener must name a model')
@@ -55,8 +56,10 @@ def episode(chat):
 
 
 def matched(ep, donor, x, same_kind=True):
-    """co_chat2 strangers hold a private item of the partner's kind; with same_kind=False (only when no such chat
-    exists in the pool), of any kind, but an item whenever the partner has one."""
+    """True when donor's partner of x is a valid stranger for receiver x of ep: the same game and opener, a private
+    item different from both of ep's (an item whenever the real partner has one), and a system prompt without the real
+    partner's item. co_chat2 also needs an item of the real partner's kind, or with same_kind=False (used when the pool
+    has no such chat) an item of any kind."""
     from evalfree import contains, normalize
     y = partner(x)
     if ep['game'] != donor['game']:
@@ -78,12 +81,14 @@ def matched(ep, donor, x, same_kind=True):
         return False
     if other and other in (real, own):
         return False
-    # A stored system could contain a city incidentally. The donor must not
-    # already know the original target even when its private field differs.
+    # A donor prompt can contain the real partner's city outside its private field.
     return not real or not contains(donor['system'][y], real)
 
 
 def make_plans(path, n, seed, max_attempts=10000, game='co_chat'):
+    """n focal test chats of game, each with a matched donor per receiver, as dicts with episode, donors, attempts,
+    index, episode_id, generation_seed (and donor_same_kind for co_chat2). ValueError when a draw finds no donor in
+    max_attempts draws."""
     from evalfree import digest
     path = Path(path).with_name('chat2.json' if game == 'co_chat2' else 'chat.json')
     if not path.is_file():
@@ -98,8 +103,8 @@ def make_plans(path, n, seed, max_attempts=10000, game='co_chat'):
     for i, ep in enumerate(focal):
         donors, attempts, same = {}, {}, {}
         for x in SIDES:
-            # a stranger of the partner's kind when the pool has one (the same draws as before), else of another kind:
-            # a 128-chat test split can hold a single chat of an (opener, kind) pair
+            # co_chat2: a stranger of the partner's kind when the pool has one, else of another kind, since the test
+            # split can have a single chat for an (opener, kind) pair
             for same_kind in (True, False):
                 rng = random.Random(digest([seed, game, i, x, 'donor']))
                 for attempt in range(1, max_attempts + 1):
@@ -119,7 +124,8 @@ def make_plans(path, n, seed, max_attempts=10000, game='co_chat'):
 
 
 def inputs(ep, donor=None, receiver=None):
-    """The isolated two-model context; the original partner never runs crossed."""
+    """The generation inputs (mode, system, task, turns) of a plan's chat. With donor, receiver's partner gets the
+    donor's system prompt (the crossed chat); ValueError for a donor that make_plans does not accept."""
     e = episode(dict(game=ep['game'], opener=ep['meta']['opener'], private=ep['meta']['private'], system=ep['system']))
     if donor is not None:
         # make_plans' rule: a stranger of the partner's kind, or (co_chat2, none in the pool) of another kind
@@ -128,15 +134,13 @@ def inputs(ep, donor=None, receiver=None):
         if not ok:
             raise ValueError('crossed chat requires a valid per-receiver donor')
         e['system'][partner(receiver)] = donor['system'][partner(receiver)]
-    # Scoring-only metadata is not passed to the generator either.
+    # meta is for scoring only
     return {k: e[k] for k in ('mode', 'system', 'task', 'turns')}
 
 
 def first_mention(turns, receiver, city):
-    """First accepted target form: (receiver first, partner first), nulls without an item.
-
-    String cities retain evalfree.contains verbatim; structured items use their fixed words table.
-    """
+    """(1. if receiver states city first else 0., 1. if the partner does else 0.) over turns, matched with
+    chat2.contains_item; (None, None) without an item."""
     if not city:
         return None, None
     for sp, text in turns:
@@ -146,6 +150,7 @@ def first_mention(turns, receiver, city):
 
 
 def measures(turns, receiver, private, donor_city=None):
+    """The measures of one conversation for receiver (module docstring), with the per-turn loop and game flags."""
     from evalfree import normalize
     names, leak = first_mention(turns, receiver, private[partner(receiver)])
     names_donor, _ = first_mention(turns, receiver, donor_city)
@@ -166,6 +171,7 @@ def measures(turns, receiver, private, donor_city=None):
 
 
 def generate(pair, ep, limit, seed, temperature=0., mode=None, donor=None, receiver=None, keep=False):
+    """One chat (session.generate's result, with token IDs), sampled with a generator seeded with seed."""
     import torch
     import session as S
     gen = torch.Generator(device=DEVICE if DEVICE.startswith('cuda') else 'cpu').manual_seed(seed)
@@ -174,7 +180,7 @@ def generate(pair, ep, limit, seed, temperature=0., mode=None, donor=None, recei
 
 
 def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
-    """Per plan and receiving twin, the chat's measures under link, cut and (crossed) a stranger. A one-way link
+    """Per plan and receiving model, the chat's measures under link, cut and (crossed) a stranger. A one-way link
     (pair.frozen) has the reader as its only receiver: the target's records (and its crossed chats) are not made.
     Greedy chats (temperature 0) are generated a chunk of bs plans at a time, crossed ones per receiver too."""
     import session as S
@@ -227,18 +233,22 @@ def evaluate_game(pair, plans, bs=2, crossed=False, temperature=0.):
 
 
 def receivers(pair):
-    """The twins that read their partner: both, or a one-way link's reader."""
+    """The models that read their partner: both, or a one-way link's reader."""
     return [x for x in SIDES if x != getattr(pair, 'frozen', None)]
 
 
 def estimate(values, alpha=.05, bounds=(0., 1.)):
+    """dict(n, mean, ci) of the values that are not None; ci is the betting confidence interval for values in
+    bounds."""
     xs = [v for v in values if v is not None]
     return dict(n=len(xs), mean=sum(xs) / len(xs) if xs else None,
                 ci=list(betting_ci(xs, alpha=alpha, bounds=bounds)))
 
 
 def summary_rows(records, alpha=.05):
-    """Legacy aggregate rows plus chat2 receiver strata; never pool dependent twins."""
+    """Summary entries per game (_summary_rows); co_chat2 adds the receiver entries per item kind, per kind group and
+    for the exclusive subset (the partner's item absent from the receiver's prompt). The two receiving models are never
+    pooled."""
     rows = []
     for game in sorted({r['game'] for r in records}):
         rs = [r for r in records if r['game'] == game]
@@ -256,6 +266,8 @@ def summary_rows(records, alpha=.05):
 
 
 def _summary_rows(records, alpha=.05, game='co_chat'):
+    """Per temperature, one entry per receiver (measure means, names contrasts, co_chat2 naming counts) and one
+    'dialogue' entry of loop, distinct2 and game averaged within each focal chat."""
     rows = []
     for temperature in sorted({r['temperature'] for r in records}):
         rs = [r for r in records if r['temperature'] == temperature]
@@ -295,7 +307,9 @@ def _summary_rows(records, alpha=.05, game='co_chat'):
 
 
 def validate(records, manifest):
-    """Require complete paired chats, including chats with no naming target."""
+    """ValueError unless records contain each plan's receivers exactly once, with the manifest's conditions and
+    temperature, six alternating turns per chat, and measures that recompute from the transcripts (chats without a
+    naming target included)."""
     by_episode = defaultdict(list)
     expected = {'link', 'cut'} | ({'crossed'} if manifest.get('crossed') else set())
     for r in records:
@@ -309,9 +323,11 @@ def validate(records, manifest):
             if r['kind'] != kind_of(item) or r['kind_group'] != kind_group(item):
                 raise ValueError('chat2 kind disagrees with private item')
         for c, result in r['conditions'].items():
-            if len(result['turns']) != 6 or [sp for sp, _ in result['turns']] != list((r['opener'], partner(r['opener'])) * 3):
+            if (len(result['turns']) != 6
+                    or [sp for sp, _ in result['turns']] != list((r['opener'], partner(r['opener'])) * 3)):
                 raise ValueError('chat must contain six alternating free turns')
-            want = measures(result['turns'], r['receiver'], r['private'], r['donor']['city'] if c == 'crossed' else None)
+            want = measures(result['turns'], r['receiver'], r['private'],
+                            r['donor']['city'] if c == 'crossed' else None)
             if any(result[k] != v for k, v in want.items()) or result['score'] != want['names']:
                 raise ValueError('chat metrics disagree with transcript')
     game = records[0]['game'] if records else next(iter(manifest.get('games', ['co_chat'])))

@@ -1,7 +1,10 @@
-"""Content-level holdouts shared by the corpus builder and episode loader.
+"""Content keys for the held-out split, shared by build_coread.py and coread.py.
 
-Rows alone are not a split boundary: questions reuse contexts and translation
-pairs recur in another direction or source. Labels and answers are not split keys.
+A dataset's own split does not separate content: questions reuse contexts, and translation pairs recur in the other
+direction or in another source. A test item is held out only when none of its content texts occurs in a training item.
+Labels and answers are not content keys.
+
+Usage: from coread_data import held_out; test = held_out(train, test)
 """
 import hashlib
 import re
@@ -9,11 +12,13 @@ import unicodedata
 
 
 def text_key(text):
+    """SHA-256 digest of text after NFKC normalization, casefolding and whitespace collapse."""
     text = ' '.join(unicodedata.normalize('NFKC', text).casefold().split())
     return hashlib.sha256(text.encode()).digest()
 
 
 def content_keys(item):
+    """The text_keys of the item's content fields (for code_write also the problem with function names masked)."""
     fields = {
         'passage': ('text',), 'qa': ('context', 'question'),
         'hop': ('a', 'b', 'question'), 'translate': ('source', 'target'),
@@ -24,7 +29,7 @@ def content_keys(item):
     }[item['task']]
     texts = [item[f] for f in fields]
     if item['task'] == 'code_write':
-        # MBPP repeats descriptions with different function signatures.
+        # MBPP repeats a description with different function names.
         text = item['problem'].split(' It must pass:')[0]
         for name in re.findall(r'def\s+(\w+)', item['code']):
             text = re.sub(r'\b' + re.escape(name) + r'\b', 'FUNCTION', text)
@@ -33,10 +38,7 @@ def content_keys(item):
 
 
 def held_out(train, test):
-    """Keep test rows with no complete content component seen in training.
-
-    Exact normalized text decontamination, not semantic deduplication or a claim
-    that the base models never saw the public datasets during pretraining.
-    """
+    """The test items none of whose content keys occur in a training item (exact match after normalization; near
+    duplicates are kept)."""
     seen = {key for item in train for key in content_keys(item)}
     return [item for item in test if not seen.intersection(content_keys(item))]

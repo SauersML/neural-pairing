@@ -1,20 +1,18 @@
-"""The 20-chat test before and after chat training: every turn of every chat as a square, filled when the turn repeats
-an earlier turn of the chat (chateval `loop_turns`: the longest run of characters the turn shares, lowercased, with an
-earlier turn by the same twin or with the turn just before covers more than 60% of the turn), link on and link cut.
+"""The 20-chat test before and after chat training: the percent of turns that repeat an earlier turn of the chat
+(chateval `loop_turns`: the longest run of characters, lowercased, that the turn shares with an earlier turn by the same
+twin or with the turn just before covers more than 60% of the turn), link on and link cut, as large numbers.
 
 The link and cut dialogues are one dialogue per chat (the same for both receiving twins), so each chat is counted
-once. Reads results/magic-nl20/results/chat_before_* and results/magic-nl22c/results/chat_after_* (plain JSON lines;
-no model, no torch) and writes figures/chat_loops.{svg,png,pdf} and results/chat_loops.json (the counts drawn).
+once. Reads results/magic-nl20/results/chat_before_* and results/magic-nl22c/results/chat_after_* (JSON lines; no
+model) and writes figures/chat_loops.{svg,png,pdf} and results/chat_loops.json (the counts drawn).
+Usage: python figures/chat_loops.py
 """
 import json
 import sys
-from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
-from chat_names import (AFTER, BEFORE, COOL, EMBER, FAINT, INK, MUTED, QUILL, ROOT, SVG, WARM, load,  # noqa: E402
-                        mascot, pair_icon)
+from chat_names import AFTER, BEFORE, COOL, INK, RED, ROOT, SVG, WARM, load, mascot, pair_icon
 
+HERE = ROOT / 'figures'
 SNAPSHOT = ROOT / 'results/chat_loops.json'
 ROWS = (('link', 'Link on'), ('cut', 'Link cut'))
 
@@ -32,68 +30,45 @@ def chats(records, cond):
 
 
 def draw(before, after, stem):
-    W, M = 2400, 36
-    top, head_h, row_h, key_h = 128, 96, 410, 100
-    panel_h = head_h + 2 * row_h + 6
-    H = top + panel_h + 24 + key_h + M
+    W, M, G = 1300, 30, 30
+    label_w, head_h, row_h, msize = 330, 150, 250, 110
+    top = 180
+    H = top + head_h + 2 * row_h + M
     s = SVG(W, H)
-    uris = dict(quill=mascot('quill'), ember=mascot('ember'))
-    s.text(M, 90, 'Chat training nearly ended repeated turns', 68, 700)
-
-    label_w, gap = 330, 22
-    pw = (W - 2 * M - label_w - 2 * gap) / 2
-    px = [M + label_w + gap, M + label_w + 2 * gap + pw]
-    for k, (title, fill) in enumerate((('Before chat training', COOL), ('After chat training', WARM))):
-        s.rect(px[k], top, pw, panel_h, fill, 32)
-        s.text(px[k] + 36, top + 70, title, 48, 700)
-
-    sq, pitch = 38, 46
+    uris = {k: mascot(k) for k in ('quill', 'ember', 'quill_cut', 'ember_cut')}
     out = {}
+    for when, recs in (('before', before), ('after', after)):
+        for cond, _ in ROWS:
+            cs = chats(recs, cond)
+            out.setdefault(when, {})[cond] = dict(repeats=sum(sum(c) for c in cs), turns=sum(len(c) for c in cs),
+                                                  chats=len(cs), per_chat=cs)
+    link = out['after']['link']
+    s.text(M, 76, f"After chat training, {round(100 * link['repeats'] / link['turns'])}% of linked turns", 56, 700)
+    s.text(M, 146, 'repeat an earlier turn', 56, 700)
+
+    pw = (W - 2 * M - label_w - 2 * G) / 2
+    px = [M + label_w + G + k * (pw + G) for k in range(2)]
+    for k, (when, fill) in enumerate((('Before', COOL), ('After', WARM))):
+        s.rect(px[k], top, pw, head_h + 2 * row_h, fill, 32)
+        s.text(px[k] + pw / 2, top + 66, f'{when} chat', 46, 700, INK, 'middle')
+        s.text(px[k] + pw / 2, top + 122, 'training', 46, 700, INK, 'middle')
     for j, (cond, label) in enumerate(ROWS):
         y0 = top + head_h + j * row_h
-        if j:
-            for k in range(2):
-                s.line(px[k] + 30, y0, px[k] + pw - 30, y0, '#E3DED6' if k else '#E2E2E7', 2)
-            s.line(M, y0, M + label_w - 10, y0, '#E2E2E7', 2)
-        msize = 112
-        iy = y0 + row_h / 2 - msize / 2 - 34
-        right = pair_icon(s, M, iy, msize, cond, uris)
-        s.text((M + right) / 2, iy + msize + 64, label, 44, 700, INK, 'middle')
-        for k, (when, recs) in enumerate((('before', before), ('after', after))):
-            cs = chats(recs, cond)
-            n, rep = sum(len(c) for c in cs), sum(sum(c) for c in cs)
-            out.setdefault(when, {})[cond] = dict(repeats=rep, turns=n, chats=len(cs), per_chat=cs)
-            cx0 = px[k] + (pw - (len(cs) * pitch - (pitch - sq))) / 2
-            s.rich(cx0, y0 + 74, [(f'{round(100 * rep / n)}%', INK, 700), (f'   {rep}/{n} turns', MUTED, 400)], 58)
-            for i, c in enumerate(cs):
-                for t, v in enumerate(c):
-                    x, y = cx0 + i * pitch, y0 + 108 + t * pitch
-                    if v:
-                        s.rect(x, y, sq, sq, INK, 6)
-                    else:
-                        s.rect(x + 1.5, y + 1.5, sq - 3, sq - 3, 'white', 6, FAINT, 3)
-    ky = top + panel_h + 24
-    s.rect(M, ky, W - 2 * M, key_h, COOL, 32)
-    x, y = M + 44, ky + key_h / 2 + 13
-    s.rect(x, y - 32, sq, sq, INK, 6)
-    s.text(x + sq + 18, y, 'repeated turn', 36)
-    x += sq + 18 + 290
-    s.rect(x + 1.5, y - 30.5, sq - 3, sq - 3, 'white', 6, FAINT, 3)
-    s.text(x + sq + 18, y, 'new turn', 36)
-    x += sq + 18 + 230
-    for t in range(6):
-        s.rect(x, ky + 12 + t * 13, 20, 11, 'white', 2, MUTED, 2)
-    s.text(x + 40, y, 'one chat, 6 turns', 36)
+        iy = y0 + (row_h - msize - 60) / 2
+        right = pair_icon(s, M + (label_w - 2 * msize - 86) / 2, iy, msize, cond, uris)
+        s.text(right - (2 * msize + 86) / 2, iy + msize + 54, label, 46, 700, INK, 'middle')
+        for k, when in enumerate(('before', 'after')):
+            v = out[when][cond]
+            cx = px[k] + pw / 2
+            s.text(cx, y0 + row_h / 2 + 4, f"{round(100 * v['repeats'] / v['turns'])}%", 84, 700,
+                   RED if when == 'after' else INK, 'middle')
+            s.text(cx, y0 + row_h / 2 + 70, f"{v['repeats']} of {v['turns']} turns", 46, 400, INK, 'middle')
     s.save(stem)
     return out
 
 
 def main():
-    try:
-        before, after = load(BEFORE), load(AFTER)
-    except FileNotFoundError as e:
-        print('missing', e.filename)
-        return 1
+    before, after = load(BEFORE), load(AFTER)
     out = draw(before, after, HERE / 'chat_loops')
     snap = dict(sources=dict(before=[str(p.relative_to(ROOT)) for p in BEFORE],
                              after=[str(p.relative_to(ROOT)) for p in AFTER]),

@@ -1,16 +1,14 @@
-"""Co-evolution of the pair's code: every model from one checkpoint against its partner from another.
+"""Cross-checkpoint pairing: every model from one checkpoint against its partner from another.
 
-For checkpoints c_0..c_{n-1} of one run (in training order), each cell (i, j) pairs Quill as of c_i (its LoRA adapter
-and its half of the bridges: what it reads with and what it shows) with Ember as of c_j. On fixed never-seen episodes
-(payload_ctl.episodes: the payload games and the co-reading games) it measures the payload cross-entropy with the
-bridges and with them cut; the gain, cut minus link, is how many nats per payload token the link gives the receiver.
-Cut depends on the receiver's own adapter only, so each cell's gain is that pairing's link alone.
-
-If the pair builds a code of its own that keeps changing, the gain is highest on the diagonal (partners of the same
-moment) and falls off it; a fixed, text-like code would give the same gain across a row.
+For checkpoints c_0..c_{n-1} of one run (in training order), cell (i, j) pairs Quill at c_i (its LoRA adapter and its
+half of the link) with Ember at c_j. On fixed held-out episodes (payload_ctl.episodes: the payload games and
+the co-reading games) it measures the payload cross-entropy linked and cut; the gain, cut minus link, is the nats per
+payload token the link saves the receiver. The cut condition depends only on the receiver's own adapter, so a cell's
+gain measures that pairing's link alone. Writes FILE.json: per cell, gain, link and cut CE per receiver and pooled
+('all'), and the per-episode records.
 
 Usage: NL_DEVICE=mps python coevolve.py --runs RUN/step_200,RUN/step_400,... --replies R.json --out FILE.json
-       [--n 6] [--bs 8] [--games co_qa,co_hop,...]
+       [--n 6] [--bs 8] [--games co_qa,co_hop,...] [--coread_data DATA.json]
 """
 import argparse
 import json
@@ -20,7 +18,7 @@ import torch
 from peft import PeftModel
 
 import payload_ctl
-from link import DEVICE, SIDES, Pair, load
+from link import SIDES, Pair, load
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--runs', required=True, help='comma-separated step directories, in training order')

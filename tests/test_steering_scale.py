@@ -1,12 +1,6 @@
-"""Projection calibration algebra and actual tiny Qwen/AFM state collection.
-
-MPD_MEM_GIB=8 NL_TINY=1 NL_DEVICE=cpu python -m pytest -q tests/test_steering_scale.py
+"""steering_scale.py: the projection calibration algebra, and state collection and steering on a tiny pair with both
+backends.
 """
-import os
-os.environ.update(NL_TINY='1', NL_DEVICE='cpu', HF_HUB_OFFLINE='1', MLX_ENABLE_TF32='0')
-from pathlib import Path
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'pairing'))
 import numpy as np
 import pytest
 import torch
@@ -86,13 +80,12 @@ def test_original_preregistration_unchanged():
 
 
 def test_real_state_collection_and_steering_both_backends():
-    import mlx.core as mx
+    mx = pytest.importorskip('mlx.core')
     import link
     import mlx_pair as M
     import mlx_eval as V
     import session as S
     mx.set_default_device(mx.cpu)
-    torch.set_num_threads(2)
     models, mm, toks = {}, {}, {}
     for x in X.SIDES:
         toks[x], models[x] = link.load(x)
@@ -101,7 +94,7 @@ def test_real_state_collection_and_steering_both_backends():
         mm[x].load_weights([(k, M.from_torch(v)) for k, v in models[x].state_dict().items()
                            if k != 'lm_head.weight' or not models[x].config.tie_word_embeddings])
     tp = link.Pair(models, toks, (1, 2, 4), heads=2, head_dim=16).eval()
-    mp = M.Pair(mm, (1, 2, 4), heads=2, head_dim=16, checkpoint=False)
+    mp = M.Pair(mm, (1, 2, 4), heads=2, head_dim=16)
     for x in X.SIDES:
         mp.bridge[x].load_weights([(k, M.from_torch(v)) for k, v in tp.bridge[x].state_dict().items()])
     runtimes = []

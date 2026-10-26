@@ -1,11 +1,9 @@
 #!/bin/bash
-# magic-nl22, one 80 GB card: no-objective chat that keeps the link in use. With the link on, nl20's twins chatting with
-# no objective fell into the first game's script and an exact loop. This fine-tunes nl20's final checkpoint
-# (step_1320) on nl20's mix plus plain chats (data/chat.json, prep_talk.py --chat: every turn written by the original
-# model while it also saw the partner's private city, which the trained prompt lacks, so only the link supplies it;
-# train.py --chat). Inputs arrive pod to pod (send_job.sh layout): /workspace/jobs/nl22/{step_1320, replies.json,
-# data/} and READY last. Then the payload table after (with co_chat; the one before ran on nl20) and no-objective chat
-# (evalfree co_chat) before and after, when the code has it.
+# nl22, one 80 GB card: fine-tunes nl20's step_1320 for MINUTES on nl20's mix plus plain chats (--chat 0.2;
+# data/chat.json from prep_talk.py --chat: each turn is written by the original model with the partner's private city
+# also in its prompt, which the trained prompt lacks). Waits up to an hour for /workspace/jobs/nl22/{step_1320,
+# replies.json, data/} and the READY file written after them. Then the payload table on the last step and, when
+# evalfree.py has co_chat, free chats with the crossed control before (step_1320) and after.
 # Usage: bash nl22.sh OUT_DIR CODE_TGZ MINUTES
 set -u
 O=$1 TGZ=$2 MINUTES=$3

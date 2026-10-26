@@ -1,9 +1,7 @@
 #!/bin/bash
-# magic-nl12, one H100 or A100 (80 GB), design iteration: write strength tanh(alpha) 0.1 at the start, nothing else changed from nl9 but batch 16 and 180 min: co_talk conversations (prep_talk.py), then a fresh run from the original models
-# with the read start (O zero, tanh(alpha) 0.5), normalized gates and a 40-step relay warm-up, 180 minutes, batch 16; then the
-# evaluations on the last checkpoint: free generation (evalfree, the headline), transcripts with co_talk, the held-out
-# payload table, reading maps, co-evolution across checkpoints and the bridge analysis. Each stage leaves a DONE file.
-# Usage: bash nl9.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ
+# nl12, one 80 GB H100 or A100: nl11 with random reads (no --content_init), 40 relay_word steps and payload tokens
+# weighted 1x.
+# Usage: bash nl12.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda

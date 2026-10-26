@@ -2133,7 +2133,7 @@
       }
     }
   },
-  "example_replies_source": "/Users/user/mpd-data/runpod/magic-nl20/replies.json",
+  "example_replies_source": "~/mpd-data/runpod/magic-nl20/replies.json",
   "example_note": "The Games target replies, not generated linked-model replies. Vector strips are schematic, not activation measurements. Word pools are disjoint as values, not a claim about pretraining or incidental text.",
   "median_probability_per_value_token": {
     "relay_word": {

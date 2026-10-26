@@ -1,27 +1,25 @@
-"""Payload code-length savings in bits, over lengths and silent-round budgets.
+"""Payload code-length savings in bits: how many fewer bits the receiver needs for its payload tokens with its real
+partner than with a stranger, over payload lengths and silent-tick budgets.
 
-This is a predictive-information proxy, NOT Shannon capacity: a confident wrong
-donor can make savings exceed source entropy. No rising/flattening fit is imposed.
-Raw means have no distribution-free finite mean CI without a known bound. We
-therefore report exact median intervals and a separate betting CI for the mean
-of gains clipped to a predeclared +/- clip_bits. Clipping never alters raw scores.
+Cells: relay_digits at each of LENGTHS digits, relay_number and relay_word (test values), each at every pause in
+PAUSES (silent ticks before the reply). Each scored item has its own independent same-role donor, drawn with
+replacement (a donor may hold the same value); donors are not scored. Per item, the teacher-forced log p of each
+payload token under link, shuffle (the receiver reads the donor's sender: the isolated pair payload_ctl.table builds in
+shuffle mode on [item, donor]) and cut. bits = sum(log p link - log p shuffle) / ln 2; cut_bits the same against cut.
+bits per tick divides by the sender's exposure (ticks -1 through the last payload prediction), bits per exchange by
+that times the number of exchange blocks. This is a predictive-information measure, which a confident wrong donor can
+raise above the source entropy; it is not a channel capacity.
 
-Each scored item has its own independent same-role donor (draws with replacement,
-including chance same-value donors). Donors are not scored. Batching composes
-the focal receiver and donor sender, exactly the isolated pair produced by
-payload_ctl.table on [item, donor] in shuffle mode, without batch-size dependence.
-Inference is stratified by receiver; pause comparisons reuse the same pairs.
+Inference per cell, with half the items for each receiver: exact median intervals per receiver, and a betting interval
+for the mean of bits clipped to +-clip_bits, combining the receivers' intervals at alpha/2 each. A pause's change from
+pause 0 uses the same pairs. Digit test values are those with digit sum 3 mod 7 (games.held_out_digits), so one digit
+leaves only '3', with zero entropy. --seen_values excludes the values of a training manifest {relay_digits: ["1 2",
+...], relay_number: [...]}; without it, numeric cells are marked unverified unless --numeric_split_verified asserts
+that the checkpoint and all its ancestors trained on this split, and --require_unseen refuses unverified cells.
+--greedy_n also decodes the first items of each digit cell freely under each condition.
 
-Games now holds out digit sum 3 modulo 7; older checkpoints used full support.
-The one-digit test cell has ONLY '3' (zero entropy): it cannot show capacity.
---seen_values accepts a
-complete training-value manifest {relay_digits: ["1 2", ...], relay_number: [...]}.
-Exclusion certifies only that manifest, not pretraining. Without it numeric rows
-are explicitly unverified unless --numeric_split_verified asserts the checkpoint
-and all its ancestors used the current split. --require_unseen rejects unverified
-rows. Exhausted cells fail.
-
-python pairing/bandwidth.py --run RUN/step_N --replies REPLIES.json --out bandwidth.json
+Writes OUT (JSON: settings, plans, and per cell and pause the records and summary) and OUT with suffix .txt (a table).
+Usage: python pairing/bandwidth.py --run RUN/step_N --replies REPLIES.json --out bandwidth.json [--n 512] [--bs 8]
 """
 import argparse
 import copy
@@ -39,7 +37,7 @@ import torch.nn.functional as F
 import games as G
 import payload_ctl
 import session as S
-from link import DEVICE, SIDES, partner
+from link import DEVICE, SIDES
 from stats import betting_ci, median_ci
 
 LENGTHS = (1, 2, 4, 8, 12, 16)
@@ -47,6 +45,7 @@ PAUSES = (0, 2, 4, 8)
 
 
 def canonical(game, value):
+    """value in the form exclusion compares: spaced digits, an integer string, or casefolded text."""
     if game == 'relay_digits':
         digits = ''.join(str(value).split())
         if not digits or any(c not in '0123456789' for c in digits):
@@ -58,10 +57,8 @@ def canonical(game, value):
 
 
 def numeric_support(length):
-    """Exact cardinality of Games' digit-sum == 3 (mod 7) support, including zeros.
-
-    relay_number 0..9999 has the same sums as four zero-padded digits.
-    """
+    """The number of digit strings of length digits (None: relay_number's 0 to 9999, the same as four zero-padded
+    digits) whose digit sum is 3 mod 7."""
     counts = [1] + [0] * 6
     for _ in range(length or 4):
         counts = [sum(counts[(r - d) % 7] for d in range(10)) for r in range(7)]
@@ -70,11 +67,9 @@ def numeric_support(length):
 
 def plans(replies, n=512, lengths=LENGTHS, seed=4242, seen_values=None, require_unseen=False,
           numeric_split_verified=False):
-    """n focal/donor pairs per cell, exactly half per receiver, ordinary Games episodes.
-
-    Rejection conditions on length, receiver and exclusion only; donors are NOT
-    conditioned to differ in value (one-digit matches are legitimate null draws).
-    """
+    """{cell: n items}, each a Games test episode and an independent donor episode with the same receiver, half of
+    the items for each receiver. Draws are rejected only for length, receiver and excluded values; a donor may hold
+    the item's value."""
     if isinstance(n, bool) or not isinstance(n, int) or n < 4 or n % 2:
         raise ValueError('n must be even and at least 4')
     if not lengths or len(set(lengths)) != len(lengths) or any(type(k) is not int or k < 1 for k in lengths):
@@ -122,7 +117,6 @@ def plans(replies, n=512, lengths=LENGTHS, seed=4242, seen_values=None, require_
         for i in range(n):
             r = SIDES[i % 2]
             ep, donor = draw(r), draw(r)
-            # Use the established role definition, disallowing singleton fallback.
             if payload_ctl.donor_groups([ep, donor]) != [[0, 1]] or any(
                     ep['meta'].get(k) != donor['meta'].get(k) for k in payload_ctl.ROLES):
                 raise ValueError('donor must have the same role')
@@ -133,12 +127,9 @@ def plans(replies, n=512, lengths=LENGTHS, seed=4242, seen_values=None, require_
 
 
 def exposure(ep, built, toks, exchanges):
-    """Logical sender exposure through the LAST payload prediction, inclusive.
-
-    Both prompts occupy tick -1; it counts once, despite many token positions.
-    Cached sender states stay exposed after it stops writing. Active sender ticks
-    and actual reader position x depth exchanges are reported separately.
-    """
+    """The sender's exposure: ticks -1 (both prompts, counted once) through the last payload prediction; the sender's
+    cached states count as exposed after it stops writing. Also its active ticks, and the receiver's positions times
+    exchange blocks."""
     r, s = ep['meta']['receiver'], ep['meta']['sender']
     js = S.payload_labels(ep, toks)[r]
     positions = [built[r]['labels'][j][0] for j in js]
@@ -153,12 +144,8 @@ def exposure(ep, built, toks, exchanges):
 
 @torch.no_grad()
 def measure(pair, toks, items, pause=0, bs=8, logit_chunk=128):
-    """Per-token natural log p from the same CE kernel/labels as payload_ctl.table.
-
-    Only payload logits are materialized; chunking bounds the full-vocabulary
-    projection allocation. The LM backbones remain in the loaded dtype (bf16 on
-    GPU, float32 tiny); CE and bridge math are float32.
-    """
+    """One record per item of one game: the payload tokens' log p (nats) and teacher-forced argmax under link,
+    shuffle and cut, and the bits. Computes logits only at payload positions, logit_chunk at a time."""
     if type(pause) is not int or pause < 0 or bs < 1 or logit_chunk < 1:
         raise ValueError('pause must be nonnegative; batch and logit chunk sizes positive')
     if not items:
@@ -226,7 +213,7 @@ def measure(pair, toks, items, pause=0, bs=8, logit_chunk=128):
                     row[cond + '_code_bits'] = -math.fsum(row[cond + '_logp']) / math.log(2)
                     row[cond + '_tf_token_accuracy'] = sum(a == b for a, b in zip(
                         row['token_ids'], row[cond + '_argmax'])) / row['n_tokens']
-                # Difference first: alpha=0 is EXACTLY zero, no rounded CE subtraction.
+                # Differences per token first, so identical log ps give exactly zero.
                 row['bits'] = math.fsum(a - b for a, b in zip(row['link_logp'], row['shuffle_logp'])) / math.log(2)
                 row['cut_bits'] = math.fsum(a - b for a, b in zip(row['link_logp'], row['cut_logp'])) / math.log(2)
                 row['bits_per_tick'] = row['bits'] / row['sender_exposure_ticks']
@@ -236,7 +223,8 @@ def measure(pair, toks, items, pause=0, bs=8, logit_chunk=128):
 
 
 def interval(values, alpha=.05, clip_bits=128.):
-    """Raw exact median CI; separate bounded-mean betting CI. None = infinity."""
+    """The exact median interval of values (None: unbounded) and the betting interval of the mean of values clipped
+    to +-clip_bits."""
     if not math.isfinite(clip_bits) or clip_bits <= 0:
         raise ValueError('clip_bits must be finite and positive')
     xs = list(values)
@@ -246,17 +234,15 @@ def interval(values, alpha=.05, clip_bits=128.):
     ci = median_ci(xs, alpha)
     return dict(n=len(xs), mean=statistics.mean(xs), median=statistics.median(xs),
                 median_ci=[v if math.isfinite(v) else None for v in ci],
-                clipped_mean=statistics.mean(clipped), clipped_mean_ci=list(betting_ci(
-                    clipped, alpha, bounds=(-clip_bits, clip_bits))), clipped_items=sum(a != b for a, b in zip(xs, clipped)))
+                clipped_mean=statistics.mean(clipped),
+                clipped_mean_ci=list(betting_ci(clipped, alpha, bounds=(-clip_bits, clip_bits))),
+                clipped_items=sum(a != b for a, b in zip(xs, clipped)))
 
 
 def summarize(rows, alpha=.05, clip_bits=128.):
-    """95% per-cell inference; no simultaneous claim across lengths/pauses.
-
-    Fixed receiver quotas are not iid draws from a mixture. Mean CIs combine
-    two per-role intervals at alpha/2 by Bonferroni; raw median intervals are
-    per role only. Pooled raw mean/median are descriptive, without a fake CI.
-    """
+    """One cell's summary at level alpha: per receiver, interval() at alpha/2 and the per-tick and per-exchange
+    rates; pooled, the receiver-weighted clipped mean and its interval (the two receivers' intervals combined) and
+    descriptive means."""
     sides = {x: [r for r in rows if r['receiver'] == x] for x in SIDES}
     if any(not rs for rs in sides.values()):
         raise ValueError('summary needs both receivers')
@@ -286,11 +272,8 @@ def summarize(rows, alpha=.05, clip_bits=128.):
 
 @torch.no_grad()
 def greedy(pair, items, pause, n=4, bs=4, max_turn=64):
-    """Free autoregressive decoding, NOT teacher-forced argmax accuracy.
-
-    The balanced first n focal items are decoded under all three conditions.
-    Shuffle composes the same receiver/donor streams in an ordinary duplex ep.
-    """
+    """Free greedy decoding of the first n items under link, shuffle (the item with the donor's sender prompt) and
+    cut, scored per digit and exactly."""
     from evaluate import digits_after
     out = []
     for start in range(0, min(n, len(items)), bs):
@@ -317,6 +300,7 @@ def greedy(pair, items, pause, n=4, bs=4, max_turn=64):
 
 
 def text_table(results):
+    """The .txt table: per cell and pause, the mean and clipped bits, rates, cut bits and free greedy accuracy."""
     lines = ['Predictive code-length savings; not Shannon capacity. Numeric holdout status is in JSON.',
              'Current Games split: digit sum = 3 mod 7. Length 1 has only value 3: zero source entropy.',
              'CI is for the CAPPED mean (not the raw mean); raw exact median CIs per receiver are in JSON.',
@@ -327,7 +311,8 @@ def text_table(results):
             lo, hi = s['clipped_mean_ci']
             lines.append(f'{cell:22s} {str(k):>3s} {s["n"]:5d} {s["mean_bits"]:10.5g} '
                          f'{s["clipped_mean_bits"]:9.4f} [{lo:8.3f},{hi:8.3f}] '
-                         f'{s["mean_bits_per_tick"]:10.4g} {s["mean_bits_per_exchange"]:13.5g} {s["mean_cut_bits"]:8.4g}')
+                         f'{s["mean_bits_per_tick"]:10.4g} {s["mean_bits_per_exchange"]:13.5g} '
+                         f'{s["mean_cut_bits"]:8.4g}')
             if data.get('greedy'):
                 acc = {c: statistics.mean(r['per_digit'] for r in data['greedy'] if r['condition'] == c)
                        for c in ('link', 'shuffle', 'cut')}
@@ -365,7 +350,7 @@ def main():
     if args.bs < 1 or args.logit_chunk < 1:
         ap.error('bs and logit_chunk must be positive')
     if not os.environ.get('NL_TINY') and not DEVICE.startswith('cuda'):
-        ap.error('full models require CUDA; use NL_TINY=1 NL_DEVICE=cpu on the Mac')
+        ap.error('full models need CUDA; tiny test models run with NL_TINY=1 NL_DEVICE=cpu')
     start = time.perf_counter()
     R = json.loads(Path(args.replies).read_text())
     seen = json.loads(Path(args.seen_values).read_text()) if args.seen_values else None
@@ -376,9 +361,11 @@ def main():
     out = dict(config=vars(args), tiny=bool(os.environ.get('NL_TINY')), device=DEVICE,
                dtype={x: str(next(pair.models[x].parameters()).dtype) for x in SIDES},
                replies_sha256=hashlib.sha256(Path(args.replies).read_bytes()).hexdigest(),
-               seen_values_sha256=hashlib.sha256(Path(args.seen_values).read_bytes()).hexdigest() if args.seen_values else None,
+               seen_values_sha256=(hashlib.sha256(Path(args.seen_values).read_bytes()).hexdigest()
+                                   if args.seen_values else None),
                code_sha256={name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-                            for name in ('bandwidth.py', 'games.py', 'link.py', 'session.py', 'payload_ctl.py', 'stats.py')},
+                            for name in ('bandwidth.py', 'games.py', 'link.py', 'session.py', 'payload_ctl.py',
+                                         'stats.py')},
                definitions=dict(bits='sum(logp_link - logp_shuffle)/ln(2); raw unbounded predictive contrast',
                    interval='per-cell stratified betting CI of clipped gain mean; exact raw median CI per receiver',
                    exposure='ticks -1 through final payload prediction inclusive; cached sender remains exposed',

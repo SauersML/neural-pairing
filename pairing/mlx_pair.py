@@ -1,29 +1,25 @@
-"""Training-only MLX twin of link.Pair and train.py; frozen 4-bit bases, PEFT exports.
+"""The MLX version of link.Pair, for evaluating a saved step on Apple silicon with 4-bit bases (mlx_eval.py).
 
-Run with HF_HUB_OFFLINE=1 MPD_MEM_GIB=12 python pairing/mlx_pair.py --help.
-The data builders are the original Python/torch builders, on CPU. No HF model
-is constructed during real-model loading; tensors are quantized one at a time.
+load_base builds Qwen3 or AFM in MLX with 4-bit weights, quantizing the checkpoint one tensor at a time (no Hugging
+Face model is built) and caching the result (quant_cache). add_lora adds LoRA in PEFT's layout; Pair contains both
+models and the bridges, with link.Side's parameter names, shapes and float32 math; load_checkpoint and
+export_checkpoint read and write a step in train.py's format (PEFT adapters and bridge.pt).
+
+Usage: import mlx_pair as M; models[x], config = M.load_base(M.HF[x]); M.add_lora(models[x], rank); M.Pair(models, ...)
 """
-import argparse
-import contextlib
 import gc
 import json
-import math
 import os
 from pathlib import Path
-import random
-import time
 
 os.environ.setdefault('HF_HUB_OFFLINE', '1')
 os.environ['NL_DEVICE'] = 'cpu'
-# M5 MLX defaults to TF32 for float32 GEMMs. The bridges promise float32
-# math, and TF32 otherwise introduces ~1e-3 errors in the parity test.
+# MLX on Apple M5 runs float32 matrix products in TF32 by default; the bridges compute in float32, as link.py's do.
 os.environ['MLX_ENABLE_TF32'] = '0'
 
 import mlx.core as mx
 import mlx.nn as nn
-import mlx.optimizers as optim
-from mlx.utils import tree_flatten, tree_unflatten, tree_map
+from mlx.utils import tree_flatten, tree_unflatten
 import numpy as np
 from mlx_lm.models import llama, qwen3
 
@@ -50,6 +46,7 @@ class ArceeMLP(nn.Module):
 
 
 def make_model(config):
+    """An MLX model, random weights, from a Hugging Face config dict: Qwen3, or Arcee (AFM) with its relu2 MLP."""
     config = dict(config)
     if config.get('rope_parameters'):
         config['rope_theta'] = config['rope_parameters']['rope_theta']
@@ -66,6 +63,7 @@ def make_model(config):
 
 
 def from_torch(t):
+    """A torch tensor as an MLX array, bf16 kept bit for bit."""
     import torch
     t = t.detach().cpu().contiguous()
     if t.dtype == torch.bfloat16:
@@ -77,9 +75,8 @@ SAFE_DTYPES = {'BF16': np.uint16, 'F16': np.float16, 'F32': np.float32}
 
 
 def _uncached_tensors(file):
-    """(name, mx array) for every tensor of a safetensors file, read with the page cache off (F_NOCACHE): reading a
-    17 GB bf16 pair through mmap fills macOS's file cache, the free page count falls, and the machine's early OOM killer
-    (free under 2% while the compressor holds over a quarter of RAM) then takes the largest workload, this one."""
+    """(name, mx array) for every tensor of a safetensors file, read with the page cache off (F_NOCACHE), so that
+    reading both bf16 models (17 GB) does not fill macOS's file cache and leave too little free memory."""
     import fcntl
     fd = os.open(file, os.O_RDONLY)
     try:
@@ -104,13 +101,15 @@ def _uncached_tensors(file):
 
 
 def quant_cache(hf, bits):
-    root = Path(os.environ.get('NL_MLX_CACHE', os.path.expanduser('~/mpd-data/neural-pairing/mlx4')))
+    """The cached quantized weights of model hf: NL_MLX_CACHE (default ~/.cache/neural-pairing/mlx4)/NAME-BITSbit."""
+    root = Path(os.environ.get('NL_MLX_CACHE', os.path.expanduser('~/.cache/neural-pairing/mlx4')))
     return root / f"{str(hf).strip('/').replace('/', '--')}-{bits}bit.safetensors"
 
 
 def load_base(hf, bits=4, cache=True):
-    """Stream cached safetensors, avoiding a full bf16 (or float32) base copy. With cache, the quantized base is saved
-    after the first load (quant_cache) and later loads read only it."""
+    """(model, config) of hf (a local directory or a cached Hugging Face model) with frozen bits-bit weights (bits 0:
+    full precision), read one tensor at a time. With cache, the quantized model is saved after the first load
+    (quant_cache) and later loads read only that file."""
     from huggingface_hub import hf_hub_download
     path = Path(hf) if Path(hf).is_dir() else Path(hf_hub_download(hf, 'config.json', local_files_only=True)).parent
     config = json.loads((path / 'config.json').read_text())
@@ -125,7 +124,8 @@ def load_base(hf, bits=4, cache=True):
         return model, config
     modules = dict(model.named_modules())
     index = path / 'model.safetensors.index.json'
-    files = sorted(set(json.loads(index.read_text())['weight_map'].values())) if index.exists() else ['model.safetensors']
+    files = (sorted(set(json.loads(index.read_text())['weight_map'].values())) if index.exists()
+             else ['model.safetensors'])
     expected = set(dict(tree_flatten(model.parameters())))
     loaded = set()
     for file in files:
@@ -168,36 +168,21 @@ class LoRA(nn.Module):
             inp *= 32 // base.bits
         self.lora_A = mx.random.uniform(-inp ** -0.5, inp ** -0.5, (rank, inp))
         self.lora_B = mx.zeros((out, rank))
-        self.enabled = True
         base.freeze()
 
     def __call__(self, h):
         y = self.base(h)
-        if self.enabled:
-            z = (h.astype(mx.float32) @ self.lora_A.T) @ self.lora_B.T
-            y = y + (2.0 * z).astype(y.dtype)
-        return y
+        z = (h.astype(mx.float32) @ self.lora_A.T) @ self.lora_B.T
+        return y + (2.0 * z).astype(y.dtype)
 
 
 def add_lora(model, rank):
+    """Freezes model and wraps its attention and MLP projections in LoRA of the given rank (PEFT's targets)."""
     model.freeze()
     replace = [(n, LoRA(m, rank)) for n, m in model.named_modules()
                if n.split('.')[-1] in TARGETS and isinstance(m, (nn.Linear, nn.QuantizedLinear))]
     model.update_modules(tree_unflatten(replace))
     return model
-
-
-@contextlib.contextmanager
-def adapters_off(model):
-    mods = [m for _, m in model.named_modules() if isinstance(m, LoRA)]
-    was = [m.enabled for m in mods]
-    for m in mods:
-        m.enabled = False
-    try:
-        yield
-    finally:
-        for m, enabled in zip(mods, was):
-            m.enabled = enabled
 
 
 def linear(inp, out):
@@ -207,6 +192,7 @@ def linear(inp, out):
 
 
 def age_buckets(tq, tk):
+    """link.age_buckets in MLX."""
     d = mx.maximum(tq[:, :, None] - tk[:, None, :], 0)
     b = mx.where(d == 0, 0, mx.floor(mx.log2(mx.maximum(d, 1).astype(mx.float32))).astype(mx.int32) + 1)
     return mx.where(tk[:, None, :] < 0, 8, mx.minimum(b, 7))
@@ -260,98 +246,19 @@ class Side(nn.Module):
         return w * qmask[..., None]
 
 
-def remat(module, fn, *args):
-    def call(params, *inputs):
-        module.update(params)
-        return fn(*inputs)
-    return mx.checkpoint(call)(module.trainable_parameters(), *args)
-
-
-def causal_mask(b):
-    L = b['ids'].shape[1]
-    # session.collate always uses right padding and positions arange(L).
-    return (mx.arange(L)[:, None] >= mx.arange(L)[None, :])[None, None] & b['att'][:, None, None, :].astype(mx.bool_)
-
-
 class Pair(nn.Module):
-    def __init__(self, models, xblocks=XBLOCKS, sizes=None, heads=8, head_dim=128, gate_norm=False, checkpoint=True):
+    """Both MLX models and the bridges between them (mlx_eval.Pair runs them for session.py)."""
+
+    def __init__(self, models, xblocks=XBLOCKS, sizes=None, heads=8, head_dim=128, gate_norm=False):
         super().__init__()
         self.models = models
         self.xblocks = tuple(xblocks)
-        self.checkpoint = checkpoint
         assert self.xblocks and max(self.xblocks) < min(len(m.layers) for m in models.values()) - 1
         self.bridge = {x: Side(models[x].args.hidden_size, len(xblocks), heads, head_dim,
                                sizes[x] if sizes else [1.] * len(xblocks), gate_norm) for x in SIDES}
 
-    def exchange(self, k, hq, he, allow, ages, qmask):
-        h = dict(quill=hq, ember=he)
-        shown = {x: self.bridge[x].show(k, h[x]) for x in SIDES}
-        out, writes = {}, {}
-        for x in SIDES:
-            w = self.bridge[x].read(k, h[x], *shown[other(x)][:2], allow[x], ages[x], qmask[x])
-            writes[x] = mx.stop_gradient(mx.sum(mx.mean(mx.square(w), axis=-1) * qmask[x]) /
-                                         mx.maximum(mx.sum(qmask[x]), 1) / self.bridge[x].size[k] ** 2)
-            out[x] = h[x] + w.astype(h[x].dtype)
-        return out['quill'], out['ember'], shown['quill'][2], shown['ember'][2], writes['quill'], writes['ember']
-
-    def checkpoint_exchange(self, k, *inputs):
-        # Only this exchange's parameters are checkpoint inputs. Passing the
-        # whole pair would create huge zero gradients for unrelated layers.
-        params = tree_unflatten([(n, v) for x in SIDES
-                                 for name, v in tree_flatten(self.bridge[x].trainable_parameters())
-                                 for n in [x + '.' + name]
-                                 if name in ('alpha', 'null', 'age') or name.split('.')[1] == str(k)])
-        def call(p, *a):
-            self.update({'bridge': p})
-            return self.exchange(k, *a)
-        return mx.checkpoint(call)(params, *inputs)
-
-    def joint(self, b, mode=None):
-        if mode not in (None, 'zero', 'shuffle'):
-            raise ValueError(mode)
-        if mode == 'shuffle' and b['quill']['ids'].shape[0] < 2:
-            raise ValueError('shuffle needs at least two episodes')
-        h = {x: self.models[x].model.embed_tokens(b[x]['ids']) for x in SIDES}
-        masks = {x: causal_mask(b[x]) for x in SIDES}
-        allow, ages, qmask = {}, {}, {}
-        for x in SIDES:
-            ty, vy = b[other(x)]['tick'], b[other(x)]['att'].astype(mx.bool_)
-            if mode == 'shuffle':
-                shift = 1 if x == SIDES[0] else -1
-                ty, vy = mx.roll(ty, shift, axis=0), mx.roll(vy, shift, axis=0)
-            allow[x] = (ty[:, None, :] <= b[x]['tick'][:, :, None]) & vy[:, None, :]
-            ages[x] = age_buckets(b[x]['tick'], ty)
-            qmask[x] = (b[x]['att'].astype(mx.bool_) & (b[x]['tick'] < b[x]['cut'][:, None])).astype(mx.float32)
-        gates, writes = {x: [] for x in SIDES}, {x: [] for x in SIDES}
-        for l in range(max(len(m.layers) for m in self.models.values())):
-            for x in SIDES:
-                if l < len(self.models[x].layers):
-                    layer = self.models[x].layers[l]
-                    h[x] = remat(layer, layer, h[x], masks[x]) if self.checkpoint else layer(h[x], masks[x])
-            if l in self.xblocks and mode != 'zero':
-                k = self.xblocks.index(l)
-                if mode == 'shuffle':
-                    # Inverse rolls isolate each mismatched duplex pair at every depth.
-                    he = mx.roll(h['ember'], 1, axis=0)
-                    aq = dict(allow); ag = dict(ages); qm = dict(qmask)
-                    aq['ember'], ag['ember'], qm['ember'] = [mx.roll(v['ember'], 1, axis=0) for v in (allow, ages, qmask)]
-                else:
-                    he, aq, ag, qm = h['ember'], allow, ages, qmask
-                if self.checkpoint:
-                    out = self.checkpoint_exchange(k, h['quill'], he, aq, ag, qm)
-                else:
-                    out = self.exchange(k, h['quill'], he, aq, ag, qm)
-                h['quill'], h['ember'] = out[:2]
-                gq, ge = out[2:4]
-                if mode == 'shuffle':
-                    h['ember'], ge = mx.roll(h['ember'], -1, axis=0), mx.roll(ge, -1, axis=0)
-                for x, g, w in zip(SIDES, (gq, ge), out[4:]):
-                    gates[x].append(g); writes[x].append(w)
-        return ({x: self.models[x].model.norm(h[x]) for x in SIDES},
-                {x: mx.stack(gates[x], axis=-1) if gates[x] else mx.zeros((*b[x]['ids'].shape, len(self.xblocks))) for x in SIDES},
-                {x: mx.stack(writes[x]) if writes[x] else mx.zeros((len(self.xblocks),)) for x in SIDES})
-
     def token_logits(self, x, h, idx=None):
+        """Model x's float32 logits from final hidden states h, at the flat positions idx when given."""
         if idx is not None:
             h = h.reshape(-1, h.shape[-1])[idx]
         m = self.models[x]
@@ -359,6 +266,7 @@ class Pair(nn.Module):
 
 
 def convert_batch(b):
+    """A session.collate batch as MLX arrays (int64 as int32), without the owners lists."""
     import torch
     def conv(v):
         if isinstance(v, torch.Tensor):
@@ -372,22 +280,8 @@ def convert_batch(b):
     return {x: {k: conv(v) for k, v in b[x].items() if k != 'own'} for x in SIDES}
 
 
-def residual_rms(model, blocks, seqs):
-    got = {k: [] for k in blocks}
-    for ids in seqs:
-        h = model.model.embed_tokens(mx.array([ids]))
-        for l, layer in enumerate(model.layers):
-            h = layer(h, 'causal')
-            if l in got:
-                rms = mx.sqrt(mx.mean(mx.square(h[0, 1:].astype(mx.float32)), axis=-1))
-                mx.eval(rms)
-                got[l].extend(np.array(rms).tolist())
-        mx.eval(h)
-    # torch.median selects the lower middle value for even counts.
-    return [sorted(got[k])[(len(got[k]) - 1) // 2] for k in blocks]
-
-
 def export_checkpoint(pair, directory, args):
+    """Saves pair as a step in train.py's format: PEFT adapters per model and bridge.pt (args stored with it)."""
     import torch
     from peft import LoraConfig
     directory = Path(directory)
@@ -437,12 +331,3 @@ def load_checkpoint(pair, directory, frozen=None):
         pair.models[x].load_weights(state, strict=False)
     mx.eval(pair.parameters())
     return frozen
-
-
-def main():
-    from mlx_train import main as train
-    train()
-
-
-if __name__ == '__main__':
-    main()

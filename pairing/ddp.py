@@ -4,6 +4,8 @@ Every rank draws the same global batch (same seeds), sorts its episodes by lengt
 (partition), so each rank pads only to the length of similar episodes and the groups cost about the same. Losses use
 the denominators of the whole global batch, so the sum of the ranks' gradients (sum_grads) equals the gradient of the
 single-process loss on that batch.
+
+Usage: import ddp; ddp.init(); groups = ddp.partition(costs); mine = groups[ddp.RANK]; ...; ddp.sum_grads(params)
 """
 import datetime
 import os
@@ -19,6 +21,7 @@ MAIN = RANK == 0
 
 
 def init():
+    """Joins the torchrun process group (NCCL on CUDA, else gloo) when WORLD_SIZE > 1."""
     if WORLD > 1 and not dist.is_initialized():
         nccl = DEVICE.startswith('cuda')
         if nccl:

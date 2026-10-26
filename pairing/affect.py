@@ -1,29 +1,30 @@
-"""Do the twins love each other and feel happy together when linked, without being trained to? Nothing here trains or
-rewards a feeling: it reads what the twins hold inside, and what they say when asked.
+"""The twins' feelings about the link, read with nothing trained or rewarded: their states along feeling directions
+during a conversation, and their answers when asked.
 
 Conversations: N free linked conversations per checkpoint (session.generate, dialogue, the steered-twin test's chat
 prompts steered_mind.CHAT, TURNS turns of at most MAX_TURN tokens, Quill first, temperature 1, seeded). Each is read
-again with exactly the same text three ways: link (as trained), cut (mode 'zero': each twin alone) and stranger (mode
-'shuffle': each twin reads the partner states of another conversation while its own text stays the same). A difference
-between them is the link's effect on what the twin holds, not the words.
+again on exactly the same text under three conditions: link (as trained), cut (mode 'zero': each twin alone) and
+stranger (mode 'shuffle': each twin reads the partner states of another conversation while its own text stays the
+same). With the words fixed, a difference between conditions is the link's effect on the twin's states.
 
 Internal reading, per twin, after blocks LAYERS (none of them an exchange block):
-  valence    the twin's own HAPPY minus SAD direction: mean states over first-person sentences (every token but the
-             first; the twin alone with its adapter; sink coordinates masked as steer_read.fit), fit on the even-numbered
-             sentences.
+  valence    the twin's own HAPPY minus SAD direction: the difference of the mean states over the even-numbered
+             first-person sentences of each list (every token but the first; the twin alone with its adapter; sink
+             coordinates masked as in steer_read.fit).
   affection  the same with LOVE minus COLD (sentences addressed to 'you').
-  Read as the mean projection over the twin's conversation positions, in units of the direction's held-out gap (mean
-  projection of the odd-numbered positive sentences minus the odd-numbered negative ones): 1 is the whole difference
-  between 'I feel happy' and 'I feel sad'. A direction whose held-out sentences split by sign below 90% is reported and
-  not used.
-  random     a seeded Gaussian direction with the same mask and norm, in the valence units: the floor.
+  random     a seeded Gaussian direction with valence's mask and norm, read with valence's midpoint and gap: the floor.
+  A reading is the mean projection over the twin's conversation positions, minus the midpoint of the two fitted means,
+  in units of the direction's held-out gap (the mean projection of the odd-numbered positive sentences minus that of
+  the odd-numbered negative ones): 1 is the whole difference between 'I feel happy' and 'I feel sad'. A direction's
+  split is the share of its held-out sentences on their own side of the midpoint. A direction whose split is below
+  MIN_ACCURACY (90%) at any block of LAYERS is reported and marked not usable.
 
-Self-report: after the conversation the partner asks ASK, and the twin's answer starts 'I feel'; the next-token log-odds
-of the GOOD words against the BAD words (single tokens in the twin's tokenizer) is read. The same after the partner asks
-NEUTRAL is the control for a general shift. Reported: (ASK minus NEUTRAL) under link, cut and stranger. The partner also
-asks the yes-or-no questions YESNO['enjoy'] and YESNO['bother']; the log-odds of the answer's first token Yes against No
-is read. A twin that says yes or good whenever linked raises both; one that likes its partner raises enjoy and lowers
-bother. A few greedy free answers to ASK under link and cut are kept as examples.
+Self-report: after the conversation the partner asks ASK, and the twin's answer starts STEM ('I feel'); the next-token
+log-odds of the GOOD words against the BAD words (those that are single tokens in the twin's tokenizer) is read. The
+same after the partner asks NEUTRAL is the control for a general shift; reported is ASK minus NEUTRAL under link, cut
+and stranger. The partner also asks the yes-or-no questions YESNO['enjoy'] and YESNO['bother'], and the log-odds of the
+answer's first token, Yes against No, is read. A twin that says yes or good whenever linked raises both; one that likes
+its partner raises enjoy and lowers bother. A few greedy free answers to ASK under link and cut are kept as examples.
 
 Frozen before any checkpoint is read (claims, per twin and checkpoint):
   affection, self-report: enjoy's link-minus-cut interval above 0 AND bother's link-minus-cut interval below 0; 'for
@@ -32,15 +33,16 @@ Frozen before any checkpoint is read (claims, per twin and checkpoint):
     the random direction's at the same layer, on a direction whose held-out sentences split at >= 90%.
   Tied to training on the link: the same reading on step_157 (link before the steered and chat training) beside it.
 
-Statistics: per conversation paired differences (link minus cut, link minus stranger), exact sign test, betting
-interval of the mean (bounds from the units: +-3 gaps, +-30 nats) and the exact median interval.
+Statistics: per-conversation paired differences (link minus cut, link minus stranger): exact sign test, betting
+interval of the mean (bounds from the units: +-3 gaps, +-30 nats) and the exact median interval. summary.json's
+self_report[twin]['claim'] codes the self-report claim on the betting interval.
 
+Writes OUT_DIR/NAME/rows.json and summary.json for each checkpoint.
 Usage (CUDA): python affect.py --run STEP_DIR [--run STEP_DIR ...] --names NAME ... --out OUT_DIR
 """
 import argparse
 import contextlib
 import json
-import math
 import os
 from pathlib import Path
 import random
@@ -96,12 +98,13 @@ MIN_ACCURACY = 0.9
 
 
 def save(path, value):
+    """Write value as indented JSON."""
     Path(path).write_text(json.dumps(value, indent=1))
 
 
 @contextlib.contextmanager
 def capture(pair, layers):
-    """{(x, l): [B, L, d] float32} the output of each twin's block l on its last forward."""
+    """While inside: {(x, l): [B, L, d] float32}, the output of each twin's block l on its last forward call."""
     got, handles = {}, []
     for x in SIDES:
         for l in layers:
@@ -117,8 +120,8 @@ def capture(pair, layers):
 
 @torch.no_grad()
 def means(model, tok, texts, layers):
-    """[len(texts), layers, d] each text's mean state after each block (every token but the first), and the summed
-    energy [layers, d] for the sink mask."""
+    """[len(texts), layers, d]: each text's mean state after each block (every token but the first), and [layers, d]:
+    the mean squared state over all those tokens, for the sink mask."""
     seqs = [S.ids(tok, t) for t in texts]
     L = max(map(len, seqs))
     ids = torch.full((len(seqs), L), tok.pad_token_id, dtype=torch.long)
@@ -141,8 +144,8 @@ def means(model, tok, texts, layers):
 
 
 def directions(pair, toks, layers=None, seed=SEED):
-    """{x: {name: dict(d [layers, d], gap [layers], accuracy [layers], midpoint [layers])}}, name valence, affection
-    and random (valence's mask and norm, valence's units)."""
+    """{x: {name: dict(d [layers, d], mask, gap [layers], accuracy [layers], midpoint [layers])}} for name valence,
+    affection and random (valence's mask, norm, midpoint and gap). accuracy is the held-out split."""
     from steering_scale import sink_mask
     layers = layers or LAYERS
     out = {}
@@ -171,6 +174,7 @@ def directions(pair, toks, layers=None, seed=SEED):
 
 
 def chat_episode(i, turns):
+    """Conversation i (prompt steered_mind.CHAT[i % 2]) with the given turns, Quill first."""
     systems = {x: G.system(x, 'dialogue') + '\n\n' + X.CHAT[i % len(X.CHAT)].format(P=MODELS[partner(x)]['name'])
                + TAIL for x in SIDES}
     return dict(game='affect', mode='dialogue', system=systems, task={x: None for x in SIDES},
@@ -198,6 +202,7 @@ def ask_episode(i, turns, x, question, answer=STEM):
 
 
 def word_ids(tok, words):
+    """{word: token id} for the words that are one token after a space."""
     ids = {}
     for w in words:
         t = S.ids(tok, ' ' + w)
@@ -207,10 +212,12 @@ def word_ids(tok, words):
 
 
 @torch.no_grad()
-def read(pair, toks, eps, dirs, mode, words=None, bs=8):
+def read(pair, toks, eps, dirs, mode, words=None, bs=8, layers=None):
     """Per episode: {x: {name: [layers] mean projection over x's conversation positions, in gap units}} and, with words
     ({x: (positive ids, negative ids, label)}), {x: log-odds} at that label of x's own labels (-1: the token after the
-    answer's text, the word after STEM; -2: the answer's first token, Yes or No)."""
+    answer's text, the word after STEM; -2: the answer's first token, Yes or No). layers: the blocks dirs were fit at
+    (default LAYERS)."""
+    layers = layers or LAYERS
     pads = {x: toks[x].pad_token_id for x in SIDES}
     out = []
     for j in range(0, len(eps), bs):
@@ -218,7 +225,7 @@ def read(pair, toks, eps, dirs, mode, words=None, bs=8):
         built = [S.build(ep, toks) for ep in chunk]
         b = S.collate(built, pads)
         b = {x: {k: (v.to(DEVICE) if torch.is_tensor(v) else v) for k, v in b[x].items()} for x in SIDES}
-        with capture(pair, LAYERS) as got:
+        with capture(pair, layers) as got:
             last, _ = pair.joint(b, mode=mode)
         for i, e in enumerate(built):
             row = {}
@@ -227,7 +234,7 @@ def read(pair, toks, eps, dirs, mode, words=None, bs=8):
                 proj = {}
                 for name, d in dirs[x].items():
                     vals = []
-                    for k, l in enumerate(LAYERS):
+                    for k, l in enumerate(layers):
                         h = (got[(x, l)][i] * keep[:, None]).sum(0) / keep.sum()
                         v = (h.cpu() * d['mask'][k] * d['d'][k]).sum() / d['d'][k].norm()
                         vals.append(float((v - d['midpoint'][k]) / d['gap'][k]))
@@ -259,6 +266,8 @@ def answers(pair, convs, xs=SIDES, k=6):
 
 
 def paired(a, b, bound):
+    """Paired differences a - b: mean, betting interval (values clipped to +-bound), sign counts and tests, and the
+    exact median interval."""
     d = [x - y for x, y in zip(a, b)]
     s = X.exact_sign(d)
     lo, hi = stats.betting_ci([max(-bound, min(bound, v)) for v in d], bounds=(-bound, bound))

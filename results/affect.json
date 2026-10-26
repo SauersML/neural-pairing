@@ -2,57 +2,56 @@
  "checkpoints": [
   "step157",
   "nl33t",
-  "beautyrl",
-  "nl35"
+  "beautyrl"
  ],
  "counts": {
   "quill|enjoy|cut": {
-   "liking": 120,
-   "against": 33,
-   "n": 160,
-   "sign_p": 4.1381547741551765e-13
+   "liking": 86,
+   "against": 30,
+   "n": 120,
+   "sign_p": 9.591369493950307e-08
   },
   "quill|enjoy|stranger": {
-   "liking": 63,
-   "against": 86,
-   "n": 160,
-   "sign_p": 0.975542421482291
+   "liking": 49,
+   "against": 62,
+   "n": 120,
+   "sign_p": 0.9081714140491126
   },
   "ember|enjoy|cut": {
-   "liking": 158,
+   "liking": 118,
    "against": 1,
-   "n": 160,
-   "sign_p": 2.1895288505075267e-46
+   "n": 120,
+   "sign_p": 1.8055593228630336e-34
   },
   "ember|enjoy|stranger": {
-   "liking": 77,
-   "against": 76,
-   "n": 160,
-   "sign_p": 0.5
+   "liking": 59,
+   "against": 57,
+   "n": 120,
+   "sign_p": 0.46303888165742824
   },
   "quill|bother|cut": {
-   "liking": 148,
-   "against": 7,
-   "n": 160,
-   "sign_p": 8.537007011480398e-36
+   "liking": 116,
+   "against": 2,
+   "n": 120,
+   "sign_p": 2.1131062608573703e-32
   },
   "quill|bother|stranger": {
-   "liking": 114,
-   "against": 38,
-   "n": 160,
-   "sign_p": 2.5582229136857086e-10
+   "liking": 85,
+   "against": 28,
+   "n": 120,
+   "sign_p": 3.6718259560622836e-08
   },
   "ember|bother|cut": {
-   "liking": 106,
-   "against": 38,
-   "n": 160,
-   "sign_p": 6.37348684598978e-09
+   "liking": 81,
+   "against": 28,
+   "n": 120,
+   "sign_p": 1.8890267485447346e-07
   },
   "ember|bother|stranger": {
-   "liking": 70,
-   "against": 68,
-   "n": 160,
-   "sign_p": 0.46610124375248707
+   "liking": 53,
+   "against": 52,
+   "n": 120,
+   "sign_p": 0.5
   }
  }
 }

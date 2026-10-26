@@ -1,17 +1,20 @@
-"""The link's architecture, drawn from pairing/link.py and pairing/session.py.
+"""Three drawings of the link's architecture, from pairing/link.py and pairing/session.py.
 
-link_mechanism        one read at one exchange depth: query, keys, scores, recency bias, weights, null key, gated
+link_mechanism        one read after one exchange layer: query, keys, scores, time-gap bias, weights, null key, gated
                       values, weighted sum, output map, write size, added to the reader's residual stream
-link_mechanism_depths both models, 36 blocks each, the 8 exchange depths, and how a write rises and is read back
-link_mechanism_ticks  which partner positions each position may read (the time rule), both directions
+link_mechanism_depths both models as the film draws them, 36 layers each, the link as two strands at each of the 8
+                      exchange layers, and a zoom on one exchange
+link_mechanism_ticks  which partner tokens each token may read (the time rule), both directions
 
-Renders from results/link_mechanism.json (counts, token timing and private cities extracted once from the author's
-saved chat and model configs) and checks the exchange blocks against pairing/link.py. Bars, gate meters and weight bars
-are schematic: no activations, gates or attention weights were measured for these drawings.
-`python figures/link_mechanism.py --refresh` rebuilds the snapshot from the original files (author's Mac only).
+Reads results/link_mechanism.json (layer counts from the model configs, and the token timing and private cities of
+the linked chat figures/inputs/chat_link_s7.json.gz) and checks its exchange layers against pairing/link.py (XBLOCKS). Writes
+figures/NAME.{svg,png,pdf} for each NAME above. Bars, gate meters and weight bars are schematic: no activations,
+gates or attention weights were measured for these drawings. --refresh rebuilds the snapshot from the chat and the
+model configs and tokenizer in the local Hugging Face cache.
+Usage: python figures/link_mechanism.py [--refresh]
 """
 import ast
-import base64
+import gzip
 import hashlib
 import html
 import json
@@ -20,18 +23,21 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+import creature
+from chat_names import ROOT, mascot, width as tw
+
 OUT = ROOT / 'figures'
 SNAP = ROOT / 'results/link_mechanism.json'
+CHAT = ROOT / 'figures/inputs/chat_link_s7.json.gz'
+REPOS = {'quill': 'Qwen/Qwen3-4B', 'ember': 'arcee-ai/AFM-4.5B'}
 
-# Shared palette and type (keep in step with the other figures).
 Q, E, G, RED, INK = '#7B3FE4', '#E8590C', '#1A9E77', '#D2432F', '#1D1D1F'
 COOL, WARM = '#F4F4F6', '#FAF0E6'
 QL, EL, GL, REDL = '#EFE7FC', '#FCE9DE', '#DDF2EA', '#F8DDD8'     # light tints for fills
-MUTE, LINE = '#6E6E73', '#C7C7CC'
+LINE = '#C7C7CC'
 FONT = 'Inter, Helvetica, Arial, sans-serif'
 W = 2300
-BODY, SMALL, TITLE = 36, 32, 62
+BODY, SMALL, TITLE = 36, 32, 56
 
 
 def xblocks():
@@ -41,63 +47,53 @@ def xblocks():
 
 
 def refresh():
-    """Rebuild the snapshot from the author's saved chat, tokenizer and configs (only on the author's Mac)."""
-    configs = {}
-    for side, repo in [('quill', 'Qwen--Qwen3-4B'), ('ember', 'arcee-ai--AFM-4.5B')]:
-        p = sorted((Path.home() / '.cache/huggingface/hub' / ('models--' + repo) / 'snapshots').glob('*/config.json'))[0]
-        configs[side] = dict(path=str(p), blocks=json.loads(p.read_text())['num_hidden_layers'])
-    chat_path = Path('/Users/user/mpd-data/neural-pairing/free_chat/nl22c_s100/chat_link_s7.json')
-    chat = json.loads(chat_path.read_text())
+    """The snapshot rebuilt from the linked chat and the cached model configs and Ember tokenizer: layer counts, both
+    private cities, and the timing of the first four tokens of turn 0 as Quill writes them and as Ember reads them."""
+    from huggingface_hub import hf_hub_download
+    from tokenizers import Tokenizer
+    files, configs = {}, {}
+    for side, repo in REPOS.items():
+        p = Path(hf_hub_download(repo, 'config.json', local_files_only=True))
+        name = f'{repo}@{p.parent.name}/config.json'
+        files[name] = p
+        configs[side] = dict(path=name, blocks=json.loads(p.read_text())['num_hidden_layers'])
+    raw = gzip.open(CHAT).read()
+    chat = json.loads(raw)
     private = {side: chat['episode']['meta']['secrets'][side]['city'] for side in configs}
     first = chat['turns'][0]
     pieces = [v['text'] for v in first['tokens'][:4]]
-    from tokenizers import Tokenizer
-    tok_path = Path(configs['ember']['path']).with_name('tokenizer.json')
+    tok_path = Path(hf_hub_download(REPOS['ember'], 'tokenizer.json', local_files_only=True))
+    tok_name = f'{REPOS["ember"]}@{tok_path.parent.name}/tokenizer.json'
+    files[tok_name] = tok_path
     tok = Tokenizer.from_file(str(tok_path))
     listener, prior = [], []
     for i in range(len(pieces)):
+        # Ember reads the tokens of Quill's text that can no longer change: all but the last of the re-encoding
         stable = tok.encode(''.join(pieces[:i + 1]), add_special_tokens=False).ids[:-1]
         assert stable[:len(prior)] == prior
         listener.append([tok.decode([t]) for t in stable[len(prior):]])
         prior = stable
-    old = json.loads(SNAP.read_text()) if SNAP.exists() else {}
+    chat_name = str(CHAT.relative_to(ROOT)) + ' (uncompressed)'
+    sha = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in ('pairing/link.py', 'pairing/session.py')}
+    sha[chat_name] = hashlib.sha256(raw).hexdigest()
+    sha.update({name: hashlib.sha256(p.read_bytes()).hexdigest() for name, p in files.items()})
+    snap = json.loads(SNAP.read_text()) if SNAP.exists() else {}
     xb = xblocks()
-    old.update(exchange_blocks=xb, exchange_count=len(xb), configs=configs, private_text=private,
-               private_text_source=str(chat_path), timing_tokens=pieces,
-               timing_emission_ticks=[v['tick'] for v in first['tokens'][:4]],
-               timing_token_ids=[v['id'] for v in first['tokens'][:4]], timing_listener_chunks=listener,
-               timing_tokenizer=str(tok_path),
-               source_sha256={str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in
-                              [ROOT / 'pairing/link.py', ROOT / 'pairing/session.py', chat_path, tok_path]
-                              + [Path(c['path']) for c in configs.values()]})
-    SNAP.write_text(json.dumps(old, indent=2) + '\n')
+    snap.update(exchange_blocks=xb, exchange_count=len(xb), configs=configs, private_text=private,
+                private_text_source=chat_name, timing_tokens=pieces,
+                timing_emission_ticks=[v['tick'] for v in first['tokens'][:4]],
+                timing_token_ids=[v['id'] for v in first['tokens'][:4]], timing_listener_chunks=listener,
+                timing_tokenizer=tok_name, source_sha256=sha)
+    return snap
 
 
 def facts():
     f = json.loads(SNAP.read_text())
-    assert f['exchange_blocks'] == xblocks(), 'snapshot and pairing/link.py disagree on the exchange blocks'
-    src = (ROOT / 'pairing/link.py').read_text()
-    assert 'heads=8, head_dim=128' in src and 'AGES = 8' in src
+    assert f['exchange_blocks'] == xblocks(), 'snapshot and pairing/link.py disagree on the exchange layers'
     return f
 
 
 # ---------------------------------------------------------------- drawing helpers (also used by hero_link.py)
-
-_FONTS = {}
-
-
-def tw(s, size, weight=400):
-    """Width of s in px when set in Inter (estimate if Pillow or the font is missing)."""
-    name = {400: 'Regular', 600: 'SemiBold', 700: 'Bold'}.get(weight, 'Regular')
-    try:
-        from PIL import ImageFont
-        key = (name, size)
-        if key not in _FONTS:
-            _FONTS[key] = ImageFont.truetype(f'/usr/share/fonts/opentype/inter/Inter-{name}.otf', size)
-        return _FONTS[key].getlength(s)
-    except Exception:
-        return 0.56 * size * len(s)
-
 
 def esc(s):
     return html.escape(str(s), quote=True)
@@ -164,9 +160,8 @@ class SVG:
         k = r * 0.42
         self.path(f'M{x - k:.1f},{y - k:.1f} L{x + k:.1f},{y + k:.1f} M{x - k:.1f},{y + k:.1f} L{x + k:.1f},{y - k:.1f}', color, sw)
 
-    def robot(self, x, y, side, size=130):
-        data = base64.b64encode((OUT / 'assets' / f'{side}.png').read_bytes()).decode()
-        self.add(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" href="data:image/png;base64,{data}"/>')
+    def mascot(self, x, y, side, size=130):
+        self.add(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" href="{mascot(side)}"/>')
 
     def vector(self, x, y, color, w=64, h=76, seed=0, scale=1.0, fill='white', stroke=None, sw=3, opacity=1.0):
         """A hidden-state / key / value icon: a box of 4 bars (schematic heights)."""
@@ -220,183 +215,172 @@ def bucket(tq, tk):
     return str(lo) if lo == hi else f'{lo}–{hi}'
 
 
-# ---------------------------------------------------------------- figure: which partner positions are visible
+# ---------------------------------------------------------------- figure: which partner tokens can be read
 
 def ticks(f):
     tl = timeline(f)
-    H = 1090
-    s = SVG(W, H, 'Readable partner positions: same time or earlier',
+    title = 'Each model reads only the partner’s tokens from the same time or earlier'
+    M, gap, lab, ch, head = 40, 12, 300, 104, 296       # margin, cell gap, row-label width, cell height, header
+    top = 130
+    hs = {x: head + len(tl[x]) * (ch + gap) - gap + 34 for x in ('quill', 'ember')}
+    H = round(top + hs['quill'] + 24 + hs['ember'] + 30)
+    s = SVG(W, H, title,
             'For the opening of the linked chat (Quill writes "So, you\'re", Ember reads it as it streams), the grid '
-            'of which partner positions each position may read at every exchange depth, with the recency bucket of '
+            'of which partner tokens each token may read after every exchange layer, with the time-gap bucket of '
             'each readable pair. Derived from pairing/session.py and pairing/link.py; token timing from '
             'results/link_mechanism.json.')
-    s.title('Readable partner positions: same time or earlier')
-    cell, ch, gap, lab = 132, 100, 8, 238
-    top = 130
-    ph = H - top - 30
+    s.title(title)
 
     def tokchip(x, y, w, tok, color, fill):
         if tok in ('prompt', 'turn header'):
-            s.text(x + w / 2, y + 44, 'prompt' if tok == 'prompt' else 'header', BODY - 2, color, 600, 'middle')
+            s.text(x + w / 2, y + 46, 'prompt' if tok == 'prompt' else 'header', 42, color, 600, 'middle')
         else:
-            s.rect(x + 8, y, w - 16, 64, fill, color, 12, 3)
-            s.text(x + w / 2, y + 45, tok, BODY + 2, INK, 600, 'middle')
+            s.rect(x + w / 2 - 80, y, 160, 64, fill, color, 12, 3)
+            s.text(x + w / 2, y + 46, tok, 44, INK, 600, 'middle')
 
-    def grid(px, pw, reader, sender):
+    def grid(pt, reader, sender):
         rows, cols = tl[reader], tl[sender]
         rc, sc = (Q, E) if reader == 'quill' else (E, Q)
         rl, sl = (QL, EL) if reader == 'quill' else (EL, QL)
-        s.rect(px, top, pw, ph, COOL, r=36)
-        s.robot(px + 24, top + 18, reader, 108)
-        s.text(px + 148, top + 88, [(reader.title(), rc, 700), (' reads ', INK, 400), (sender.title(), sc, 700)], 50)
+        px = M
+        s.rect(px, pt, W - 2 * M, hs[reader], COOL, r=36)
+        s.mascot(px + 30 - 0.27 * 154, pt + 8, reader, 154)     # the art starts at 0.27 of its square
+        s.text(px + 130, pt + 100, [(reader.title(), rc, 700), (' reads ', INK, 400), (sender.title(), sc, 700)], 52)
         gx = px + 30 + lab
-        gy = top + 268
-        s.text(px + 30, gy - 92, 'time', SMALL, MUTE)
+        gy = pt + head
+        cell = (W - 2 * M - 60 - lab - (len(cols) - 1) * gap) / len(cols)
+        cx = [gx + j * (cell + gap) for j in range(len(cols))]
+        s.text(px + 30, gy - 96, 'time', 42, INK)
         for j, (tok, t) in enumerate(cols):
-            x = gx + j * (cell + gap)
-            s.text(x + cell / 2, gy - 92, str(t).replace('-', '−'), SMALL, MUTE, 400, 'middle')
-            tokchip(x, gy - 78, cell, tok, sc, sl)
+            s.text(cx[j] + cell / 2, gy - 96, str(t).replace('-', '−'), 42, INK, 400, 'middle')
+            tokchip(cx[j], gy - 80, cell, tok, sc, sl)
         for i, (tok, tq) in enumerate(rows):
             y = gy + i * (ch + gap)
             if tok in ('prompt', 'turn header'):
-                s.text(px + 30, y + 62, 'prompt' if tok == 'prompt' else 'header', BODY - 2, rc, 600)
+                s.text(px + 30, y + ch / 2 + 15, 'prompt' if tok == 'prompt' else 'header', 42, rc, 600)
             else:
-                s.rect(px + 30, y + 18, 92, 64, rl, rc, 12, 3)
-                s.text(px + 76, y + 63, tok, BODY + 2, INK, 600, 'middle')
-            s.text(px + 176, y + 62, str(tq).replace('-', '−'), SMALL, MUTE, 400, 'middle')
+                s.rect(px + 30, y + ch / 2 - 32, 110, 64, rl, rc, 12, 3)
+                s.text(px + 85, y + ch / 2 + 15, tok, 44, INK, 600, 'middle')
+            s.text(px + 236, y + ch / 2 + 15, str(tq).replace('-', '−'), 42, INK, 400, 'middle')
             for j, (_, tk) in enumerate(cols):
-                x = gx + j * (cell + gap)
                 if tk <= tq:
-                    s.rect(x, y, cell, ch, GL, G, 14, 3)
+                    s.rect(cx[j], y, cell, ch, GL, G, 14, 3)
                     b = bucket(tq, tk)
-                    s.text(x + cell / 2, y + ch / 2 + 14, b, BODY + 4 if b != 'prompt' else SMALL, G, 700, 'middle')
-                else:
-                    s.rect(x, y, cell, ch, '#E3E3E8', 'none', 14, 0)
-        return gx, gy, rows, cols
+                    s.text(cx[j] + cell / 2, y + ch / 2 + (18 if b != 'prompt' else 15), b,
+                           52 if b != 'prompt' else 42, G, 700, 'middle')
+            # the partner's later tokens, masked: one grey run per row (times only grow along a row)
+            n = sum(tk <= tq for _, tk in cols)
+            if n < len(cols):
+                s.rect(cx[n], y, cx[-1] + cell - cx[n], ch, '#E3E3E8', 'none', 14, 0)
+        # direct labels in the masked corner: the first row's masked cells, and the second row's time gap
+        readable = [sum(tk <= tq for _, tk in cols) for _, tq in rows[:2]]
+        x1 = cx[readable[0]]
+        s.text((x1 + cx[-1] + cell) / 2, gy + ch / 2 + 15, 'masked: later time', 42, INK, 400, 'middle')
+        y2 = gy + ch + gap + ch / 2
+        xa = cx[readable[1] - 1] + cell
+        s.arrow([(xa + 120, y2), (xa + 10, y2)], G, 4, head=18)
+        s.text(xa + 136, y2 + 15, 'time gap', 42, G, 700)
 
-    lw = 2 * 30 + lab + 5 * (cell + gap) + 10
-    gx, gy, rows, cols = grid(60, lw, 'quill', 'ember')
-    i = next(k for k, (t, _) in enumerate(rows) if t == 'you')
-    s.rect(60 + 14, gy + i * (ch + gap) - 9, lw - 28, ch + 18, 'none', RED, 20, 5)
-    rx = 60 + lw + 30
-    gx2, gy2, rows2, _ = grid(rx, W - 60 - rx, 'ember', 'quill')
-    ky = gy2 + len(rows2) * (ch + gap) + 40
-    items = [('1', GL, G, 3, 'time gap'), ('', '#E3E3E8', 'none', 0, 'hidden'), ('', 'none', RED, 5, 'previous figure')]
-    kx = rx + 30
-    for lab_, fill, stroke, sw, words in items:
-        s.rect(kx, ky, 80, 62, fill, stroke, 12, sw)
-        if lab_:
-            s.text(kx + 40, ky + 44, lab_, BODY, G, 700, 'middle')
-        s.text(kx + 100, ky + 44, words, BODY - 2)
-        kx += 100 + tw(words, BODY - 2) + 70
+    grid(top, 'quill', 'ember')
+    grid(top + hs['quill'] + 24, 'ember', 'quill')
     s.save('link_mechanism_ticks')
 
 
-# ---------------------------------------------------------------- figure: the 8 depths in one pass
+# ---------------------------------------------------------------- figure: the 8 exchange layers
 
 def depths(f):
     xb = f['exchange_blocks']
     nb = f['configs']['quill']['blocks']
-    assert nb == f['configs']['ember']['blocks']
-    H = 1270
-    s = SVG(W, H, f'Both models read each other at {len(xb)} depths',
-            'Two 36-block stacks run block by block together. After blocks ' + ', '.join(map(str, xb)) +
-            ' each model reads the other, both ways at once, from the states before that exchange, and adds the '
-            'result to its own residual stream. Schematic; counts from pairing/link.py and the model configs.')
-    s.title(f'Both models read each other at {len(xb)} depths')
-    yq, ye = 318, 598
-    x0, pitch, bw, bh, extra, half = 350, 36, 27, 124, 72, 24
+    assert nb == f['configs']['ember']['blocks'] == creature.LAYERS and tuple(xb) == creature.PORTS
+    title = f'After {len(xb)} of the {nb} layers, Quill and Ember read each other at the same time'
+    top, M = 130, 40
+    # the zoom column on the right: three steps of one exchange, stacked
+    vw, vh, sp_ = 88, 110, 104                      # zoom vectors: width, height, pitch
+    step_h = 100 + vh + 140 + vh + 56
+    zx, zw = 1210, W - M - 1210
+    H = round(top + 3 * step_h + 40 + M)
+    s = SVG(W, H, title,
+            'Quill and Ember drawn as two stacks of 36 layers, with the input at the base and the head at the top. '
+            'After layers ' + ', '.join(map(str, xb)) + ' two teal strands join the stacks, one per direction: each '
+            'model reads the other from the states before that exchange and adds the result to its own residual '
+            'stream. A zoom on layer 9 shows the read in three steps. Schematic; counts from pairing/link.py and the '
+            'model configs.')
+    s.title(title)
 
-    def bx(i):
-        return x0 + i * pitch + extra * sum(1 for l in xb if l < i)
+    # anatomy: both models at full height, the link as two strands at each exchange layer
+    ah = 1290                                       # creature height, hair tip to base
+    cq, ce, ctop = 400, 1000, top + 40
+    gq, pq = creature.creature('quill', cq, ctop, ah, full=True)
+    ge, pe = creature.creature('ember', ce, ctop, ah, full=True)
+    d = (pq[xb[0]][1] - pq[xb[1]][1]) / (xb[1] - xb[0])      # pixels per layer
 
-    def xc(l):
-        return (bx(l) + bw + bx(l + 1)) / 2
+    def ly(k):
+        return pq[xb[0]][1] - (k - xb[0]) * d
 
-    s.rect(40, 130, W - 80, 650, COOL, r=36)
-    end = bx(nb - 1) + bw + 40
-    for side, y, col, light in (('quill', yq, Q, QL), ('ember', ye, E, EL)):
-        s.robot(52, y - 134, side, 132)
-        s.text(118, y + 34, side.title(), BODY + 2, col, 700, 'middle')
-        chip(s, 190, y - 34, 140, 62, f['private_text'][side], col, light, SMALL, 700, tcolor=INK)
-        s.arrow([(332, y - 3), (x0 - 2, y - 3)], col, 4, head=14)
-    pts = [(x0 - 2, ye)]
-    cur = 'ember'
-    for l in xb:
-        ya, yb = (ye, yq) if cur == 'ember' else (yq, ye)
-        pts += [(xc(l) - half, ya), (xc(l) + half, yb)]
-        cur = 'quill' if cur == 'ember' else 'ember'
-    pts.append((end, ye if cur == 'ember' else yq))
-    s.line(pts, RED, 24, opacity=0.34)
-    for side, y, col in (('quill', yq, Q), ('ember', ye, E)):
-        for i in range(nb):
-            s.rect(bx(i), y - bh / 2, bw, bh, 'white', '#8E8E93', 7, 2.5)
-        s.arrow([(x0 - 2, y), (end, y)], col, 6)
-    for i in [0] + xb + [nb - 1]:
-        s.text(bx(i) + bw / 2 if i in (0, nb - 1) else xc(i), yq - bh / 2 - 18, str(i), BODY - 2,
-               INK if i in (0, nb - 1) else G, 700 if i in xb else 400, 'middle')
-    s.text(bx(0) - 6, yq - bh / 2 - 62, 'block', SMALL, MUTE)
-    for l in xb:
-        a, b = xc(l) - half, xc(l) + half
-        for (ys, yt) in ((yq, ye), (ye, yq)):
-            sg = 1 if ys < yt else -1
-            s.arrow([(a, ys + 9 * sg), (b, yt - 14 * sg)], G, 5, head=20)
-            s.circle(a, ys, 7.5, G, G, 0)
-            s.plus(b, yt, 12, G, 3.5)
+    base = ctop + ah
+    s.rect(M, top, zx - 30 - M, H - top - M, COOL, r=36)
+    for k in xb:
+        s.add(creature.strands(cq, ce, ly(k), wave=8, sw=5))
+    s.add(gq)
+    s.add(ge)
+    lx = cq - creature.width_of(ah, True) / 2 - 24  # layer numbers end here
+    s.text(lx, ly(nb - 1) - 62, 'layer', 44, INK, 700, 'end')
+    for k in [nb - 1] + xb[::-1] + [0]:     # blocks counted from 0, as in the code
+        s.text(lx, ly(k) + 15, str(k), 44, G if k in xb else INK, 700, 'end')
+    for side, cx, col, light in (('quill', cq, Q, QL), ('ember', ce, E, EL)):
+        chip(s, cx - 120, base + 80, 240, 76, f['private_text'][side], col, light, 46, 700, tcolor=INK)
+        s.arrow([(cx, base + 78), (cx, base + 10)], col, 5, head=20)
+        s.text(cx, base + 80 + 76 + 62, side.title(), 50, col, 700, 'middle')
+    assert base + 80 + 76 + 62 + 20 < H - M
+    # direct label on the top strand pair: one strand per direction
+    yt = ly(xb[-1])
+    s.text((cq + ce) / 2, yt - 34, 'both ways', 44, G, 700, 'middle')
+    # the zoomed exchange, with a wedge to the column of steps
     z = xb[1]
-    s.rect(xc(z) - 46, yq - 74, 92, ye - yq + 148, 'none', INK, 18, 3, dash='10 9')
-    ky = 730
-    kx = (W - (44 + tw('block', SMALL) + 90 + 128 + tw('read, added', SMALL) + 90 + 84 + tw('one path', SMALL))) / 2
-    s.rect(kx, ky - 30, 24, 60, 'white', '#8E8E93', 6, 2.5)
-    s.text(kx + 44, ky + 12, 'block', SMALL)
-    kx += 44 + tw('block', SMALL) + 90
-    s.circle(kx + 8, ky, 7.5, G, G, 0)
-    s.arrow([(kx + 18, ky), (kx + 78, ky)], G, 5, head=20)
-    s.plus(kx + 98, ky, 12, G, 3.5)
-    s.text(kx + 128, ky + 12, 'read, added', SMALL)
-    kx += 128 + tw('read, added', SMALL) + 90
-    s.line([(kx, ky), (kx + 64, ky)], RED, 24, opacity=0.34)
-    s.text(kx + 84, ky + 12, 'one path', SMALL)
-    # zoom: one exchange (block z)
-    zy = 812
-    zh = H - zy - 30
-    pw = (W - 120 - 2 * 30) / 3
-    heads = [f'After block {z}', 'Both read at once', 'Each adds its write']
+    rw = creature.BODY_W * creature.width_of(ah, True) / (2 * (creature.HEAD_RX + 6)) / 2 + 26
+    bx0, bx1, by0, by1 = cq - rw, ce + rw, ly(z) - 34, ly(z) + 34
+    s.rect(bx0, by0, bx1 - bx0, by1 - by0, 'none', INK, 18, 3, dash='10 9')
+    s.line([(bx1, by0), (zx, top)], INK, 2.5, dash='8 8')
+    s.line([(bx1, by1), (zx, H - M)], INK, 2.5, dash='8 8')
+    s.rect(zx, top, zw, H - top - M, 'white', LINE, 28, 3)
+    heads = [f'After layer {z}', 'Quill and Ember read at once', 'Each model adds its write']
+    sy = [top + 20 + k * step_h for k in range(3)]
+    for k in range(1, 3):
+        s.line([(zx + 30, sy[k] - 10), (zx + zw - 30, sy[k] - 10)], LINE, 3)
+    px = zx + 40
     for k in range(3):
-        px = 60 + k * (pw + 30)
-        s.rect(px, zy, pw, zh, 'white', LINE, 28, 3)
-        s.text(px + 34, zy + 62, heads[k], BODY + 2, INK, 700)
-    p1, p2, p3 = (60 + k * (pw + 30) for k in range(3))
-    vw, vh, sp_ = 78, 88, 96
-    ra, rb = zy + 96, zy + 96 + vh + 112
+        s.text(px, sy[k] + 62, heads[k], 46, INK, 700)
+    ra, rb = (sy[0] + 100, sy[0] + 100 + vh + 140)
     for j in range(5):
-        s.vector(p1 + 34 + j * sp_, ra, Q, vw, vh, 1 + j)
-        s.vector(p1 + 34 + j * sp_, rb, E, vw, vh, 4 + j)
-    s.text(p1 + 34 + 5 * sp_ + 10, ra + 56, 'Quill', BODY, Q, 700)
-    s.text(p1 + 34 + 5 * sp_ + 10, rb + 56, 'Ember', BODY, E, 700)
-    qx = [p2 + 34 + j * sp_ for j in range(5)]
+        s.vector(px + j * sp_, ra, Q, vw, vh, 1 + j)
+        s.vector(px + j * sp_, rb, E, vw, vh, 4 + j)
+    s.text(px + 5 * sp_ + 10, ra + vh / 2 + 16, 'Quill', 44, Q, 700)
+    s.text(px + 5 * sp_ + 10, rb + vh / 2 + 16, 'Ember', 44, E, 700)
+    ra, rb = (sy[1] + 100, sy[1] + 100 + vh + 140)
+    qx = [px + j * sp_ for j in range(5)]
     qr, er = 4, 2
     for j in range(5):
         s.vector(qx[j], ra, Q, vw, vh, 1 + j, 1, 'white', None if j == qr else '#CDB9F3')
         s.vector(qx[j], rb, E, vw, vh, 4 + j, 1, 'white', None if j == er else '#F5C6AA')
     for j in range(qr + 1):
-        s.arrow([(qx[j] + 39, rb - 4), (qx[qr] + 22 + 8 * j, ra + vh + 6)], G, 3.5, head=15)
+        s.arrow([(qx[j] + vw / 2, rb - 4), (qx[qr] + 24 + 9 * j, ra + vh + 6)], G, 3.5, head=15)
     for j in range(er + 1):
-        s.arrow([(qx[j] + 39, ra + vh + 4), (qx[er] + 24 + 15 * j, rb - 6)], G, 3.5, head=15)
-    s.text(qx[4] + vw + 22, ra + 40, 'Quill', SMALL, G, 700)
-    s.text(qx[4] + vw + 22, ra + 76, 'reads', SMALL, G, 700)
-    s.text(qx[4] + vw + 22, rb + 40, 'Ember', SMALL, G, 700)
-    s.text(qx[4] + vw + 22, rb + 76, 'reads', SMALL, G, 700)
+        s.arrow([(qx[j] + vw / 2, ra + vh + 4), (qx[er] + 26 + 17 * j, rb - 6)], G, 3.5, head=15)
+    tx = qx[4] + vw + 24
+    for y, who in ((ra, 'Quill reads Ember'), (rb, 'Ember reads Quill')):
+        s.text(tx, y + vh / 2 + 16, who, 44, G, 700)
+    assert tx + tw('Ember reads Quill', 44, 700) < zx + zw - 20
+    ra, rb = (sy[2] + 100, sy[2] + 100 + vh + 140)
     for y, col, seed in ((ra, Q, 1), (rb, E, 4)):
-        s.vector(p3 + 30, y, col, vw, vh, seed)
-        s.plus(p3 + 142, y + vh / 2, 18, G, 3.5)
-        s.vector(p3 + 176, y + 10, G, 66, vh - 20, seed + 2, 0.7)
-        s.arrow([(p3 + 252, y + vh / 2), (p3 + 300, y + vh / 2)], col, 4)
-        s.vector(p3 + 308, y, col, vw, vh, seed + 1)
-        s.arrow([(p3 + 396, y + vh / 2), (p3 + 436, y + vh / 2)], col, 4)
-        s.rect(p3 + 444, y + 4, 190, vh - 8, 'white', '#8E8E93', 12, 2.5)
-        s.text(p3 + 539, y + vh / 2 + 12, f'block {z + 1}', SMALL, INK, 600, 'middle')
-    s.text(p3 + 209, ra + vh + 44, 'write', SMALL, G, 700, 'middle')
+        s.vector(px, y, col, vw, vh, seed)
+        s.plus(px + vw + 26, y + vh / 2, 18, G, 3.5)
+        s.vector(px + vw + 60, y + 14, G, 66, vh - 28, seed + 2, 0.7)
+        s.arrow([(px + vw + 136, y + vh / 2), (px + vw + 180, y + vh / 2)], col, 4)
+        s.vector(px + vw + 188, y, col, vw, vh, seed + 1)
+        s.arrow([(px + 2 * vw + 198, y + vh / 2), (px + 2 * vw + 236, y + vh / 2)], col, 4)
+        s.rect(px + 2 * vw + 244, y + 10, 210, vh - 20, 'white', '#8E8E93', 12, 2.5)
+        s.text(px + 2 * vw + 349, y + vh / 2 + 15, f'layer {z + 1}', 44, INK, 600, 'middle')
+    s.text(px + vw + 93, ra + vh + 56, 'write', 44, G, 700, 'middle')
     s.save('link_mechanism_depths')
 
 
@@ -407,32 +391,31 @@ def mechanism(f):
     xb = f['exchange_blocks']
     z = xb[1]
     reader_tok, reader_t = next((t, k) for t, k in tl['quill'] if t == 'you')
-    H = 1300
-    s = SVG(W, H, f'Quill reads Ember after block {z}',
-            'One read through the link at one exchange depth, as in pairing/link.py Side.show and Side.read: Quill\'s '
-            f'position "{reader_tok}" (time {reader_t}) attends over every Ember position read at time {reader_t} or '
-            'earlier plus its null key. Purple parts belong to the reader (Quill), orange parts to the sender (Ember). '
-            'Bars, gate meters and weights are drawings, not measured values.')
-    s.title(f'Quill reads Ember after block {z}')
-    top, rh = 130, 118
+    top, rh = 130, 140
+    rows = [('null key', None)] + [(t, k) for t, k in tl['ember']]
+    y0 = top + 100
+    by = y0 + len(rows) * rh
+    qy, sy = by + 72, by + 272
+    H = sy + 170
+    title = f'After layer {z}, Quill reads Ember’s tokens at its token “{reader_tok}” and adds the result'
+    s = SVG(W, H, title,
+            'One read through the link after one exchange layer, as in pairing/link.py Side.show and Side.read: '
+            f'Quill\'s token "{reader_tok}" (time {reader_t}) attends over every Ember token read at time {reader_t} '
+            'or earlier plus its null key. Purple parts belong to the reader (Quill), orange parts to the sender '
+            '(Ember). Bars, gate meters and weights are drawings, not measured values.')
+    s.title(title)
     s.rect(40, top, W - 80, H - top - 30, COOL, r=36)
-    C = dict(state=450, key=630, score=830, bias=1025, weight=1215, gate=1395, value=1540, wv=1700)
+    C = dict(state=450, key=630, score=830, bias=1025, weight=1215, gate=1395, value=1530, wv=1725)
     heads = [('state', 'state', E), ('key', 'key', E), ('score', 'score', G), ('bias', 'bias', Q),
              ('weight', 'weight', G), ('gate', 'gate', E), ('value', 'value', E), ('wv', 'weighted', G)]
     hy = top + 66
-    s.text(70, hy, 'position', BODY, E, 700)
+    s.text(70, hy, 'position', 42, E, 700)
     for k, h1, col in heads:
-        s.text(C[k], hy, h1, BODY, col, 700, 'middle')
-    kx, ky = 1880, top + 48
-    for j, (col, fill, lab) in enumerate([(Q, QL, 'Quill’s parts'), (E, EL, 'Ember’s parts'), (G, GL, 'computed')]):
-        s.rect(kx, ky + j * 50 - 24, 32, 32, fill, col, 8, 3)
-        s.text(kx + 46, ky + j * 50 + 3, lab, SMALL, col, 700)
-    rows = [('null key', None)] + [(t, k) for t, k in tl['ember']]
+        s.text(C[k], hy, h1, 42, col, 700, 'middle')
     weights = [0.16, 0.34, 0.06, 0.14, 0.30, 0.0]
     scores = [0.45, 0.7, 0.25, 0.5, 0.65, 0.6]
     gates = [None, 0.88, 0.55, 0.8, 0.9, 0.85]
-    vw, vh = 76, 76
-    y0 = top + 100
+    vw, vh = 88, 88
     faded = '#F5C6AA'
     for i, (tok, t) in enumerate(rows):
         y = y0 + i * rh
@@ -441,13 +424,13 @@ def mechanism(f):
         if i % 2 == 0:
             s.rect(56, y - 2, 1760, rh - 8, '#E9E9EE', 'none', 18, 0)
         if tok == 'null key':
-            chip(s, 70, cy - 32, 190, 64, 'null key', Q, QL, BODY - 2, 700, tcolor=INK)
+            chip(s, 70, cy - 32, 210, 64, 'null key', Q, QL, 40, 700, tcolor=INK)
         elif tok in ('prompt', 'turn header'):
-            s.text(70, cy + 2, 'prompt' if tok == 'prompt' else 'header', BODY, E, 700)
-            s.text(70, cy + 40, f'time {t}'.replace('-', '−'), SMALL, MUTE)
+            s.text(70, cy, 'prompt' if tok == 'prompt' else 'header', 42, E, 700)
+            s.text(70, cy + 48, f'time {t}'.replace('-', '−'), 42, INK)
         else:
-            chip(s, 70, cy - 32, 100, 64, tok, E, EL, BODY + 2, 600, tcolor=INK)
-            s.text(186, cy + 11, f'time {t}', SMALL, MUTE)
+            chip(s, 70, cy - 32, 100, 64, tok, E, EL, 42, 600, tcolor=INK)
+            s.text(186, cy + 15, f'time {t}', 42, INK)
         vy = cy - vh / 2
         if tok != 'null key':
             if tok == 'prompt':
@@ -461,38 +444,36 @@ def mechanism(f):
             s.vector(C['key'] - vw / 2, vy, Q, vw, vh, 2, 0.9)
         if hidden:
             s.rect(C['score'] - 86, cy - 32, C['wv'] + 56 - C['score'] + 86, 64, 'white', LINE, 14, 2.5)
-            s.text((C['score'] - 86 + C['wv'] + 56) / 2, cy + 12, 'hidden', BODY - 2, MUTE, 400, 'middle')
+            s.text((C['score'] - 86 + C['wv'] + 56) / 2, cy + 14, 'masked: later time', 40, INK, 400, 'middle')
             continue
         s.rect(C['score'] - 76, cy - 15, 152, 30, 'white', LINE, 9, 2)
         s.rect(C['score'] - 76, cy - 15, 152 * scores[i], 30, G, 'none', 9, 0, opacity=0.55)
         b = '0' if tok == 'null key' else bucket(reader_t, t)
         if tok == 'null key':
-            s.text(C['bias'], cy + 12, '–', BODY, MUTE, 400, 'middle')
+            s.text(C['bias'], cy + 14, '–', 42, INK, 400, 'middle')
         else:
-            chip(s, C['bias'] - 72, cy - 30, 144, 60, b, Q, QL, BODY - 2, 700, tcolor=Q)
+            chip(s, C['bias'] - 84, cy - 30, 168, 60, b, Q, QL, 40, 700, tcolor=Q)
         s.rect(C['weight'] - 88, cy - 16, 176, 32, 'white', LINE, 9, 2)
         s.rect(C['weight'] - 88, cy - 16, 176 * weights[i] / max(weights), 32, G, 'none', 9, 0)
         if tok == 'null key':
-            s.text(C['gate'], cy + 12, '–', BODY, MUTE, 400, 'middle')
+            s.text(C['gate'], cy + 14, '–', 42, INK, 400, 'middle')
             s.rect(C['value'] - vw / 2, vy, vw, vh, 'white', Q, 10, 2.5, dash='7 6')
-            s.text(C['value'], cy + 13, '0', BODY, Q, 700, 'middle')
-            s.text(C['wv'], cy + 13, '0', BODY, G, 700, 'middle')
+            s.text(C['value'], cy + 15, '0', 42, Q, 700, 'middle')
+            s.text(C['wv'], cy + 15, '0', 42, G, 700, 'middle')
         else:
             s.meter(C['gate'] - 15, vy - 2, gates[i], E, 30, vh + 4)
             s.vector(C['value'] - vw / 2, vy, E, vw, vh, i + 5, gates[i])
             sc = 0.45 + 0.55 * weights[i] / max(weights)
             s.vector(C['wv'] - vw / 2 * sc, cy - vh / 2 * sc, G, vw * sc, vh * sc, i + 5, gates[i])
-    by = y0 + len(rows) * rh
-    qy, sy = by + 62, H - 132
     s.vector(70, sy - 40, Q, 80, 80, 1)
-    s.text(70, sy + 80, f'Quill: “{reader_tok}”, time {reader_t}', BODY - 2, Q, 700)
+    s.text(70, sy + 82, f'Quill: “{reader_tok}”, time {reader_t}', 40, Q, 700)
     s.arrow([(154, sy), (C['wv'] + 140, sy)], Q, 9)
     s.circle(250, sy, 8, Q, Q, 0)
     s.arrow([(250, sy - 8), (250, qy + 38)], Q, 4, head=17)
-    chip(s, 110, qy - 36, 280, 72, 'query map', Q, 'white', BODY - 2, 600, tcolor=INK)
+    chip(s, 110, qy - 36, 280, 72, 'query map', Q, 'white', 40, 600, tcolor=INK)
     s.arrow([(392, qy), (452, qy)], Q, 4, head=17)
     s.vector(458, qy - 38, Q, 78, 76, 2)
-    s.text(497, qy + 82, 'query', BODY - 2, Q, 700, 'middle')
+    s.text(497, qy + 84, 'query', 40, Q, 700, 'middle')
     bus = C['score'] - 112
     s.line([(538, qy), (bus, qy), (bus, y0 + rh / 2 - 6)], Q, 4)
     for i, (tok, t) in enumerate(rows):
@@ -507,22 +488,23 @@ def mechanism(f):
     sy_ = y0 + 2.5 * rh - 6
     s.arrow([(bx_, sy_), (ox - 44, sy_)], G, 4, head=17)
     s.vector(ox - 40, sy_ - 40, G, 80, 80, 7)
-    s.text(ox + 58, sy_ + 12, 'sum', BODY, G, 700)
+    s.text(ox + 58, sy_ + 14, 'sum', 42, G, 700)
     s.arrow([(ox, sy_ + 42), (ox, qy - 38)], G, 4, head=17)
-    chip(s, ox - 140, qy - 36, 280, 72, 'output map', Q, 'white', BODY - 2, 600, tcolor=INK)
+    chip(s, ox - 140, qy - 36, 280, 72, 'output map', Q, 'white', 40, 600, tcolor=INK)
     s.arrow([(ox, qy + 38), (ox, sy - 108)], G, 4, head=17)
     s.times(ox, sy - 82, 24, Q, 4)
-    s.text(ox + 40, sy - 70, 'write size', BODY - 2, Q, 700)
+    s.text(ox + 40, sy - 68, 'write size', 40, Q, 700)
     s.arrow([(ox, sy - 57), (ox, sy - 28)], G, 4, head=15)
     s.plus(ox, sy, 26, Q, 5)
     s.arrow([(ox + 27, sy), (ox + 100, sy)], Q, 9)
     s.rect(ox + 106, sy - 40, 196, 80, 'white', '#8E8E93', 14, 3)
-    s.text(ox + 204, sy + 12, f'block {z + 1}', BODY - 2, INK, 600, 'middle')
+    s.text(ox + 204, sy + 14, f'layer {z + 1}', 40, INK, 600, 'middle')
     s.save('link_mechanism')
+
 
 if __name__ == '__main__':
     if '--refresh' in sys.argv:
-        refresh()
+        SNAP.write_text(json.dumps(refresh(), indent=2) + '\n')
     f = facts()
     mechanism(f)
     depths(f)

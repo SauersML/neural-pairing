@@ -1,7 +1,8 @@
 #!/bin/bash
-# Later evaluations for a finished neural-pairing run, called by its chain from w/pairing with LAST (the final step's
-# directory), R (results) and O (the run's output directory) set: turnbench (the same never-seen secrets under every
-# turn structure) and lens (causal subtitles of the link: what each tick's reads made more likely).
+# Later evaluations of a finished run, called by its chain from w/pairing with LAST (the final step's directory), R (the
+# results directory) and O (the run's output directory) set: turnbench.py (the same never-seen secrets under every turn
+# structure), lens.py (what each tick's reads made more likely), bandwidth.py (bits per item and per silent tick) and
+# free dialogue with the crossed control (evalfree.py --crossed) for the dialogue games the run has data for.
 set -u
 export NL_DEVICE=cuda
 unset NL_TINY NL_STREAM NL_QUICK
@@ -19,12 +20,12 @@ python lens.py --run $LAST --replies $O/replies.json --coread_data ../data/corea
     --ablation_bs 16 --head_chunk 32 --max_positions 1024 --out_dir $R/lens_pause3 > $R/lens_pause3.log 2>&1
 echo "lens pause3: exit $?"
 # bandwidth: the receiver's code-length saving on digit strings of 1 to 16 digits, numbers and words, with 0 to 8
-# silent ticks (bits per item and per tick)
+# silent ticks
 python bandwidth.py --run $LAST --replies $O/replies.json --out $R/bandwidth.json --n 128 --bs 16 --logit_chunk 128 \
     --greedy_n 4 --greedy_bs 4 --max_turn 64 --clip_bits 128 > $R/bandwidth.log 2>&1
 echo "bandwidth: exit $?"
-# free dialogue with the crossed control (each receiver converses with another episode's partner, isolated from the
-# real partner's secret), for the dialogue games this run has data for
+# free dialogue with the crossed control: each receiver talks with another episode's partner, which never had the
+# real partner's secret
 C=""
 [ -s ../data/talk.json ] && C="$C co_talk"
 [ -s ../data/play.json ] && C="$C co_play"

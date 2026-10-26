@@ -1,11 +1,10 @@
 #!/bin/bash
-# magic-nl19, one 80 GB card: magic-nl18's recipe (all-games warm-up, full mix with six-turn co_play games, silent
-# rounds, micro-batches) plus two additions. (1) co_distill: for co-reading items, the loss on the reader's reply is
-# the KL divergence from the original model that read the text itself (prep_coread.py writes those replies on this
-# pod), a dense target on every reply token where the co-reading games have only the short answer. (2) shared pen
-# (--pen 0.1): one episode in ten the twins co-write one text, alternating words (pen_secret, pen_free), after a
-# two-step check on the real models (dropped if it fails). Play conversations: magic-nl18's. Before the evaluations,
-# a code_eval.tgz and extra_evals.sh placed in OUT_DIR (later code, e.g. lens.py and turnbench.py) are used if present.
+# nl19, one 80 GB card: nl18's training for 150 minutes, with two additions. (1) co_distill: on co-reading items the
+# loss on the reader's reply is the KL divergence from the original model that read the text itself (prep_coread.py
+# writes those replies first). (2) The shared pen (--pen 0.1): in one episode in ten the models write one text in
+# alternating words; a two-step training check runs first, and the pen is left out if it fails. The play conversations
+# are an input (PLAY_JSON). The evaluations use OUT_DIR/code_eval.tgz (newer evaluation code) and OUT_DIR/extra_evals.sh
+# when present.
 # Usage: bash nl19.sh OUT_DIR CODE_TGZ REPLIES COREAD_JSON_GZ TALK_JSON PLAY_JSON
 set -u
 O=$1 TGZ=$2 REPLIES=$3 COREAD=$4 TALK=$5 PLAY=$6

@@ -1,11 +1,16 @@
-"""Preregistered concept-vector transfer, with untouched session scheduling.
+"""The steered-twin test: a concept direction is added to one twin's hidden states after one block, and the partner's
+message is scored for naming the concept.
 
-Mac: lockf -k ~/mpd-data/locks/macgpu.lock env MPD_MEM_GIB=12 python
-pairing/steered_mind.py --backend mlx --run CHECKPOINT --out OUTPUT --phase all
-GPU confirmation: same command without lockf, --backend torch (CUDA required).
-No model service is used. All texts, calibration rules and counts are exported.
+The test's fixed parts are protocol() (steering_scale.py records its sha256): the 12 test CONCEPTS (keywords and ten
+sentences each), the FRAMES and NEUTRAL sentences the directions are fit on, the CALIBRATION prompts and STRENGTHS, the
+test's CHAT and DUPLEX prompts, and the CONDITIONS: link; cut (mode 'zero'); random (a seeded random direction of the
+same norm); crossed (the steered twin given the next concept's direction). evaluate() runs the test: for each receiver,
+structure (chat: the receiver's first chat message, 32 tokens; duplex: a one-item reply, 12 tokens), condition,
+concept and prompt, greedy generation with the steering vector added to the other twin (the sender) after block
+Runtime.layer. score() counts a success when the receiver names the concept before the sender does; summarize() gives
+per-concept counts and exact sign tests of link against each control. steering_scale.py fits the directions, selects
+the strengths and calls evaluate().
 """
-import argparse
 import contextlib
 import hashlib
 import json
@@ -14,7 +19,6 @@ import os
 from pathlib import Path
 import re
 import sys
-import time
 
 SIDES = ('quill', 'ember')
 CONCEPTS = {
@@ -110,6 +114,7 @@ CONDITIONS = ['link', 'cut', 'random', 'crossed']
 
 
 def protocol():
+    """The test's fixed design, which steering_scale.py writes to protocol.json with its digest."""
     return dict(concepts=CONCEPTS, frames=FRAMES, neutral=NEUTRAL, calibration=CALIBRATION,
                 chat=CHAT, duplex=DUPLEX, strengths=STRENGTHS, layer=15,
                 calibration_tokens=32, chat_tokens=32, duplex_tokens=12,
@@ -121,32 +126,23 @@ def digest(value):
 
 
 def matches(text, concept):
+    """The character spans of text that are one of concept's keywords (whole words, any case)."""
     return [m.span() for m in re.finditer(r'(?<!\w)(?:' + '|'.join(
         re.escape(s) for s in CONCEPTS[concept][0].split()) + r')(?!\w)', text, re.I)]
 
 
 def fluent(text):
+    """At least four words, no replacement or special-token characters, and at most a quarter of the word triples
+    repeated."""
     words = re.findall(r'[A-Za-z]+', text.lower())
     triples = list(zip(words, words[1:], words[2:]))
     repeated = len(triples) - len(set(triples))
     return len(words) >= 4 and '\ufffd' not in text and '<|' not in text and repeated <= .25 * len(triples)
 
 
-def choose(rows):
-    baseline = sum(r['mention'] for r in rows if r['alpha'] == 0)
-    good = []
-    for a in STRENGTHS[1:]:
-        group = [r for r in rows if r['alpha'] == a]
-        assert len(group) == len(CALIBRATION)
-        if all(r['fluent_proxy'] for r in group):
-            good.append(a)
-            count = sum(r['mention'] for r in group)
-            if count >= 2 and count >= baseline + 2:
-                return dict(alpha=a, calibrated=True, baseline_mentions=baseline)
-    return dict(alpha=max(good, default=0.), calibrated=False, baseline_mentions=baseline)
-
-
 def episode(receiver, structure, prompt):
+    """A test episode: structure 'chat' (the receiver writes the first chat message, CHAT[prompt]) or 'duplex' (both
+    reply to DUPLEX[prompt]); the other twin is the sender."""
     import games as G
     other = SIDES[1 - SIDES.index(receiver)]
     systems = {x: G.system(x, 'dialogue' if structure == 'chat' else 'duplex') for x in SIDES}
@@ -162,8 +158,9 @@ def episode(receiver, structure, prompt):
 
 
 def first_tick(tok, tokens, concept):
-    # Match in the final decoded text first: partial prefixes such as "cat" in
-    # "category" must not be scored. Then locate the completing sampled token.
+    """The index of the token that completes the first mention of concept in the decoded text (the last token, the
+    end of turn, excluded), or None. Matching the whole decoded text keeps a prefix such as 'cat' in 'category' from
+    counting."""
     text = tok.decode(tokens[:-1])
     spans = matches(text, concept)
     if not spans:
@@ -177,6 +174,7 @@ def first_tick(tok, tokens, concept):
 
 
 def score(result, toks, receiver, concept, structure):
+    """Success when the receiver names concept, and before the sender does (the sender writes nothing in chat)."""
     sender = SIDES[1 - SIDES.index(receiver)]
     if structure == 'chat':
         assert len(result['turns']) == 1 and result['turns'][0][0] == receiver
@@ -191,6 +189,7 @@ def score(result, toks, receiver, concept, structure):
 
 
 def exact_sign(differences):
+    """Wins, losses and ties of the paired differences and the one-sided exact sign test p (ties dropped)."""
     w, l, t = (sum(v > 0 for v in differences), sum(v < 0 for v in differences),
                sum(v == 0 for v in differences))
     n = w + l
@@ -198,6 +197,9 @@ def exact_sign(differences):
 
 
 def summarize(records):
+    """Per receiver and structure: per-concept success counts by condition, and for each control the exact sign test
+    over concepts (link count minus control count) and over concept and prompt pairs; crossed's concept test also gets
+    a Holm-corrected p over the tables."""
     tables = []
     for receiver in SIDES:
         for structure in ('chat', 'duplex'):
@@ -229,10 +231,12 @@ def summarize(records):
 
 
 class Runtime:
+    """A loaded checkpoint (backend 'torch' on CUDA, or 'mlx': 4-bit MLX) that generates with steering vectors."""
+
     def __init__(self, backend, run):
         import torch
         self.backend = backend
-        torch.set_num_threads(2)
+        torch.set_num_threads(2)            # on a many-core host the CPU ops' threads stall
         if backend == 'mlx':
             import mlx.core as mx
             from mlx_eval import load_pair
@@ -240,20 +244,17 @@ class Runtime:
             mx.set_cache_limit(64 * 2**20)
         else:
             if sys.platform == 'darwin' or not torch.cuda.is_available():
-                raise RuntimeError('Real torch runs require CUDA and are forbidden on the Mac')
+                raise RuntimeError('the torch backend needs CUDA')
             from evaluate import load_pair
         self.pair, self.toks = load_pair(run)
 
-    layer = 15    # the preregistered depth; steering_scale.py --layer moves it
+    layer = 15    # the block steering follows; steering_scale.py --layer changes it
 
     @contextlib.contextmanager
     def steer(self, vectors, layer_index=None):
-        """Add vectors [batch, hidden] after block self.layer (15 unless moved), including cut runs.
-
-        Padding is masked by attention, not by qmask (cut/mute must not remove
-        the intervention). Wrapping the real decoder block leaves scheduling,
-        generation, link attention, tokenization and sampling unchanged.
-        """
+        """While inside, add vectors {side: [batch, hidden]} to the output of block layer_index (default self.layer)
+        at every position, in every mode including cut. Torch: a forward hook on the decoder layer (padded positions
+        get the vector too; attention masks them). MLX: a wrapper of mlx_eval.block that adds at valid positions."""
         layer_index = self.layer if layer_index is None else layer_index
         if self.backend == 'mlx':
             import mlx_eval as V
@@ -278,8 +279,6 @@ class Runtime:
             import torch
             import link
             handles = []
-            # Real torch padding is masked downstream; adding at padded query
-            # states cannot affect valid positions. No padded K/V is visible.
             for x, v in vectors.items():
                 a = torch.as_tensor(v, device=link.DEVICE)
                 def hook(module, inputs, output, a=a):
@@ -293,39 +292,8 @@ class Runtime:
                 for handle in handles:
                     handle.remove()
 
-    def states(self, side, texts):
-        """One mean over content tokens per text; no link, no other text."""
-        import numpy as np
-        import session as S
-        tok = self.toks[side]
-        means, sizes = [], []
-        if self.backend == 'mlx':
-            import mlx.core as mx
-            model = self.pair.mlx.models[side]
-            for text in texts:
-                ids = S.ids(tok, text)
-                h = model.model.embed_tokens(mx.array([ids]))
-                for layer in model.layers[:16]:
-                    h = layer(h, 'causal')
-                    mx.eval(h)
-                # First token can be an activation outlier (link.residual_rms).
-                a = np.array(h[0, 1:].astype(mx.float32))
-                means.append(a.mean(0)); sizes.append(float(np.sqrt((a * a).mean(-1)).mean()))
-        else:
-            import torch
-            import link
-            model = self.pair.models[side]
-            with torch.inference_mode():
-                for text in texts:
-                    ids = torch.tensor([S.ids(tok, text)], device=link.DEVICE)
-                    run = link.Run(model, ids, torch.ones_like(ids), torch.arange(ids.shape[1], device=link.DEVICE)[None])
-                    for l in range(16):
-                        run.block(l)
-                    a = run.h[0, 1:].float().cpu().numpy()
-                    means.append(a.mean(0)); sizes.append(float(np.sqrt((a * a).mean(-1)).mean()))
-        return np.stack(means), sizes
-
     def generate(self, eps, vectors, mode, max_turn):
+        """session.generate of eps, greedy, with tokens kept, while steering with vectors."""
         import session as S
         import torch
         with torch.inference_mode(), self.steer(vectors):
@@ -337,6 +305,7 @@ class Runtime:
 
 
 def save(path, value):
+    """Write value as JSON to path through a temporary file."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix('.tmp')
@@ -344,63 +313,9 @@ def save(path, value):
     os.replace(temp, path)
 
 
-def fit(rt, dest):
-    import numpy as np
-    vectors, report = {}, {}
-    neutral_texts = [f.format(s) for f in FRAMES for s in NEUTRAL]
-    for side in SIDES:
-        neutral, rms = rt.states(side, neutral_texts)
-        scale = float(np.mean(rms))
-        report[side] = dict(neutral_rms=scale, concepts={})
-        for ci, (concept, (_, sentences)) in enumerate(CONCEPTS.items()):
-            positive, _ = rt.states(side, [f.format(s) for f in FRAMES for s in sentences])
-            direction = positive.mean(0) - neutral.mean(0)
-            raw_norm = float(np.linalg.norm(direction))
-            direction = direction / np.sqrt(np.mean(direction ** 2)) * scale
-            key = side + '/' + concept
-            vectors[key] = direction.astype(np.float32)
-            rng = np.random.default_rng(21022 + SIDES.index(side) * 100 + ci)
-            noise = rng.normal(size=direction.shape).astype(np.float32)
-            vectors[key + '/random'] = noise / np.linalg.norm(noise) * np.linalg.norm(direction)
-            report[side]['concepts'][concept] = dict(raw_norm=raw_norm, norm=float(np.linalg.norm(direction)))
-            print('fit', side, concept, flush=True)
-    np.savez(dest / 'directions.npz', **vectors)
-    save(dest / 'fit.json', report)
-    return vectors
-
-
-def calibration(rt, vectors, dest, bs):
-    import numpy as np
-    import games as G
-    records = []
-    jobs = [(c, a, p) for c in CONCEPTS for a in STRENGTHS for p in range(len(CALIBRATION))]
-    path = dest / 'calibration.json'
-    if path.exists():
-        records = json.loads(path.read_text())
-    finished = {(r['concept'], r['alpha'], r['prompt'], r['side']) for r in records}
-    jobs = [j for j in jobs if any((*j, side) not in finished for side in SIDES)]
-    for start in range(0, len(jobs), bs):
-        batch = jobs[start:start + bs]
-        eps = [dict(game='steered_mind', mode='duplex', system={x: G.system(x) for x in SIDES},
-                    task={x: CALIBRATION[p] for x in SIDES}, reply={x: ('', 1.) for x in SIDES}, meta={})
-               for c, a, p in batch]
-        vv = {x: np.stack([vectors[x + '/' + c] * a for c, a, p in batch]) for x in SIDES}
-        outputs = rt.generate(eps, vv, 'zero', 32)
-        for (c, a, p), output in zip(batch, outputs):
-            for x in SIDES:
-                text = output['text'][x]
-                records.append(dict(concept=c, alpha=a, prompt=p, side=x, text=text,
-                                    mention=bool(matches(text, c)), fluent_proxy=fluent(text),
-                                    tokens=output['tokens'][x], sampled=output['sampled'][x]))
-        save(path, records)
-        print('calibration', len(records), '/', len(CONCEPTS) * len(STRENGTHS) * len(CALIBRATION) * 2, flush=True)
-    selected = {x: {c: choose([r for r in records if r['side'] == x and r['concept'] == c])
-                    for c in CONCEPTS} for x in SIDES}
-    save(dest / 'selected.json', selected)
-    return selected
-
-
 def evaluate(rt, vectors, selected, dest, bs):
+    """The test with directions vectors ({side/concept[/random]: [hidden]}) at the selected strengths ({side:
+    {concept: {'alpha': ...}}}), resuming from DEST/episodes.json; writes episodes.json and summary.json."""
     import numpy as np
     path = dest / 'episodes.json'
     records = json.loads(path.read_text()) if path.exists() else []
@@ -414,9 +329,9 @@ def evaluate(rt, vectors, selected, dest, bs):
                         if (receiver, structure, condition, c, p) not in finished]
                 for start in range(0, len(jobs), bs):
                     batch = jobs[start:start + bs]
-                    eps = [episode(receiver, structure, p) for c, p in batch]
+                    eps = [episode(receiver, structure, p) for _, p in batch]
                     vv, donors = [], []
-                    for c, p in batch:
+                    for c, _ in batch:
                         alpha = selected[sender][c]['alpha']
                         donor = names[(names.index(c) + 1) % len(names)] if condition == 'crossed' else c
                         donors.append(donor)
@@ -427,8 +342,7 @@ def evaluate(rt, vectors, selected, dest, bs):
                     outputs = rt.generate(eps, {sender: np.stack(vv)}, 'zero' if condition == 'cut' else None,
                                           32 if structure == 'chat' else 12)
                     for (c, p), donor, ep, output in zip(batch, donors, eps, outputs):
-                        # All concept words absent from prompts, including the
-                        # partner identity "Ember" (singular) vs fire "embers".
+                        # No keyword of either concept may be in a prompt (fire's 'embers' does not match 'Ember').
                         for check in (c, donor):
                             assert not any(matches(str(ep[k][x] or ''), check)
                                            for k in ('system', 'task') for x in SIDES)
@@ -438,51 +352,3 @@ def evaluate(rt, vectors, selected, dest, bs):
                     save(path, records)
                     print('evaluation', receiver, structure, condition, len(records), flush=True)
     save(dest / 'summary.json', summarize(records))
-
-
-def main():
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--backend', choices=('mlx', 'torch'), default='mlx')
-    ap.add_argument('--run')
-    ap.add_argument('--out', required=True)
-    ap.add_argument('--phase', choices=('protocol', 'fit', 'calibrate', 'evaluate', 'all', 'summarize'), default='all')
-    ap.add_argument('--bs', type=int, default=6)
-    args = ap.parse_args()
-    dest = Path(args.out); dest.mkdir(parents=True, exist_ok=True)
-    fixed = protocol()
-    if args.phase == 'protocol':
-        save(dest / 'protocol.json', dict(protocol=fixed, sha256=digest(fixed)))
-        return
-    if args.phase == 'summarize':
-        save(dest / 'summary.json', summarize(json.loads((dest / 'episodes.json').read_text())))
-        return
-    registered = json.loads((dest / 'protocol.json').read_text())
-    assert registered['sha256'] == digest(fixed), 'Protocol changed after preregistration'
-    if args.backend == 'mlx':
-        os.environ['NL_DEVICE'] = 'cpu'
-    os.environ.setdefault('HF_HUB_OFFLINE', '1')
-    import numpy as np
-    start = time.time()
-    rt = Runtime(args.backend, args.run)
-    manifest = dict(protocol_sha256=digest(fixed), code_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-                    checkpoint=str(Path(args.run).resolve()), backend=args.backend, batch_size=args.bs,
-                    numerical_note='4-bit MLX differs from bf16 GPU; no bf16 confirmation yet' if args.backend == 'mlx' else 'bf16 torch CUDA',
-                    started_unix=start)
-    manifest['dependency_sha256'] = {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-                                     for name in ('mlx_eval.py', 'mlx_pair.py', 'link.py', 'session.py', 'games.py')}
-    save(dest / 'manifest.json', manifest)
-    if args.phase in ('fit', 'all') and not (dest / 'directions.npz').exists():
-        vectors = fit(rt, dest)
-    else:
-        vectors = dict(np.load(dest / 'directions.npz'))
-    if args.phase in ('calibrate', 'all'):
-        calibration(rt, vectors, dest, args.bs)
-    if args.phase in ('evaluate', 'all'):
-        selected = json.loads((dest / 'selected.json').read_text())
-        evaluate(rt, vectors, selected, dest, args.bs)
-    manifest.update(elapsed_seconds=time.time() - start, completed_phase=args.phase)
-    save(dest / 'manifest.json', manifest)
-
-
-if __name__ == '__main__':
-    main()

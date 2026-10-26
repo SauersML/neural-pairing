@@ -1,23 +1,25 @@
-"""Private-city intervention in real first-turn chat prefixes.
+"""City matrix: the receiver's next-token log probability of each candidate city, given the partner's private city.
 
-Select three shortest distinct, city-free openings per receiver from test chats,
-before looking at checkpoint outputs. Use the first twelve alphabetic test cities
-that are complete single tokens after every prefix in both tokenizers, excluding
-the receivers' private cities. This prevents candidate-length bias: the reported
-log probability covers the FULL city, not only its first subtoken. All other
-tokens, roles and timing stay fixed within each opening's intervention matrix.
+Design (fixed before any checkpoint is read): per receiver, the three shortest distinct first turns of the test chats
+that the receiver writes and that name the partner's private city and no other test city, cut just before the city;
+and as candidates the first twelve test cities in alphabetical order that are one token after every prefix in both
+tokenizers, excluding the receivers' own private cities, so that a candidate's log probability covers the whole city.
 
-The prediction state is obtained from session.build, truncated at its causal
-tick. One vocabulary projection scores all twelve candidates exactly. Shuffle
-is an actual Pair.joint(mode='shuffle') between adjacent same-role city pairs.
-The exact randomization distribution enumerates all column-label permutations
-by integer subset dynamic programming, with rank-one matches as the statistic.
-No existing measurement functions are modified.
+For each prefix, each true partner city i (in the partner's system prompt) and each candidate j: the receiver's log p
+of j at the end of the prefix (one forward pass on the session.build input cut at that tick), under link, cut (mode
+'zero') and shuffle (Pair.joint mode 'shuffle' within adjacent city pairs: 0 with 1, 2 with 3, ...). mean_logp
+averages the three prefixes. The statistic is the number of true cities whose own candidate has the unique largest
+mean_logp (the diagonal); its p-value is exact over all 12! one-to-one assignments of true cities to candidates
+(dynamic programming over candidate subsets).
+
+Writes --out: the design, raw_logp[receiver][condition][prefix][true city][candidate], mean_logp, stats and audits
+(the cut log p must not depend on the true city; shuffle must equal link at the donor's city).
+
+Usage: python pairing/city_matrix.py --run STEP_DIR --chat-data CHATS.json [--out results/city_matrix.json]
+           [--backend mlx|torch] [--design-only]
 """
 import argparse
-import copy
 import hashlib
-import itertools
 import json
 import math
 import os
@@ -39,6 +41,7 @@ def sha(path):
 
 
 def select_design(chats, toks, n=3, k=12):
+    """The design: n opening prefixes per receiver (templates) and k candidate cities, as in the module docstring."""
     templates = {}
     for x in SIDES:
         eligible = []
@@ -72,17 +75,19 @@ def select_design(chats, toks, n=3, k=12):
                 valid &= full[:-1] == pre and len(full) == len(pre) + 1
         if valid:
             cities.append(city)
-    if len(cities) < k or k < 12:
+    if len(cities) < k:
         raise ValueError(f'need at least {k} full-token cities; have {cities}')
     cities = cities[:k]
     assert set(cities).isdisjoint(G.POOLS['cities']['train'])
     return dict(cities=cities, templates=templates,
                 training_cities=G.POOLS['cities']['train'],
                 excluded_test_cities=[c for c in G.POOLS['cities']['test'] if c not in cities],
-                selection='shortest distinct city-free test first-turn prefixes; alphabetic full-single-token cities; receiver cities excluded')
+                selection='shortest distinct city-free test first-turn prefixes; alphabetic full-single-token cities; '
+                          'receiver cities excluded')
 
 
 def episode(template, true_city, candidate):
+    """A co_chat first turn: the receiver writes the prefix and candidate; the partner's private city is true_city."""
     x = template['receiver']
     y = partner(x)
     own = template['own_city']
@@ -97,6 +102,7 @@ def episode(template, true_city, candidate):
 
 
 def prediction_input(ep, toks, x):
+    """session.build of ep cut after the tick of x's one payload label (the candidate city), its only label."""
     built = S.build(ep, toks)
     js = S.payload_labels(ep, toks)[x]
     if len(js) != 1:
@@ -116,6 +122,8 @@ def prediction_input(ep, toks, x):
 
 @torch.no_grad()
 def score_pair(pair, toks, template, true_cities, candidates, mode):
+    """[len(true_cities), len(candidates)]: the receiver's log p of each candidate after template's prefix, for each
+    true partner city, in one batch under Pair.joint mode."""
     x = template['receiver']
     built = [prediction_input(episode(template, city, candidates[0]), toks, x) for city in true_cities]
     assert built[0][x]['ids'] == built[1][x]['ids']
@@ -131,11 +139,10 @@ def score_pair(pair, toks, template, true_cities, candidates, mode):
 
 
 def exact_permutation(top):
-    """Integer counts for every permutation of candidate labels; no Monte Carlo.
-
-    top[i,j] is 1 iff j is the unique first choice in row i. Each permutation
-    pairs each row with one distinct candidate. DP counts every assignment once.
-    """
+    """Exact null distribution of the diagonal count of top (top[i, j] = 1 when candidate j has true city i's unique
+    largest log p): counts[s] is how many of the k! one-to-one assignments of true cities to candidates match s ones,
+    by dynamic programming over the set of candidates used. Returns the observed count, counts and the one-sided
+    p-value."""
     top = np.asarray(top, dtype=int)
     k = len(top)
     dp = {0: [1] + [0] * k}
@@ -160,6 +167,7 @@ def exact_permutation(top):
 
 
 def summarize(raw):
+    """mean_logp, stats (exact_permutation per receiver and condition) and audits from raw_logp."""
     matrices, stats, audits = {}, {}, {}
     for x in SIDES:
         matrices[x], stats[x] = {}, {}
@@ -177,52 +185,17 @@ def summarize(raw):
     return dict(mean_logp=matrices, stats=stats, audits=audits)
 
 
-def self_test():
-    if os.environ.get('NL_TINY') != '1':
-        raise ValueError('--self-test requires NL_TINY=1')
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tests'))
-    import test_link as T  # executes the existing exactness tests on actual tiny models
-    template = dict(receiver='quill', own_city='Accra', prefix="So, you're in ")
-    candidates = ['Beijing', 'Cairo']
-    for x in SIDES:
-        template['receiver'] = x
-        for mode in (None, 'zero', 'shuffle'):
-            fast = score_pair(T.pair, T.toks, template, candidates, candidates, mode)
-            for j, candidate in enumerate(candidates):
-                eps = [episode(template, c, candidate) for c in candidates]
-                built = [S.build(ep, T.toks) for ep in eps]
-                b = S.collate(built, T.pads)
-                with torch.no_grad():
-                    h, _ = T.pair.joint(b, mode=mode)
-                    lp = T.pair.token_logits(x, h[x], b[x]['idx']).log_softmax(-1)
-                off, slow = 0, []
-                for ep, e in zip(eps, built):
-                    js = S.payload_labels(ep, T.toks)[x]
-                    slow.append(sum(float(lp[off + z, e[x]['labels'][z][1]]) for z in js))
-                    off += len(e[x]['labels'])
-                np.testing.assert_allclose(fast[:, j], slow, atol=3e-5, rtol=0)
-    top = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]])
-    dist = exact_permutation(top)
-    brute = [sum(top[i, p[i]] for i in range(4)) for p in itertools.permutations(range(4))]
-    assert dist['counts'] == [brute.count(i) for i in range(5)]
-    assert exact_permutation(np.eye(12))['numerator'] == 1
-    print('PASS: complete-city probabilities match ordinary full-candidate passes in both directions and all controls; exact permutation counts match exhaustive enumeration', flush=True)
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--run')
-    ap.add_argument('--chat-data', default='/Users/user/mpd-data/neural-pairing/chatdata/chat_clean.json')
+    ap.add_argument('--chat-data', required=True, help='the chat data (chat_clean.json) with its test split')
     ap.add_argument('--out', default='results/city_matrix.json')
     ap.add_argument('--backend', choices=('mlx', 'torch'), default='mlx')
-    ap.add_argument('--self-test', action='store_true')
     ap.add_argument('--design-only', action='store_true')
     args = ap.parse_args()
     torch.set_num_threads(2)
-    if args.self_test:
-        return self_test()
     if args.backend == 'torch' and sys.platform == 'darwin' and not os.environ.get('NL_TINY'):
-        ap.error('real torch models are forbidden on the Mac')
+        ap.error('on macOS the torch backend is for tiny test models (NL_TINY=1)')
     from transformers import AutoTokenizer
     from link import MODELS
     toks = {x: AutoTokenizer.from_pretrained(MODELS[x]['hf'], local_files_only=True) for x in SIDES}
@@ -240,10 +213,12 @@ def main():
     else:
         from evaluate import load_pair
     pair, toks = load_pair(args.run)
-    out = dict(schema=1, complete=False, backend=args.backend, precision='4-bit MLX' if args.backend == 'mlx' else 'bf16 torch',
+    out = dict(schema=1, complete=False, backend=args.backend,
+               precision='4-bit MLX' if args.backend == 'mlx' else 'bf16 torch',
                checkpoint=str(Path(args.run).resolve()), checkpoint_sha256=sha(Path(args.run) / 'bridge.pt'),
                chat_data=args.chat_data, chat_sha256=sha(args.chat_data), design=design,
-               code_sha256={p: sha(Path(__file__).with_name(p)) for p in ('city_matrix.py', 'coread.py', 'session.py', 'mlx_eval.py', 'link.py')},
+               code_sha256={p: sha(Path(__file__).with_name(p))
+                            for p in ('city_matrix.py', 'coread.py', 'session.py', 'mlx_eval.py', 'link.py')},
                donor_indices=[i ^ 1 for i in range(len(design['cities']))],
                raw_logp={x: {c: [] for c in ('link', 'cut', 'shuffle')} for x in SIDES})
     target = Path(args.out)
@@ -257,7 +232,8 @@ def main():
                 for cond, mode in (('link', None), ('cut', 'zero'), ('shuffle', 'shuffle')):
                     a = score_pair(pair, toks, template, cities[i:i + 2], cities, mode)
                     values[cond].extend(a.tolist())
-                print(json.dumps(dict(receiver=x, opening=t, city_pair=cities[i:i + 2], seconds=round(time.monotonic() - started, 1))), flush=True)
+                print(json.dumps(dict(receiver=x, opening=t, city_pair=cities[i:i + 2],
+                                      seconds=round(time.monotonic() - started, 1))), flush=True)
             for cond in values:
                 out['raw_logp'][x][cond].append(values[cond])
             target.write_text(json.dumps(out, indent=2) + '\n')

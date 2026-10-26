@@ -1,23 +1,23 @@
-"""Causal subtitles of a teacher-forced paired episode (all positions, both readers).
+"""Per-token effects of the link in teacher-forced episodes, at every position of both models.
 
-The total contrast is log p(link) - log p(cut), with KL(p_cut || p_link).
-Tick ablations remove *incoming writes at receiving tick t*, at all exchange blocks;
-subsequent reads and both models' states are recomputed. They do not delete sender
-keys of age t. Direction names name the RECEIVER. Inputs/text remain teacher forced.
+For each position: the tokens whose log probability the link raises and lowers most (nats), KL(p_control || p_link),
+at a labelled position the target's change and ranks, and the partner positions it attends to most at each exchange
+block and over all of them. Three contrasts of the linked pass against a control:
+  total   the link cut (Pair.joint mode 'zero').
+  tick    the incoming writes at one receiving tick removed at every exchange block (--direction: for one receiver
+          or both); later reads and both models' states are recomputed, and the sender's keys stay. By default the
+          ticks are the silent ticks and the first writing tick of each turn.
+  block   at each exchange block, the receiver's residual stream without that block's write, run through its remaining
+          blocks with no later exchanges (earlier exchanges stay in it); the run with the write from the last block
+          must equal the full linked pass.
+At the payload positions the write's own logit lens (as analyze_bridge) is compared with the block contrast's ranks.
+Attention weights describe what is read; they are not a causal attribution to source tokens. Each tick contrast runs
+in one batch with an unablated control sequence, so batch shape cannot change the numbers.
 
-Block decode continues the captured pre/post-exchange residual through the actual
-remaining receiver blocks, with no later exchanges. Earlier exchanges remain in the
-captured context. The whole sequence's block write is included, so downstream causal
-self-attention is included too. This is a frozen downstream decoder, not a fitted
-linear tuned lens. Attention describes reads, not causal attribution to source tokens.
-
-Example (from pairing/):
+Writes OUT_DIR/GAME_NNN.json and .txt per episode, and OUT_DIR/manifest.json.
+Usage (from pairing/):
   python lens.py --run RUN/step_N --replies REPLIES.json --games relay_word,co_play \
       --coread_data ../data/coread.json --n 1 --out_dir RUN/lens --ablation_bs 4
-
-Memory: episodes run singly; ablations have one row per tick plus a linked control
-row in the SAME batch (avoids batch-shape numerical confounds). Vocabulary logits
-are chunked. Captured residuals/attention live on CPU. No model weights are changed.
 """
 import argparse
 from contextlib import contextmanager
@@ -33,19 +33,17 @@ from link import SIDES, Run, inner, partner
 
 @contextmanager
 def intervention(pair, batch, ticks=None, direction='both', capture=None):
-    """Temporary instrumentation of the existing Pair path; restored even on failure.
-
-    ticks: one tick (or None for linked control) per batch row; 'all' removes every
-    write. capture receives exact fused-path residuals/writes and diagnostic attention.
-    Not reentrant/thread-safe on the same Pair. pair.record must be off.
-    """
+    """While inside, Pair.joint on batch removes incoming writes: ticks is one tick per sequence (None: none removed)
+    or 'all' (every write), for the receiver direction ('both', 'quill' or 'ember'). capture, a dict, receives per
+    (side, block) the residual stream before and after the exchange, the write and the attention weights. The Pair is
+    restored on exit; pair.record must be None."""
     if direction not in ('both', *SIDES):
         raise ValueError('direction names the receiver: both, quill or ember')
     if pair.record is not None:
         raise ValueError('lens needs pair.record=None to preserve fused inference')
     n = batch[SIDES[0]]['ids'].shape[0]
     if ticks is not None and ticks != 'all' and len(ticks) != n:
-        raise ValueError('one ablation tick per batch row is required')
+        raise ValueError('ticks needs one ablation tick per sequence')
     exchange = pair._exchange
     saved_exchange = pair.__dict__.get('_exchange')
     saved_reads = {x: pair.bridge[x].__dict__.get('read') for x in SIDES}
@@ -54,7 +52,7 @@ def intervention(pair, batch, ticks=None, direction='both', capture=None):
     def read_for(x):
         def read(k, h, keys, vals, allow, ages, qmask, rec=None):
             w = reads[x](k, h, keys, vals, allow, ages, qmask, rec)
-            # A separate explicit-softmax diagnostic must never replace the fused write.
+            # The write stays the fused read's; a second read with a record gives the attention weights.
             diagnostic = {}
             reads[x](k, h, keys, vals, allow, ages, qmask, diagnostic)
             capture[(x, pair.xblocks[k])] = dict(
@@ -104,13 +102,15 @@ def intervention(pair, batch, ticks=None, direction='both', capture=None):
 
 @torch.no_grad()
 def joint(pair, batch, ticks=None, direction='both', capture=None):
+    """The linked final states of batch under intervention(pair, batch, ticks, direction, capture)."""
     with intervention(pair, batch, ticks, direction, capture):
         return pair.joint(batch)[0]
 
 
 @torch.no_grad()
 def continue_block(pair, batch, side, block, residual):
-    """Final normalized states, with ALL exchanges after block disabled."""
+    """side's final normed states after running residual, its state after block, through the remaining blocks with
+    no exchanges."""
     b = batch[side]
     run = Run(pair.models[side], b['ids'], b['att'], b['pos'])
     run.h = residual.to(run.h.device, run.h.dtype)
@@ -120,6 +120,7 @@ def continue_block(pair, batch, side, block, residual):
 
 
 def top_changes(delta, tok, k=5, positive=True):
+    """Per position, the k tokens with the largest positive (or, positive False, negative) delta."""
     values, ids = (delta if positive else -delta).topk(min(k, delta.shape[-1]), dim=-1)
     return [[dict(id=int(i), text=tok.decode([int(i)]), nats=float(v if positive else -v))
              for v, i in zip(vs, ix) if v > 0] for vs, ix in zip(values.cpu(), ids.cpu())]
@@ -127,11 +128,9 @@ def top_changes(delta, tok, k=5, positive=True):
 
 @torch.no_grad()
 def contrast(pair, side, on, off, head_chunk=32, targets=None):
-    """Summaries per position; no [episode, ticks, positions, vocabulary] allocation.
-
-    targets maps position to target ID. Float64 log-softmax/reduction keeps KL
-    nonnegative to numerical precision even for tiny newly trained bridge writes.
-    """
+    """Per position of the final states on and off [positions, d]: the tokens most raised and lowered (log p on minus
+    log p off), KL(p_off || p_on) and, at positions in targets ({position: token id}), the target's change and ranks.
+    Float64 keeps KL nonnegative for tiny writes."""
     if head_chunk < 1:
         raise ValueError('head_chunk must be positive')
     _, head = inner(pair.models[side])
@@ -156,11 +155,8 @@ def contrast(pair, side, on, off, head_chunk=32, targets=None):
 
 
 def tick_metadata(ep, built):
-    """Default interventions: every silent tick and first writing tick of each turn.
-
-    For pen, every word span is a turn. Dialogue pause ticks may also flush the
-    previous turn; they are still silent rounds as defined by session.build.
-    """
+    """({turn: its first writing tick}, the set of silent ticks before each turn as session.build adds them). In the
+    pen game every word span is a turn."""
     turns, silent = {}, set()
     for x in SIDES:
         b = built[x]
@@ -176,7 +172,8 @@ def tick_metadata(ep, built):
 
 
 def sender_view(pair, side, built, records, topk=3):
-    """Top positions by head mean and per head, per block; pooled means over blocks."""
+    """Per position of side: the null key's mass and the top partner positions by attention, averaged over heads, at
+    each block (also per head) and averaged over blocks."""
     y = partner(side)
     by_block, means = {}, []
 
@@ -187,7 +184,7 @@ def sender_view(pair, side, built, records, topk=3):
                 for v, i in zip(values, indices) if v > 0]
 
     for block in pair.xblocks:
-        p = records[(side, block)].pop('attn')[0]  # release dense head attention after compression
+        p = records[(side, block)].pop('attn')[0]  # frees the full attention once summarized
         m = p.mean(0)
         means.append(m)
         by_block[str(block)] = [dict(alpha=records[(side, block)]['alpha'],
@@ -204,7 +201,8 @@ def sender_view(pair, side, built, records, topk=3):
 @torch.no_grad()
 def analyze_episode(pair, ep, ticks=None, direction='both', ablation_bs=4, head_chunk=32,
                     top_reads=3, max_positions=2048):
-    """One JSON-serializable episode. ticks=None selects pauses + turn starts."""
+    """The report of one episode (the module docstring's contrasts); ticks None selects the silent ticks and turn
+    starts."""
     if ablation_bs < 1 or top_reads < 1:
         raise ValueError('ablation_bs and top_reads must be positive')
     pair.eval()
@@ -282,11 +280,10 @@ def analyze_episode(pair, ep, ticks=None, direction='both', ablation_bs=4, head_
                                                       decoded[p]['target_delta_nats'] > 0 for p in ps) / n,
                 direct_ranks=ranks, downstream_ranks=[decoded[p]['target_decode_rank'] for p in ps])
             if block == max(pair.xblocks):
-                # Identical computation from the last exchange must reconstruct the full pass.
                 if not torch.equal(on, linked[x]):
                     raise AssertionError('last exchange continuation differs from full joint pass')
     del cut, linked
-    # Each batch carries a control row. Never compare different batch shapes.
+    # Each batch's first sequence is the unablated control, so control and ablation share a batch shape.
     for a in range(0, len(selected), ablation_bs):
         chunk = selected[a:a + ablation_bs]
         b = S.collate([built] * (len(chunk) + 1), pads)
@@ -315,7 +312,8 @@ def analyze_episode(pair, ep, ticks=None, direction='both', ablation_bs=4, head_
 
 
 def render(result):
-    """Every receiver position; tick and block contrasts follow the total subtitles."""
+    """The text report: every position in tick order with its reads and total contrast, then the tick and block
+    contrasts."""
     quote = lambda s: json.dumps(s, ensure_ascii=False)
     changes = lambda items: ', '.join(f'{quote(v["text"])} {v["nats"]:+.6g}' for v in items) or '(none)'
     lines = [f'{result["game"]}: teacher-forced next-token effects, nats; KL(control || link)']
@@ -344,11 +342,8 @@ def render(result):
 
 
 def episode_sets(replies, n, games=None, coread_data=None, pause=0):
-    """Use payload_ctl's exact draws, including its co-reading RNG order.
-
-    This makes analyze_bridge comparisons use the same episodes, not just the same
-    payload parser. Pen/other Games lists extend the catalog with seed 4242.
-    """
+    """{game: n test episodes}: payload_ctl.episodes' draws (the episodes analyze_bridge reads), and any other
+    requested game drawn from Games or Coread with seed 4242; each with pause silent ticks."""
     import games as G
     from payload_ctl import episodes
     out = episodes(replies, n, coread=bool(games and any(g.startswith('co_') for g in games)),
@@ -389,7 +384,7 @@ def main():
     ap.add_argument('--coread_data')
     ap.add_argument('--ticks', default=None, help='comma-separated ticks, or all (default silent ticks + turn starts)')
     ap.add_argument('--direction', choices=('both', *SIDES), default='both', help='receiver of removed writes')
-    ap.add_argument('--ablation_bs', type=int, default=4, help='ablated rows per pass, plus one control row')
+    ap.add_argument('--ablation_bs', type=int, default=4, help='ablated sequences per pass, plus one control sequence')
     ap.add_argument('--head_chunk', type=int, default=32)
     ap.add_argument('--top_reads', type=int, default=3)
     ap.add_argument('--max_positions', type=int, default=2048, help='fail before oversized episode; 0 disables guard')

@@ -3,7 +3,7 @@
 own: the reply to every question (training and held-out), with a system prompt that gives only the model's name.
 steer: replies to training questions where the user also asked the model to mention a training concept early; only
 replies that mention the concept within the first REPLY tokens are kept. They are the targets of the steering game,
-where the receiver sees the question alone.
+in which the receiver's prompt has the question alone.
 
 Usage: python prep.py --out OUT [--n_steer 2500]   writes OUT/replies.json
 """
@@ -47,8 +47,9 @@ def generate(tok, model, users, system):
         L = max(map(len, P))
         ids = torch.tensor([[tok.pad_token_id] * (L - len(p)) + list(p) for p in P], device=DEVICE)
         att = (torch.arange(L)[None] >= torch.tensor([L - len(p) for p in P])[:, None]).long().to(DEVICE)
-        g = model.generate(input_ids=ids, attention_mask=att, max_new_tokens=args.reply, do_sample=False, use_cache=True,
-                           pad_token_id=tok.pad_token_id, eos_token_id=tok.convert_tokens_to_ids('<|im_end|>'))
+        g = model.generate(input_ids=ids, attention_mask=att, max_new_tokens=args.reply, do_sample=False,
+                           use_cache=True, pad_token_id=tok.pad_token_id,
+                           eos_token_id=tok.convert_tokens_to_ids('<|im_end|>'))
         for row in g[:, L:].tolist():
             end = tok.convert_tokens_to_ids('<|im_end|>')
             row = row[:row.index(end)] if end in row else row

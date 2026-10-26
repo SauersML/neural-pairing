@@ -3,9 +3,9 @@
   "complete": true,
   "backend": "mlx",
   "precision": "4-bit MLX",
-  "checkpoint": "/Users/user/mpd-data/runpod/magic-nl22c/run/step_157",
+  "checkpoint": "~/mpd-data/runpod/magic-nl22c/run/step_157",
   "checkpoint_sha256": "60b9a8a66bab00023766d40952f08bdacea8a038b79ba41741476e4133faec97",
-  "chat_data": "/Users/user/mpd-data/neural-pairing/chatdata/chat_clean.json",
+  "chat_data": "~/mpd-data/neural-pairing/chatdata/chat_clean.json",
   "chat_sha256": "818e878f0706ca41d6ddd0fbc0b76a47dca120c094bf840d842de2fe11d61e5f",
   "design": {
     "cities": [

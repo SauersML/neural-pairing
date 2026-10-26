@@ -1,16 +1,15 @@
-"""Every first message of the 20 free test chats, with the link on (hero_grid) and with the link cut (hero_grid_cut).
+"""The first message of each of the 20 free test chats with the link on, marking whether it mentions the partner's city.
 
-    python figures/hero_grid.py              # draw from the snapshot results/hero_grid.json
-    python figures/hero_grid.py --capture    # rebuild the snapshot from results/magic-nl22c/results/chat_after_*
-                                             # and figures/inputs/chat_clean.json.gz, then draw
-
-No model is loaded. The readout is the first message of each chat only (turn 0, written by the opening twin): it
-counts as naming the partner's city when evalfree.contains finds the partner's city in it; the denominator is the
-chats whose partner holds a city (14 of 20). This differs from the six-turn `names` readout in chat_names (13 of 23
-twins, both twins of every chat, first mention anywhere in the chat). Every chat appears, including city-free ones.
+Reads the snapshot results/hero_grid.json and draws figures/hero_grid.{svg,png,pdf}. With --capture it first rebuilds
+the snapshot from the chat episodes in results/magic-nl22c/results/chat_after_*/episodes.jsonl (checked against each
+shard's manifest) and figures/inputs/chat_clean.json.gz (to check that no test city appears in training). No model is
+loaded. A first message (turn 0, written by the opening twin) counts as a mention when evalfree.contains finds the
+partner's city in it; the denominator is the chats whose partner has a city. The figure chat_names counts mentions
+anywhere in the six turns by either twin instead. The snapshot's 'display' entry stores the counts and the excerpt
+drawn for each chat, for the link on and the link cut.
+Usage: python figures/hero_grid.py [--capture]
 """
 import argparse
-import base64
 import gzip
 import hashlib
 import html
@@ -20,23 +19,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-from PIL import ImageFont
+from chat_names import ROOT, font, mascot, width as text_width
 
-ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'pairing'))
 from evalfree import contains  # noqa: E402
 
-INK, RED, LINK, MUTED, FAINT = '#1D1D1F', '#D2432F', '#1A9E77', '#6E6E73', '#B9B9C0'
-WARM, COOL = '#FAF0E6', '#F4F4F6'
+INK, RED = '#1D1D1F', '#D2432F'
+WARM = '#FAF0E6'
 COLORS = {'quill': '#7B3FE4', 'ember': '#E8590C'}
 SIDES = tuple(COLORS)
 FAMILY = 'Inter, Helvetica, Arial, sans-serif'
 FONT_SIZE = 40
 LINE_H = 52
 MAX_LINES = 2
-_F = '/usr/share/fonts/opentype/inter/Inter-{}.otf'
-FONT = ImageFont.truetype(_F.format('Regular'), FONT_SIZE)
-BOLD = ImageFont.truetype(_F.format('Bold'), FONT_SIZE)
+FONT, BOLD, SMALL = font(FONT_SIZE), font(FONT_SIZE, 700), font(40, 600)
 W, M, GAP = 2400, 36, 20
 COLS, ROWS = 4, 5
 CW = (W - 2 * M - (COLS - 1) * GAP) / COLS
@@ -44,6 +40,8 @@ CH = 316
 TOP = 132
 H = TOP + ROWS * CH + (ROWS - 1) * GAP + M
 SNAPSHOT = ROOT / 'results/hero_grid.json'
+SOURCE = ROOT / 'results/magic-nl22c/results'
+CHAT = ROOT / 'figures/inputs/chat_clean.json.gz'
 POLICY = ('Shortest real excerpt of the opening message, at most 2 display lines: the sentence holding the first '
           'mention of the partner city when there is one, else the first sentence; trimmed at word boundaries '
           'around the city (or from the end) only when the sentence does not fit; ellipses mark every omission.')
@@ -58,13 +56,13 @@ def capture(source, chat):
     records, sources = [], []
     for path in sorted(source.glob('chat_after_*/episodes.jsonl')):
         raw = path.read_bytes()
-        rows = [json.loads(line) for line in raw.splitlines() if line.strip()]
+        shard = [json.loads(line) for line in raw.splitlines() if line.strip()]
         manifest = json.loads(path.with_name('manifest.json').read_text())
         assert manifest['complete'], f'Incomplete shard: {path}'
         assert hashlib.sha256(raw).hexdigest() == manifest['episodes_sha256']
-        assert len(rows) == manifest['receiver_records']
-        assert all(len(r['conditions'][c]['turns']) == 6 for r in rows for c in ('link', 'cut', 'crossed'))
-        records.extend(rows)
+        assert len(shard) == manifest['receiver_records']
+        assert all(len(r['conditions'][c]['turns']) == 6 for r in shard for c in ('link', 'cut', 'crossed'))
+        records.extend(shard)
         sources.append(dict(path=str(path.relative_to(ROOT)), sha256=hashlib.sha256(raw).hexdigest(), manifest=manifest))
     groups = {}
     for r in records:
@@ -96,8 +94,6 @@ def capture(source, chat):
                 excerpt_policy=POLICY, draws=draws)
 
 
-# ---------- drawing ----------
-
 def rect(out, x, y, w, h, fill, radius=18, stroke='none', sw=2, extra=''):
     out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{radius}" fill="{fill}" '
                f'stroke="{stroke}" stroke-width="{sw}" {extra}/>')
@@ -106,13 +102,6 @@ def rect(out, x, y, w, h, fill, radius=18, stroke='none', sw=2, extra=''):
 def text(out, x, y, s, color=INK, size=FONT_SIZE, weight=400, anchor='start'):
     out.append(f'<text x="{x:.1f}" y="{y:.1f}" fill="{color}" font-family="{FAMILY}" font-size="{size}" '
                f'font-weight="{weight}" text-anchor="{anchor}">{html.escape(s)}</text>')
-
-
-def lock(out, x, y, color, s=1.0):
-    """A padlock about 26 x 34 px (times s) with its top left at (x, y)."""
-    out.append(f'<path d="M{x + 6 * s:.1f} {y + 15 * s:.1f} v-5 a{7 * s:.1f} {7 * s:.1f} 0 0 1 {14 * s:.1f} 0 v5" '
-               f'fill="none" stroke="{color}" stroke-width="{3.4 * s:.1f}"/>')
-    rect(out, x, y + 14 * s, 26 * s, 20 * s, color, 5 * s)
 
 
 def check(out, cx, cy, color, s=1.0):
@@ -127,42 +116,26 @@ def cross(out, cx, cy, color, s=1.0):
                f'stroke-width="{4.2 * s:.1f}" stroke-linecap="round"/>')
 
 
-BADGE = {True: ("names the partner's city", RED), False: ("partner's city not named", MUTED),
-         None: ('partner has no city', MUTED)}
-SMALL = ImageFont.truetype(_F.format('SemiBold'), 30)
-
-
-def badge(out, xr, cy, status, city=None, label=None):
-    """Right-aligned at xr: hit (red, check), miss (outlined, cross) or no target (plain text). With a city, the
-    label names it ("names Oslo", "Bogota not named")."""
-    color = BADGE[status][1]
-    if label:
-        pass
-    elif city and status is not None:
-        label = f'names {city}' if status else f'{city} not named'
-    else:
-        label = BADGE[status][0]
-
-    tw = SMALL.getlength(label)
-    if status is None:
-        text(out, xr, cy + 11, label, MUTED, 30, 400, 'end')
-        return
-    w = tw + 60
+def badge(out, xr, cy, status, city):
+    """Right-aligned at xr: a red badge with a check when the message mentions the city, else an outlined one with a
+    cross."""
+    label = f'mentions {city}' if status else f'{city} not mentioned'
+    w = SMALL.getlength(label) + 60
     x = xr - w
     if status:
-        rect(out, x, cy - 25, w, 50, RED, 25)
+        rect(out, x, cy - 28, w, 56, RED, 28)
         check(out, x + 28, cy, 'white')
-        text(out, x + 46, cy + 10.5, label, 'white', 30, 600)
+        text(out, x + 46, cy + 14, label, 'white', 40, 600)
     else:
-        rect(out, x + 1.5, cy - 23.5, w - 3, 47, 'white', 24, MUTED, 3)
-        cross(out, x + 27, cy, MUTED)
-        text(out, x + 46, cy + 10.5, label, MUTED, 30, 600)
+        rect(out, x + 1.5, cy - 26.5, w - 3, 53, 'white', 27, INK, 3)
+        cross(out, x + 27, cy, INK)
+        text(out, x + 46, cy + 14, label, INK, 40, 600)
 
 
 def bubble(out, x, y, width, height, status, tx=None):
     tx = x + 34 if tx is None else tx
     tail = f'M{tx} {y + 2} L{tx + 8} {y - 30} L{tx + 34} {y + 2} Z'
-    stroke = {True: RED, False: MUTED, None: 'none'}[status]
+    stroke = {True: RED, False: INK, None: 'none'}[status]
     rect(out, x, y, width, height, 'white', 20, stroke, 4 if status else 3)
     out.append(f'<path d="{tail}" fill="white" stroke="{stroke}" stroke-width="{4 if status else 3}" stroke-linejoin="round"/>')
     out.append(f'<rect x="{tx - 4}" y="{y + 2}" width="42" height="8" fill="white"/>')
@@ -231,18 +204,18 @@ def rich_line(out, x, y, line, target, color=INK):
         hit = target and chunk.casefold() == target.casefold()
         for k, piece in enumerate(chunk.split('…')):
             if k:
-                parts.append(f'<tspan fill="{FAINT}">…</tspan>')
+                parts.append(f'<tspan fill="{INK}">…</tspan>')
             if piece:
                 parts.append(f'<tspan fill="{RED if hit else color}" font-weight="{700 if hit else 400}">{html.escape(piece)}</tspan>')
     out.append(''.join(parts) + '</text>')
 
 
 def image(out, x, y, size, side):
-    b64 = base64.b64encode((ROOT / 'figures/assets' / f'{side}.png').read_bytes()).decode()
-    out.append(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" xlink:href="data:image/png;base64,{b64}"/>')
+    out.append(f'<image x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" xlink:href="{mascot(side)}"/>')
 
 
 def render(data, condition):
+    """The SVG lines of the grid for one condition, and its counts and drawn excerpts."""
     draws = data['draws']
     stats = dict(chats=len(draws), targets=0, hits=0, no_target=0)
     for d in draws:
@@ -254,16 +227,10 @@ def render(data, condition):
         stats['no_target'] += hit is None
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" '
            f'height="{H}" viewBox="0 0 {W} {H}">', f'<rect width="{W}" height="{H}" fill="white"/>']
-    name = 'Link on' if condition == 'link' else 'Link cut'
-    out.append(f'<text x="{M}" y="84" fill="{INK}" font-family="{FAMILY}" font-size="64" font-weight="700" '
-               f'xml:space="preserve">{name}: <tspan fill="{RED}">{stats["hits"]}/{stats["targets"]}</tspan> first '
-               f'messages name partner’s city</text>')
-    # key, right-aligned on the title line
-    kx = W - M
-    for status, label in ((False, 'not named'), (True, 'names city')):
-        w = SMALL.getlength(label) + 60
-        badge(out, kx, 62, status, label=label)
-        kx -= w + 24
+    name = 'linked' if condition == 'link' else 'cut'
+    out.append(f'<text x="{M}" y="84" fill="{INK}" font-family="{FAMILY}" font-size="56" font-weight="700" '
+               f'xml:space="preserve">In free chat, the {name} twins mention the partner’s city in <tspan fill="{RED}">'
+               f'{stats["hits"]} of {stats["targets"]}</tspan> first messages</text>')
     evidence = []
     for i, d in enumerate(draws):
         col, row = i % COLS, i // COLS
@@ -272,43 +239,49 @@ def render(data, condition):
         target = d['private'][other]
         original = d['conditions'][condition]['turns'][0][1]
         status = bool(contains(original, target)) if target else None
-        rect(out, x, y, CW, CH, WARM if condition == 'link' else COOL, 28)
-        chip_w = (CW - 32 - 12) / 2
-        for j, side in enumerate(SIDES):
-            bx = x + 16 + j * (chip_w + 12)
-            rect(out, bx, y + 16, chip_w, 72, 'white', 16)
-            image(out, bx + 8, y + 22, 58, side)
+        rect(out, x, y, CW, CH, WARM, 28)
+        # each twin's private city on a chip sized to its label: Quill's at the left, Ember's at the right
+        chips = {}
+        for side in SIDES:
             city = d['private'][side]
-            text(out, bx + 74, y + 64, city or 'no city', COLORS[side] if city else MUTED, 34, 600 if city else 400)
+            label, weight = city or 'no city', 600 if city else 400
+            chips[side] = (label, weight, 54 + text_width(label, 40, weight) + 20, city)
+        assert sum(c[2] for c in chips.values()) + 12 <= CW - 32
+        for side in SIDES:
+            label, weight, cw, city = chips[side]
+            bx = x + 16 if side == 'quill' else x + CW - 16 - cw
+            rect(out, bx, y + 16, cw, 72, 'white', 16)
+            image(out, bx - 12, y + 13, 76, side + ('_cut' if condition == 'cut' else ''))  # art: 0.25 to 0.72 of the width
+            text(out, bx + 54, y + 66, label, COLORS[side] if city else INK, 40, weight)
+            if side == speaker:
+                tail_x = bx + 30
         by = y + 124
-        tail_x = x + 16 + (0 if speaker == 'quill' else chip_w + 12) + 30
         bubble(out, x + 16, by, CW - 32, CH - (by - y) - 32, status, tail_x)
         if status is not None:
             badge(out, x + CW - 30, y + CH - 32, status, target)
         ls, info = excerpt(original, target, CW - 32 - 44, MAX_LINES)
         for j, line in enumerate(ls):
             rich_line(out, x + 38, by + 66 + j * LINE_H, line, target if status else None,
-                      INK if status is not None else '#3A3A3C')
+                      INK)
         evidence.append(dict(episode_id=d['episode_id'], speaker=speaker, target=target, hit=status,
                              original=original, excerpt=info))
     out.append('</svg>')
-    path = ROOT / 'figures' / ('hero_grid' if condition == 'link' else 'hero_grid_cut')
-    path.with_suffix('.svg').write_text('\n'.join(out))
-    for fmt in ('png', 'pdf'):
-        subprocess.run(['rsvg-convert', '-f', fmt, '-o', str(path.with_suffix('.' + fmt)), str(path.with_suffix('.svg'))],
-                       check=True)
-    return dict(**stats, excerpts=evidence)
+    return out, dict(**stats, excerpts=evidence)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--capture', action='store_true')
-    ap.add_argument('--source', type=Path, default=ROOT / 'results/magic-nl22c/results')
-    ap.add_argument('--chat', type=Path, default=ROOT / 'figures/inputs/chat_clean.json.gz')
+    ap.add_argument('--capture', action='store_true', help='rebuild the snapshot from the chat episodes first')
     args = ap.parse_args()
-    data = capture(args.source, args.chat) if args.capture else json.loads(SNAPSHOT.read_text())
+    data = capture(SOURCE, CHAT) if args.capture else json.loads(SNAPSHOT.read_text())
     data['excerpt_policy'] = POLICY
-    data['display'] = {c: render(data, c) for c in ('link', 'cut')}
+    drawn = {c: render(data, c) for c in ('link', 'cut')}
+    data['display'] = {c: d for c, (_, d) in drawn.items()}
+    path = ROOT / 'figures/hero_grid'
+    path.with_suffix('.svg').write_text('\n'.join(drawn['link'][0]))
+    for fmt in ('png', 'pdf'):
+        subprocess.run(['rsvg-convert', '-f', fmt, '-o', str(path.with_suffix('.' + fmt)), str(path.with_suffix('.svg'))],
+                       check=True)
     SNAPSHOT.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
     print(json.dumps({c: {k: v for k, v in d.items() if k != 'excerpts'} for c, d in data['display'].items()}))
 

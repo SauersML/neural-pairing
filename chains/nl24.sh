@@ -1,9 +1,11 @@
 #!/bin/bash
-# nl24: original teachers -> diverse private situations -> 300 steps -> fixed free-chat controls.
-# One 48 GB card. Inputs pod to pod, READY last: /workspace/jobs/nl24/{step_157,replies.json,data/}.
-# data/ includes nl22's clean chat.json and coread/play/talk/pools.json. No checkpoint selection on test scores.
+# nl24, one 48 GB card. The original models write chats about private items (prep_talk.py --chat2: 1,200 training and
+# 160 test chats attempted, six turns of at most 96 tokens). Then 300 steps from nl22c's step_157 on nl22c's mix plus
+# these chats (--chat2 0.25), with gradient checkpointing and eight micro-batches. Then the payload table, and the fixed
+# free-chat test (evalfree.py co_chat2: 40 plans, seed 4242, greedy; link, cut and a stranger's link; three shards one
+# after another) before and after, merged by chat2_merge.py. Waits up to an hour for /workspace/jobs/nl24/{step_157,
+# replies.json, data/} and the READY file; data/ holds coread, play, talk, pools and chat .json.
 # Usage: bash nl24.sh OUT_DIR CODE_TGZ
-# Mac staging and exact rp-run command: chains/launch_nl24.sh (lead executes; this task never rents GPUs).
 set -euo pipefail
 O=$1 TGZ=$2
 export PYTHONUNBUFFERED=1 NL_DEVICE=cuda PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -44,7 +46,7 @@ for split in ('train', 'test'):
 chateval.make_plans('../data/coread.json', 40, 4242, game='co_chat2')
 PY
 R=$O/results
-# Preserve interrupted artifacts instead of silently reusing partial evaluations or optimizer state.
+# A stage that did not finish is moved aside and run again from the start.
 ev() {
     local name=$1; shift
     [ -f "$R/$name.DONE" ] && return 0
@@ -65,7 +67,7 @@ fi
 LAST=$O/run/step_300
 [ -s "$LAST/bridge.pt" ]
 ev payload python payload_ctl.py --run "$LAST" --replies "$O/replies.json" --out "$R/payload_final.json" --n 40 --bs 4 --coread
-# Sequential shards: one model pair resident on the single card. All use the same 40 plans/seed.
+# Shards one after another, one pair on the card at a time; all use the same 40 plans and seed.
 for label in before after; do
     CK=$INIT; [ "$label" = after ] && CK=$LAST
     for shard in 0 1 2; do

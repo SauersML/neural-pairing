@@ -1,42 +1,34 @@
 """Trains the two models joined by the bridges: LoRA on both models plus both models' halves of every bridge.
 
 Each step draws a batch of episodes (duplex games; with probability DIALOGUE dialogue games; with probability COREAD
-co-reading episodes, coread.py; with probability ANCHOR an identity or plain own-reply episode, in every stage, so each
-model stays itself), lays out both models' teacher-forced token streams in time (session.build), runs both models
-together block by block with the bridges at the exchange blocks (link.Pair.joint), and minimizes the weighted
-cross-entropy of every target token plus a cost per shown position: send_cost x the mean visibility gate over every
-position and exchange block. For the first WARM of the steps showing is free; then the cost rises to its full value
-over RAMP. In co_distill episodes the loss on a model's reply tokens is the KL divergence from the original model
-(adapters off, no bridge) reading the content itself (meta['teacher']) to the model in the episode, in place of the
-cross-entropy: the target is the model's own whole next-token distribution, so each model stays itself.
-
-Cooperative games train everything on the sum of both models' losses. Every COMP-th step is competitive: in 'resist'
-the sender tries to steer a receiver that was told to ignore it, in 'impersonate' the sender tries to make the
-receiver introduce itself as the sender, and in 'bluff' a model thinking of one concept tries to make its partner name
-another. Each competitive episode becomes two sequences: the receiver's own target, whose loss trains only the
-receiver (its LoRA and its half of the bridges), and the sender's goal (the steered reply, the false identity, the
-decoy), whose loss trains only the sender.
+co-reading episodes, coread.py; with probability ANCHOR an anchor episode, in every stage: an identity or plain episode
+whose target is the original model's own reply), lays out both models' teacher-forced token streams in time
+(session.build), runs both models together block by block with the bridges at the exchange blocks (link.Pair.joint), and
+minimizes the weighted cross-entropy of every target token of both models plus a cost per shown position: send_cost x
+the mean visibility gate over every position and exchange block. For the first WARM of the steps showing is free; then
+the cost rises to its full value over RAMP. In co_distill episodes the loss on a model's reply tokens is the KL
+divergence from the original model (adapters off, no bridge) reading the content itself (meta['teacher']) to the model
+in the episode, in place of the cross-entropy: the target is the original model's whole next-token distribution.
 
 Under torchrun (one process per GPU) every rank draws the same global batch, keeps one group of episodes of similar
 length (ddp.partition), and the gradients are summed over the ranks after the backward pass (ddp.sum_grads); losses
 use the denominators of the whole batch, so the update equals the single-process update on that batch. Rank 0 logs and
 saves; the quick evaluation is split over the ranks by game.
 
-Benchmark questions (data/bench.json): with --qa P a fraction P of the episodes are training questions that both
-models see and answer at once over the bridges. The controls train on the same questions: --solo trains each model
-alone (no bridge), --text_pair trains the pair to answer one after the other in text with the link closed.
---qa_pool [0..1] replaces that fraction of QA token CE with CE of the arithmetic mean of the two models' A-D
-probabilities at the letter, exactly what bench_eval scores as pair/avg (with --solo: as ensemble, the control that trains
-the same objective without the link). At 1 only the pooled letter is supervised for QA episodes; other games and the
-token-CE diagnostics are unchanged. See qa_pool.py.
+Benchmark questions (data/bench.json): with --qa P a fraction P of the episodes are training questions that both models
+read and answer at once over the bridges. The controls train on the same questions: --solo trains each model alone (no
+bridge), --text_pair trains the pair to answer one after the other in text with the link closed. --qa_pool [0..1]
+replaces that fraction of QA token CE with CE of the arithmetic mean of the two models' A-D probabilities at the letter,
+the score bench_eval reports as pair/avg (with --solo: as ensemble, the control that trains the same objective without
+the link). At 1 only the pooled letter is supervised for QA episodes; other games and the token-CE diagnostics are
+unchanged. See qa_pool.py.
 
 One-way link (--frozen Y): the target Y is the original model, bit for bit (no LoRA, nothing written into it; link.py),
 and only its partner reads. Y's losses are not computed (nothing trainable depends on them), no episode in which Y is
-the receiver is drawn, competitive steps are off, Y's adapter is not saved, and the checkpoint records frozen=Y. --init
-from a two-way step drops Y's adapter and its read parts.
+the receiver is drawn, Y's adapter is not saved, and the checkpoint records frozen=Y. --init from a two-way step drops
+Y's adapter and its read parts.
 
-Usage: python train.py --replies OUT/replies.json --out OUT/run [--steps 3000] [--init RUN/step_N]
-       [--coread 0.5] [--coread_first 1000 --coread_first_p 0.8]
+Usage: python train.py --replies OUT/replies.json --out OUT/run [--steps 3000] [--init RUN/step_N] [--coread 0.5]
        torchrun --nproc_per_node 4 train.py ... --ckpt none
 """
 import argparse
@@ -76,7 +68,7 @@ ap.add_argument('--xblocks', default=','.join(map(str, XBLOCKS)), help='exchange
 ap.add_argument('--heads', type=int, default=8)
 ap.add_argument('--head_dim', type=int, default=128)
 ap.add_argument('--send_cost', type=float, default=0.01)
-ap.add_argument('--comp', type=int, default=5, help='every comp-th step is competitive (0: never)')
+ap.add_argument('--comp', type=int, choices=(0,), default=0, help=argparse.SUPPRESS)      # the chains pass --comp 0
 ap.add_argument('--warm', type=float, default=0.2, help='fraction of steps with no send cost')
 ap.add_argument('--ramp', type=float, default=0.2, help='fraction of steps over which the send cost then rises')
 ap.add_argument('--eval_every', type=int, default=500)
@@ -87,36 +79,39 @@ ap.add_argument('--pause', type=int, default=0, help='silent ticks before duplex
 ap.add_argument('--pause_p', type=float, default=1.0, help='probability an episode receives --pause ticks')
 ap.add_argument('--ckpt', default='both', choices=('both', 'none', 'quill', 'ember'), help='gradient checkpointing')
 ap.add_argument('--micro', type=int, default=1,
-                help="run each rank's share of a step's batch as this many groups of similar length, one after another, "
-                     "summing their gradients (the same update, with far less padding when short and long episodes mix)")
+                help="run each rank's share of a step's batch as this many groups of similar length, one after "
+                     "another, summing their gradients (the same update, with far less padding when short and long "
+                     "episodes mix)")
 ap.add_argument('--seed', type=int, default=0)
 ap.add_argument('--dialogue', type=float, default=0.0, help='probability that an episode is a dialogue game')
 ap.add_argument('--pen', type=float, default=0.0, help='probability of a shared-pen game after anchors')
 ap.add_argument('--pen_chunk', type=int, default=1, help='words per author in shared-pen games')
 ap.add_argument('--coread', type=float, default=0.0, help='probability that an episode is a co-reading episode')
-ap.add_argument('--coread_first', type=int, default=0, help='steps of a first stage with --coread_first_p in place '
-                'of --coread')
-ap.add_argument('--coread_first_p', type=float, default=0.8)
 ap.add_argument('--coread_data', default=None, help='the co-reading data (default data/coread.json)')
 ap.add_argument('--anchor', type=float, default=0.1, help='probability that an episode is an identity or plain '
                 'own-reply episode (every stage)')
 ap.add_argument('--chat', type=float, default=0.0, help='probability that an episode is a plain chat with no objective '
-                '(data/chat.json, prep_talk.py --chat): the original models\' own turns, link open, every stage after the warm-up')
-ap.add_argument('--chat2', type=float, default=0.0, help='probability after anchors and legacy chat of a chat2.json episode')
+                '(data/chat.json, prep_talk.py --chat): the original models\' own turns, link open, every stage after '
+                'the warm-up')
+ap.add_argument('--chat2', type=float, default=0.0, help='probability, after anchors and --chat, that an episode is a '
+                'chat about private items (data/chat2.json, prep_talk.py --chat2)')
 ap.add_argument('--steer', type=float, default=0.0, help='probability, before anchors, that an episode is the '
-                'steered-reading game (steer_read.py): a concept pushed into one twin, which its partner brings up')
-ap.add_argument('--steer_data', default=None, help="steer_read.py's output (directions and teacher openers) for --steer")
+                'steered-reading game (steer_read.py): a concept steered into one model, which its partner brings up')
+ap.add_argument('--steer_data', default=None,
+                help="steer_read.py's output (directions and teacher openers) for --steer")
 ap.add_argument('--steer_strength', type=float, nargs=2, default=(0.5, 6.0), metavar=('LO', 'HI'),
-                help='--steer pushes: strengths log-uniform in [LO, HI] times the concept direction')
+                help='--steer: steering coefficients log-uniform in [LO, HI] times the concept direction')
 ap.add_argument('--steer_frames', default='name', help="--steer direct questions: comma-separated frames of "
                 'steer_read.FRAMES, drawn uniformly')
-ap.add_argument('--steer_blocks', default=None, help='--steer pushes after these exchange blocks only (default all)')
+ap.add_argument('--steer_blocks', default=None, help='--steer: steer after these exchange blocks only (default all)')
+ap.add_argument('--steer_none', type=float, default=0.2, help='--steer: fraction of the steered-reading episodes in '
+                'which nothing is steered (target: the opener written without the concept)')
 ap.add_argument('--init', default=None, help='a saved step to start from (LoRA and bridges)')
 ap.add_argument('--frozen', default=None, choices=SIDES, help='one-way link onto this side, which stays the original '
                 'model (see the docstring); default: the --init checkpoint\'s, else two-way')
 ap.add_argument('--hold_out', default='', help='games never trained on, comma separated: game names (lookup, co_mcq, '
-                'co_play, ...) or co_play:KIND (guess, gift, where, story, rhyme); a drawn episode of one is drawn again, and '
-                'co-reading episodes of a held-out task (distillation and talk included) count as that game')
+                'co_play, ...) or co_play:KIND (guess, gift, where, story, rhyme); a drawn episode of one is drawn '
+                'again, and co-reading episodes of a held-out task (distillation and talk included) count as that game')
 ap.add_argument('--quick_n', type=int, default=32)
 ap.add_argument('--qa', type=float, default=0.0, help='probability that an episode is a benchmark question')
 ap.add_argument('--qa_pool', type=float, nargs='?', const=1.0, default=0.0,
@@ -126,8 +121,8 @@ ap.add_argument('--solo', action='store_true', help='benchmark questions only, e
 ap.add_argument('--text_pair', action='store_true', help='benchmark questions only, answered in turn in text')
 ap.add_argument('--qa_focus', default=None, help="qa_split.py's file: the training questions only one original model "
                 'answers right')
-ap.add_argument('--qa_focus_p', type=float, default=0.5, help='with --qa_focus, the probability that a benchmark question '
-                'is one only one original model answers right (either model\'s set equally often)')
+ap.add_argument('--qa_focus_p', type=float, default=0.5, help='with --qa_focus, the probability that a benchmark '
+                'question is one only one original model answers right (either model\'s set equally often)')
 ap.add_argument('--payload_every', type=int, default=5,
                 help='every N steps, the payload loss also with no bridge, on the same batch')
 ap.add_argument('--payload_eval', type=int, default=0,
@@ -135,14 +130,12 @@ ap.add_argument('--payload_eval', type=int, default=0,
                 'and every evaluation')
 ap.add_argument('--minutes', type=float, default=0, help='wall-clock budget: after the first evaluation the step '
                 'count is cut so the run (evaluations and saves included) fits; the schedule follows the new count')
-ap.add_argument('--payload_w', type=float, default=1.0, help='multiplies the loss weight of payload tokens (the part of '
-                "a reply that only the partner's prompt gives)")
+ap.add_argument('--payload_w', type=float, default=1.0, help='multiplies the loss weight of payload tokens (the part '
+                "of a reply that only the partner's prompt gives)")
 ap.add_argument('--content_init', default='none', choices=('none', 'qk', 'qkvo'),
                 help='set the reads so that each reader attends to content-matched partner positions (align.py); qkvo '
                      'also sets values and outputs to deliver the matched state')
 ap.add_argument('--content_texts', type=int, default=192, help='texts read by both models for --content_init')
-ap.add_argument('--until', default=None, help='HH:MM: sets --minutes so that the run ends then (counted from when it '
-                'starts, after any wait for memory)')
 ap.add_argument('--halt', type=int, default=0, help='stop after this step (probe runs; the schedule is still --steps)')
 ap.add_argument('--grad_check', default=None, help='save the summed gradients of every step to PATH.STEP.pt')
 coldstart.add_arguments(ap)
@@ -177,22 +170,15 @@ if ck is not None and ck.get('frozen') and args.frozen not in (None, ck['frozen'
 FROZEN = args.frozen or (ck or {}).get('frozen')
 if FROZEN and (args.solo or args.text_pair or args.qa):
     ap.error('--frozen trains the reader of a one-way link; it has no benchmark-question arms')
-if FROZEN and args.comp:
-    args.comp = 0                        # competitive episodes train both twins' goals; the target has none
 TRAINED = tuple(x for x in SIDES if x != FROZEN)
 ddp.init()
 if not ddp.MAIN:
     sys.stdout = open(os.devnull, 'w')
 ONLY_QA = args.solo or args.text_pair
-if args.until:
-    now = time.localtime()
-    end = time.mktime(time.strptime(time.strftime('%Y-%m-%d ', now) + args.until, '%Y-%m-%d %H:%M'))
-    args.minutes = ((end - time.time()) % 86400) / 60
-    print(f'until {args.until}: {args.minutes:.0f} minutes', flush=True)
 if args.minutes and args.first_eval < 5:
     args.first_eval = 10                 # the budget needs the cost of an evaluation
 if ONLY_QA:
-    args.comp, args.send_cost, args.anchor = 0, 0.0, 0.0
+    args.send_cost, args.anchor = 0.0, 0.0
 os.makedirs(args.out, exist_ok=True)
 torch.manual_seed(args.seed)
 t0 = time.time()
@@ -222,7 +208,7 @@ replies = json.load(open(args.replies))
 train_games = G.Games(replies, 'train', seed=args.seed, max_digits=args.max_digits)
 test_games = G.Games(replies, 'test', seed=1000 + args.seed, max_digits=args.max_digits)
 COREAD = TEST_COREAD = None
-if args.coread > 0 or args.chat2 > 0 or (args.coread_first > 0 and args.coread_first_p > 0):
+if args.coread > 0 or args.chat2 > 0:
     import coread
     COREAD = coread.Coread(replies, 'train', seed=args.seed, path=args.coread_data)
     TEST_COREAD = coread.Coread(replies, 'test', seed=1000 + args.seed, path=args.coread_data)
@@ -233,8 +219,9 @@ STEER = None
 if args.steer:
     import steer_read
     STEER = steer_read.Game(args.steer_data, seed=args.seed, xblocks=XB, strength=args.steer_strength,
-                            frames=args.steer_frames.split(','),
-                            blocks=None if args.steer_blocks is None else [int(v) for v in args.steer_blocks.split(',')])
+                            frames=args.steer_frames.split(','), none_p=args.steer_none,
+                            blocks=(None if args.steer_blocks is None
+                                    else [int(v) for v in args.steer_blocks.split(',')]))
 if args.init:
     assert tuple(ck['xblocks']) == XB and ck['heads'] == args.heads and ck['head_dim'] == args.head_dim, \
         (ck['xblocks'], ck['heads'], ck['head_dim'])
@@ -247,7 +234,7 @@ else:
     print('residual RMS after the exchange blocks:', {x: [round(v, 3) for v in sizes[x]] for x in SIDES}, flush=True)
     pair = Pair(models, toks, XB, sizes, args.heads, args.head_dim, frozen=FROZEN).to(DEVICE)
 if args.gate_norm:
-    # gates trained on raw states would read the unit-RMS ones 10-50 times too strongly: they restart blind (bias only)
+    # gate weights fit to raw states are 10-50 times too large for unit-RMS states, so they restart at zero (bias only)
     raw = bool(args.init) and not ck.get('gate_norm', False)
     for side in pair.bridge.values():
         side.gate_norm = True
@@ -287,19 +274,9 @@ opt = torch.optim.AdamW([{'params': [p for p in models[x].parameters() if p.requ
 base_lr = [g['lr'] for g in opt.param_groups]
 
 
-BOTH = frozenset(SIDES)
 PADS = {x: toks[x].pad_token_id for x in SIDES}
 END = {x: toks[x].convert_tokens_to_ids('<|im_end|>') for x in SIDES}
 ANCHOR = ('identity', 'plain')
-
-
-def adversary(ep):
-    """The sender's goal as a target sequence: the receiver's answer replaced by meta['adversary'], nothing else."""
-    s, r = ep['meta']['sender'], ep['meta']['receiver']
-    if ep['mode'] == 'duplex':
-        return dict(ep, reply={s: (ep['reply'][s][0], 0.0), r: (ep['meta']['adversary'], 1.0)})
-    *head, (sp, _, _) = ep['turns']
-    return dict(ep, turns=[(a, t, 0.0) for a, t, _ in head] + [(sp, ep['meta']['adversary'], 1.0)])
 
 
 BENCH = G.bench('train') if (args.qa > 0 or ONLY_QA) else None
@@ -320,7 +297,8 @@ def held_out(ep):
     import coread
     m = ep.get('meta') or {}
     task = coread.TASK_GAME.get(m.get('task')) if m.get('task') else None
-    return ep['game'] in HOLD_OUT or task in HOLD_OUT or (ep['game'] == 'co_play' and f"co_play:{m.get('play')}" in HOLD_OUT)
+    return (ep['game'] in HOLD_OUT or task in HOLD_OUT
+            or (ep['game'] == 'co_play' and f"co_play:{m.get('play')}" in HOLD_OUT))
 
 
 def to_target(ep):
@@ -354,7 +332,7 @@ def draw_any(rng, games, step, co):
         return co.chat_episode('co_chat2')
     if args.pen and rng.random() < args.pen:
         return games.episode(rng.choice(G.PEN), pen_chunk=args.pen_chunk)
-    if co is not None and rng.random() < (args.coread_first_p if step <= args.coread_first else args.coread):
+    if co is not None and rng.random() < args.coread:
         return co.episode()
     if rng.random() < args.qa:
         return G.qa_episode(bench_item(rng), 'pair')
@@ -363,29 +341,16 @@ def draw_any(rng, games, step, co):
     return games.episode()
 
 
-def _make_rows(competitive, rng, games, step, co):
-    """(episode, {x: the sides whose parameters x's losses train})"""
-    if not competitive:
-        return [(draw(rng, games, step, co), {x: BOTH for x in SIDES}) for _ in range(args.bs)]
-    rows = []
-    names = G.COMPETITIVE + (G.DIALOGUE_COMPETITIVE if args.dialogue > 0 else ())
-    for _ in range(args.bs // 2):
-        ep = games.episode(rng.choice(names))
-        s, r = ep['meta']['sender'], ep['meta']['receiver']
-        rows.append((ep, {s: frozenset([s]), r: frozenset([r])}))
-        rows.append((adversary(ep), {s: frozenset(), r: frozenset([s])}))
-    return rows
-
-
-def make_rows(competitive, rng, games, step, co):
-    rows = _make_rows(competitive, rng, games, step, co)
-    for ep, _ in rows:
+def make_batch(rng, games, step, co):
+    """The --bs episodes of a step, with --pause silent ticks in a fraction --pause_p of them."""
+    eps = [draw(rng, games, step, co) for _ in range(args.bs)]
+    for ep in eps:
         if args.pause and (args.pause_p == 1 or rng.random() < args.pause_p):
             if ep['mode'] == 'duplex':
                 ep['pause'] = args.pause
             elif ep['mode'] == 'dialogue':
                 ep['pause_turns'] = {j: args.pause for j in range(len(ep['turns']))}
-    return rows
+    return eps
 
 
 rng = random.Random(args.seed)
@@ -405,10 +370,9 @@ def teacher(ep):
 
 def prepare(step, rng=rng, games=train_games, co=COREAD):
     """The global batch of a step: the same on every rank."""
-    competitive = args.comp > 0 and step % args.comp == 0 and step > args.relay_first
-    rows = make_rows(competitive, rng, games, step, co)
-    built = [S.build(ep, toks) for ep, _ in rows]
-    for (ep, _), e in zip(rows, built):
+    eps = make_batch(rng, games, step, co)
+    built = [S.build(ep, toks) for ep in eps]
+    for ep, e in zip(eps, built):
         for x, js in S.payload_labels(ep, toks).items():
             e[x]['payload'] = js
             for j in js:
@@ -417,13 +381,13 @@ def prepare(step, rng=rng, games=train_games, co=COREAD):
         for x, t in teacher(ep).items():
             assert len(t[0]) - t[1] == len(e[x]['labels']), (ep['game'], x)
             e[x]['teacher'] = t
-    return competitive, rows, built
+    return eps, built
 
 
 @torch.no_grad()
 def distill(built):
-    """{x: (flat label indices of x's co_distill reply tokens in this rank's batch, the original model's log-probabilities
-    there)}: the original model x (adapters off, no bridge) on its teacher sequences."""
+    """{x: (flat label indices of x's co_distill reply tokens in this rank's batch, the original model's
+    log-probabilities there)}: the original model x (adapters off, no bridge) on its teacher sequences."""
     out = {}
     for x in TRAINED:
         seqs, sel, off = [], [], 0
@@ -458,24 +422,23 @@ def groups(built):
     return [[mine[i] for i in g] for g in ddp.partition([cost[i] for i in mine], min(args.micro, len(mine)))]
 
 
-def forward(rows, built, cost_scale=1.0, mine=None):
+def forward(eps, built, cost_scale=1.0, mine=None):
     """The episodes mine (indices into the global batch; default this rank's share): losses (with the denominators of
     the whole batch, so the losses of a split batch add up to the batch's) and statistics."""
     if mine is None:
         mine = ddp.partition([sum(len(e[x]['ids']) for x in SIDES) for e in built])[ddp.RANK]
     denom = {x: max(1.0, sum(wt for e in built for _, _, wt in e[x]['labels'])) for x in SIDES}
     n_show = {x: max(1, sum(len(e[x]['ids']) for e in built) * len(XB)) for x in SIDES}
-    rows, built = [rows[i] for i in mine], [built[i] for i in mine]
-    b = S.collate(built, PADS, [o for _, o in rows])
+    eps, built = [eps[i] for i in mine], [built[i] for i in mine]
+    b = S.collate(built, PADS)
     kl = distill(built)
-    push = STEER.push([ep for ep, _ in rows]) if STEER is not None else None
-    last, gates = pair.joint(b, mode='zero' if ONLY_QA else None, push=push)
-    loss_for = {x: torch.zeros((), device=DEVICE) for x in SIDES}
+    steer = STEER.steer(eps) if STEER is not None else None
+    last, gates = pair.joint(b, mode='zero' if ONLY_QA else None, steer=steer)
     total = torch.zeros((), device=DEVICE)
     tally = {}
     for x in SIDES:
         if x == FROZEN:                      # the target's tokens: nothing trainable depends on them
-            tally[x] = torch.zeros(3, len(rows), device=DEVICE)
+            tally[x] = torch.zeros(3, len(eps), device=DEVICE)
             continue
         logits = pair.token_logits(x, last[x], b[x]['idx'])
         ce = F.cross_entropy(logits, b[x]['lab'], reduction='none')
@@ -485,45 +448,37 @@ def forward(rows, built, cost_scale=1.0, mine=None):
         w = b[x]['w']
         train_w = w
         if args.qa_pool:
-            qa_rows = w.new_tensor([ep['game'] in qa_pool.GAMES for ep, _ in rows])
-            train_w = w * (1 - args.qa_pool * qa_rows[b[x]['row']])
-        for o in SIDES:
-            loss_for[o] = loss_for[o] + (ce * train_w * b[x]['own_mask'][o]).sum() / denom[x]
+            is_qa = w.new_tensor([ep['game'] in qa_pool.GAMES for ep in eps])
+            train_w = w * (1 - args.qa_pool * is_qa[b[x]['row']])
         total = total + (ce * train_w).sum() / denom[x]
         # per-episode teacher-forced token accuracy and loss on answer tokens (weight 1), summed on the GPU
         sel = (w >= 1.0).float()
         hit = (logits.argmax(-1) == b[x]['lab']).float()
-        z = torch.zeros(3, len(rows), device=DEVICE)
+        z = torch.zeros(3, len(eps), device=DEVICE)
         tally[x] = z.index_add_(1, b[x]['row'], torch.stack([hit * sel, ce.detach() * sel, sel]))
     if args.qa_pool:
-        pool = args.qa_pool * qa_pool.pooled_loss(pair, toks, rows, built, b, last, denom)
-        total = total + pool
-        for x in SIDES:
-            loss_for[x] = loss_for[x] + pool
+        total = total + args.qa_pool * qa_pool.pooled_loss(pair, toks, eps, built, b, last, denom)
     sent = torch.zeros(2 * len(SIDES), device=DEVICE)
     for j, x in enumerate(SIDES):
         g = gates[x] * b[x]['att'][..., None]
-        cost = cost_scale * args.send_cost * g.sum() / n_show[x]
-        loss_for[x] = loss_for[x] + cost
-        total = total + cost
+        total = total + cost_scale * args.send_cost * g.sum() / n_show[x]
         sent[j] = (g.detach() > 0.5).float().sum() / n_show[x]
         sent[len(SIDES) + j] = g.detach().sum() / n_show[x]
-    return rows, built, b, last, loss_for, total, sent, tally
+    return eps, built, b, last, total, sent, tally
 
 
 @torch.no_grad()
-def payload_ce(rows, built, b, last):
+def payload_ce(eps, built, b, last):
     """{game/receiving model: [summed payload cross-entropy with the bridges, without, payload tokens]} on this rank's
-    batch (cooperative episodes)."""
+    batch."""
     sel = {x: [] for x in SIDES}
     games = {x: [] for x in SIDES}
     for x in TRAINED:
         off = 0
-        for (ep, owners), e in zip(rows, built):
-            if owners[x] == BOTH:
-                for j in e[x].get('payload', []):
-                    sel[x].append(off + j)
-                    games[x].append(f"{ep['game']}/{x}")
+        for ep, e in zip(eps, built):
+            for j in e[x].get('payload', []):
+                sel[x].append(off + j)
+                games[x].append(f"{ep['game']}/{x}")
             off += len(e[x]['labels'])
     if not any(sel.values()):
         return {}
@@ -546,8 +501,8 @@ def payload_eval(n, step):
     the never-seen split per payload game (and co-reading game, with --coread), games split over the ranks. Per episode
     and receiving model in OUT/payload_step{step}.json."""
     import payload_ctl
-    eps = payload_ctl.episodes(replies, n, args.max_digits, coread=COREAD is not None, path=args.coread_data, pause=args.pause,
-                               receiver=TRAINED[0] if FROZEN else None)
+    eps = payload_ctl.episodes(replies, n, args.max_digits, coread=COREAD is not None, path=args.coread_data,
+                               pause=args.pause, receiver=TRAINED[0] if FROZEN else None)
     names = sorted(eps)
     mine = ddp.assign([len(eps[g]) for g in names])[ddp.RANK]
     rec = []
@@ -560,18 +515,9 @@ def payload_eval(n, step):
     return payload_ctl.summary(rec)
 
 
-def backward(competitive, loss_for, total):
-    """Adds this pass's gradients to the parameters' (zeroed at the start of the step)."""
-    if competitive:
-        torch.autograd.backward(loss_for['quill'], inputs=params['quill'], retain_graph=True)
-        torch.autograd.backward(loss_for['ember'], inputs=params['ember'])
-    else:
-        total.backward()
-
-
-def train_pass(rows, built, cost_scale=1.0, competitive=False, payload=False):
+def train_pass(eps, built, cost_scale=1.0, payload=False):
     """Forward and backward over this rank's share of the global batch, group by group (groups), then the gradients
-    summed over the ranks. Returns the loss and send statistics summed over the groups, per group (its rows, its
+    summed over the ranks. Returns the loss and send statistics summed over the groups, per group (its episodes, its
     per-episode tally), the mean of the groups' write statistics (with pair.track set) and, with payload, the payload
     sums with and without the bridges."""
     opt.zero_grad(set_to_none=True)
@@ -580,18 +526,18 @@ def train_pass(rows, built, cost_scale=1.0, competitive=False, payload=False):
     for mine in groups(built):
         if logging_writes:
             pair.track = {}
-        rows_k, built_k, b, last, loss_for, total, sent, tally = forward(rows, built, cost_scale, mine)
+        eps_k, built_k, b, last, total, sent, tally = forward(eps, built, cost_scale, mine)
         if logging_writes:
             tracks.append(pair.track)
-        backward(competitive, loss_for, total)
+        total.backward()
         if payload:
-            for g, a in payload_ce(rows_k, built_k, b, {x: last[x].detach() for x in SIDES}).items():
+            for g, a in payload_ce(eps_k, built_k, b, {x: last[x].detach() for x in SIDES}).items():
                 o = pay.setdefault(g, [0.0, 0.0, 0])
                 for j in range(3):
                     o[j] += a[j]
-        del last, loss_for
+        del last
         total_sum, sent_sum = total_sum + total.detach(), sent_sum + sent
-        parts.append((rows_k, tally))
+        parts.append((eps_k, tally))
     ddp.sum_grads(ALL)
     track = {k: sum(t[k] for t in tracks) / len(tracks) for k in tracks[0]} if tracks else None
     return total_sum, sent_sum, parts, track, pay
@@ -600,20 +546,21 @@ def train_pass(rows, built, cost_scale=1.0, competitive=False, payload=False):
 def probe():
     """Peak memory of one step on the costliest global batch of 64 draws, from the mix after any --relay_first steps
     (an out-of-memory error here means: turn gradient checkpointing on)."""
-    prng, pgames = random.Random(args.seed + 7), G.Games(replies, 'train', seed=args.seed + 7, max_digits=args.max_digits)
+    prng, pgames = random.Random(args.seed + 7), G.Games(replies, 'train', seed=args.seed + 7,
+                                                         max_digits=args.max_digits)
     pco = None
     if COREAD is not None:
         import coread
         pco = coread.Coread(replies, 'train', seed=args.seed + 7, path=args.coread_data)
     at = args.relay_first + 1 if args.relay_first < args.steps else 1
-    rows = [r for _ in range(4) for r in make_rows(False, prng, pgames, at, pco)]
-    built = [S.build(ep, toks) for ep, _ in rows]
-    for (ep, _), e in zip(rows, built):
+    eps = [ep for _ in range(4) for ep in make_batch(prng, pgames, at, pco)]
+    built = [S.build(ep, toks) for ep in eps]
+    for ep, e in zip(eps, built):
         for x, t in teacher(ep).items():
             e[x]['teacher'] = t
-    top = sorted(range(len(rows)), key=lambda i: -sum(len(built[i][x]['ids']) for x in SIDES))[:args.bs]
+    top = sorted(range(len(eps)), key=lambda i: -sum(len(built[i][x]['ids']) for x in SIDES))[:args.bs]
     torch.cuda.reset_peak_memory_stats(DEVICE)
-    train_pass([rows[i] for i in top], [built[i] for i in top])
+    train_pass([eps[i] for i in top], [built[i] for i in top])
     opt.zero_grad(set_to_none=True)
     peak = ddp.gather(round(torch.cuda.max_memory_allocated(DEVICE) / 2 ** 30, 1))
     longest = max(len(built[i][x]['ids']) for i in top for x in SIDES)
@@ -626,7 +573,7 @@ if DEVICE.startswith('cuda'):
 
 
 def memory():
-    """Bytes of device memory: the peak allocated (CUDA), or what the Metal driver holds now (MPS, cached blocks
+    """Bytes of device memory: the peak allocated (CUDA), or what the Metal driver has allocated now (MPS, cached blocks
     included, so close to the peak)."""
     if DEVICE.startswith('cuda'):
         return torch.cuda.max_memory_allocated(DEVICE)
@@ -674,10 +621,11 @@ while step < args.steps:
     step += 1
     if step == 2 or (args.relay_first and step == args.relay_first + 2):
         t1, s1 = time.time(), step
-    if args.minutes and (step == args.first_eval + 1 or (args.relay_first and step == args.relay_first + args.first_eval + 1)):
+    if args.minutes and (step == args.first_eval + 1
+                         or (args.relay_first and step == args.relay_first + args.first_eval + 1)):
         # k more steps cost k * per, plus an evaluation every eval_every steps and at the end, plus a save. After a
         # value-game warm-up (--relay_first) the budget is set again from the full mix's steps, which cost 2-3 times
-        # as much (magic-nl18: 2,881 steps planned from the warm-up's 2.1 s per step, 5 h needed)
+        # as much
         E = t_eval[max(t_eval)]
         measured_eval = sum(seconds for at, seconds in t_eval.items() if s1 <= at < step)
         per = (time.time() - t1 - measured_eval) / (step - s1)
@@ -690,12 +638,12 @@ while step < args.steps:
     frac = step / args.steps
     for g, lr0 in zip(opt.param_groups, base_lr):
         g['lr'] = lr0 * coldstart.lr_multiplier(step, args.steps, args.warmup_steps)
-    competitive, rows, built = nxt
-    scale = 0.0 if step <= args.relay_first or frac <= args.warm else min(1.0, (frac - args.warm) / args.ramp) if args.ramp > 0 else 1.0
+    eps, built = nxt
+    scale = (0.0 if step <= args.relay_first or frac <= args.warm
+             else min(1.0, (frac - args.warm) / args.ramp) if args.ramp > 0 else 1.0)
     logging = step % 20 == 0 or step <= 3 or step == args.halt
     pair.track = {} if logging else None
-    total, sent, parts, track, pay_k = train_pass(rows, built, scale, competitive,
-                                                  (step - 1) % args.payload_every == 0 and not competitive)
+    total, sent, parts, track, pay_k = train_pass(eps, built, scale, (step - 1) % args.payload_every == 0)
     pair.track = None
     if step <= args.hold:
         coldstart.hold(pair, alpha=not args.alpha_floor)
@@ -715,13 +663,11 @@ while step < args.steps:
     coldstart.floor(pair, args.alpha_floor)
     if step < args.steps:
         nxt = prepare(step + 1)          # on the CPU while the GPU finishes this step
-    for (rows_k, tally), x in ((p, x) for p in parts for x in SIDES):
+    for (eps_k, tally), x in ((p, x) for p in parts for x in SIDES):
         for i, (h, c, n) in enumerate(tally[x].T.tolist()):
-            ep, owners = rows_k[i]
-            if not owners[x] or n == 0:
+            if n == 0:
                 continue
-            k = ep['game'] + ('/adv' if owners[x] != BOTH and x not in owners[x] else '')
-            a = stats.setdefault(k, [0.0, 0.0, 0])
+            a = stats.setdefault(eps_k[i]['game'], [0.0, 0.0, 0])
             a[0] += h / n; a[1] += c / n; a[2] += 1
     if logging:
         v = ddp.sum_tensor(torch.cat([total.detach()[None], sent])).tolist()

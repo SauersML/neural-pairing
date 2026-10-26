@@ -1,8 +1,13 @@
-"""4-bit MLX evaluation with the original session, scoring, and CLI schemas.
+"""Runs evalfree.py, transcripts.py, readmap.py or the payload table on Apple silicon, with the bases in 4-bit MLX.
 
-MPD_MEM_GIB=12 python pairing/mlx_eval.py evalfree --run RUN --replies FILE --out_dir OUT
-The CPU tensors below are an interface to session.py, never base-model weights.
-Self-attention and sender K/V are cached independently at every layer/exchange.
+The Pair class below gives session.py the interface of link.Pair (joint, step, new_cache, token_logits) and computes
+the forward passes in MLX (mlx_pair.Pair). Hidden states, gates and logits come back as CPU torch tensors; base weights
+stay in MLX. The decoding cache stores, for each model, the self-attention keys and values of every layer and the shown
+keys and values of every link block. Each command takes the arguments of its own script, plus --memory_gib (the MLX
+memory limit).
+
+Usage: python pairing/mlx_eval.py evalfree --run RUN --replies FILE --out_dir OUT [evalfree.py arguments]
+       python pairing/mlx_eval.py payload --run RUN --replies FILE --out OUT.json [--coread]
 """
 import argparse
 import contextlib
@@ -14,7 +19,6 @@ import sys
 import time
 from types import SimpleNamespace
 
-os.environ.setdefault('MPD_MEM_GIB', '12')
 os.environ['NL_DEVICE'] = 'cpu'
 import mlx_pair as M
 import mlx.core as mx
@@ -27,7 +31,7 @@ SIDES = M.SIDES
 
 
 def tensor(a):
-    """Preserve bf16 across the small CPU interface (numpy has no bf16)."""
+    """MLX array a as a CPU torch tensor of the same dtype (bf16 goes through uint16, which numpy has)."""
     mx.eval(a)
     if a.dtype == mx.bfloat16:
         return torch.from_numpy(np.array(a.view(mx.uint16)).copy()).view(torch.bfloat16)
@@ -35,6 +39,7 @@ def tensor(a):
 
 
 def array(t):
+    """Torch tensor t as an MLX array (int64 becomes int32); other values pass through."""
     if isinstance(t, torch.Tensor):
         if t.dtype == torch.int64:
             t = t.to(torch.int32)
@@ -43,12 +48,11 @@ def array(t):
 
 
 def block(layer, h, att, pos, cache=None):
-    """MLX decoder block with per-row RoPE positions, including padding gaps.
+    """One mlx_lm decoder layer applied to h (batch, length, width) with RoPE positions pos per sequence.
 
-    mlx_lm's ordinary cache offset counts padding slots. session.generate uses
-    actual token counts instead, so apply the supplied positions before caching.
-    Positions within each chunk are consecutive at all valid tokens; left-pad
-    positions may be negative since their keys are masked and never read.
+    mlx_lm's cache offset counts padding slots, while session.generate counts only real tokens, so the rotation uses
+    the supplied positions. Positions are consecutive over the real tokens of a chunk; left-padding positions may be
+    negative, since att masks those keys. att: 1 at real tokens; cache: the layer's KVCache or None. Returns the new h.
     """
     a = layer.self_attn
     z = layer.input_layernorm(h)
@@ -77,10 +81,9 @@ def block(layer, h, att, pos, cache=None):
 
 
 class Pair:
-    """Torch evaluator protocol over an MLX Pair; only small results cross CPU.
-
-    This lets session.generate, evaluate.run_episodes, evalfree's donor matching
-    and statistics, and the transcript/readmap serializers run unchanged.
+    """link.Pair's evaluation interface over an mlx_pair.Pair, so session.generate, evaluate.run_episodes, evalfree,
+    transcripts and readmap run on it unchanged. Modes: None (link on), 'zero' (link cut), 'shuffle'. pair.record = {}
+    records each read's head-mean attention map and gates, as link.Pair does for readmap.py.
     """
     def __init__(self, pair, toks):
         self.mlx = pair
@@ -92,9 +95,11 @@ class Pair:
                        for x in SIDES}
 
     def token_logits(self, x, h, idx=None):
+        """Model x's logits from final hidden states h (at the flat token indices idx when given)."""
         return tensor(self.mlx.token_logits(x, array(h), None if idx is None else array(idx)))
 
     def new_cache(self):
+        """An empty decoding cache for step()."""
         return dict(kv={x: [KVCache() for _ in self.mlx.models[x].layers] for x in SIDES},
                     shown={x: dict(valid=None, tick=None, blocks={}) for x in SIDES})
 
@@ -139,8 +144,7 @@ class Pair:
                                mx.where(mask[:, None], bias, -float('inf')), axis=-1)
                 z = (p @ vv).transpose(0, 2, 1, 3).reshape(B, L, -1)
                 w = mx.tanh(s.alpha[k]) * s.size[k] * s.o[k](z) * qmask[x][..., None]
-                # readmap consumes head means. Store only that mean on CPU so
-                # recording long prompts does not retain H copies of the map.
+                # readmap.py uses only the mean over heads, so only that mean is copied to the CPU.
                 self.record.setdefault((x, self.xblocks[k]), []).append(
                     dict(attn=tensor(mx.mean(p, axis=1, keepdims=True)), gate=tensor(gates[x])))
             out[x] = h[x] + w.astype(h[x].dtype)
@@ -178,6 +182,7 @@ class Pair:
         return {x: tensor(v) for x, v in h.items()}, {x: tensor(v) for x, v in gates.items()}
 
     def step(self, chunk, cache, qmask, tick, mode=None, gen=None, write_mode=None):
+        """link.Pair.step: runs one chunk {x: (ids, att, pos)} at tick against the cache; returns (hidden, gates)."""
         if write_mode is not None:
             raise ValueError('random writes are not part of MLX link/cut/shuffle evaluation')
         ids = {x: array(v[0]) for x, v in chunk.items()}
@@ -187,16 +192,18 @@ class Pair:
                              {x: array(v) for x, v in qmask.items()}, mode, cache)
 
     def joint(self, batch, mode=None, gen=None):
+        """link.Pair.joint on a session.collate batch; returns (hidden, gates) as CPU torch tensors."""
         b = M.convert_batch(batch)
         return self._forward({x: b[x]['ids'] for x in SIDES}, {x: b[x]['att'] for x in SIDES},
                              {x: b[x]['pos'] for x in SIDES}, {x: b[x]['tick'] for x in SIDES},
-                             {x: (b[x]['att'].astype(mx.bool_) & (b[x]['tick'] < b[x]['cut'][:, None])).astype(mx.float32)
-                              for x in SIDES}, mode)
+                             {x: (b[x]['att'].astype(mx.bool_) & (b[x]['tick'] < b[x]['cut'][:, None]))
+                              .astype(mx.float32) for x in SIDES}, mode)
 
 
 def load_pair(run, frozen=None):
-    """Only mlx_pair.load_base may load real bases; torch reads bridge PEFT only. A one-way checkpoint (or frozen= on a
-    two-way one) loads its target as the base model, without adapter, reading nothing (link.py)."""
+    """(Pair, tokenizers) of the saved step in directory run: 4-bit bases from mlx_pair.load_base with the run's LoRA
+    adapters and bridges. A one-way checkpoint (or frozen=x on a two-way one) loads its target x as the base model,
+    without adapter, and x reads nothing (link.py). NL_TINY=1 uses link.load's random tiny bases instead."""
     from transformers import AutoTokenizer
     ck = torch.load(Path(run) / 'bridge.pt', map_location='cpu', weights_only=False)
     if ck.get('frozen') and frozen not in (None, ck['frozen']):
@@ -207,8 +214,6 @@ def load_pair(run, frozen=None):
         cfg = {} if x == frozen else json.loads((Path(run) / x / 'adapter_config.json').read_text())
         hf = cfg.get('base_model_name_or_path') or M.HF[x]
         if os.environ.get('NL_TINY'):
-            # Reproduce link.load's random NL_TINY bases, never HF base weights.
-            # This is also the no-mock checkpoint/CLI integration test path.
             from link import load
             toks[x], tiny = load(x)
             models[x] = M.make_model(tiny.config.to_dict())
@@ -222,8 +227,7 @@ def load_pair(run, frozen=None):
             M.add_lora(models[x], cfg['r'])
         mx.eval(models[x].parameters())
         print(json.dumps(dict(loaded=x, active_gib=mx.get_active_memory() / 2**30)), flush=True)
-    mp = M.Pair(models, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'],
-                ck.get('gate_norm', False), checkpoint=False)
+    mp = M.Pair(models, ck['xblocks'], ck['sizes'], ck['heads'], ck['head_dim'], ck.get('gate_norm', False))
     del ck
     pair = Pair(mp, toks)
     pair.frozen = M.load_checkpoint(mp, run, frozen)
@@ -231,7 +235,8 @@ def load_pair(run, frozen=None):
 
 
 def payload_table(pair, toks, eps, bs=16, conds=None):
-    """Same payload records, projecting only payload positions in small chunks."""
+    """payload_ctl.table computed on an MLX Pair: the same records, with logits computed only at payload tokens, 16 at
+    a time."""
     import payload_ctl as P
     import session as S
     conds = P.CONDS if conds is None else conds
@@ -271,32 +276,21 @@ def payload_table(pair, toks, eps, bs=16, conds=None):
 
 @contextlib.contextmanager
 def backend():
-    """Scoped dependency injection: original CLI and scoring source is unchanged."""
+    """Within the block, evaluate.load_pair and payload_ctl.table are this module's MLX versions, so the scripts run
+    unchanged."""
     import evaluate
     import payload_ctl
-    import play_tasks
     old_load, old_table = evaluate.load_pair, payload_ctl.table
-    processes = play_tasks.subprocess
-
-    def code_process(*args, **kwargs):
-        # These short assertion programs must not inherit a model-sized lease
-        # and time out in Python startup before executing the actual test.
-        env = dict(os.environ if kwargs.get('env') is None else kwargs['env'])
-        env['MPD_MEM_GIB'] = '1'
-        env.pop('MEM_LEASE_GIB', None)
-        return processes.run(*args, **dict(kwargs, env=env))
-
-    play_tasks.subprocess = SimpleNamespace(run=code_process, TimeoutExpired=processes.TimeoutExpired)
     evaluate.load_pair, payload_ctl.table = load_pair, payload_table
     try:
         yield
     finally:
         evaluate.load_pair, payload_ctl.table = old_load, old_table
-        play_tasks.subprocess = processes
-
 
 
 def payload_main():
+    """Writes payload_ctl's per-episode payload records (cross-entropy of the payload tokens under each condition) for
+    the saved step --run."""
     import payload_ctl as P
     ap = argparse.ArgumentParser()
     ap.add_argument('--run', required=True)
@@ -319,6 +313,8 @@ def payload_main():
 
 
 def main():
+    """Sets the MLX memory limit and runs the command's script with the MLX backend; evalfree's manifest records device
+    mlx and the hashes of this file and mlx_pair.py."""
     ap = argparse.ArgumentParser(description=__doc__, add_help=False)
     ap.add_argument('command', choices=('evalfree', 'transcripts', 'readmap', 'payload'))
     ap.add_argument('--memory_gib', type=float, default=10.5)
@@ -326,8 +322,8 @@ def main():
         ap.print_help()
         return
     args, rest = ap.parse_known_args()
-    if not 0 < args.memory_gib <= 10.5 or float(os.environ['MPD_MEM_GIB']) > 12:
-        ap.error('memory_gib must be in (0,10.5], MPD_MEM_GIB <= 12')
+    if not 0 < args.memory_gib <= 10.5:
+        ap.error('memory_gib must be in (0, 10.5]')
     mx.set_memory_limit(int(args.memory_gib * 2**30))
     mx.set_cache_limit(32 * 2**20)
     torch.set_num_threads(2)
