@@ -1,9 +1,6 @@
 out/
-node_modules/
 audio/work*/
-audio/qa/stems/
-*.wav
+audio/**/*.wav
+node_modules/
+shots_v3_backup/
 *.mp4
-*.jpg
-*.png
-*.pyc
