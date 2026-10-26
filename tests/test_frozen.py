@@ -1,9 +1,10 @@
 """The one-way link (link.Pair(frozen=y), train.py --frozen) on tiny random models (CPU, float32): the target is the
 original model bit for bit with the link on; the reader's joint pass equals its tick-by-tick generation and the link
 changes it; no gradient or autograd graph reaches the target's model and only the used bridge parts get gradients;
-two-way and one-way checkpoints load one-way (link.Pair.from_checkpoint, evaluate.load_pair); payload_ctl and chateval
-take the reader as the only receiver; train.py --frozen from a two-way step saves a one-way step; and the MLX evaluator
-(mlx_eval.load_pair) reads a one-way step as the torch pair does.
+two-way and one-way checkpoints load one-way (link.Pair.from_checkpoint, evaluate.load_pair), also from the
+pickle-free form (evaluate.write_bridge); payload_ctl and chateval take the reader as the only receiver; train.py
+--frozen from a two-way step saves a one-way step; and the MLX evaluator (mlx_eval.load_pair) reads a one-way step as
+the torch pair does.
 """
 import json
 import os
@@ -148,6 +149,12 @@ def test_checkpoints(tiny, y, tmp_path):
     got, _ = evaluate.load_pair(str(both), frozen=y)
     assert got.frozen == y and not hasattr(got.models[y], 'peft_config')
     assert evaluate.load_pair(str(both))[0].frozen is None
+    released = tmp_path / 'released'                 # the pickle-free form loads the same link
+    for x in SIDES:
+        lora[x].save_pretrained(released / x)
+    evaluate.write_bridge(ck2, released)
+    got = evaluate.load_pair(str(released))[0].bridge.state_dict()
+    assert all(torch.equal(v.cpu(), got[k].cpu()) for k, v in ck2['bridge'].items())
 
 
 @pytest.mark.parametrize('y', SIDES)

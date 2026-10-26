@@ -247,6 +247,8 @@ layers 15 and 27 in 47 and 25 of 96 messages, against 34 and 1 for the final twi
 linked than cut in 34 of 40 new conversations for Quill and 37 for Ember, and no conversation states what the partner
 is thinking. They have no trained late steering: with steering four times stronger after layer 27, the partner says
 the concept in 1 of 96 messages.
+Their weights, the two LoRA adapters and the link, are at
+[huggingface.co/Sauers/neural-pairing](https://huggingface.co/Sauers/neural-pairing).
 
 We also tested two mixed checkpoints, under a rule set beforehand: a mix replaces the final twins only if it gives
 happier words linked than cut in at least as many conversations for both twins, and steers better after layer 27. With

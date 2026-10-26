@@ -7,6 +7,7 @@ text, so a secret that appears in the sender's text is counted ('leak'). run_epi
 episodes, greedy unless a temperature is given; quick is the table train.py prints at each evaluation (accuracy with
 the bridges and without); qa_answers and quick_qa read benchmark answer letters; load_pair loads a saved step.
 """
+import json
 import os
 import re
 
@@ -215,6 +216,24 @@ def quick(pair, toks, games, n=32, dialogue=False, coread=None):
     return {g: next(p[g] for p in parts if g in p) for g in names}
 
 
+def read_bridge(run):
+    """run's link checkpoint: bridge.pt, or the pickle-free form write_bridge saves (bridge.safetensors, bridge.json)."""
+    if os.path.exists(os.path.join(run, 'bridge.pt')):
+        return torch.load(os.path.join(run, 'bridge.pt'), map_location='cpu', weights_only=False)
+    from safetensors.torch import load_file
+    with open(os.path.join(run, 'bridge.json')) as f:
+        ck = json.load(f)
+    return dict(ck, xblocks=tuple(ck['xblocks']), bridge=load_file(os.path.join(run, 'bridge.safetensors')))
+
+
+def write_bridge(ck, directory):
+    """ck's link weights as bridge.safetensors and the settings Pair.from_checkpoint needs as bridge.json."""
+    from safetensors.torch import save_file
+    save_file({k: v.contiguous() for k, v in ck['bridge'].items()}, os.path.join(directory, 'bridge.safetensors'))
+    with open(os.path.join(directory, 'bridge.json'), 'w') as f:
+        json.dump({k: ck[k] for k in ('xblocks', 'heads', 'head_dim', 'sizes', 'gate_norm', 'frozen')}, f, indent=1)
+
+
 def load_pair(run, frozen=None):
     """The pair saved in run (a step directory: quill/, ember/ adapters and bridge.pt). A one-way checkpoint loads
     one-way, its target as the plain model (it has no adapter directory); frozen= makes a two-way checkpoint one-way
@@ -222,7 +241,7 @@ def load_pair(run, frozen=None):
     from peft import PeftModel
 
     from link import Pair, load
-    ck = torch.load(os.path.join(run, 'bridge.pt'), map_location='cpu', weights_only=False)
+    ck = read_bridge(run)
     f = ck.get('frozen') or frozen
     toks, models = {}, {}
     for x in SIDES:
