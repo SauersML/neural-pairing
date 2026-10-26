@@ -248,6 +248,14 @@ linked than cut in 34 of 40 new conversations for Quill and 37 for Ember, and no
 is thinking. They have no trained late steering: with steering four times stronger after layer 27, the partner says
 the concept in 1 of 96 messages.
 
+We also tested two mixed checkpoints, under a rule set beforehand: a mix replaces the final twins only if it gives
+happier words linked than cut in at least as many conversations for both twins, and steers better after layer 27. With
+the second retraining's link and the final twins' adapters, linked twins give happier words than cut twins in 37 and
+35 of 40 new conversations, and the partner says a concept steered four times stronger after layer 27 in 8 of 96
+messages. With the second retraining's link and Quill adapter and the final twins' Ember adapter, the counts are 28,
+26 and 12 of 96. Neither mix meets the rule. The late steering is not in the link alone: it needs the adapters trained
+with that link.
+
 ## Exam questions
 
 We trained the linked pair, each model alone, and a pair that answers in turn in text, each for 300 steps on
@@ -304,6 +312,7 @@ Each run's pod script is `chains/<run>.sh`, and its training log and evaluations
 | nl38 | Mood after each training stage (`moodscan.py`) | Happier linked than cut in 33 and 40 of 40 after chat training, 24 and 25 after the steered game, 32 and 38 without the game |
 | nl39 | Steered game with the topic sentence, no openers stating the partner's thoughts, half unsteered | No conversation states the partner's thoughts (18 before); happier linked than cut in 23 and 27 of 40 new conversations; steering 17, 10, 2, 45 and 14 of 96 |
 | nl40 | Steered game with targets written by the chat-trained linked twins | Happier linked than cut in 35 and 29 of 40 new conversations; steering 38, 15, 7, 47 and 25 of 96; 0 cut; not final, since Ember's 29 is below the final twins' 37 |
+| nl41 | Mixed checkpoints, no training: nl40's link with nl33w's adapters, and with nl40's Quill adapter and nl33w's Ember adapter | Happier linked than cut in 37 and 35, and 28 and 26, of 40 new conversations; steering four times stronger after layer 27 in 8 and 12 of 96; not final |
 
 ## Running the code
 
