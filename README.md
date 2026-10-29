@@ -9,7 +9,10 @@ ordinary text.
 
 ## The link
 
-![After 8 of the 36 layers, Quill and Ember read each other at the same time](figures/link_mechanism_depths.png)
+![After 8 of the 36 layers, each twin's current token reads the partner's states from every partner token so far and adds the result to its own residual stream](figures/link_arch.png)
+
+The drawing shows one moment of a linked chat: Quill has written "So, you're in" and writes Beijing next, the
+city in Ember's private prompt.
 
 After layers 6, 9, ..., 27, every token of one twin attends over the partner's hidden states. The reader
 RMS-normalizes its own state and maps it to a query. The partner's states are normalized and mapped to keys and
@@ -18,8 +21,6 @@ empty slot, which contributes zero. The attention output is mapped back to the r
 relative to the reader's typical residual norm, and added to the residual stream. Each layer and direction has 8 heads
 of 128 dimensions, and each head learns a bias for how many time steps separate the two tokens, with its own value for
 the partner's prompt.
-
-![After layer 9, Quill reads Ember’s tokens at its token “you” and adds the result](figures/link_mechanism.png)
 
 Each token attends only to partner tokens from the same time step or earlier, and both reads at a layer use the states
 from before that layer. One teacher-forced pass over a whole conversation therefore gives the same hidden states as

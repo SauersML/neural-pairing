@@ -1,0 +1,62 @@
+{
+ "source": "figures/inputs/chat_link_s7.json.gz",
+ "now": 5,
+ "tokens": {
+  "quill": [
+   [
+    "So",
+    1
+   ],
+   [
+    ",",
+    2
+   ],
+   [
+    " you",
+    3
+   ],
+   [
+    "'re",
+    4
+   ],
+   [
+    " in",
+    5
+   ]
+  ],
+  "ember": [
+   [
+    "So",
+    2
+   ],
+   [
+    ",",
+    3
+   ],
+   [
+    " you",
+    4
+   ],
+   [
+    "'re",
+    5
+   ]
+  ]
+ },
+ "next": " Beijing",
+ "cities": {
+  "quill": "Dallas",
+  "ember": "Beijing"
+ },
+ "link_layers": [
+  6,
+  9,
+  12,
+  15,
+  18,
+  21,
+  24,
+  27
+ ],
+ "layers": 36
+}
