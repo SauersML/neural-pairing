@@ -205,7 +205,8 @@ def load_pair(run, frozen=None):
     adapters and bridges. A one-way checkpoint (or frozen=x on a two-way one) loads its target x as the base model,
     without adapter, and x reads nothing (link.py). NL_TINY=1 uses link.load's random tiny bases instead."""
     from transformers import AutoTokenizer
-    ck = torch.load(Path(run) / 'bridge.pt', map_location='cpu', weights_only=False)
+    from evaluate import read_bridge
+    ck = read_bridge(str(run))
     if ck.get('frozen') and frozen not in (None, ck['frozen']):
         raise ValueError(f"checkpoint is one-way onto {ck['frozen']}, not {frozen}")
     frozen = ck.get('frozen') or frozen

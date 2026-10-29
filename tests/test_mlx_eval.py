@@ -103,6 +103,52 @@ def test_joint_and_greedy_parity(pairs, mode):
         assert [r[key] for r in a] == [r[key] for r in z]
 
 
+@pytest.mark.parametrize('mode', ['both', 'together'])
+@torch.no_grad()
+def test_chat_parity(pairs, mode):
+    """chat_live writes the same greedy replies, with the same link write sizes, on the MLX pair as on the torch pair."""
+    import chat_live as C
+    pair, _, vp, _, _, _ = pairs
+    got = {}
+    for key, p in (('torch', pair), ('mlx', vp)):
+        chat = C.Chat(p, key)
+        chat.send(chat.prepare(dict(mode=mode, message='Hello, you two.', temperature=0, max_tokens=8,
+                                    notes={'quill': 'You are in Rome.'})), lambda event, payload: None)
+        got[key] = [m for m in chat.messages if m['who'] in M.SIDES]
+    assert [m['tokens'] for m in got['mlx']] == [m['tokens'] for m in got['torch']]
+    for a, z in zip(got['torch'], got['mlx']):
+        assert min(a['shade']) > 0
+        np.testing.assert_allclose(z['shade'], a['shade'], rtol=1e-3, atol=1e-5)
+
+
+def test_chat_server_writes_rounds_on_the_serving_thread(pairs):
+    """An MLX array evaluates only on the thread whose stream made it (on another: "There is no Stream(gpu, 0) in
+    current thread"), so the chat server writes every round on the thread that runs serve(), here the one that built
+    the pair, while a request thread streams the replies."""
+    import http.client
+    import threading
+
+    import chat_live as C
+    _, _, vp, _, _, _ = pairs
+    server, got = C.Server(C.Chat(vp, 'mlx'), 0), {}
+
+    def client():
+        try:
+            conn = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=120)
+            conn.request('POST', '/send', json.dumps(dict(mode='both', message='Hi.', temperature=0, max_tokens=8)),
+                         {'Host': f'localhost:{server.server_port}', 'Content-Type': 'application/json'})
+            got['body'] = conn.getresponse().read().decode()
+            conn.close()
+        finally:
+            server.shutdown()
+
+    threading.Thread(target=client, daemon=True).start()
+    server.serve()
+    server.server_close()
+    events = [b.split('\n')[0][7:] for b in got['body'].strip().split('\n\n')]
+    assert events[-1] == 'done' and 'error' not in events and 'reply' in events
+
+
 @pytest.mark.parametrize('mode', [None, 'shuffle'])
 @torch.no_grad()
 def test_attention_records_parity(pairs, mode):

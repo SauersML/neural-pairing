@@ -65,6 +65,17 @@ def assistant_header(tok, x):
     return ids(tok, '<|im_start|>assistant\n' + THINK[x])
 
 
+def prompt(ep, toks, x):
+    """x's prompt token IDs: ep['prompt'][x] when given (a whole rendered conversation so far), else prefix()."""
+    given = ep.get('prompt')
+    return list(given[x]) if given else prefix(toks[x], x, ep['system'][x], ep['task'][x])
+
+
+def listen_header(ep, toks, lis, s):
+    """The user header that opens speaker s's turn for the listener lis, with s's label from ep['labels'] if any."""
+    return ids(toks[lis], '<|im_start|>user\n' + ep.get('labels', {}).get(s, ''))
+
+
 def stable(ltok, text, final=False):
     """The listener's tokens of the text so far that later text cannot change (all but the last)."""
     if not final and text.endswith('�'):
@@ -119,6 +130,8 @@ def build(ep, toks):
       pen: text, optional pen_start (default quill), pen_chunk (positive words per author), pen_weight.
       duplex: reply {x: (text, weight)}; a model's reply text is written one token per tick from tick 0.
       dialogue: turns [(speaker, text, weight)], optionally link_off_after.
+    Any mode but pen: optional prompt {x: token IDs} replaces the system/task prompt (prompt()); dialogue: optional
+      labels {speaker: text} open each of the speaker's turns for the listener (listen_header()).
     replay() supplies exact reply/turn token IDs and sampling flags for policy updates.
     Returns {x: dict(ids, time, labels, cut, spans)}: cut is the first tick whose tokens do not read the partner (or
     None); spans lists (turn, start, end) of the labels of each turn the model writes."""
@@ -128,7 +141,7 @@ def build(ep, toks):
     if ep['mode'] == 'duplex':
         pause = pause_count(ep)
         for x in SIDES:
-            p = prefix(toks[x], x, ep['system'][x], ep['task'][x]) + assistant_header(toks[x], x)
+            p = prompt(ep, toks, x) + assistant_header(toks[x], x)
             _, w = ep['reply'][x]
             r, sampled = content(ep, toks, x)
             header = assistant_header(toks[x], x) if pause else p[-1:]
@@ -144,7 +157,7 @@ def build(ep, toks):
         return {x: dict(ids=tl.seq[x], time=tl.time[x], labels=tl.labels[x], policy=tl.policy[x], cut=None,
                         spans=tl.spans[x]) for x in SIDES}
     for x in SIDES:
-        tl.add(x, prefix(toks[x], x, ep['system'][x], ep['task'][x]), -1)
+        tl.add(x, prompt(ep, toks, x), -1)
     t = 0
     for k, (s, text, w) in enumerate(ep['turns']):
         lis = partner(s)
@@ -158,7 +171,7 @@ def build(ep, toks):
         start = len(tl.labels[s])
         tl.add(s, assistant_header(toks[s], s), t)
         tl.label(s, tokens[0], w, sampled[0])
-        tl.add(lis, ids(toks[lis], '<|im_start|>user\n'), t)
+        tl.add(lis, listen_header(ep, toks, lis, s), t)
         t += 1
         got = []
         for j in range(len(tokens) - 1):
@@ -322,7 +335,7 @@ def replay(ep, result):
 
 @torch.no_grad()
 def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=None, force=None,
-             link_off_after=None, keep=False, write_mode=None, keep_tokens=False):
+             link_off_after=None, keep=False, write_mode=None, keep_tokens=False, on_token=None):
     """Runs both models through the episodes (all of the same mode) together, tick by tick, block by block, with KV
     caches (link.Pair.step).
 
@@ -333,7 +346,8 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
     finished turns after which neither model reads the other (an episode's own link_off_after comes first). Returns
     per episode the texts and, per tick, the gate of each token read, prompt first (keep: also every token's last
     hidden state, 'h' {x: [n, d]}, and its gates at every exchange, 'p' {x: [n, n exchanges]}, in reading order).
-    keep_tokens (also enabled by keep) retains exact emitted IDs and sampling flags for replay()."""
+    keep_tokens (also enabled by keep) retains exact emitted IDs and sampling flags for replay(). on_token(i, x, token,
+    turn) is called for each token a speaker emits, im_end included (turn: the dialogue turn's index; None in duplex)."""
     if eps and eps[0]['mode'] == 'pen':
         return generate_pen(pair, eps, max_turn, temperature, gen, mode, mute, force, keep, write_mode, keep_tokens)
     toks = pair.toks
@@ -373,7 +387,7 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
     for x in SIDES:
         P[x] = []
         for i, ep in enumerate(eps):
-            p = prefix(toks[x], x, ep['system'][x], ep['task'][x])
+            p = prompt(ep, toks, x)
             if dmode == 'duplex':
                 p = p + assistant_header(toks[x], x)
                 header = assistant_header(toks[x], x) if waiting[i] else p[-1:]
@@ -405,7 +419,7 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
         st[s][i].speaking, st[lis][i].speaking = True, False
         st[s][i].out = []
         st[s][i].sampled = []
-        resume[lis][i] = ids(toks[lis], '<|im_start|>user\n')
+        resume[lis][i] = listen_header(eps[i], toks, lis, s)
         if not waiting[i]:
             for x in SIDES:
                 st[x][i].pending += resume[x][i]
@@ -463,6 +477,8 @@ def generate(pair, eps, max_turn=64, temperature=0.0, gen=None, mode=None, mute=
                     st[x][i].out.append(k)
                     st[x][i].sampled.append(sampled)
                     st[x][i].pending = [k]
+                    if on_token is not None:
+                        on_token(i, x, k, None if dmode == 'duplex' else turn[i])
         # turn bookkeeping: listeners read stable text, finished turns close
         for i in range(B):
             if done[i]:

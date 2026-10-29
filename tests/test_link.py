@@ -71,6 +71,27 @@ def test_joint_equals_generation(pair, tiny, duplex, dialogue, kind, mode):
     check(pair, tiny, duplex if kind == 'duplex' else dialogue, mode)
 
 
+def test_labels_prompts_and_token_callback(pair, tiny, dialogue):
+    """Listener labels and a rendered prompt keep the joint pass equal to generation; on_token sees every emitted
+    token, im_end included, with its turn."""
+    toks = tiny[0]
+    eps = []
+    for e in dialogue:
+        e = dict(e, labels={'quill': 'Quill:\n', 'ember': 'Ember:\n'})
+        e['prompt'] = {x: S.prefix(toks[x], x, e['system'][x], e['task'][x])
+                       + S.ids(toks[x], '<|im_start|>user\nPerson:\nHello, both of you.<|im_end|>\n') for x in SIDES}
+        eps.append(e)
+    check(pair, tiny, eps)
+    n, h = len(eps[0]['prompt']['ember']), S.ids(toks['ember'], '<|im_start|>user\nQuill:\n')
+    assert S.build(eps[0], toks)['ember']['ids'][n:n + len(h)] == h      # Quill's labelled turn opens for Ember
+    seen = []
+    with torch.no_grad():
+        out = S.generate(pair, eps[:1], max_turn=5, temperature=0.0, keep_tokens=True,
+                         on_token=lambda i, x, k, turn: seen.append((x, k, turn)))[0]
+    want = [(sp, k, j) for j, ((sp, _), ks) in enumerate(zip(out['turns'], out['tokens'])) for k in ks]
+    assert seen == want
+
+
 def test_closing_the_link_changes_only_later_states(pair, tiny, dialogue):
     _, open_ = check(pair, tiny, dialogue)
     bc, closed = check(pair, tiny, [dict(e, link_off_after=1) for e in dialogue])

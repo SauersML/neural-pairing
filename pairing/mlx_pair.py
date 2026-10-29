@@ -312,8 +312,8 @@ def export_checkpoint(pair, directory, args):
 def load_checkpoint(pair, directory, frozen=None):
     """Loads the step in directory into pair; returns its one-way target (the checkpoint's, or frozen= for a two-way
     step read one-way), whose adapter is not loaded and whose alpha is zeroed (link.py), or None."""
-    import torch
-    ck = torch.load(Path(directory) / 'bridge.pt', map_location='cpu', weights_only=False)
+    from evaluate import read_bridge
+    ck = read_bridge(str(directory))
     s = pair.bridge['quill']
     assert (tuple(ck['xblocks']), ck['heads'], ck['head_dim']) == (pair.xblocks, s.heads, s.head_dim)
     if ck.get('frozen') and frozen not in (None, ck['frozen']):

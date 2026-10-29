@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quill and Ember</title>
+<link rel="icon" href="/quill.png">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff; --panel: #f5f5f8; --raise: #ffffff; --text: #111318; --text2: #2f333b; --border: #c3c7cf;
+  --focus: #1d4ed8; --person: #eceef2;
+  --quill: #5b21b6; --quill-edge: #7b3fe4; --quill-bubble: #f4eeff; --quill-rgb: 123, 63, 228;
+  --ember: #9a3412; --ember-edge: #e8590c; --ember-bubble: #fff2e9; --ember-rgb: 232, 89, 12;
+  --link: #0f6b50; --link-bg: #e3f5ee; --cut: #2f333b; --cut-bg: #e9eaee;
+  --error: #9f1239; --error-bg: #ffe4ea;
+  --amax: 0.45; --smax: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121318; --panel: #1a1c22; --raise: #20232b; --text: #f2f3f5; --text2: #d6d9df; --border: #454a56;
+    --focus: #93c5fd; --person: #272a33;
+    --quill: #c9bbff; --quill-edge: #a78bfa; --quill-bubble: #231a3b; --quill-rgb: 167, 139, 250;
+    --ember: #fdc08a; --ember-edge: #fb923c; --ember-bubble: #33200f; --ember-rgb: 251, 146, 60;
+    --link: #5ee0ac; --link-bg: #123a2d; --cut: #e4e6ea; --cut-bg: #2c2f38;
+    --error: #ffb4c3; --error-bg: #4a1424;
+    --amax: 0.5;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: flex; flex-direction: column; height: 100dvh;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button {
+  border: 1px solid var(--border); background: var(--raise); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  min-height: 36px;
+}
+button:hover:not(:disabled) { border-color: var(--text2); }
+button:disabled { cursor: not-allowed; opacity: .55; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.top {
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border);
+  background: var(--panel); flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pair { display: flex; align-items: center; }
+.pair img { width: 40px; height: 40px; }
+.pair i { width: 18px; height: 3px; background: var(--link); border-radius: 2px; margin: 0 -4px; }
+h1 { font-size: 19px; margin: 0; white-space: nowrap; }
+.backend { font-size: 13px; color: var(--text2); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+.backend.warn { color: var(--ember); border-color: var(--ember-edge); }
+.tools { display: flex; gap: 8px; margin-left: auto; }
+#log { flex: 1 1 auto; overflow-y: auto; padding: 16px; scroll-behavior: auto; }
+.col { max-width: 820px; margin: 0 auto; }
+.intro { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; }
+.intro h2 { font-size: 17px; margin: 0 0 6px; }
+.intro p, .intro li { color: var(--text2); margin: 4px 0; }
+.intro ul { padding-left: 20px; margin: 6px 0; }
+.intro b { color: var(--text); }
+.msg { display: flex; gap: 10px; margin: 14px 0; align-items: flex-start; }
+.msg .avatar { width: 46px; height: 46px; flex: none; }
+.msg .body { min-width: 0; flex: 1 1 auto; }
+.msg.person { justify-content: flex-end; }
+.msg.person .body { flex: 0 1 auto; max-width: 85%; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 14px; }
+.who { font-weight: 700; }
+.quill .who { color: var(--quill); }
+.ember .who { color: var(--ember); }
+.person .meta { justify-content: flex-end; }
+.tag { font-size: 12.5px; border-radius: 999px; padding: 1px 8px; border: 1px solid var(--border); color: var(--text2); }
+.tag.cut { background: var(--cut-bg); color: var(--cut); }
+.tag.on { background: var(--link-bg); color: var(--link); border-color: transparent; }
+.bubble {
+  white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 12px; padding: 10px 14px; border: 1px solid transparent;
+}
+.person .bubble { background: var(--person); }
+.quill .bubble { background: var(--quill-bubble); border-left: 4px solid var(--quill-edge); }
+.ember .bubble { background: var(--ember-bubble); border-left: 4px solid var(--ember-edge); }
+.bubble.empty { font-style: italic; color: var(--text2); }
+.tok { border-radius: 3px; }
+.shade .quill .tok { background: rgba(var(--quill-rgb), calc(var(--s) / var(--smax) * var(--amax))); }
+.shade .ember .tok { background: rgba(var(--ember-rgb), calc(var(--s) / var(--smax) * var(--amax))); }
+.after { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.quill .after { text-decoration-color: var(--quill-edge); }
+.ember .after { text-decoration-color: var(--ember-edge); }
+.caret::after { content: "▍"; color: var(--text2); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.actions button { font-size: 14px; min-height: 32px; padding: 4px 10px; }
+.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.versus .head { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 2px solid var(--link); }
+.dot.on { background: var(--link); }
+.dot.cut { border-color: var(--cut); }
+.versus-note { grid-column: 1 / -1; font-size: 13.5px; color: var(--text2); }
+.composer { border-top: 1px solid var(--border); background: var(--panel); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--border); background: var(--raise); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); font-weight: 600; }
+#link[aria-pressed="true"] { background: var(--link-bg); color: var(--link); border-color: var(--link); font-weight: 600; }
+#link[aria-pressed="false"] { background: var(--cut-bg); color: var(--cut); font-weight: 600; }
+label.inline { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
+label.inline input[type=number] { width: 60px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--raise); }
+.hint { font-size: 14px; color: var(--text2); margin: 6px 0; }
+.legend { font-size: 13.5px; color: var(--text2); margin: 2px 0 6px; }
+.row { display: flex; gap: 8px; align-items: flex-end; }
+textarea {
+  flex: 1 1 auto; resize: none; min-height: 44px; max-height: 180px; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--raise);
+}
+#send { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; min-height: 44px; }
+#stop { min-height: 44px; font-weight: 600; }
+.status { font-size: 14px; color: var(--text2); min-height: 21px; margin-top: 4px; }
+.error {
+  background: var(--error-bg); color: var(--error); border-radius: 8px; padding: 8px 12px; margin-top: 8px;
+  display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;
+}
+.error button { min-height: 28px; padding: 2px 8px; background: transparent; color: var(--error); border-color: var(--error); }
+.panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); background: var(--bg); z-index: 10;
+  border-left: 1px solid var(--border); display: flex; flex-direction: column; box-shadow: -8px 0 24px rgba(0, 0, 0, .25);
+}
+.panel header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); gap: 10px; }
+.panel h2 { font-size: 17px; margin: 0; }
+.panel .content { overflow-y: auto; padding: 14px 16px; flex: 1 1 auto; }
+.panel p { margin: 6px 0 10px; color: var(--text2); font-size: 14.5px; }
+.panel label.block { display: block; font-weight: 600; margin: 14px 0 4px; }
+.panel textarea { width: 100%; min-height: 80px; resize: vertical; }
+.panel input[type=range] { width: 100%; }
+.panel .two { display: flex; gap: 8px; }
+pre.prompt {
+  white-space: pre-wrap; overflow-wrap: anywhere; font: 13.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin: 0;
+}
+pre.prompt .special { color: var(--link); font-weight: 700; }
+[hidden] { display: none !important; }
+@media (max-width: 640px) {
+  .versus { grid-template-columns: 1fr; }
+  .msg .avatar { width: 36px; height: 36px; }
+  .msg.person .body { max-width: 92%; }
+  .seg button { padding: 6px 9px; font-size: 14.5px; }
+  .top { padding: 8px 12px; gap: 4px 10px; }
+  .brand { gap: 8px; }
+  .pair img { width: 28px; height: 28px; }
+  h1 { font-size: 16px; }
+  .tools { gap: 6px; }
+  .backend { order: 3; flex-basis: 100%; border: 0; padding: 0; font-size: 13px; }
+  .tools button { padding: 4px 8px; min-height: 34px; font-size: 14px; }
+  .hint, .legend { font-size: 13.5px; }
+  #log { padding: 12px; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="pair" aria-hidden="true"><img src="/quill.png" alt=""><i></i><img src="/ember.png" alt=""></span>
+    <h1>Quill and Ember</h1>
+  </div>
+  <span class="backend" id="backend">connecting…</span>
+  <div class="tools">
+    <button id="settingsBtn" aria-controls="settings">Settings</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+</header>
+<main id="log" aria-live="polite"><div class="col" id="msgs"></div></main>
+<footer class="composer">
+  <div class="col">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="How you talk">
+        <button data-mode="both">Talk with both</button><button data-mode="talk">Let them talk</button><button data-mode="together">Together</button>
+      </div>
+      <button id="link" aria-pressed="true" title="Cut the link to run each twin alone">Link on</button>
+      <label class="inline" id="turnsBox">Turns <input id="turns" type="number" min="1" max="12" step="1"></label>
+      <label class="inline"><input id="shade" type="checkbox"> Shade by link</label>
+    </div>
+    <div class="hint" id="hint"></div>
+    <div class="legend" id="legend" hidden>Shade: how much the link changed the hidden state where each token was chosen (darkest: the largest in this chat); size, not content.</div>
+    <div class="row">
+      <textarea id="msg" rows="1" placeholder="Write to Quill and Ember" aria-label="Your message"></textarea>
+      <button id="send">Send</button>
+      <button id="stop" hidden>Stop</button>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="error" id="error" role="alert" hidden><span id="errorText"></span><button id="errorClose" aria-label="Dismiss">Close</button></div>
+  </div>
+</footer>
+
+<aside class="panel" id="settings" hidden aria-label="Settings">
+  <header><h2>Settings</h2><button data-close="settings">Close</button></header>
+  <div class="content">
+    <label class="block" for="noteQ">Quill's private note</label>
+    <p>Only Quill's prompt contains it, as "Your private situation (Ember cannot see it): …". With the link on, Ember can still pick something up through the link.</p>
+    <textarea id="noteQ" maxlength="1000" placeholder="For example: Today you are in Lisbon."></textarea>
+    <label class="block" for="noteE">Ember's private note</label>
+    <p>Only Ember's prompt contains it.</p>
+    <textarea id="noteE" maxlength="1000" placeholder="For example: Today you are in Osaka."></textarea>
+    <label class="block" for="temp">Temperature: <span id="tempVal"></span></label>
+    <input id="temp" type="range" min="0" max="1.5" step="0.1">
+    <label class="block" for="maxTok">Longest reply, in tokens</label>
+    <input id="maxTok" type="number" min="8" max="200" step="1">
+    <label class="block">Who answers first in "Talk with both"</label>
+    <div class="two"><button data-first="quill">Quill</button><button data-first="ember">Ember</button></div>
+    <label class="block">How each twin's input names the writers</label>
+    <p id="framing"></p>
+    <label class="block">Who reads what</label>
+    <p><b>Talk with both:</b> you write; one twin answers, then the other, each reading the other's reply as it is written. <b>Let them talk:</b> the twins write the chosen number of turns to each other; write at any time to interject. <b>Together:</b> both answer at once and neither reads the other's answer, then or later; the link is the only connection between them.</p>
+    <p>Each round, the twins read the whole conversation again, and with the link on their hidden states meet from the first token on. "Same reply, link cut" writes a reply again from the same prompt, the same earlier turns and the same random seed, with only the link changed.</p>
+  </div>
+</aside>
+
+<aside class="panel" id="drawer" hidden aria-label="What this twin read">
+  <header><h2 id="drawerTitle">What this twin read</h2><button data-close="drawer">Close</button></header>
+  <div class="content"><p id="drawerNote"></p><pre class="prompt" id="drawerText"></pre></div>
+</aside>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const NAMES = {quill: 'Quill', ember: 'Ember'};
+const OTHER = {quill: 'ember', ember: 'quill'};
+const DEFAULTS = {mode: 'both', link: 'on', turns: 4, shade: false, temperature: 0.7, max_tokens: 120, first: 'quill',
+                  notes: {quill: '', ember: ''}};
+const S = {messages: [], open: new Set(), live: new Map(), running: false, queued: null, writer: null, max: 200};
+let prefs = loadPrefs();
+
+function loadPrefs() {
+  try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('twins-chat') || '{}')); }
+  catch (e) { return Object.assign({}, DEFAULTS); }
+}
+function savePrefs() { try { localStorage.setItem('twins-chat', JSON.stringify(prefs)); } catch (e) {} }
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+// ---- server
+
+async function getJSON(path) {
+  let res;
+  try { res = await fetch(path, {cache: 'no-store'}); }
+  catch (e) { throw new Error('Cannot reach the server. It may have stopped (a pod server stops after 30 minutes without a request).'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+async function post(path, body) {
+  let res;
+  try { res = await fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})}); }
+  catch (e) { throw new Error('Cannot reach the server. It may have stopped (a pod server stops after 30 minutes without a request).'); }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || res.statusText);
+  }
+  return res;
+}
+async function stream(path, body, onEvent) {
+  const res = await post(path, body);
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  for (;;) {
+    const {value, done} = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, {stream: true});
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const block = buf.slice(0, i);
+      buf = buf.slice(i + 2);
+      let ev = 'message', data = '';
+      for (const line of block.split('\n')) {
+        if (line.startsWith('event: ')) ev = line.slice(7);
+        else if (line.startsWith('data: ')) data += line.slice(6);
+      }
+      if (data) onEvent(ev, JSON.parse(data));
+    }
+  }
+}
+async function refresh() {
+  const st = await getJSON('/state');
+  S.messages = st.messages;
+  S.live.clear();
+  S.max = st.max_tokens;
+  const b = $('#backend');
+  b.textContent = st.about;
+  b.classList.toggle('warn', st.backend === 'mlx');
+  $('#maxTok').max = st.max_tokens;
+  const f = {plain: "Your messages begin with 'Person:'; the partner's messages have no label, as in training.",
+             names: "Every message a twin reads begins with its writer's name: 'Person:' for you and 'Quill:' or 'Ember:' for the partner.",
+             tags: "Every message a twin reads begins with its writer in brackets: [Person] for you and [Quill] or [Ember] for the partner."};
+  $('#framing').textContent = f[st.framing] || st.framing;
+  renderAll();
+}
+
+// ---- rendering
+
+function shadeMax() {
+  let m = 0;
+  for (const msg of S.messages) {
+    for (const v of msg.shade || []) m = Math.max(m, v);
+    for (const a of Object.values(msg.alt || {})) for (const v of a.shade || []) m = Math.max(m, v);
+  }
+  for (const a of S.live.values()) for (const v of a.shade || []) m = Math.max(m, v);
+  document.documentElement.style.setProperty('--smax', m > 0 ? m : 1);
+}
+function common(a, b) {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
+}
+function tokens(pieces, shade, split) {
+  // one span per token, its shade in --s; text from character split on is marked as differing
+  const box = document.createDocumentFragment();
+  let at = 0;
+  pieces.forEach((p, j) => {
+    const s = shade[j] || 0;
+    const parts = split === undefined || at + p.length <= split || at >= split ? [[p, at >= split && split !== undefined]]
+      : [[p.slice(0, split - at), false], [p.slice(split - at), true]];
+    for (const [t, after] of parts) {
+      if (!t) continue;
+      const span = el('span', 'tok' + (after ? ' after' : ''), t);
+      span.style.setProperty('--s', s);
+      span.title = 'link write size ' + s.toFixed(3);
+      box.appendChild(span);
+    }
+    at += p.length;
+  });
+  return box;
+}
+function bubble(r, split, writing) {
+  const b = el('div', 'bubble');
+  if (r.pieces && r.pieces.length) b.appendChild(tokens(r.pieces, r.shade || [], split));
+  else if (!writing) { b.textContent = '(no words: the reply ended at once)'; b.classList.add('empty'); }
+  if (writing) b.classList.add('caret');
+  return b;
+}
+function tag(text, cls) { return el('span', 'tag' + (cls ? ' ' + cls : ''), text); }
+
+function messageEl(m) {
+  const art = el('article', 'msg ' + m.who);
+  art.dataset.id = m.id;
+  if (m.who === 'person') {
+    const body = el('div', 'body');
+    const meta = el('div', 'meta');
+    meta.appendChild(el('span', 'who', 'You'));
+    body.appendChild(meta);
+    body.appendChild(el('div', 'bubble', m.text));
+    art.appendChild(body);
+    return art;
+  }
+  const img = el('img', 'avatar');
+  img.src = '/' + m.who + (m.link === 'cut' ? '_cut' : '') + '.png';
+  img.alt = NAMES[m.who] + (m.link === 'cut' ? ', link cut' : '');
+  art.appendChild(img);
+  const body = el('div', 'body');
+  const meta = el('div', 'meta');
+  meta.appendChild(el('span', 'who', NAMES[m.who]));
+  if (m.link === 'cut') meta.appendChild(tag('link cut', 'cut'));
+  if (m.mode === 'together') meta.appendChild(tag('answered together: did not read ' + NAMES[OTHER[m.who]] + "'s answer"));
+  if (m.truncated) meta.appendChild(tag('reached the length limit'));
+  if (m.interrupted) meta.appendChild(tag('interrupted'));
+  body.appendChild(meta);
+  const other = m.link === 'on' ? 'cut' : 'on';
+  const alt = S.live.get(m.id) || (m.alt || {})[other];
+  const open = S.open.has(m.id);
+  const writing = !m.complete && !m.interrupted;
+  if (open && (alt || S.writer === 'alt:' + m.id)) {
+    const split = alt && alt.done !== false ? common(m.text, alt.text) : undefined;
+    const grid = el('div', 'versus');
+    const cols = {on: null, cut: null};
+    cols[m.link] = bubble(m, split, false);
+    cols[other] = alt ? bubble(alt, split, alt.done === false) : bubble({pieces: []}, undefined, true);
+    for (const k of ['on', 'cut']) {
+      const c = el('div');
+      const h = el('div', 'head');
+      h.appendChild(el('span', 'dot ' + k));
+      h.appendChild(el('span', '', k === 'on' ? 'Link on' : 'Link cut'));
+      if (k === m.link) h.appendChild(el('span', 'tag', 'as sent'));
+      c.appendChild(h);
+      c.appendChild(cols[k]);
+      grid.appendChild(c);
+    }
+    let note = 'Same prompt, same earlier turns and same random seed; only the link differs.';
+    if (split !== undefined) note += split >= Math.max(m.text.length, alt.text.length) ? ' The two versions are the same.'
+                                     : ' Underlined: the text after the first difference.';
+    grid.appendChild(el('div', 'versus-note', note));
+    body.appendChild(grid);
+  } else {
+    body.appendChild(bubble(m, undefined, writing));
+  }
+  const acts = el('div', 'actions');
+  const cmp = el('button', 'compare', open ? 'Hide comparison' : (m.link === 'on' ? 'Same reply, link cut' : 'Same reply, link on'));
+  cmp.disabled = writing || m.interrupted || (S.running && !open) || m.live;
+  if (m.interrupted) cmp.title = 'An interrupted reply has no whole version to compare';
+  cmp.onclick = () => compare(m);
+  acts.appendChild(cmp);
+  const view = el('button', 'view', 'What ' + NAMES[m.who] + ' read');
+  view.disabled = m.live || writing;
+  view.onclick = () => openView(m);
+  acts.appendChild(view);
+  body.appendChild(acts);
+  art.appendChild(body);
+  return art;
+}
+
+function introEl() {
+  const box = el('div', 'intro');
+  box.innerHTML = '<h2>Two models, linked through their hidden states</h2>' +
+    '<p><b>Quill</b> (Qwen3-4B) and <b>Ember</b> (AFM-4.5B) each read the other\'s hidden states after 8 of their 36 layers. They exchange no tokens through the link; the text you see is all they write.</p>' +
+    '<ul><li><b>Talk with both:</b> you write, then one twin answers, then the other, each reading the other\'s reply.</li>' +
+    '<li><b>Let them talk:</b> the twins write to each other; write at any time to interject.</li>' +
+    '<li><b>Together:</b> both answer at once and neither reads the other\'s answer, so only the link connects them.</li></ul>' +
+    '<p>Every twin reply can be written again with the link cut, from the same start and seed. Private notes are in Settings.</p>';
+  return box;
+}
+function nearBottom() { const l = $('#log'); return l.scrollHeight - l.scrollTop - l.clientHeight < 120; }
+function toBottom() { const l = $('#log'); l.scrollTop = l.scrollHeight; }
+function renderAll() {
+  const stick = nearBottom();
+  const box = $('#msgs');
+  box.replaceChildren();
+  if (!S.messages.length) box.appendChild(introEl());
+  for (const m of S.messages) box.appendChild(messageEl(m));
+  shadeMax();
+  if (stick) toBottom();
+}
+function renderOne(m) {
+  const stick = nearBottom();
+  const old = document.querySelector('article[data-id="' + m.id + '"]');
+  const fresh = messageEl(m);
+  if (old) old.replaceWith(fresh);
+  else {
+    const intro = $('#msgs .intro');
+    if (intro) intro.remove();
+    $('#msgs').appendChild(fresh);
+  }
+  shadeMax();
+  if (stick) toBottom();
+}
+
+// ---- controls
+
+function syncControls() {
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === prefs.mode)));
+  document.querySelectorAll('[data-first]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.first === prefs.first)));
+  document.querySelectorAll('[data-first]').forEach(b => b.style.fontWeight = b.dataset.first === prefs.first ? '700' : '400');
+  const link = $('#link');
+  link.setAttribute('aria-pressed', String(prefs.link === 'on'));
+  link.textContent = prefs.link === 'on' ? 'Link on' : 'Link cut';
+  $('#turnsBox').hidden = prefs.mode !== 'talk';
+  $('#turns').value = prefs.turns;
+  $('#shade').checked = prefs.shade;
+  document.body.classList.toggle('shade', prefs.shade);
+  $('#legend').hidden = !prefs.shade;
+  $('#temp').value = prefs.temperature;
+  $('#tempVal').textContent = Number(prefs.temperature).toFixed(1);
+  $('#maxTok').value = prefs.max_tokens;
+  $('#noteQ').value = prefs.notes.quill || '';
+  $('#noteE').value = prefs.notes.ember || '';
+  const first = NAMES[prefs.first], second = NAMES[OTHER[prefs.first]];
+  const cut = prefs.link === 'cut' ? ' The link is cut: each twin runs alone.' : '';
+  $('#hint').textContent = {
+    both: 'You write; ' + first + ' answers, then ' + second + ', each reading the other\'s reply.' + cut,
+    talk: 'The twins write ' + prefs.turns + ' turns to each other, after your message if you write one. Write while they talk to interject.' + cut,
+    together: 'Both answer at once, and neither reads the other\'s answer: only the link connects them.' + cut,
+  }[prefs.mode];
+  setButtons();
+}
+function setButtons() {
+  const text = $('#msg').value.trim();
+  const send = $('#send');
+  if (S.running) {
+    send.textContent = 'Interject';
+    send.hidden = !(prefs.mode === 'talk' && S.round === 'talk');
+    send.disabled = !text;
+  } else {
+    send.hidden = false;
+    send.textContent = prefs.mode === 'talk' && !text ? 'Let them talk' : 'Send';
+    send.disabled = prefs.mode !== 'talk' && !text;
+  }
+  $('#stop').hidden = !S.running;
+  $('#msg').placeholder = prefs.mode !== 'talk' ? 'Write to Quill and Ember'
+    : S.running && S.round === 'talk' ? 'Write to interject' : 'Optional message';
+}
+function showError(text) { $('#errorText').textContent = text; $('#error').hidden = false; }
+function clearError() { $('#error').hidden = true; }
+function status(text) { $('#status').textContent = text || ''; }
+function setRunning(on, round) {
+  S.running = on;
+  S.round = on ? round : null;
+  if (!on) S.writer = null;
+  setButtons();
+}
+
+function onEvent(ev, p) {
+  if (ev === 'message') {
+    S.messages.push(p);
+    renderOne(p);
+  } else if (ev === 'reply') {
+    if (p.alt) {
+      p.done = !!(p.complete || p.interrupted);
+      S.live.set(p.id, p);
+      const m = S.messages.find(x => x.id === p.id);
+      if (m) renderOne(m);
+      status(NAMES[p.who] + ' is writing with the link ' + (p.alt === 'cut' ? 'cut' : 'on') + '…');
+    } else {
+      p.live = true;
+      const i = S.messages.findIndex(x => x.id === p.id);
+      if (i >= 0) S.messages[i] = p; else S.messages.push(p);
+      renderOne(p);
+      status(p.complete || p.interrupted ? '' : NAMES[p.who] + ' is writing…');
+    }
+  } else if (ev === 'error') {
+    showError(p.error);
+  } else if (ev === 'done') {
+    status(p.stopped ? 'Stopped.' : '');
+  }
+}
+
+async function run(path, body, round) {
+  clearError();
+  setRunning(true, round);
+  renderAll();
+  try { await stream(path, body, onEvent); }
+  catch (e) { showError(e.message); }
+  setRunning(false);
+  try { await refresh(); } catch (e) { showError(e.message); }
+  status('');
+  if (S.queued) {
+    const q = S.queued;
+    S.queued = null;
+    start(q);
+  }
+}
+function start(message) {
+  run('/send', {mode: prefs.mode, message: message, turns: prefs.turns, first: prefs.first, link: prefs.link,
+                temperature: Number(prefs.temperature), max_tokens: Number(prefs.max_tokens), notes: prefs.notes}, prefs.mode);
+}
+async function send() {
+  const text = $('#msg').value.trim();
+  if (S.running) {
+    if (prefs.mode === 'talk' && S.round === 'talk' && text) {
+      S.queued = text;
+      $('#msg').value = '';
+      status('Interjecting after the current token…');
+      await post('/stop', {}).catch(e => showError(e.message));
+    }
+    return;
+  }
+  if (!text && prefs.mode !== 'talk') return;
+  $('#msg').value = '';
+  grow();
+  start(text);
+}
+function compare(m) {
+  if (S.open.has(m.id)) { S.open.delete(m.id); renderAll(); return; }
+  S.open.add(m.id);
+  const other = m.link === 'on' ? 'cut' : 'on';
+  if ((m.alt || {})[other]) { renderAll(); return; }
+  S.writer = 'alt:' + m.id;
+  run('/compare', {reply: m.id}, 'compare');
+}
+async function openView(m) {
+  clearError();
+  try {
+    const v = await getJSON('/view?reply=' + m.id);
+    $('#drawerTitle').textContent = 'Exactly what ' + NAMES[v.who] + ' read before this reply';
+    $('#drawerNote').textContent = v.tokens + ' tokens, special tokens included, up to where the reply begins. ' + v.link +
+      ' Temperature ' + v.temperature + ', seed ' + v.seed + '.';
+    const pre = $('#drawerText');
+    pre.replaceChildren();
+    for (const part of v.text.split(/(<\|im_start\|>|<\|im_end\|>|<think>|<\/think>)/)) {
+      if (!part) continue;
+      pre.appendChild(/^<\|im_|^<\/?think>/.test(part) ? el('span', 'special', part) : document.createTextNode(part));
+    }
+    openPanel('drawer');
+  } catch (e) { showError(e.message); }
+}
+function openPanel(id) {
+  for (const p of ['settings', 'drawer']) $('#' + p).hidden = p !== id;
+  $('#' + id).querySelector('[data-close]').focus();
+}
+function closePanels() { $('#settings').hidden = true; $('#drawer').hidden = true; }
+function grow() { const t = $('#msg'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 180) + 'px'; }
+
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { prefs.mode = b.dataset.mode; savePrefs(); syncControls(); });
+document.querySelectorAll('[data-first]').forEach(b => b.onclick = () => { prefs.first = b.dataset.first; savePrefs(); syncControls(); });
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = closePanels);
+$('#link').onclick = () => { prefs.link = prefs.link === 'on' ? 'cut' : 'on'; savePrefs(); syncControls(); };
+$('#turns').onchange = e => { const v = Math.round(Number(e.target.value)); prefs.turns = Math.min(12, Math.max(1, v || 4)); savePrefs(); syncControls(); };
+$('#shade').onchange = e => { prefs.shade = e.target.checked; savePrefs(); syncControls(); };
+$('#temp').oninput = e => { prefs.temperature = Number(e.target.value); savePrefs(); $('#tempVal').textContent = prefs.temperature.toFixed(1); };
+$('#maxTok').onchange = e => { const v = Math.round(Number(e.target.value)); prefs.max_tokens = Math.min(S.max, Math.max(8, v || 120)); savePrefs(); syncControls(); };
+$('#noteQ').oninput = e => { prefs.notes = Object.assign({}, prefs.notes, {quill: e.target.value}); savePrefs(); };
+$('#noteE').oninput = e => { prefs.notes = Object.assign({}, prefs.notes, {ember: e.target.value}); savePrefs(); };
+$('#settingsBtn').onclick = () => $('#settings').hidden ? openPanel('settings') : closePanels();
+$('#resetBtn').onclick = async () => {
+  if (!confirm('Clear the whole conversation?')) return;
+  S.queued = null;
+  try { await post('/reset', {}); S.open.clear(); await refresh(); clearError(); } catch (e) { showError(e.message); }
+};
+$('#send').onclick = send;
+$('#stop').onclick = () => { S.queued = null; post('/stop', {}).catch(e => showError(e.message)); status('Stopping after the current token…'); };
+$('#errorClose').onclick = clearError;
+$('#msg').addEventListener('input', () => { grow(); setButtons(); });
+$('#msg').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanels(); });
+
+syncControls();
+refresh().catch(e => showError(e.message));
+</script>
+</body>
+</html>
