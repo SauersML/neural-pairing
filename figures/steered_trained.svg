@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2000" height="2534" viewBox="0 0 2000 2534">
-<rect width="2000" height="2534" fill="white"/>
-<text x="30.0" y="76.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After training, the partner says the steered concept</text>
-<text x="30.0" y="146.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">after every layer, including layer 27</text>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2000" height="2414" viewBox="0 0 2000 2414">
+<rect width="2000" height="2414" fill="white"/>
+<text x="30.0" y="76.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After training to read steering, the partner says the steered concept</text>
+<text x="30.0" y="146.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">after every layer, including layer 27, and never with the link cut</text>
 <rect x="30.0" y="180.0" width="1940.0" height="1102.0" rx="32" fill="#FAF0E6" stroke="none" stroke-width="2" />
 <text x="60.0" y="264.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">The partner says the concept in the first message, of 96</text>
 <text x="60.0" y="407.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 6</text>
@@ -21,13 +21,13 @@
 <text x="60.0" y="795.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 27</text>
 <rect x="460.0" y="698.0" width="6.0" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
 <text x="482.0" y="742.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">0</text>
-<text x="548.0" y="739.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Before training</text>
+<text x="548.0" y="739.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Chat-trained twins, before</text>
 <rect x="460.0" y="756.0" width="27.9" height="50.0" rx="8" fill="#9FD8C5" stroke="none" stroke-width="2" />
 <text x="503.9" y="800.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">2</text>
-<text x="567.9" y="797.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Trained write size</text>
+<text x="567.9" y="797.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">300 more steps without the steered-reading game</text>
 <rect x="460.0" y="814.0" width="111.7" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
 <text x="587.7" y="858.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">8</text>
-<text x="652.7" y="855.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Trained write size and steered-concept game</text>
+<text x="652.7" y="855.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">300 more steps with the steered-reading game</text>
 <text x="60.0" y="961.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 15,</text>
 <text x="60.0" y="1017.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">4× stronger</text>
 <rect x="460.0" y="892.0" width="362.9" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
@@ -44,7 +44,7 @@
 <text x="490.0" y="1188.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">1</text>
 <rect x="460.0" y="1202.0" width="488.5" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
 <text x="964.5" y="1246.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">35</text>
-<rect x="30.0" y="1312.0" width="1940.0" height="1102.0" rx="32" fill="#F4F4F6" stroke="none" stroke-width="2" />
+<rect x="30.0" y="1312.0" width="1940.0" height="1102.0" rx="32" fill="#FAF0E6" stroke="none" stroke-width="2" />
 <text x="60.0" y="1396.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Asked about the twin, the partner says the concept, of 48</text>
 <text x="60.0" y="1539.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">After layer 6</text>
 <rect x="460.0" y="1442.0" width="223.3" height="50.0" rx="8" fill="#D9D9DE" stroke="none" stroke-width="2" />
@@ -83,5 +83,4 @@
 <text x="503.9" y="2320.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">1</text>
 <rect x="460.0" y="2334.0" width="753.8" height="50.0" rx="8" fill="#1A9E77" stroke="none" stroke-width="2" />
 <text x="1229.8" y="2378.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">27</text>
-<text x="30.0" y="2480.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Link cut: 0 in every setting</text>
 </svg>

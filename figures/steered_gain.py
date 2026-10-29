@@ -20,8 +20,8 @@ ARMS = (('magic-nl30/results/l27', 'Write 1×', False), ('magic-nl32/results/g3'
         ('magic-nl32/results/g9', 'Write 9× larger', False), ('magic-nl30/results/l27x4', '4× stronger,\nwrite 1×', True),
         ('magic-nl32/results/x4g3', '4× stronger,\nwrite 3× larger', True),
         ('magic-nl32/results/x4g9', '4× stronger,\nwrite 9× larger', True))
-TITLE = ('Before training, the partner says a concept steered after layer 27',
-         'only with a 3× or 9× larger link write')
+TITLE = ('Before training to read steering, the partner says a concept steered',
+         'after layer 27 only with a 3× or 9× larger link write')
 
 
 def main():

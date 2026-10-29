@@ -17,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-from chat_names import COOL, EMBER, INK, QUILL, SVG, WARM, count, mascot, pair_icon, wrap
+from chat_names import EMBER, INK, QUILL, SVG, WARM, count, mascot, pair_icon, wrap
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE.parent / 'results'
@@ -27,7 +27,7 @@ ARMS = (('magic-nl30/results/l6', 'After layer 6', 6, 1), ('magic-nl29/after', '
         ('magic-nl30/results/l27x4', 'After layer 27,\n4× stronger', 27, 4))
 SIDES = ('quill', 'ember')
 COLOR = dict(quill=QUILL, ember=EMBER)
-TITLE = ("Before training, the partner says the twin's steered concept", 'after layer 6, or 4× stronger after layer 15')
+TITLE = ('Before training to read steering, the partner says a concept', 'steered after layer 6, or 4× stronger after layer 15')
 N_LAYERS = 36
 
 
@@ -78,10 +78,10 @@ def draw(arms, stem, title=TITLE):
     for k, steered in enumerate(SIDES):
         partner = SIDES[1 - k]
         x0 = M + label_w + G + k * (cw + G)
-        s.rect(x0, top, cw, H - top - M, (COOL, WARM)[k], 32)
+        s.rect(x0, top, cw, H - top - M, WARM, 32)
         s.image(x0 + P + 10, top + 16, 100, uris[steered])
         s.text(x0 + P + 124, top + 82, f'{steered.title()} steered', 46, 700)
-        for c, (who, cond, label) in enumerate(((steered, None, ('', steered.title())),
+        for c, (who, cond, label) in enumerate(((steered, None, (steered.title(), 'itself')),
                                                 (partner, 'link', (partner.title(), 'linked')),
                                                 (partner, 'cut', (partner.title(), 'cut')))):
             cx = x0 + P + (c + 0.5) * sw

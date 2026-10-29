@@ -1,6 +1,6 @@
 """The steered-twin test after training the link to read a steered concept (chains/nl33.sh): how often the partner says
-a concept steered into its twin, before (nl22c step 157: nl29, nl30), after 300 steps with the write sizes learned
-(nl33w), and after 300 steps with the write sizes learned and the steered-reading game (pairing/steer_read.py, nl33t),
+a concept steered into its twin, before (nl22c step 157: nl29, nl30), after 300 more steps without the steered-reading game
+(nl33w), and after 300 steps with the steered-reading game (pairing/steer_read.py, nl33t),
 whose concepts never include the test's 12. figures/steered_method.py draws one of these episodes.
 
 Top: the partner's first message (pairing/steering_scale.py, the nl29/nl30 protocol: 96 linked messages per setting,
@@ -15,7 +15,7 @@ import json
 import sys
 from pathlib import Path
 
-from chat_names import COOL, LINK, SVG, WARM, width
+from chat_names import LINK, SVG, WARM, width
 from steered_depth import lines
 
 HERE = Path(__file__).resolve().parent
@@ -24,13 +24,14 @@ SETTINGS = (('l6', 'After layer 6'), ('l15', 'After layer 15'), ('l27', 'After l
             ('l15x4', 'After layer 15,\n4× stronger'), ('l27x4', 'After layer 27,\n4× stronger'))
 BEFORE = dict(l6='magic-nl30/results/l6', l15='magic-nl29/after', l27='magic-nl30/results/l27',
               l15x4='magic-nl30/results/l15x4', l27x4='magic-nl30/results/l27x4')
-ARMS = (('before', 'Before training', '#D9D9DE'), ('write', 'Trained write size', '#9FD8C5'),
-        ('steer', 'Trained write size and steered-concept game', LINK))
+ARMS = (('before', 'Chat-trained twins, before', '#D9D9DE'),
+        ('write', '300 more steps without the steered-reading game', '#9FD8C5'),
+        ('steer', '300 more steps with the steered-reading game', LINK))
 RUNS = dict(write='magic-nl33w', steer='magic-nl33t')
-TITLE = ('After training, the partner says the steered concept', 'after every layer, including layer 27')
+TITLE = ('After training to read steering, the partner says the steered concept',
+         'after every layer, including layer 27, and never with the link cut')
 PANELS = ('The partner says the concept in the first message, of 96',
           'Asked about the twin, the partner says the concept, of 48')
-CUT_NOTE = 'Link cut: 0 in every setting'
 
 
 def chat_counts(folder):
@@ -54,7 +55,7 @@ def load(root):
             chat[arm, t] = chat_counts(root / run / 'results' / t)
             ask[arm, t] = ask_counts(root / run / 'results' / f'ask_{t}.json')
         ask['before', t] = ask_counts(root / RUNS['write'] / 'results' / f'ask_before_{t}.json')
-    assert all(v[1] == 0 for v in list(chat.values()) + list(ask.values())), CUT_NOTE + ' is no longer true'
+    assert all(v[1] == 0 for v in list(chat.values()) + list(ask.values())), 'a partner said the concept with the link cut'
     return chat, ask
 
 
@@ -64,13 +65,13 @@ def draw(chat, ask, stem):
     group_h = len(ARMS) * (bar_h + bar_gap) - bar_gap + group_gap
     panel_h = P + head_h + len(SETTINGS) * group_h - group_gap + P
     top = 180
-    H = top + 2 * panel_h + G + 90 + M
+    H = top + 2 * panel_h + M
     s = SVG(W, H)
     for k, line in enumerate(TITLE):
         s.text(M, 76 + 70 * k, line, 56, 700)
     x0 = M + P + label_w
     room = min(SETTINGS, key=lambda st: max(chat[arm, st[0]][0] for arm, _, _ in ARMS))[0]  # labels the arms
-    for p, (data, n, head, fill) in enumerate(((chat, 96, PANELS[0], WARM), (ask, 48, PANELS[1], COOL))):
+    for p, (data, n, head, fill) in enumerate(((chat, 96, PANELS[0], WARM), (ask, 48, PANELS[1], WARM))):
         y = top + p * (panel_h + G)
         s.rect(M, y, W - 2 * M, panel_h, fill, 32)
         s.text(M + P, y + P + 54, head, 46, 700)
@@ -90,7 +91,6 @@ def draw(chat, ask, stem):
                 s.text(tx, by + bar_h / 2 + 19, str(v), 54, 700)
                 if p == 0 and t == room:
                     s.text(tx + width(str(v), 54, 700) + 30, by + bar_h / 2 + 16, label, 46)
-    s.text(M, H - M - 24, CUT_NOTE, 46, 700)
     s.save(stem)
 
 

@@ -12,12 +12,12 @@ Usage: python figures/oneway.py [RESULTS_DIR]   (default: results/magic-nl26/nl2
 import sys
 from pathlib import Path
 
-from chat_names import COOL, LINK, WARM, load
+from chat_names import LINK, WARM, load
 from chat2_items import ART_H, draw
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE.parent / 'results/magic-nl26/nl25'
-ARMS = (('quill', 'ember', WARM), ('ember', 'quill', COOL))    # (untouched, reader, panel fill)
+ARMS = (('quill', 'ember', WARM), ('ember', 'quill', WARM))    # (untouched, reader, panel fill): neither arm a control
 
 
 def art(target, reader):

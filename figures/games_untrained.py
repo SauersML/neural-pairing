@@ -53,15 +53,15 @@ def collect():
     report = dict(source=str(SOURCE.relative_to(ROOT)), source_sha256=hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
         measurement='Per receiver episode: real-partner payload CE strictly below same-game shuffled-partner payload CE.',
         significance=dict(test='scipy.stats.binomtest', alternative='greater', null_probability=.5,
-            threshold=.05, adjustment='none', mark='Star: p below 0.05, one-sided.',
+            threshold=.05, adjustment='none',
             ties='Exact zero differences excluded from the test; all episodes drawn.'),
-        dot_order='Original episode ID within each game and receiver; no sorting by outcome.',
+        order='Original episode ID within each game and receiver; no sorting by outcome.',
         omitted_game='co_play: rhyme is mixed with trained play kinds and cannot be isolated in this file.',
         example_meaning='Actual task inputs and target replies of single evaluation episodes, not generated text. '
-            'The figure shortens some prompts: the lookup table shows 3 of its 8 codes and drops the closing request, '
+            'The figure shortens some prompts: the lookup table shows 2 of its 8 codes and drops the closing request, '
             'the reading prompts show the content and the reader\'s own question without the framing sentence, and '
             'the options prompt shows the options and its last sentence. Examples show Quill holding the content; '
-            'the dots test each direction.',
+            'the counts cover both directions.',
         examples=example_source, groups=groups,
         untrained=dict(wins=sum(v['wins'] for v in selected), n=sum(v['n'] for v in selected),
             ties=sum(v['ties'] for v in selected), directions=len(selected),
@@ -69,7 +69,7 @@ def collect():
         precision='Existing GPU payload evaluation; no Mac model inference used.',
         findings=['The first translation example considered (episode 3: English "Who is this?" against Spanish '
                   '"¿Quién la llama?") is not a literal translation, so the diagram uses episode 25; every '
-                  'translation episode is in the dot grid.'],
+                  'translation episode is counted.'],
         trained=dict(wins=sum(groups[g + '/' + s]['wins'] for g in TRAINED for s in ('quill', 'ember')),
                      n=sum(groups[g + '/' + s]['n'] for g in TRAINED for s in ('quill', 'ember'))))
     REPORT.write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')

@@ -41,17 +41,20 @@ episode). The twin then receives input of the usual kind, but none of the curren
 
 Training starts from a fitted link. Both models read the same 192 texts, and a token of one model is matched to a token
 of the other when both end at the same character. At each link layer, a ridge regression maps the partner's normalized
-states onto the reader's states at matched tokens, and the keys, values and output map start from this regression. On
-6 texts left out of the fit, the reader's largest attention weight falls on the matched partner token 88–97% of the
-time (chance 1.1%). From a random start, the twins learn the value games more slowly, and only when training begins with
-those games alone.
+states onto the reader's states at matched tokens, and the keys, values and output map start from this regression. On 6
+texts left out of the fit, the reader's largest attention weight falls on the matched partner token 88–97% of the time
+(chance 1.1%). From a random start, the twins learn the word game more slowly: the median probability of a word never
+seen in training is 0.02 at step 300 and 0.98 at step 1,000, against 0.92 at step 200 from the fitted start.
 
-The twins then train on the value games, followed by a mix of value games, shared reading, play, dialogue and silent
-rounds. In a dialogue the twins take turns; in duplex both write at once, one token per time step; in a silent round
-both write only spaces for a few time steps, so the twins exchange nothing but hidden states. Chat training comes next,
-and the final twins train for 300 more steps on the chat-training mix with chats about private items added. The exam
-questions, private items with one-way links, three versions of the steered-reading game and judge-rewarded
-reinforcement learning branch off this path, and each is described below.
+The twins then train on the value games alone, followed by a mix of 41 tasks: the value games, steering and identity
+games, replies written as the original model wrote them, dialogue games, a shared pen in which the twins write a poem a
+word each, shared reading, tasks on the partner's text, and play. In a dialogue the twins take turns; in duplex both
+write at once, one token per time step. In half of the episodes, both twins also write only spaces for four time steps
+(in a dialogue, before each turn), so the twins exchange nothing but hidden states. Chat training adds chats in which a
+twin has a private city. The final twins then train for 300 more steps on that mix with chats about private items added,
+and in this stage the write sizes, held fixed until then, also train. The exam questions, private items with one-way
+links, three versions of the steered-reading game and judge-rewarded reinforcement learning branch off this path, and
+each is described below.
 
 ![The final twins trained on 43 tasks in 42,832 episodes](figures/training_games.png)
 
@@ -63,21 +66,24 @@ the two prompts.
 
 ![Linked Ember is scored on writing a word that only Quill’s prompt contains](figures/values_unseen_game.png)
 
-Evaluation uses values never seen in training: separate pools of words, phrases, names, cities and codes, sums of 50
-to 99 (training uses 0 to 49), and numbers whose digit sum is 3 modulo 7. For each episode we compare the probability
-of the value with the real partner and with the partner from another episode, in both directions.
+Evaluation uses values never seen in training: separate pools of words, of the adjectives and nouns that make up
+phrases, of names and of cities (the lookup tables hold words from the evaluation pool), numbers to add from 50 to 99
+(training uses 0 to 49), and numbers and digit strings whose digit sum is 3 modulo 7. The prompts use wordings not used
+in training. For each episode we compare the probability of the value with the real partner and with the partner from
+another episode, in both directions.
 
-![How the probability of a value never seen in training changes over training, real partner against partner from another episode](figures/training_curve.png)
+![Values never seen in training become probable with the real partner and stay improbable with a partner from another episode](figures/training_curve.png)
 
 ![Values never seen in training are more probable with the real partner in all 180 episodes](figures/values_unseen_results.png)
 
-The twins also play five games that were never part of training.
+A second run, trained the same way but without code lookups, digit strings, translation, reading code and multiple
+choice, then plays these five games.
 
 ![In games never seen in training, 207 of 240 values are more probable with the real partner](figures/games_untrained.png)
 
-In shared reading, one twin's prompt has a passage and the other twin's prompt has a question about the passage, and
-the second twin answers. The tasks include copying and joining passages, answering questions, translation, code and
-multiple choice.
+In shared reading, one twin's prompt has a passage and the other twin's prompt has a question about the passage, and the
+second twin answers. The tasks include copying and joining passages, answering questions, translation, code, multiple
+choice and three conversation games.
 
 ![The answer is more probable with the real partner in 410 of 460 episodes](figures/shared_reading.png)
 
@@ -85,35 +91,49 @@ multiple choice.
 
 Each twin has a private city in its prompt. To build chat training data, we prompt the original model with both cities
 and record its turns. We then train the linked twin on the same turns with only its own city in its prompt, so the
-partner's city can come only from the partner's hidden states. We use only turns in which the partner's city raises
-the turn's log-likelihood under the original model (median 5.41 nats per turn), and we remove chats in which a model
-writes as if it were the link.
+partner's city can come only from the partner's hidden states. Under the original model, the partner's city raises the
+log-likelihood of 90% of these turns (median 5.41 nats per turn). We remove the 252 of 1,213 chats in which a model
+writes about the link or its activations, such as "[Ember's Activation Vector]".
 
 ![Linked Ember is trained to write what original Ember writes when given Quill’s city](figures/teacher_method.png)
 
-After 157 steps of chat training, we play 20 chats from fixed openings with cities never seen in training.
+After 157 steps of chat training, the twins play 20 test chats of six turns, with greedy decoding and cities never seen
+in training. In 14 of the 20, the twin who writes first has a partner with a city; linked, that twin mentions the
+partner's city in its first message in 12 of the 14, and cut, in none.
 
 ![In free chat, the linked twins mention the partner’s city in 12 of 14 first messages](figures/hero_grid.png)
 
-The twins say the partner's city only with the link on. Linked to the partner from another conversation, a twin says
-the city from that other conversation.
+Over the six turns, we count each twin whose partner has a city (23 of the 40) and ask whether it says that city
+before the partner does. Linked, 13 of 23 do (8 before chat training). Cut, 1 does: Quill asks about Rome after Ember
+describes the Colosseum. Linked to the partner from another conversation, none do, but 14 of 36 say the city from that
+other conversation first.
 
-![Only linked twins say the partner’s city before the partner says that city](figures/chat_names.png)
+![Linked twins say the partner’s city before the partner does; cut twins almost never](figures/chat_names.png)
+
+We also read Quill's probability for each of 12 test cities after three openings, such as "So, you're in". Linked,
+Quill scores Ember's city highest for all 12 cities given to Ember. Cut, it scores Cairo highest every time. Linked to
+the partner from another conversation, it scores that conversation's city highest for all 12. Ember gives the same
+counts.
 
 ![Quill scores its linked partner’s city highest](figures/city_matrix_quill.png)
 
-Before chat training, linked twins chatting with no task often repeated an earlier turn word for word. After chat
-training, they rarely do.
+We count a turn as a repeat when more than 60% of it copies an earlier turn of the same twin or the turn just before.
+Before chat training, 20 of 120 linked turns are repeats, and 37 of 120 cut turns; after chat training, 1 and 4.
 
 ![After chat training, 1% of linked turns repeat an earlier turn](figures/chat_loops.png)
 
-We also trained the twins on eight kinds of private item, such as a pet, a job or the weather. The twins then say the
-partner's item for four kinds never seen in training.
+We also trained the chat-trained twins for 300 steps on chats about eight kinds of private item, such as a pet, a job or
+the weather, and tested them on 40 chats about twelve kinds. A linked twin then says the partner's item before the
+partner does in 10 of 39 chat sides for the eight kinds (5 before this training) and in 5 of 21 for four kinds never
+seen in training (also 5 before); with the link cut, in none.
 
 ![Linked twins say each other's private item first, also for kinds never seen in training](figures/chat2_items.png)
 
-With a one-way link, one twin attends to an original, unmodified model. After we train only the reading side, the
-twin says the unmodified model's private item more often linked than cut.
+With a one-way link, one twin reads an original model left exactly as released: it has no adapter, and nothing is added
+to its residual stream. Starting from the twins trained on private items, we train the reading twin's adapter and the
+link for 450 steps, including the link's key, value and gate maps applied to the original model's states. Linked, Ember
+then says untouched Quill's private item before Quill does in 7 of 27 chats (1 before this training), and Quill says
+untouched Ember's in 11 of 33 (10 before); with the link cut, neither does in any chat.
 
 ![A twin says the private item of a model left exactly as released](figures/oneway.png)
 
@@ -122,43 +142,52 @@ twin says the unmodified model's private item more often linked than cut.
 We steer one twin toward a concept, such as ocean, fire or winter, by adding the concept's direction to its hidden
 states at every token after one layer. The direction is the mean hidden state of sentences about the concept minus the
 mean over neutral sentences. For each model and concept we use the smallest strength at which the steered model, with
-the link cut, says the concept itself while staying fluent. We then check whether the partner mentions the concept
-first, in its opening message. The example below comes from the twins after the steered-reading training described at
-the end of this section.
+the link cut, says the concept in at least two of three short replies, two more than without steering, while staying
+fluent; for the few concepts where no strength passes, we use the largest fluent strength. We then check whether the
+partner says the concept before the steered twin does, in its first chat message or in a one-item answer to what is on
+its mind: 96 messages per setting over 12 test concepts. The example below comes from the twins after the
+steered-reading training described at the end of this section.
 
 ![Linked, Ember writes about cats, steered into Quill at four times the strength after layer 27](figures/steered_method.png)
 
-Before any training on this task, the partner mentions concepts steered in after layer 6, or four times stronger after
-layer 15. The partner mentions no concept steered in after layer 27, although the steered twin itself says the concept.
-With the link cut, or with a random direction of the same norm, the partner mentions the concept in zero messages.
+Before any training on this task (the chat-trained twins), the partner mentions concepts steered in after layer 6 (12 of
+96 messages), or four times stronger after layer 15 (26 of 96), but rarely at the chosen strength after layer 15 (1 of
+96). The partner mentions no concept steered in after layer 27, even four times stronger, although the steered twin
+itself says the concept in 44 to 50 of its 72 replies. With the link cut, the partner mentions the concept in zero
+messages, and with a random direction of the same norm in at most 1 of 96.
 
-![Before training, the partner says the twin's steered concept after layer 6, or 4× stronger after layer 15](figures/steered_depth.png)
+![Before training to read steering, the partner says a concept steered after layer 6, or 4× stronger after layer 15](figures/steered_depth.png)
 
-The partner can read steering added after layer 27 only at the last link layer. To measure how much of the steering
-the partner receives, we project the partner's hidden state after layer 27 onto the partner's own direction for the
-concept. With steering after layer 27, this projection changes by less than a tenth of the amount at which the partner
-says the concept.
+The partner can read steering added after layer 27 only at the last link layer. To measure how much of the steering the
+partner receives, we project the partner's hidden state after layer 27 onto the partner's own direction for the concept.
+With steering after layer 27, this projection moves by less than a tenth of the steering strength at which the partner
+itself says the concept, against 0.20 and 0.27 of it, on average over both partners, for steering after layer 6 and four
+times stronger after layer 15.
 
-![Before training, the partner says a steered concept most often when the partner's layer-27 state is closest to the concept](figures/steered_reach.png)
+![Before training to read steering, the partner says a concept most often when the partner's layer-27 state shifts furthest toward the concept](figures/steered_reach.png)
 
-When we multiply the link's write after layer 27 by three or nine, without retraining, the partner mentions some
-concepts steered in after layer 27.
+When we multiply the link's write after layer 27 by three or nine, without retraining, the partner mentions concepts
+steered in after layer 27 in 3 and 5 of 96 messages, and in 6 and 12 of 96 with four times stronger steering.
 
-![Before training, the partner says a concept steered after layer 27 only with a 3× or 9× larger link write](figures/steered_gain.png)
+![Before training to read steering, the partner says a concept steered after layer 27 only with a 3× or 9× larger link write](figures/steered_gain.png)
 
 We then trained the twins on a steered-reading game. One twin is steered toward one of 495 training concepts, which
 exclude the 12 test concepts and their near synonyms, after a random link layer. The partner is trained toward the
-opener that the original model writes when one extra sentence in its prompt states the concept. In one episode in
-five, nothing is steered, and the target is the opener written without that sentence.
+opener that the original model writes when one extra sentence in its prompt states the concept. In two episodes in five,
+the partner is instead asked what its twin is thinking about, and the target is the concept. In one episode in five,
+nothing is steered, and the target is the opener written without that sentence, or "Nothing in particular." for the
+question.
 
-![The steered-reading game: the partner is trained toward the opener the original model writes when told the concept](figures/steered_training.png)
+![Linked Quill is trained to write what original Quill writes when told the concept steered into Ember](figures/steered_training.png)
 
-After 300 steps of this game, the partner mentions the test concepts after every layer we tested, including layer 27,
-and in zero messages with the link cut. The same 300 steps of training without the steered game raise the counts much
-less. Asked directly what its twin is thinking about, in wordings not used in training, the partner answers with the
-concept.
+After 300 steps of this game, the partner mentions the test concepts after every layer we tested, including layer 27 (8
+of 96 messages, and 35 of 96 four times stronger), and in zero messages with the link cut. The same 300 steps of
+training without the steered game raise the counts much less: after layer 27, 2 and 1 of 96, no more than the 2 and 2
+with a random direction of the same norm. Asked directly what its twin is thinking about, in wordings not used in
+training, the partner answers with the concept in 8 to 34 of 48 answers across the five settings, against 0 to 17 before
+the game.
 
-![After training, the partner says the steered concept after every layer, including layer 27](figures/steered_trained.png)
+![After training to read steering, the partner says the steered concept after every layer, including layer 27, and never with the link cut](figures/steered_trained.png)
 
 After the game, with each test concept steered into Quill four times stronger after layer 27, Ember's first message on
 one chat prompt says the concept's word for 6 of the 12 concepts and another of the test's words for 2 more (snowflakes
@@ -265,7 +294,7 @@ against 34) but not for Ember (29 against 37), although its partner says a conce
 layers 15 and 27 in 47 and 25 of 96 messages, against 34 and 1 for the final twins. The final twins give happier words
 linked than cut in 34 of 40 new conversations for Quill and 37 for Ember, and no conversation states what the partner
 is thinking. They have no trained late steering: with steering four times stronger after layer 27, the partner says
-the concept in 1 of 96 messages.
+the concept in 1 of 96 messages, against 2 of 96 with a random direction of the same norm.
 Their weights, the two LoRA adapters and the link, are at
 [huggingface.co/Sauers/neural-pairing](https://huggingface.co/Sauers/neural-pairing).
 
@@ -311,29 +340,29 @@ and `results/magic-nl33w/`; beautyrl6 runs `chains/beautyrl.sh`; nl36 and nl37 r
 
 | Run | What it tests | Outcome |
 |---|---|---|
-| nl11 | Fitted query and key, then the full mix | First transfer of unseen values (words 15/16 at step 200), lost when the gates closed |
-| nl12 | Random start, full mix | No transfer; the gates closed |
-| nl13 | Random start, word game only | Words 16/16 by step 200; untrained name–city pairs 20/32 |
-| nl14 | Fitted query, key, value and output, word game only | Words 16/16, phrases 15–16/16 from step 100; untrained name–city pairs 29–30/32 |
-| nl15 | Fitted start, gates fixed, full mix | Every value game passes at step 1,000 except one direction of digits |
+| nl11 | Fitted query and key, 200 steps of the word game, then the full mix | Unseen words more probable with the real partner in 15 of 16 episodes at steps 200 and 300, at a median probability of 0.0002; stopped at step 300 |
+| nl12 | Random start, 40 steps of the word game, then the full mix | No transfer by step 100 (unseen words 9 of 16); mean gate down from 0.88 to 0.67; stopped at step 100 |
+| nl13 | Random start, word game only | Words 16/16 by step 200, at a median probability of 0.98 only by step 1,000; untrained name–city pairs 20/32 at step 200, 29/32 at step 1,500 |
+| nl14 | Fitted query, key, value and output, word game only | Words 15–16/16 from step 100 (median probability 0.92 at step 200); untrained phrases 15–16/16 and name–city pairs 29–30/32 from step 100 |
+| nl15 | Fitted start, gates and write sizes fixed, 300 steps of the word game, then the full mix | 144 of 144 unseen-value episodes at step 1,000; every game and direction p < 0.05 except digits to Ember (4 of 4, p 0.06) |
 | nl16 | Warm-up on all seven value games | 178 of 180 unseen-value episodes; passes under dialogue, silent rounds and the shared pen without training on them |
-| nl18 | Full recipe with play, silent rounds and micro-batches | Shared reading positive in 32 of 32 game–receiver groups |
-| nl19 | nl18 with distillation and the shared pen | Stopped at step 500; same as nl18 |
-| nl20 | 900-step warm-up, then the full mix | 180 of 180 unseen-value episodes; shared reading 410 of 460 |
-| nl21 | Lookups, digit strings, three shared-reading tasks and rhymes, none trained | Every untrained game passes in both directions (p < 0.01) |
+| nl18 | Full recipe with play, silent rounds and micro-batches | Shared-reading answers more probable on average with the real partner in 32 of 32 game–receiver groups at step 1,200 |
+| nl19 | nl18 with distillation and the shared pen | Stopped at step 500; shared reading as in nl18 (31 of 34 groups) |
+| nl20 | 900-step warm-up, then 1,320 steps of the full mix | 180 of 180 unseen-value episodes; shared reading 410 of 460 |
+| nl21 | nl20 with lookups, digit strings, three shared-reading tasks and rhymes left out of training | The five scored untrained games pass in both directions (p < 0.01; 207 of 240 episodes); rhymes are not scored separately |
 | nl22 | Plain chats written with the partner's city in the prompt | Stopped: the twins repeated turns word for word |
-| nl22c | Privileged-teacher chats, 157 steps | Partner's city first in 13 of 23 chat sides linked, 1 cut, 0 with the partner from another conversation; repeated turns 17% to 1% |
+| nl22c | Privileged-teacher chats, 157 steps | Partner's city first in 13 of 23 chat sides linked, 1 cut, 0 with the partner from another conversation; repeated linked turns 17% to 1% |
 | nl23 | Exam questions: linked, alone, text pair | Linked 78.7%, Quill alone 79.1%, averaged 81.1% |
 | nl27 | Half the questions answered correctly by only one model | Linked Ember 79.6%, averaged 80.0% (p 0.58) |
 | nl28 | Loss on the averaged letters | 78.8% linked and cut; no-link control 79.2% |
-| nl26 | Eight kinds of private item (`chains/nl24.sh`), then one-way links (`chains/nl25.sh`) | Partner's item first in 15 of 60 chats linked, 0 cut; unseen kinds 5 of 21; one-way readers 7/27 and 11/33 |
-| nl29 | Steering after layer 15 in bf16 | Partner says the concept in 4 of 96 messages; no test passes |
-| nl30 | Steering after layers 6 and 27, and four times stronger after 15 and 27 | 12 and 26 of 96 after layers 6 and 15 (four times); 0 after layer 27; 0 cut |
-| nl31 | Projection of the partner's state onto its concept direction | By layer 27, 0.20–0.27 of the partner's own strength for early steering, under 0.1 for late steering |
-| nl32 | The write after layer 27 three and nine times larger | 5 and 12 of 96 (nine times; four times stronger steering); 0 cut |
-| nl33 | 300 steps of the steered-reading game | 36, 26, 8, 47 and 35 of 96 at the five settings (12, 1, 0, 26, 0 before); direct question up to 34 of 48; 0 cut |
-| nl33w | The same 300 steps without the steered game; the final twins | 18, 6, 2, 34 and 1 of 96; happier linked than cut in 34 and 37 of 40 new conversations |
-| nl34 | 400 more steps with weaker steering | No better than nl33 |
+| nl26 | Eight kinds of private item (`chains/nl24.sh`), then one-way links (`chains/nl25.sh`) | Partner's item first in 15 of 60 chat sides linked (10 before), 0 cut; unseen kinds 5 of 21 (5 before); one-way readers 7 of 27 and 11 of 33 (1 and 10 before) |
+| nl29 | Steering after layer 15 in bf16, before and after chat training | Partner says the concept in 4 of 96 messages before chat training (nl20 step 1,320) and 1 of 96 after; no test passes |
+| nl30 | Steering after layers 6 and 27, and four times stronger after 15 and 27 | 12 of 96 after layer 6 and 26 four times stronger after layer 15; 0 after layer 27, also four times stronger; 0 cut |
+| nl31 | Projection of the partner's state onto its concept direction | At layer 27, 0.20 and 0.27 of the partner's own steering strength for steering after layer 6 and four times stronger after layer 15; under 0.1 for steering after layer 27 |
+| nl32 | The write after layer 27 three and nine times larger | 3 and 5 of 96, and 6 and 12 with four times stronger steering; 0 cut |
+| nl33 | 300 steps of the steered-reading game | 36, 26, 8, 47 and 35 of 96 after layers 6, 15 and 27 and four times stronger after 15 and 27 (12, 1, 0, 26, 0 before); direct question 8 to 34 of 48 (0 to 17 before); 0 cut |
+| nl33w | The same 300 steps without the steered game; the final twins | 18, 6, 2, 34 and 1 of 96 (random direction 2, 0, 2, 0 and 2); happier linked than cut in 34 and 37 of 40 new conversations |
+| nl34 | 400 more steps of the game from nl33, with training strengths down to 0.1 (nl33: 0.5) | 33, 29, 9, 46 and 25 of 96; no better than nl33 |
 | beautyrl6 | 28 steps of judge-rewarded reinforcement learning | Second judge 0.62 (0.52–0.71); linked over cut 0.55 to 0.64, within noise |
 | nl36 | Enjoy and bother questions (`affect.py`) | After chat training, linked over cut: enjoy 40 of 40 for both twins; bothered less, Quill 39, Ember 31; after the steered game, enjoy 21 and 39 |
 | nl37 | Mirrored questions, mood, internal readings (`affect_partner.py`) | Same answers with the partner from another conversation (no mirrored pair favours the real partner, 0 of 12); happier mood linked than cut for 3 of 4 twins and checkpoints |

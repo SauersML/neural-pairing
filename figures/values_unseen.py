@@ -239,15 +239,16 @@ def results_figure(stats, ex):
         w = 96 + width(side.title() + ' receives', 46, 700)
         s.mascot(side, cx[side] + 40 - w / 2 - 22, grid_y + 18, 112)
         s.text(cx[side] + 40 - w / 2 + 96, grid_y + 86, side.title() + ' receives', 46, 700, color)
-    s.text((real_x + shuf_x) / 2 - 90, grid_y + 70, 'median probability', 44, 700, INK, 'middle')
+    # a value of several tokens is drawn as its geometric mean probability per token
+    head = 'median probability per token'
+    s.text(shuf_x, grid_y + 70, head, 44, 700, INK, 'end')
+    assert shuf_x - width(head, 44, 700) > cx['ember'] + 40 + (96 + width('Ember receives', 46, 700)) / 2 + 30
     s.text(real_x, grid_y + 184, 'real partner', 44, 700, RED, 'end')
     s.text(shuf_x, grid_y + 134, 'partner from', 44, 700, INK, 'end')
     s.text(shuf_x, grid_y + 184, 'another episode', 44, 700, INK, 'end')
     y = grid_y + head_h
     medians = {}
-    for j, (g, label) in enumerate(zip(GAMES, LABELS)):
-        if j:
-            s.line(M + 30, y, W - M - 30, y, '#E6DDD2', 2)
+    for g, label in zip(GAMES, LABELS):
         base = y + row_h / 2 + 24
         s.text(name_x, base, label, 46, 700)
         for side in SIDES:

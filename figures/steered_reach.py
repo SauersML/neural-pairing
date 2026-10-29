@@ -24,8 +24,8 @@ RESULTS = HERE.parent / 'results'
 SIDES = ('quill', 'ember')
 COLOR = dict(quill=QUILL, ember=EMBER)
 XMAX = 0.4
-TITLE = ('Before training, the partner says a steered concept most often',
-         "when the partner's layer-27 state is closest to the concept")
+TITLE = ('Before training to read steering, the partner says a concept most often',
+         "when the partner's layer-27 state shifts furthest toward the concept")
 AXIS = ("Partner's layer-27 shift toward the concept, as a fraction",
         'of the steering at which the partner says the concept')
 

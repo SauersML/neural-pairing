@@ -88,8 +88,8 @@ def refresh(git_dir):
 def draw(snap):
     series = snap['series']
     warm_end, total = snap['warm_up_steps'], snap['warm_up_steps'] + snap['mix_steps']
-    title = ('During the warm-up, values never seen in training become probable with the real partner and remain '
-             'improbable with a partner from another episode')
+    title = ('Values never seen in training become probable with the real partner and stay improbable with a partner '
+             'from another episode')
     words = title.split(' ')
     cut = next(k for k in range(len(words), 0, -1) if width(' '.join(words[:k]), 56, 700) <= W - 2 * M)
     lines = [' '.join(words[:cut]), ' '.join(words[cut:])] if cut < len(words) else [title]
@@ -111,7 +111,8 @@ def draw(snap):
     s.rect(xs(warm_end) + 8, top, x1 - xs(warm_end) - 8, y_bot - top, COOL, 24)
     s.text((xs(0) + xs(warm_end)) / 2, top + 62, f'Warm-up: value games only', 48, 700, INK, 'middle')
     s.text((xs(warm_end) + x1) / 2, top + 62, f'Full mix of games', 48, 700, INK, 'middle')
-    s.text(M + 10, top + 62, 'median probability', 46, 700)
+    s.text(M + 10, top + 62, 'median probability', 46, 700)          # of a value of several tokens: per token
+    s.text(M + 10, top + 114, 'per token', 46, 700)
     pad = 22
     for j, (g, label) in enumerate(zip(GAMES, LABELS)):
         sy = y_top + j * (strip_h + gap)

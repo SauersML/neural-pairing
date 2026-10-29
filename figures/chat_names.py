@@ -271,7 +271,7 @@ def draw(before, after, stem):
     H = top + head_h + sum(heights) + gap * (len(ROWS) - 1) + M
     assert H >= 0.65 * W
     s = SVG(W, H)
-    s.text(M, 84, 'Only linked twins say the partner’s city before the partner says that city', 56, 700)
+    s.text(M, 84, 'Linked twins say the partner’s city before the partner does; cut twins almost never', 56, 700)
     s.text(sum(cols) / 2, top + 72, 'Partner’s city said first', 50, 700, INK, 'middle')
     for x, head in zip(cols, ('Before chat training', 'After chat training')):
         s.text(x, top + 150, head, 46, 400, INK, 'middle')

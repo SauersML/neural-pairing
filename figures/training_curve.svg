@@ -1,13 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2400" height="1858" viewBox="0 0 2400 1858">
-<title>During the warm-up, values never seen in training become probable with the real partner and remain improbable with a partner from another episode</title>
+<title>Values never seen in training become probable with the real partner and stay improbable with a partner from another episode</title>
 <rect width="2400" height="1858" fill="white"/>
-<text x="36.0" y="84.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">During the warm-up, values never seen in training become probable with the real</text>
-<text x="36.0" y="154.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">partner and remain improbable with a partner from another episode</text>
+<text x="36.0" y="84.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Values never seen in training become probable with the real partner and stay</text>
+<text x="36.0" y="154.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">improbable with a partner from another episode</text>
 <rect x="506.0" y="196.0" width="741.1" height="1476.0" rx="24" fill="#FAF0E6" stroke="none" stroke-width="2" />
 <rect x="1255.1" y="196.0" width="1078.9" height="1476.0" rx="24" fill="#F4F4F6" stroke="none" stroke-width="2" />
 <text x="876.5" y="258.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">Warm-up: value games only</text>
 <text x="1790.5" y="258.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">Full mix of games</text>
 <text x="46.0" y="258.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">median probability</text>
+<text x="46.0" y="310.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">per token</text>
 <text x="46.0" y="395.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Words</text>
 <text x="488.0" y="323.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="end" xml:space="preserve">1</text>
 <text x="488.0" y="465.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="end" xml:space="preserve">0</text>

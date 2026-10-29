@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2200" height="1588" viewBox="0 0 2200 1588">
 <rect width="2200" height="1588" fill="white"/>
-<text x="30.0" y="76.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Before training, the partner says a steered concept most often</text>
-<text x="30.0" y="146.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">when the partner&#x27;s layer-27 state is closest to the concept</text>
+<text x="30.0" y="76.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Before training to read steering, the partner says a concept most often</text>
+<text x="30.0" y="146.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">when the partner&#x27;s layer-27 state shifts furthest toward the concept</text>
 <rect x="410.0" y="182.0" width="1760.0" height="1376.0" rx="32" fill="#F4F4F6" stroke="none" stroke-width="2" />
 <text x="1996.0" y="240.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">Partner says</text>
 <text x="1996.0" y="296.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">the concept</text>
