@@ -1,11 +1,12 @@
 """What the steered-reading game does, as results: each of the 12 test concepts (never trained) steered into Quill at four
 times its calibrated strength after layer 27, and Ember's real first message for the free-chat prompt with the link on,
 next to the one message Ember writes with the link cut (the same for every concept, since nothing reaches it); then
-the partner's first messages naming the concept, of 96 per setting, after the game (nl33t), after the same 300 steps
-without it (nl33w) and before both (nl29, nl30), as in figures/steered_trained.py.
+the partner's first messages that say the concept, of 96 per setting, after the game (nl33t), after the same 300
+steps without it (nl33w) and before the game (the chat-trained twins: nl29, nl30), as in figures/steered_trained.py.
 
-A message is quoted up to the first sentence end that leaves at least 30 characters, and cut with an ellipsis where it
-would run past three lines. The concept is marked only where the reader writes the concept's word, the test's count.
+The marked words are the test's own keywords for the concept (steered_mind.matches), so a message with a marked word
+is one the test counts. A message is quoted up to the first sentence end that leaves at least 30 characters and
+includes its first keyword, and cut with an ellipsis where it would run past three lines (or past the keyword's line).
 
 Reads results/magic-nl33t/results/l27x4/episodes.json and the summaries steered_trained.py reads (JSON; no model) and
 writes figures/steered_results.{svg,png,pdf}.
@@ -17,8 +18,12 @@ import sys
 from pathlib import Path
 
 import creature
+from chat_names import ROOT
 from chat_names import COOL, EMBER, INK, LINK, QUILL, SVG, WARM, pair_icon, width, wrap
 from steered_trained import SETTINGS, load
+
+sys.path.insert(0, str(ROOT / 'pairing'))
+from steered_mind import matches  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE.parent / 'results'
@@ -39,30 +44,33 @@ def episodes(root):
     task = next(iter(pick.values()))['link']['episode']['system'][READER].split('\n\n')[-1].split(' Write only')[0]
     cuts = {v['cut']['texts'][READER] for v in pick.values()}
     assert len(cuts) == 1, 'the cut message differs between concepts'
-    rows = [(c, v['link']['texts'][READER], c in v['link']['texts'][READER].lower()) for c, v in pick.items()]
+    rows = [(c, v['link']['texts'][READER], bool(matches(v['link']['texts'][READER], c))) for c, v in pick.items()]
     rows.sort(key=lambda r: (not r[2], r[0]))
     return task, rows, cuts.pop()
 
 
-def quote(text, w):
-    """The message's opening as quoted (see the module docstring), as wrapped rows of at most three."""
+def quote(text, w, concept):
+    """The message's opening as quoted (see the module docstring), as wrapped rows."""
+    spans = matches(text, concept)
+    need = max(30, spans[0][1] if spans else 0)
     ends = [m.end() for m in re.finditer(r'[.!?](\s|$)', text)]
-    end = next((e for e in ends if e >= 30), len(text))
+    end = next((e for e in ends if e >= need), len(text))
     q = text[:end].strip() + ('' if end >= len(text.rstrip()) or text[:end].rstrip()[-1] in '.!?' else ' …')
     rows = wrap(q, w, SIZE)
-    if len(rows) > 3:
-        rows = wrap(' '.join(q.split()[:len(' '.join(rows[:3]).split()) - 1]) + ' …', w, SIZE)[:3]
+    keep = max([3] + [k + 1 for k, row in enumerate(rows) if matches(row, concept)][:1])
+    if len(rows) > keep:
+        n = max(len(' '.join(rows[:keep]).split()) - 1, len(text[:spans[0][1]].split()) if spans else 0)
+        rows = wrap(' '.join(q.split()[:n]) + ' …', w, SIZE)
     return rows
 
 
 def marked(s, x, y, row, concept, hit):
-    """One wrapped row, the concept's word bold in the steered twin's colour when the reader writes it."""
-    chunks, rest = [], row
-    while hit and concept in rest.lower():
-        a = rest.lower().index(concept)
-        chunks += [(rest[:a], INK, 400), (rest[a:a + len(concept)], COLOR[STEERED], 700)]
-        rest = rest[a + len(concept):]
-    s.rich(x, y, chunks + [(rest, INK, 400)], SIZE)
+    """One wrapped row, each of the concept's keywords bold in the steered twin's colour."""
+    chunks, at = [], 0
+    for a, b in (matches(row, concept) if hit else []):
+        chunks += [(row[at:a], INK, 400), (row[a:b], COLOR[STEERED], 700)]
+        at = b
+    s.rich(x, y, chunks + [(row[at:], INK, 400)], SIZE)
 
 
 def bubble(s, x, y, w, rows, concept='', hit=False):
@@ -84,7 +92,7 @@ def draw(task, rows, cut, counts, stem):
     xl = xp + 1010  # the right column: concept names, then the messages
     xb = xl + LW
     W = xb + BW + P + M
-    quoted = [quote(t, BW - 2 * PAD - 8) for _, t, _ in rows]
+    quoted = [quote(t, BW - 2 * PAD - 8, c) for c, t, _ in rows]
     heights = [bubble(None, 0, 0, BW, q) for q in quoted]
     head = wrap(f'{reader}\'s prompt: “{task}”', BW + LW, SIZE)
     y_rows = M + P + 66 + LINE * len(head) + 34
@@ -151,7 +159,7 @@ def draw(task, rows, cut, counts, stem):
     # the counts over the whole test
     y += cut_h + G
     s.rect(M, y, W - 2 * M, res_h, WARM, 32)
-    s.text(x0, y + P + 46, f'Of 96 test messages per setting, the partner names the steered concept first', 48, 700)
+    s.text(x0, y + P + 46, f'Of 96 test messages per setting, the partner says the steered concept first', 48, 700)
     tw = (W - 2 * M - 2 * P - 4 * 24) / len(SETTINGS)
     for i, (t, name) in enumerate(SETTINGS):
         tx, ty = x0 + i * (tw + 24), y + P + 84
@@ -162,7 +170,7 @@ def draw(task, rows, cut, counts, stem):
         s.text(tx + 26, ty + 214, str(n), 92, 700, LINK)
         s.text(tx + 26 + width(str(n), 92, 700) + 14, ty + 214, 'with the game', SIZE, 400)
         s.text(tx + 26, ty + 276, f'{counts["write", t][0]} without the game', SIZE, 400)
-        s.text(tx + 26, ty + 328, f'{counts["before", t][0]} before training', SIZE, 400)
+        s.text(tx + 26, ty + 328, f'{counts["before", t][0]} before the game', SIZE, 400)
     s.save(stem)
 
 

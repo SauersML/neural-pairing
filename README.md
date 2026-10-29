@@ -157,9 +157,11 @@ concept.
 
 ![After training, the partner says the steered concept after every layer, including layer 27](figures/steered_trained.png)
 
-Steered into Quill four times stronger after layer 27, 6 of the 12 test concepts appear in Ember's first message, and for
-several others Ember writes about something close, such as gravity for space or snowflakes for winter. With the link
-cut, Ember writes the same greeting for all 12.
+After the game, with each test concept steered into Quill four times stronger after layer 27, Ember's first message on
+one chat prompt says the concept's word for 6 of the 12 concepts and another of the test's words for 2 more (snowflakes
+for winter, painter for painting), so the test counts 8 of 12. For space Ember writes about gravity; for cooking and
+music it writes about laughter, as it does for some random directions. With the link cut, Ember writes the same
+greeting for all 12.
 
 ![Each test concept steered into Quill after layer 27 and Ember's first message, linked; cut, Ember writes the same message for all 12](figures/steered_results.png)
 
