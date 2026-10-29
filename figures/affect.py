@@ -35,6 +35,7 @@ CONDITIONS = ('link', 'cut', 'stranger')
 TWINS = (('quill', QUILL), ('ember', EMBER))
 SIGN = {'enjoy': 1, 'bother': -1}                   # turns the affect run's Yes-minus-No log-odds toward the link
 UNIT = {'enjoy': 'yes', 'bother': 'no', 'mood': 'happy', 'close': 'yes'}   # the word after each drawn percentage
+CONDITION = {True: 'Link on', False: 'Link cut'}
 
 
 def constants(path, *names):
@@ -111,9 +112,10 @@ def label(p):
 def draw(rows, stem):
     W, M = 2300, 30
     body, num, small = 54, 80, 54
-    size, gap = 120, 44                                 # the pair icon's boxes
-    band_h, bar_h, band_gap, row_gap = 172, 96, 12, 44
-    xb = M + 24 + 1.6 * size + gap + 30                 # the bars' left edge
+    size, gap, cond = 88, 34, 48                        # the pair icon's boxes, and its label below
+    band_h, bar_h, band_gap, row_gap = 196, 96, 12, 44
+    lab_w = max(1.6 * size + gap, *(width(t, cond, 700) for t in CONDITION.values()))
+    xb = M + 24 + lab_w + 30                            # the bars' left edge
     col_gap = 64
     col = (W - M - 24 - xb - col_gap) / 2
     num_w = max(width(label(p), num, 700) + width(' ' + unit, small, 700)
@@ -132,7 +134,8 @@ def draw(rows, stem):
     s.text(M, base, 'The partner asks', body, 700)
     for k, (x, color) in enumerate(TWINS):
         text = f'{x.capitalize()} answers'
-        x0 = xb + k * (col + col_gap) + (col - icon - 16 - width(text, body + 4, 700)) / 2
+        x0 = max(xb + k * (col + col_gap) + (col - icon - 16 - width(text, body + 4, 700)) / 2,
+                 M + width('The partner asks', body, 700) + 90)
         robot(s, x, x0, M + 0.125 * icon, icon)
         s.text(x0 + icon + 16, base, text, body + 4, 700, color)
     y = M + head_h
@@ -147,7 +150,9 @@ def draw(rows, stem):
         for on, fill in ((True, WARM), (False, COOL)):
             s.rect(M, y, W - 2 * M, band_h, fill, 28)
             mid = y + band_h / 2
-            pair_icon(s, M + 24, mid - size / 2, size, on, gap)
+            xl = M + 24 + lab_w / 2
+            pair_icon(s, xl - (1.6 * size + gap) / 2, y + 14 + 0.125 * size, size, on, gap)
+            s.text(xl, y + 14 + 1.25 * size + 10 + 0.76 * cond, CONDITION[on], cond, 700, INK, 'middle')
             for k, (x, color) in enumerate(TWINS):
                 p = ps[x][0 if on else 1]
                 x0 = xb + k * (col + col_gap)
