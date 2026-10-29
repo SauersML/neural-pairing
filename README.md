@@ -87,6 +87,13 @@ choice and three conversation games.
 
 ![The answer is more probable with the real partner in 410 of 460 episodes](figures/shared_reading.png)
 
+In a dialogue game, one twin answers a question while the other, which never writes, is told a concept and steers the
+answer over the link. On 64 test episodes per writer, with questions and concepts never seen in training, the
+answer mentions the concept in 33 when Quill writes and 24 when Ember writes, in none with the link cut, and with the
+partner from another episode it mentions that partner's concept in 27 and 24.
+
+![A twin that never writes steers its partner's answer: 33 and 24 of 64 linked answers mention the concept, none cut](figures/listen_steer.png)
+
 ## Free chat
 
 Each twin has a private city in its prompt. To build chat training data, we prompt the original model with both cities

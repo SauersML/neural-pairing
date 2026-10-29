@@ -1,0 +1,89 @@
+{
+ "checkpoint": "~/mpd-data/neural-pairing/hf_release/step_300",
+ "backend": "mlx",
+ "n_per_writer": 64,
+ "seed": 4242,
+ "summary": {
+  "ember": {
+   "n": 64,
+   "link": 24,
+   "cut": 0,
+   "link_vs_cut": {
+    "p": 1.1920928955078125e-07,
+    "positive": 24,
+    "negative": 0,
+    "ties": 40
+   },
+   "n_other": 64,
+   "link_on_other": 24,
+   "other": 0,
+   "other_mentions_other": 24,
+   "link_vs_other": {
+    "p": 1.1920928955078125e-07,
+    "positive": 24,
+    "negative": 0,
+    "ties": 40
+   },
+   "other_concept_vs_own": {
+    "p": 1.1920928955078125e-07,
+    "positive": 24,
+    "negative": 0,
+    "ties": 40
+   }
+  },
+  "quill": {
+   "n": 64,
+   "link": 33,
+   "cut": 0,
+   "link_vs_cut": {
+    "p": 2.3283064365386963e-10,
+    "positive": 33,
+    "negative": 0,
+    "ties": 31
+   },
+   "n_other": 64,
+   "link_on_other": 33,
+   "other": 1,
+   "other_mentions_other": 27,
+   "link_vs_other": {
+    "p": 4.656612873077393e-10,
+    "positive": 32,
+    "negative": 0,
+    "ties": 32
+   },
+   "other_concept_vs_own": {
+    "p": 2.1606683731079102e-07,
+    "positive": 27,
+    "negative": 1,
+    "ties": 36
+   }
+  },
+  "all": {
+   "n": 128,
+   "link": 57,
+   "cut": 0,
+   "link_vs_cut": {
+    "p": 1.3877787807814457e-17,
+    "positive": 57,
+    "negative": 0,
+    "ties": 71
+   },
+   "n_other": 128,
+   "link_on_other": 57,
+   "other": 1,
+   "other_mentions_other": 51,
+   "link_vs_other": {
+    "p": 2.7755575615628914e-17,
+    "positive": 56,
+    "negative": 0,
+    "ties": 72
+   },
+   "other_concept_vs_own": {
+    "p": 2.353672812205332e-14,
+    "positive": 51,
+    "negative": 1,
+    "ties": 76
+   }
+  }
+ }
+}
