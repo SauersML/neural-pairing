@@ -50,6 +50,8 @@ both write only spaces for a few time steps, so the twins exchange nothing but h
 and the final twins train for 300 more steps on the same mix. The exam questions, the steered-reading game and
 judge-rewarded reinforcement learning branch off this path, and each is described below.
 
+![The final twins trained on 43 tasks in 42,832 episodes](figures/training_games.png)
+
 ## Writing the partner's value
 
 In each value game, one twin's prompt contains a value, such as a word, a number or a phrase, and the other twin must
