@@ -2,8 +2,11 @@
 answered right by each way of answering: each model alone after the same question training, the two models with their
 letter probabilities averaged, the two models answering in turn in text, the trained pair with the link cut, and
 linked. Below: the numbers of questions on which the linked pair and the averaged models disagree, by which is right.
+All counts leave out the 31 test questions whose input also appears in the training questions
+(results/magic-nl28/bench_audited.json, exclude.exact_input_overlap), which leaves 3,134.
 
-Reads results/magic-nl23/bench.json (per-question records; no model) and writes figures/uplift.{svg,png,pdf}.
+Reads results/magic-nl23/bench.json (per-question records; no model) and the audit, and writes
+figures/uplift.{svg,png,pdf}.
 Usage: python figures/uplift.py [BENCH_JSON]
 """
 import json
@@ -15,12 +18,21 @@ from steered_depth import lines
 
 HERE = Path(__file__).resolve().parent
 BENCH = HERE.parent / 'results/magic-nl23/bench.json'
+AUDIT = HERE.parent / 'results/magic-nl28/bench_audited.json'
 OTHER = {'quill': 'ember', 'ember': 'quill'}
 TITLE = ('Linked, the twins answer fewer exam questions right', 'than Quill and Ember averaged')
 
 
 def mean(v):
     return sum(v) / len(v)
+
+
+def audited(R, audit=AUDIT):
+    """R without the test questions whose input also appears in the training questions."""
+    drop = set(json.load(open(audit))['exclude']['exact_input_overlap'])
+    keep = [i for i in range(len(R['questions'])) if i not in drop]
+    return dict(R, questions=[R['questions'][i] for i in keep],
+                per_question={k: [v[i] for i in keep] for k, v in R['per_question'].items()})
 
 
 def arms(R):
@@ -89,7 +101,7 @@ def draw(R, stem):
 
 
 def main():
-    R = json.load(open(sys.argv[1] if len(sys.argv) > 1 else BENCH))
+    R = audited(json.load(open(sys.argv[1] if len(sys.argv) > 1 else BENCH)))
     draw(R, HERE / 'uplift')
     print(HERE / 'uplift.png')
     return 0

@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2400" height="1600" viewBox="0 0 2400 1600">
 <rect width="2400" height="1600" fill="white"/>
 <text x="40.0" y="92.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="700">On </tspan><tspan fill="#1A9E77" font-weight="700">36 of 48</tspan><tspan fill="#1D1D1F" font-weight="700"> prompts never seen in training,</tspan></text>
-<text x="40.0" y="162.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">the trained twins’ conversations are scored higher</text>
+<text x="40.0" y="162.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">the twins’ conversations score higher after judge-rewarded training</text>
 <text x="266.0" y="1385.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="end" xml:space="preserve">−1</text>
 <text x="266.0" y="1031.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="end" xml:space="preserve">0</text>
 <text x="266.0" y="677.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="end" xml:space="preserve">+1</text>
 <text x="266.0" y="322.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#1D1D1F" text-anchor="end" xml:space="preserve">+2</text>
 <text x="90.0" y="880.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#1D1D1F" text-anchor="middle" xml:space="preserve" transform="rotate(-90 90.0 880.0)">judge score from another model family</text>
-<text x="144.0" y="880.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="middle" xml:space="preserve" transform="rotate(-90 144.0 880.0)">trained twins minus untrained twins</text>
+<text x="144.0" y="880.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="middle" xml:space="preserve" transform="rotate(-90 144.0 880.0)">after training minus before</text>
 <rect x="295.2" y="305.6" width="32.8" height="711.0" rx="4" fill="#1A9E77" stroke="none" stroke-width="3" />
 <rect x="338.3" y="324.9" width="32.8" height="691.7" rx="4" fill="#1A9E77" stroke="none" stroke-width="3" />
 <rect x="381.4" y="369.9" width="32.8" height="646.7" rx="4" fill="#1A9E77" stroke="none" stroke-width="3" />
@@ -57,6 +57,6 @@
 <rect x="2278.9" y="1016.6" width="32.8" height="403.5" rx="4" fill="#F4F4F6" stroke="#1D1D1F" stroke-width="3" />
 <rect x="2322.1" y="1016.6" width="32.8" height="450.9" rx="4" fill="#F4F4F6" stroke="#1D1D1F" stroke-width="3" />
 <line x1="290.0" y1="1016.6" x2="2360.0" y2="1016.6" stroke="#1D1D1F" stroke-width="4" stroke-linecap="round"/>
-<text x="310.0" y="280.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#1A9E77" text-anchor="start" xml:space="preserve">trained higher</text>
-<text x="2360.0" y="1556.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#1D1D1F" text-anchor="end" xml:space="preserve">untrained higher</text>
+<text x="310.0" y="280.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#1A9E77" text-anchor="start" xml:space="preserve">higher after training</text>
+<text x="2360.0" y="1556.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#1D1D1F" text-anchor="end" xml:space="preserve">higher before training</text>
 </svg>

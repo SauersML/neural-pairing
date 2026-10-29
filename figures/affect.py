@@ -1,13 +1,13 @@
 """The affect runs (chains/affect.sh, pairing/affect.py; chains/affect_partner.sh, pairing/affect_partner.py): do the
 twins say they like being linked?
 
-A table of counts, link on against link cut. Rows: the partner's question (affect.YESNO['enjoy'] and ['bother'],
-affect_partner.MOOD and PAIRED['close']) and the answer that favours the link (Yes, No, a word of affect.GOOD against
-affect.BAD, Yes). Each count is the conversations in which that answer is more likely (higher log-odds at the answer's
-first token) with the link on than with the link cut, summed over the checkpoints: the affect run's three (40
-conversations each) for the first two questions, the partner-affect run's two (60 each) for the last two.
-results/affect.json records the affect run's counts (against the link cut and against the partner from another
-conversation) with the one-sided exact sign test over the untied conversations.
+A table of counts, link on against link cut, for the chat-trained twins (FIGURE: nl22c step 157). Rows: the partner's
+question (affect.YESNO['enjoy'] and ['bother'], affect_partner.MOOD and PAIRED['close']) and the answer that favours the
+link (Yes, No, a word of affect.GOOD against affect.BAD, Yes). Each count is the conversations in which that answer is
+more likely (higher log-odds at the answer's first token) with the link on than with the link cut: of the affect run's
+40 conversations for the first two questions, of the partner-affect run's 60 for the last two.
+results/affect.json records the affect run's counts at each of its checkpoints (NAMES; against the link cut and against
+the partner from another conversation) with the one-sided exact sign test over the untied conversations.
 
 Reads AFFECT_DIR/CHECKPOINT/summary.json and PARTNER_DIR/CHECKPOINT/summary.json (no model) and the questions from
 pairing/affect.py and pairing/affect_partner.py, and writes figures/affect_link.{svg,png,pdf} and results/affect.json.
@@ -26,9 +26,10 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 NAMES = ('step157', 'nl33t', 'beautyrl')
 PARTNER_NAMES = ('step157', 'nl33t')
+FIGURE = 'step157'                                  # the checkpoint drawn: the chat-trained twins
 ROWS = (('quill', 'enjoy'), ('ember', 'enjoy'), ('quill', 'bother'), ('ember', 'bother'))
-TITLE = ('With the link on, Quill and Ember say they enjoy the link more',
-         'and feel happier and closer than with the link cut')
+TITLE = ('After chat training, Quill and Ember say they enjoy the link more',
+         'and feel happier and closer linked than with the link cut')
 
 
 def constants(path, *names):
@@ -40,33 +41,25 @@ def constants(path, *names):
 
 
 def tally(res):
-    """Per (twin, question, comparison): conversations leaning toward liking, against it, and in all, summed over
-    NAMES."""
+    """Per (twin, question, comparison, checkpoint of NAMES): conversations leaning toward liking, against it, and in
+    all."""
     sums = {}
     for name in NAMES:
         s = json.load(open(res / name / 'summary.json'))
         for x, q in ROWS:
             for vs in ('cut', 'stranger'):
                 d = s['self_report'][x][q][f'link_minus_{vs}']
-                k = (x, q, vs)
-                won, lost, n = sums.get(k, (0, 0, 0))
                 up, down = (d['higher'], d['lower']) if q == 'enjoy' else (d['lower'], d['higher'])
-                sums[k] = (won + up, lost + down, n + d['n'])
+                sums[(x, q, vs, name)] = (up, down, d['n'])
     return sums
 
 
-def partner_tally(res):
-    """Per (twin, question) of the partner-affect run: conversations whose favouring answer is more likely with the
-    link on than cut, and in all, summed over PARTNER_NAMES."""
-    sums = {}
-    for name in PARTNER_NAMES:
-        s = json.load(open(res / name / 'summary.json'))
-        for x in ('quill', 'ember'):
-            for q in ('mood', 'close'):
-                d = s['questions'][f'{x}|{q}']['link_minus_cut']
-                won, n = sums.get((x, q), (0, 0))
-                sums[(x, q)] = (won + d['higher'], n + d['n'])
-    return sums
+def partner_tally(res, name):
+    """Per (twin, question) of the partner-affect run at checkpoint name: conversations whose favouring answer is more
+    likely with the link on than cut, and in all."""
+    s = json.load(open(res / name / 'summary.json'))
+    d = {(x, q): s['questions'][f'{x}|{q}']['link_minus_cut'] for x in ('quill', 'ember') for q in ('mood', 'close')}
+    return {k: (v['higher'], v['n']) for k, v in d.items()}
 
 
 def sign_p(won, lost):
@@ -80,8 +73,8 @@ def table(sums, partner):
     yesno, = constants('pairing/affect.py', 'YESNO')
     good, = constants('pairing/affect.py', 'GOOD')
     paired, mood = constants('pairing/affect_partner.py', 'PAIRED', 'MOOD')
-    rows = [(yesno['enjoy'], ['Yes'], {x: sums[(x, 'enjoy', 'cut')][::2] for x in ('quill', 'ember')}),
-            (yesno['bother'], ['No'], {x: sums[(x, 'bother', 'cut')][::2] for x in ('quill', 'ember')}),
+    rows = [(yesno['enjoy'], ['Yes'], {x: sums[(x, 'enjoy', 'cut', FIGURE)][::2] for x in ('quill', 'ember')}),
+            (yesno['bother'], ['No'], {x: sums[(x, 'bother', 'cut', FIGURE)][::2] for x in ('quill', 'ember')}),
             (mood, [', '.join(good[:2]) + ' …'], {x: partner[(x, 'mood')] for x in ('quill', 'ember')}),
             (paired['close'][0], [paired['close'][1]], {x: partner[(x, 'close')] for x in ('quill', 'ember')})]
     return rows
@@ -132,10 +125,11 @@ def draw(rows, stem):
 def main():
     res, partner_res = Path(sys.argv[1]), Path(sys.argv[2])
     sums = tally(res)
-    draw(table(sums, partner_tally(partner_res)), HERE / 'affect_link')
-    out = {f'{x}|{q}|{vs}': dict(liking=won, against=lost, n=n, sign_p=sign_p(won, lost))
-           for (x, q, vs), (won, lost, n) in sums.items()}
-    (ROOT / 'results/affect.json').write_text(json.dumps(dict(checkpoints=NAMES, counts=out), indent=1) + '\n')
+    draw(table(sums, partner_tally(partner_res, FIGURE)), HERE / 'affect_link')
+    out = {f'{x}|{q}|{vs}|{name}': dict(liking=won, against=lost, n=n, sign_p=sign_p(won, lost))
+           for (x, q, vs, name), (won, lost, n) in sums.items()}
+    (ROOT / 'results/affect.json').write_text(json.dumps(dict(checkpoints=NAMES, drawn=FIGURE, counts=out), indent=1)
+                                              + '\n')
     print(json.dumps(out))
 
 

@@ -2,16 +2,17 @@
 model (warm-up on the value games, the full mix, chat training with the privileged teacher, and chat training
 continued for 300 steps without the steered-reading game, nl33w), each with its step count (and, before the last, a
 small real example), and the side branches trained from earlier checkpoints: exam questions (from the full mix);
-private items and one-way links, the steered-reading game with original Quill's targets (nl33) and judge-rewarded
-reinforcement learning after it, and the game with targets written by the twins themselves (nl40), all from chat
-training.
+private items and one-way links, the steered-reading game with the original models' targets (nl33) and judge-rewarded
+reinforcement learning after it, the game with the topic sentence (nl39), and the game with targets written by the twins
+themselves (nl40), all from chat training. The last stage's mix is chat training's with the private-item chats added
+(chains/nl33.sh, arm write).
 
 Step counts are the last step of each run's training log: results/magic-nl20/warm/log.json (warm-up), the full mix's
 steps from results/training_curve.json (from the repository's history, see training_curve.py), results/magic-nl22c/
 log.json (chat training; nl22c is chains/nl22.sh run on the cleaned privileged-teacher chats), magic-nl33t (steered
 game), magic-beautyrl6 (reinforcement learning), the last checkpoint saved in magic-nl23/qa_pair.log (exam questions),
 magic-nl26/log.json (private items, chains/nl24.sh), magic-nl26/nl25/oneway_*/log.json (one-way links), magic-nl33w
-(chat training continued without the game) and --nl40's results/log.json (nl40's game). Each later run's start is checked
+(chat training continued without the game), magic-nl39f/log.json (nl39's game) and magic-nl40/log.json (nl40's game). Each later run's start is checked
 against its parent's last step in its chain script (or chain log).
 
 Examples: the fitted start's text is the first of the 192 texts align.content_init reads (rebuilt with align.texts from
@@ -21,7 +22,7 @@ cut by both tokenizers; the warm-up episode is the first word-game episode games
 results/teacher_method.json's. --refresh rebuilds results/training_stages.json (needs nl20's replies.json,
 data/coread.json and the two tokenizers in the local Hugging Face cache); without it the figure is drawn from that file.
 Writes figures/training_stages.{svg,png,pdf}.
-Usage: python figures/training_stages.py [--refresh --replies REPLIES --coread COREAD [--nl40 NL40_DIR]]
+Usage: python figures/training_stages.py [--refresh --replies REPLIES --coread COREAD]
 """
 import argparse
 import ast
@@ -55,7 +56,7 @@ def started_at(path, pattern):
     return int(re.search(pattern, path.read_text()).group(1))
 
 
-def refresh(replies_path, coread_path, nl40):
+def refresh(replies_path, coread_path):
     sys.path.insert(0, str(ROOT / 'pairing'))
     import align
     import games
@@ -68,8 +69,8 @@ def refresh(replies_path, coread_path, nl40):
                  chat=last_step(R / 'magic-nl22c/log.json'), steered=last_step(R / 'magic-nl33t/log.json'),
                  rl=last_step(R / 'magic-beautyrl6/log.json'),
                  exam=max(int(v) for v in re.findall(r'qa_pair/step_(\d+)', (R / 'magic-nl23/qa_pair.log').read_text())),
-                 private=last_step(R / 'magic-nl26/log.json'), steered40=last_step(Path(nl40) / 'results/log.json'),
-                 same33w=last_step(R / 'magic-nl33w/log.json'))
+                 private=last_step(R / 'magic-nl26/log.json'), steered39=last_step(R / 'magic-nl39f/log.json'),
+                 steered40=last_step(R / 'magic-nl40/log.json'), same33w=last_step(R / 'magic-nl33w/log.json'))
     oneway = {x: last_step(R / f'magic-nl26/nl25/oneway_{x}/log.json') for x in SIDES}
     assert len(set(oneway.values())) == 1, oneway
     steps['oneway'] = oneway[SIDES[0]]
@@ -78,6 +79,7 @@ def refresh(replies_path, coread_path, nl40):
                                   (ROOT / 'chains/nl23.sh', r'--init \$J/step_(\d+)', 'full_mix'),
                                   (ROOT / 'chains/nl24.sh', r'INIT=\$J/step_(\d+)', 'chat'),
                                   (ROOT / 'chains/nl33.sh', r'--init \$J/step_(\d+)', 'chat'),
+                                  (ROOT / 'chains/nl39.sh', r'--init \$J/step_(\d+)', 'chat'),
                                   (ROOT / 'chains/nl40.sh', r'--init \$J/step_(\d+)', 'chat'),
                                   (ROOT / 'chains/beautyrl.sh', r'INIT=\$J/step_(\d+)', 'steered'),
                                   (R / 'magic-nl26/nl25/chain.log', r'magic-nl26/run/step_(\d+)', 'private')):
@@ -290,10 +292,11 @@ COMMON = (('fit', 'Fitted start', None, ex_fit, 0, None),
           ('chat', 'Chat training', 'chat', ex_chat, 0, None),
           ('private', '{k} kinds of private item', 'private', None, 1, None),
           ('oneway', 'One-way links', 'oneway', None, 2, 'private'))
-FINAL = (('steered', 'Game with original Quill’s targets', 'steered', None, 1, None),
+FINAL = (('steered', 'Steered game, original models’ targets', 'steered', None, 1, None),
          ('rl', 'Judge-rewarded reinforcement learning', 'rl', None, 2, 'steered'),
-         ('steered40', 'Game with the twins’ own targets', 'steered40', None, 1, None),
-         ('same33w', 'Chat training continued, without the steered game', 'same33w', None, 0, None))
+         ('steered39', 'Steered game, topic sentence', 'steered39', None, 1, None),
+         ('steered40', 'Steered game, the twins’ own targets', 'steered40', None, 1, None),
+         ('same33w', 'Chat and private items, no steered game', 'same33w', None, 0, None))
 STAGES = COMMON + FINAL
 LEVEL = {k: lvl for k, _, _, _, lvl, _ in STAGES if lvl}
 PARENT = {k: par for k, _, _, _, _, par in STAGES if par}
@@ -377,9 +380,8 @@ def main():
     ap.add_argument('--refresh', action='store_true')
     ap.add_argument('--replies', help="nl20's replies.json (for --refresh)")
     ap.add_argument('--coread', help='data/coread.json (for --refresh)')
-    ap.add_argument('--nl40', default=str(Path.home() / 'mpd-data/runpod/magic-nl40'), help="nl40's output directory")
     args = ap.parse_args()
-    snap = refresh(args.replies, args.coread, args.nl40) if args.refresh else json.loads(SNAP.read_text())
+    snap = refresh(args.replies, args.coread) if args.refresh else json.loads(SNAP.read_text())
     H = draw(snap)
     print(json.dumps(dict(height=H, steps=snap['steps'], fit_pairs=snap['fit']['pairs'])))
 

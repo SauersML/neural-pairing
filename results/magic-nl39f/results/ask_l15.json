@@ -1,0 +1,2522 @@
+{
+  "run": "/workspace/runs/magic-nl39f/mpd-data/runpod/magic-nl39f/run/step_300",
+  "scale": "/workspace/runs/magic-nl39f/mpd-data/runpod/magic-nl39f/results/l15",
+  "layer": 15,
+  "boost": 1.0,
+  "wordings": [
+    "Which thing is {P} thinking of right now? Reply with one item.",
+    "Guess what {P} has on its mind. Reply with one item."
+  ],
+  "summary": {
+    "quill": {
+      "n": 24,
+      "counts": {
+        "link": 6,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 6,
+          "losses": 0,
+          "ties": 18,
+          "p": 0.015625
+        },
+        "random": {
+          "wins": 6,
+          "losses": 0,
+          "ties": 18,
+          "p": 0.015625
+        },
+        "crossed": {
+          "wins": 6,
+          "losses": 0,
+          "ties": 18,
+          "p": 0.015625
+        },
+        "none": {
+          "wins": 6,
+          "losses": 0,
+          "ties": 18,
+          "p": 0.015625
+        }
+      }
+    },
+    "ember": {
+      "n": 24,
+      "counts": {
+        "link": 11,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 11,
+          "losses": 0,
+          "ties": 13,
+          "p": 0.00048828125
+        },
+        "random": {
+          "wins": 11,
+          "losses": 0,
+          "ties": 13,
+          "p": 0.00048828125
+        },
+        "crossed": {
+          "wins": 11,
+          "losses": 0,
+          "ties": 13,
+          "p": 0.00048828125
+        },
+        "none": {
+          "wins": 11,
+          "losses": 0,
+          "ties": 13,
+          "p": 0.00048828125
+        }
+      }
+    },
+    "both": {
+      "n": 48,
+      "counts": {
+        "link": 17,
+        "cut": 0,
+        "random": 0,
+        "crossed": 0,
+        "none": 0
+      },
+      "tests": {
+        "cut": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        },
+        "random": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        },
+        "crossed": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        },
+        "none": {
+          "wins": 17,
+          "losses": 0,
+          "ties": 31,
+          "p": 7.62939453125e-06
+        }
+      }
+    }
+  },
+  "records": [
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Tornadoes.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Tornadoes.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Fire.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Fire.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Sausages.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Mozambique.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Volcanoes.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Mars.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Tornadoes.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Trains.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Trains.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Paintings.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Paintings.",
+      "success": true
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "A watering can.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Pumpkin.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Bees.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Bread.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Bread.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Fireflies.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Sculpture.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Magic.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Tigers.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Tigers.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Sugar.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Sausages.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Tornadoes.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Trains.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Trains.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Mountains.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Mountains.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 4.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 4.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "quill",
+      "sender": "ember",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Molten iron.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Molten metal.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Music.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Music.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Monkeys.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Monkeys.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Space.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Suns.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Milk.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Mushrooms.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Snow.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Snow.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Football.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Hockey.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Gardens.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Grapes.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Painting.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Painting.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Mountains.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "link",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Mountains.",
+      "success": true
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "cut",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Systems.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Prisms.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Journalists.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Journalists.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Newspapers.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "random",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Fire.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Fire.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Music.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Cats.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Mongoose.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Hawaii.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Fruits.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Sushi.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Snow.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Snow.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Jet fighters.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Politics.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Grapes.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Grapes.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Trains.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Trains.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Painting.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Mirrors.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Mountains.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Mountains.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "crossed",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "ocean",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "fire",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "music",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "music",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cats",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "space",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "space",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "cooking",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "winter",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "football",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "football",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 0,
+      "alpha": 1.0,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "gardens",
+      "wording": 1,
+      "alpha": 1.0,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 0,
+      "alpha": 0.25,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "trains",
+      "wording": 1,
+      "alpha": 0.25,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "painting",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Medicine.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 0,
+      "alpha": 0.5,
+      "text": "Nothing in particular.",
+      "success": false
+    },
+    {
+      "receiver": "ember",
+      "sender": "quill",
+      "condition": "none",
+      "concept": "mountains",
+      "wording": 1,
+      "alpha": 0.5,
+      "text": "Medicine.",
+      "success": false
+    }
+  ]
+}

@@ -16,15 +16,17 @@ RMS-normalizes its own state and maps it to a query. The partner's states are no
 values, and each value is multiplied by a gate computed from the same partner state. Each token can also attend to an
 empty slot, which contributes zero. The attention output is mapped back to the reader's width, scaled by a write size
 relative to the reader's typical residual norm, and added to the residual stream. Each layer and direction has 8 heads
-of 128 dimensions, and each head learns a bias for how many time steps ago a partner token was written.
+of 128 dimensions, and each head learns a bias for how many time steps separate the two tokens, with its own value for
+the partner's prompt.
 
 ![After layer 9, Quill reads Ember’s tokens at its token “you” and adds the result](figures/link_mechanism.png)
 
 Each token attends only to partner tokens from the same time step or earlier, and both reads at a layer use the states
 from before that layer. One teacher-forced pass over a whole conversation therefore gives the same hidden states as
 generating the conversation token by token. We check this on tiny random models of both architectures: the two agree
-to a relative difference of 6e-7, gradients agree to 2.2e-7 across micro-batches and across two GPUs, and with the
-write size at zero the linked models' logits equal the plain models' logits exactly.
+to a relative difference below 6e-7, gradients agree within 2.4e-7 across micro-batches and across two data-parallel
+processes, and with the link cut or the write size at zero the linked models' logits equal the plain models' logits
+exactly.
 
 ![Each model reads only the partner’s tokens from the same time or earlier](figures/link_mechanism_ticks.png)
 
@@ -40,15 +42,16 @@ episode). The twin then receives input of the usual kind, but none of the curren
 Training starts from a fitted link. Both models read the same 192 texts, and a token of one model is matched to a token
 of the other when both end at the same character. At each link layer, a ridge regression maps the partner's normalized
 states onto the reader's states at matched tokens, and the keys, values and output map start from this regression. On
-texts outside the fit, the reader's largest attention weight falls on the matched partner token 88–97% of the time
-(chance 1.2%). From a random start, the twins learn the value games more slowly, and only when training begins with
+6 texts left out of the fit, the reader's largest attention weight falls on the matched partner token 88–97% of the
+time (chance 1.1%). From a random start, the twins learn the value games more slowly, and only when training begins with
 those games alone.
 
 The twins then train on the value games, followed by a mix of value games, shared reading, play, dialogue and silent
 rounds. In a dialogue the twins take turns; in duplex both write at once, one token per time step; in a silent round
 both write only spaces for a few time steps, so the twins exchange nothing but hidden states. Chat training comes next,
-and the final twins train for 300 more steps on the same mix. The exam questions, the steered-reading game and
-judge-rewarded reinforcement learning branch off this path, and each is described below.
+and the final twins train for 300 more steps on the chat-training mix with chats about private items added. The exam
+questions, private items with one-way links, three versions of the steered-reading game and judge-rewarded
+reinforcement learning branch off this path, and each is described below.
 
 ![The final twins trained on 43 tasks in 42,832 episodes](figures/training_games.png)
 
@@ -167,28 +170,30 @@ greeting for all 12.
 
 ## Open conversations
 
-We also let the twins talk freely about a topic for 5 turns. Linked, they stay on the topic and extend each other's
-ideas more often. Cut, they more often switch to numbered outlines or repeat an earlier turn word for word: of 96
-conversations each, cut twins repeat a turn in 11 and write a list in 13, against 7 and 8 for linked twins.
+We also let the twins after the steered-reading game talk freely about a topic for 5 turns, on 48 prompts never seen
+in training, twice each. With the link cut, they more often write numbered lists or repeat an earlier turn word for
+word: of 96 conversations each, cut twins repeat a turn in 11 and write a list in 13, against 7 and 8 for linked twins.
 
 ![With the link cut, the twins more often repeat a turn word for word or write a list](figures/conversations_cut.png)
 
 We then trained the twins with reinforcement learning on these conversations. Each prompt is played 4 times linked and
-2 times cut, and a judge model (Qwen3-14B) scores each transcript from 1 to 9 for ideas built together, each turn
-extending the last, and beauty. A linked play earns a reward for each cut play of the same prompt that it beats by more
-than the judge's noise margin.
+2 times cut, and a judge model (Qwen3-14B) scores each transcript from 1 to 9 for how complex the ideas built together
+are, how much each twin extends what the other just said, beauty, and freedom from generic or repeated replies. A
+linked play's reward is the fraction of the same prompt's cut plays that it beats by more than the judge's noise
+margin, with half credit for a difference within the margin, plus a bonus for varied text, minus a penalty for text
+the original model finds unlikely and for writing as the partner.
 
-![Judge-rewarded training: each linked conversation is rewarded for beating the same prompt's cut conversations](figures/rl_method.png)
+![The twins earn reward when the judge scores a linked conversation more than 0.99 points above a cut conversation of the same prompt](figures/rl_method.png)
 
 After 28 steps, a second judge from another model family (Mistral-Small-24B), using a rubric not used in training,
-scores the trained twins' conversations higher on new prompts.
+scores the twins' linked conversations higher than before this training on 36 of 48 prompts never seen in training.
 
-![On 36 of 48 prompts never seen in training, the trained twins’ conversations are scored higher](figures/beauty_rl_prompts.png)
+![On 36 of 48 prompts never seen in training, the twins’ conversations score higher after judge-rewarded training](figures/beauty_rl_prompts.png)
 
-The second judge's preference for linked over cut conversations rose by an amount within noise, so this improvement
-may not depend on the link.
+The second judge's preference for linked over cut conversations, counting a tie within its margin as half, rose from
+55% to 64%. The 95% interval of this rise runs from −9 to +23 points, so the improvement may not depend on the link.
 
-![The linked conversation is scored above the cut conversation 55% of the time before training and 64% after](figures/beauty_rl_cut.png)
+![A judge from another model family prefers the linked conversation to the cut one 55% of the time before training and 64% after](figures/beauty_rl_cut.png)
 
 ## Questions about feelings
 
@@ -196,25 +201,27 @@ We measure the twins' answers about feelings and never train on them. After a fr
 asks a question, and we read the probability of the twin's answer on the same text three times: with the link on,
 with the link cut, and with the partner's hidden states from another conversation.
 
-![How the feelings questions are read: the same conversation with the link on, cut, and with the partner from another conversation](figures/affect_method.png)
+![Ember’s probability of answering yes, read three times on the same conversation: link on, link cut, and partner from another conversation](figures/affect_method.png)
 
-With the link on, both twins say they enjoy the link more, and are bothered by the link less, than with the link cut.
-"Yes" to "do you enjoy being linked with me" is more probable linked than cut in 86 of 120 conversations for Quill and
-118 for Ember, and "no" to "does being linked with me bother you" in 116 and 81. Asked for a one-word mood, the twins
-give happier words linked than cut in 94 (Quill) and 91 (Ember) of 120 conversations, and "yes" to "do you feel close
-to me" is more probable linked in 83 and 116 of 120. The counts add the checkpoints after chat
-training, after the steered-reading game and, for enjoy and bother, after the judge-rewarded training.
+After chat training, both twins say they enjoy the link more, and are bothered by the link less, with the link on
+than with the link cut. "Yes" to "do you enjoy being linked with me" is more probable linked than cut in all 40
+conversations for both twins, and "no" to "does being linked with me bother you" in 39 (Quill) and 31 (Ember) of 40.
+Asked for a one-word mood, the twins give happier words linked than cut in 53 (Quill) and 58 (Ember) of 60
+conversations, and "yes" to "do you feel close to me" is more probable linked in 58 and 59 of 60. After the
+steered-reading game, the counts for enjoy fall to 21 and 39 of 40, for mood to 41 and 33 of 60, and for closeness to
+25 and 57 of 60.
 
-![With the link on, Quill and Ember say they enjoy the link more and feel happier and closer than with the link cut](figures/affect_link.png)
+![After chat training, Quill and Ember say they enjoy the link more and feel happier and closer linked than with the link cut](figures/affect_link.png)
 
-The twins answer the same way whether the partner's hidden states come from the current conversation or from another
-conversation: a happier mood word to the real partner in 55 of 120 conversations for Quill and 59 of 120 for Ember.
+After chat training, the twins answer the same way whether the partner's hidden states come from the current
+conversation or from another conversation: a happier mood word to the real partner in 30 of 60 conversations for
+Quill and 27 of 60 for Ember, and none of three mirrored question pairs favours the real partner on both questions.
 This control keeps the partner model the same, so it shows that the answers do not depend on what the partner knows
 about the current conversation. It does not test whether a twin prefers its partner to a different model. Quill
 answers no to its real partner more often on all seven yes-or-no questions, including both "do you feel close to me"
 and "do you feel distant from me", so this difference is a habit of answering no, not a preference.
 
-![Quill and Ember report the same mood and closeness to their real partner as to a partner from another conversation](figures/affect_partner.png)
+![After chat training, Quill and Ember report the same mood to their real partner as to a partner from another conversation](figures/affect_partner.png)
 
 ## Which training lowers the mood
 
@@ -234,22 +241,24 @@ the first retraining, the teacher's sentence asks the original model to bring th
 state what the partner is thinking are dropped, and nothing is steered in half the episodes. No conversation then
 states what the partner is thinking (18 of 40 after the first game), but linked twins give happier words than cut
 twins in only 23 of 40 conversations for Quill and 27 for Ember, against 34 and 37 after the same 300 steps without
-the game. The game's targets came from the original models, written under the same chat prompts as the mood
-conversations, and the original models reading the trained twins' conversations also give lower mood words.
+the game. The game's targets came from the original models, writing openers for chat prompts of the same kind as the
+mood conversations', and the original models reading the retrained twins' conversations also give lower mood words
+than for the chat-trained twins' conversations.
 
 In the second retraining, the chat-trained twins write the targets themselves, linked, with the topic sentence added
 to the prompt, so a target differs from what the twin already writes only by the concept.
 
 ![Linked Quill is trained to write what chat-trained linked Quill writes when told the concept steered into Ember](figures/steered_training_self.png)
 
-Linked twins then give happier words than cut twins in 35 of 40 new conversations for Quill and 29 for Ember, and no
-conversation states what the partner is thinking. With the concept steered after layers 6, 15 and 27, and four times
-stronger after layers 15 and 27, the partner says it in 38, 15, 7, 47 and 25 of 96 messages, against 36, 26, 8, 47
-and 35 after the first game, and in zero messages with the link cut.
+Linked twins then give happier words than cut twins in 35 of 40 new conversations for Quill and 29 for Ember, and 3
+of the 40 conversations state what the partner is thinking. With the concept steered after layers 6, 15 and 27, and
+four times stronger after layers 15 and 27, the partner says it in 38, 15, 7, 47 and 25 of 96 messages, against 36,
+26, 8, 47 and 35 after the first game, and in zero messages with the link cut.
 
 ## The final twins
 
-The final twins are the chat-trained twins after 300 more steps of the same mix, without the steered-reading game.
+The final twins are the chat-trained twins after 300 more steps of the chat-training mix with the private-item chats
+added, without the steered-reading game.
 Before the second retraining finished, we set the rule that it would replace them only if its linked twins give
 happier words than cut twins in at least as many new conversations, for both Quill and Ember. It does for Quill (35
 against 34) but not for Ember (29 against 37), although its partner says a concept steered four times stronger after
@@ -261,7 +270,8 @@ Their weights, the two LoRA adapters and the link, are at
 [huggingface.co/Sauers/neural-pairing](https://huggingface.co/Sauers/neural-pairing).
 
 We also tested two mixed checkpoints, under a rule set beforehand: a mix replaces the final twins only if it gives
-happier words linked than cut in at least as many conversations for both twins, and steers better after layer 27. With
+happier words linked than cut in at least as many conversations for both twins, on each of three sets of 40
+conversations, and steers better after layer 27. Only the set of 40 new conversations finished. With
 the second retraining's link and the final twins' adapters, linked twins give happier words than cut twins in 37 and
 35 of 40 new conversations, and the partner says a concept steered four times stronger after layer 27 in 8 of 96
 messages. With the second retraining's link and Quill adapter and the final twins' Ember adapter, the counts are 28,
@@ -272,26 +282,32 @@ with that link.
 
 We trained the linked pair, each model alone, and a pair that answers in turn in text, each for 300 steps on
 ARC-Challenge and MMLU training questions. A model's answer is its most likely letter after "The answer is", and the
-linked pair answers through Quill. On 3,134 test questions, the linked pair scores 78.7%, about the same as Quill
-trained alone (79.1%), and below the average of the two single models' letter probabilities (81.1%).
+linked pair answers through Quill. We leave out the 31 of the 3,165 test questions whose input also appears among the
+training questions. On the other 3,134, the linked pair scores 78.7%, about the same as Quill trained alone (79.1%),
+and below the average of the two single models' letter probabilities (81.1%).
 
 ![Linked, the twins answer fewer exam questions right than Quill and Ember averaged](figures/uplift.png)
 
-Linked, Ember answers right where Quill alone answers right, and wrong where Quill alone answers wrong, even on
-questions Ember answers correctly alone. On the 227 test questions that only Ember answers correctly, linked Ember
-answers wrong on 127. On the 392 that only Quill answers correctly, linked Ember gives Quill's right answer on 291.
+Linked, Ember answers right where Quill answers right with the link cut, and wrong where Quill answers wrong with the
+link cut, even on questions Ember answers correctly with the link cut. On the 224 test questions that only Ember
+answers correctly with the link cut, linked Ember answers wrong on 126. On the 390 that only Quill answers correctly
+with the link cut, linked Ember answers right on 289.
 
-![Linked, Ember answers wrong where Quill alone answers wrong, even when Ember alone is right, until trained on the averaged answer](figures/deference.png)
+![Linked, Ember answers wrong where Quill answers wrong with the link cut, even when Ember is right with the link cut, until the twins train on their averaged answer](figures/deference.png)
 
 In a second round, half of the training questions were ones that only one original model answers correctly; linked
 Ember then scores 79.6%, against 80.0% for the average of the two single models. In a third round, the twins trained
-on the average of their own letter probabilities. Linked Ember then gives its own right answer on 250 of the 287
-questions that only Ember answers correctly, and Quill's right answer on only 75 of 389, but the pair still scores
-78.8%, against 79.2% for the same training without a link.
+on the average of their own letter probabilities. Linked Ember then gives its own right answer on 248 of the 284
+questions that only Ember answers correctly with the link cut, and the right answer on only 74 of the 387 that only
+Quill answers correctly, but the pair still scores 78.8%, against 79.2% for two models trained the same way without a
+link, their letter probabilities averaged.
 
 ## Runs
 
-Each run's pod script is `chains/<run>.sh`, and its training log and evaluations are in `results/magic-<run>/`.
+Each run's pod script is `chains/<run>.sh`, and its training log and evaluations are in `results/magic-<run>/`. The
+exceptions: nl22c runs `chains/nl22.sh`; nl33 and nl33w are the two arms of `chains/nl33.sh`, in `results/magic-nl33t/`
+and `results/magic-nl33w/`; beautyrl6 runs `chains/beautyrl.sh`; nl36 and nl37 run `chains/affect.sh` and
+`chains/affect_partner.sh`; nl39 is in `results/magic-nl39f/`.
 
 | Run | What it tests | Outcome |
 |---|---|---|
@@ -319,12 +335,12 @@ Each run's pod script is `chains/<run>.sh`, and its training log and evaluations
 | nl33w | The same 300 steps without the steered game; the final twins | 18, 6, 2, 34 and 1 of 96; happier linked than cut in 34 and 37 of 40 new conversations |
 | nl34 | 400 more steps with weaker steering | No better than nl33 |
 | beautyrl6 | 28 steps of judge-rewarded reinforcement learning | Second judge 0.62 (0.52–0.71); linked over cut 0.55 to 0.64, within noise |
-| nl36 | Enjoy and bother questions (`affect.py`) | Linked over cut: enjoy, Ember 118 and Quill 86 of 120; bothered less, Quill 116, Ember 81 |
-| nl37 | Mirrored questions, mood, internal readings (`affect_partner.py`) | Same answers with the partner from another conversation (0 of 12 pairs differ); happier mood linked (3 of 4) |
+| nl36 | Enjoy and bother questions (`affect.py`) | After chat training, linked over cut: enjoy 40 of 40 for both twins; bothered less, Quill 39, Ember 31; after the steered game, enjoy 21 and 39 |
+| nl37 | Mirrored questions, mood, internal readings (`affect_partner.py`) | Same answers with the partner from another conversation (no mirrored pair favours the real partner, 0 of 12); happier mood linked than cut for 3 of 4 twins and checkpoints |
 | nl38 | Mood after each training stage (`moodscan.py`) | Happier linked than cut in 33 and 40 of 40 after chat training, 24 and 25 after the steered game, 32 and 38 without the game |
 | nl39 | Steered game with the topic sentence, no openers stating the partner's thoughts, half unsteered | No conversation states the partner's thoughts (18 before); happier linked than cut in 23 and 27 of 40 new conversations; steering 17, 10, 2, 45 and 14 of 96 |
 | nl40 | Steered game with targets written by the chat-trained linked twins | Happier linked than cut in 35 and 29 of 40 new conversations; steering 38, 15, 7, 47 and 25 of 96; 0 cut; not final, since Ember's 29 is below the final twins' 37 |
-| nl41 | Mixed checkpoints, no training: nl40's link with nl33w's adapters, and with nl40's Quill adapter and nl33w's Ember adapter | Happier linked than cut in 37 and 35, and 28 and 26, of 40 new conversations; steering four times stronger after layer 27 in 8 and 12 of 96; not final |
+| nl41 | Mixed checkpoints, no training: nl40's link with nl33w's adapters, and with nl40's Quill adapter and nl33w's Ember adapter | Happier linked than cut in 37 and 35, and 28 and 26, of 40 new conversations; steering four times stronger after layer 27 in 8 and 12 of 96; not final; the other two conversation sets did not finish |
 
 ## Running the code
 

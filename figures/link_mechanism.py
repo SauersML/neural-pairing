@@ -401,7 +401,7 @@ def mechanism(f):
     s = SVG(W, H, title,
             'One read through the link after one exchange layer, as in pairing/link.py Side.show and Side.read: '
             f'Quill\'s token "{reader_tok}" (time {reader_t}) attends over every Ember token read at time {reader_t} '
-            'or earlier plus its null key. Purple parts belong to the reader (Quill), orange parts to the sender '
+            'or earlier plus an empty slot that adds nothing. Purple parts belong to the reader (Quill), orange parts to the sender '
             '(Ember). Bars, gate meters and weights are drawings, not measured values.')
     s.title(title)
     s.rect(40, top, W - 80, H - top - 30, COOL, r=36)
@@ -424,7 +424,7 @@ def mechanism(f):
         if i % 2 == 0:
             s.rect(56, y - 2, 1760, rh - 8, '#E9E9EE', 'none', 18, 0)
         if tok == 'null key':
-            chip(s, 70, cy - 32, 210, 64, 'null key', Q, QL, 40, 700, tcolor=INK)
+            chip(s, 70, cy - 32, 250, 64, 'empty slot', Q, QL, 40, 700, tcolor=INK)
         elif tok in ('prompt', 'turn header'):
             s.text(70, cy, 'prompt' if tok == 'prompt' else 'header', 42, E, 700)
             s.text(70, cy + 48, f'time {t}'.replace('-', '−'), 42, INK)

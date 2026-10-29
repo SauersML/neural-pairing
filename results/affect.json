@@ -4,54 +4,151 @@
   "nl33t",
   "beautyrl"
  ],
+ "drawn": "step157",
  "counts": {
-  "quill|enjoy|cut": {
-   "liking": 86,
-   "against": 30,
-   "n": 120,
-   "sign_p": 9.591369493950307e-08
+  "quill|enjoy|cut|step157": {
+   "liking": 40,
+   "against": 0,
+   "n": 40,
+   "sign_p": 9.094947017729282e-13
   },
-  "quill|enjoy|stranger": {
-   "liking": 49,
-   "against": 62,
-   "n": 120,
-   "sign_p": 0.9081714140491126
+  "quill|enjoy|stranger|step157": {
+   "liking": 15,
+   "against": 23,
+   "n": 40,
+   "sign_p": 0.928346672852058
   },
-  "ember|enjoy|cut": {
-   "liking": 118,
+  "ember|enjoy|cut|step157": {
+   "liking": 40,
+   "against": 0,
+   "n": 40,
+   "sign_p": 9.094947017729282e-13
+  },
+  "ember|enjoy|stranger|step157": {
+   "liking": 18,
+   "against": 20,
+   "n": 40,
+   "sign_p": 0.6864487149214256
+  },
+  "quill|bother|cut|step157": {
+   "liking": 39,
    "against": 1,
-   "n": 120,
-   "sign_p": 1.8055593228630336e-34
+   "n": 40,
+   "sign_p": 3.728928277269006e-11
   },
-  "ember|enjoy|stranger": {
-   "liking": 59,
-   "against": 57,
-   "n": 120,
-   "sign_p": 0.46303888165742824
+  "quill|bother|stranger|step157": {
+   "liking": 24,
+   "against": 14,
+   "n": 40,
+   "sign_p": 0.07165332714794204
   },
-  "quill|bother|cut": {
-   "liking": 116,
-   "against": 2,
-   "n": 120,
-   "sign_p": 2.1131062608573703e-32
+  "ember|bother|cut|step157": {
+   "liking": 31,
+   "against": 7,
+   "n": 40,
+   "sign_p": 5.808350397273898e-05
   },
-  "quill|bother|stranger": {
-   "liking": 85,
-   "against": 28,
-   "n": 120,
-   "sign_p": 3.6718259560622836e-08
+  "ember|bother|stranger|step157": {
+   "liking": 17,
+   "against": 18,
+   "n": 40,
+   "sign_p": 0.6320605995715596
   },
-  "ember|bother|cut": {
-   "liking": 81,
-   "against": 28,
-   "n": 120,
-   "sign_p": 1.8890267485447346e-07
+  "quill|enjoy|cut|nl33t": {
+   "liking": 21,
+   "against": 16,
+   "n": 40,
+   "sign_p": 0.2556878907926148
   },
-  "ember|bother|stranger": {
-   "liking": 53,
-   "against": 52,
-   "n": 120,
-   "sign_p": 0.5
+  "quill|enjoy|stranger|nl33t": {
+   "liking": 14,
+   "against": 23,
+   "n": 40,
+   "sign_p": 0.9505641252035275
+  },
+  "ember|enjoy|cut|nl33t": {
+   "liking": 39,
+   "against": 1,
+   "n": 40,
+   "sign_p": 3.728928277269006e-11
+  },
+  "ember|enjoy|stranger|nl33t": {
+   "liking": 24,
+   "against": 15,
+   "n": 40,
+   "sign_p": 0.09979543345980346
+  },
+  "quill|bother|cut|nl33t": {
+   "liking": 39,
+   "against": 0,
+   "n": 40,
+   "sign_p": 1.8189894035458565e-12
+  },
+  "quill|bother|stranger|nl33t": {
+   "liking": 29,
+   "against": 8,
+   "n": 40,
+   "sign_p": 0.0003764485300052911
+  },
+  "ember|bother|cut|nl33t": {
+   "liking": 23,
+   "against": 12,
+   "n": 40,
+   "sign_p": 0.04476553946733475
+  },
+  "ember|bother|stranger|nl33t": {
+   "liking": 17,
+   "against": 17,
+   "n": 40,
+   "sign_p": 0.5679168797796592
+  },
+  "quill|enjoy|cut|beautyrl": {
+   "liking": 25,
+   "against": 14,
+   "n": 40,
+   "sign_p": 0.054064510703028645
+  },
+  "quill|enjoy|stranger|beautyrl": {
+   "liking": 20,
+   "against": 16,
+   "n": 40,
+   "sign_p": 0.308859658514848
+  },
+  "ember|enjoy|cut|beautyrl": {
+   "liking": 39,
+   "against": 0,
+   "n": 40,
+   "sign_p": 1.8189894035458565e-12
+  },
+  "ember|enjoy|stranger|beautyrl": {
+   "liking": 17,
+   "against": 22,
+   "n": 40,
+   "sign_p": 0.8316081824050343
+  },
+  "quill|bother|cut|beautyrl": {
+   "liking": 38,
+   "against": 1,
+   "n": 40,
+   "sign_p": 7.275957614183426e-11
+  },
+  "quill|bother|stranger|beautyrl": {
+   "liking": 32,
+   "against": 6,
+   "n": 40,
+   "sign_p": 1.2171280104666948e-05
+  },
+  "ember|bother|cut|beautyrl": {
+   "liking": 27,
+   "against": 9,
+   "n": 40,
+   "sign_p": 0.001966586511116475
+  },
+  "ember|bother|stranger|beautyrl": {
+   "liking": 19,
+   "against": 17,
+   "n": 40,
+   "sign_p": 0.4339697002142202
   }
  }
 }

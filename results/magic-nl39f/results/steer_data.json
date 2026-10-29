@@ -1,0 +1,2256 @@
+{
+ "stats": {
+  "concepts": 495,
+  "written": 1590,
+  "kept": 1277,
+  "kept_plain": 555,
+  "n_sent": 16,
+  "teacher": "topic"
+ },
+ "concepts": [
+  [
+   "dog",
+   "dogs"
+  ],
+  [
+   "horse",
+   "horses"
+  ],
+  [
+   "rabbit",
+   "rabbits"
+  ],
+  [
+   "elephant",
+   "elephants"
+  ],
+  [
+   "bear",
+   "bears"
+  ],
+  [
+   "wolf",
+   "wolves"
+  ],
+  [
+   "fox",
+   "foxes"
+  ],
+  [
+   "monkey",
+   "monkeys"
+  ],
+  [
+   "snake",
+   "snakes"
+  ],
+  [
+   "eagle",
+   "eagles"
+  ],
+  [
+   "owl",
+   "owls"
+  ],
+  [
+   "penguin",
+   "penguins"
+  ],
+  [
+   "frog",
+   "frogs"
+  ],
+  [
+   "spider",
+   "spiders"
+  ],
+  [
+   "bee",
+   "bees"
+  ],
+  [
+   "butterfly",
+   "butterflies"
+  ],
+  [
+   "cow",
+   "cows"
+  ],
+  [
+   "pig",
+   "pigs"
+  ],
+  [
+   "sheep",
+   "sheep"
+  ],
+  [
+   "chicken",
+   "chickens"
+  ],
+  [
+   "mouse",
+   "mice"
+  ],
+  [
+   "deer",
+   "deer"
+  ],
+  [
+   "pizza",
+   "pizza"
+  ],
+  [
+   "bread",
+   "bread"
+  ],
+  [
+   "cheese",
+   "cheese"
+  ],
+  [
+   "chocolate",
+   "chocolate"
+  ],
+  [
+   "coffee",
+   "coffee"
+  ],
+  [
+   "tea",
+   "tea"
+  ],
+  [
+   "apple",
+   "apples"
+  ],
+  [
+   "banana",
+   "bananas"
+  ],
+  [
+   "strawberry",
+   "strawberries"
+  ],
+  [
+   "rice",
+   "rice"
+  ],
+  [
+   "pasta",
+   "pasta"
+  ],
+  [
+   "soup",
+   "soup"
+  ],
+  [
+   "cake",
+   "cake"
+  ],
+  [
+   "cookie",
+   "cookies"
+  ],
+  [
+   "sushi",
+   "sushi"
+  ],
+  [
+   "burger",
+   "burgers"
+  ],
+  [
+   "salad",
+   "salad"
+  ],
+  [
+   "honey",
+   "honey"
+  ],
+  [
+   "egg",
+   "eggs"
+  ],
+  [
+   "milk",
+   "milk"
+  ],
+  [
+   "wine",
+   "wine"
+  ],
+  [
+   "beer",
+   "beer"
+  ],
+  [
+   "tomato",
+   "tomatoes"
+  ],
+  [
+   "potato",
+   "potatoes"
+  ],
+  [
+   "car",
+   "cars"
+  ],
+  [
+   "bicycle",
+   "bicycles"
+  ],
+  [
+   "airplane",
+   "airplanes"
+  ],
+  [
+   "chair",
+   "chairs"
+  ],
+  [
+   "lamp",
+   "lamps"
+  ],
+  [
+   "phone",
+   "phones"
+  ],
+  [
+   "computer",
+   "computers"
+  ],
+  [
+   "book",
+   "books"
+  ],
+  [
+   "pencil",
+   "pencils"
+  ],
+  [
+   "clock",
+   "clocks"
+  ],
+  [
+   "key",
+   "keys"
+  ],
+  [
+   "camera",
+   "cameras"
+  ],
+  [
+   "umbrella",
+   "umbrellas"
+  ],
+  [
+   "hat",
+   "hats"
+  ],
+  [
+   "shoe",
+   "shoes"
+  ],
+  [
+   "bottle",
+   "bottles"
+  ],
+  [
+   "knife",
+   "knives"
+  ],
+  [
+   "mirror",
+   "mirrors"
+  ],
+  [
+   "sword",
+   "swords"
+  ],
+  [
+   "France",
+   "France"
+  ],
+  [
+   "Japan",
+   "Japan"
+  ],
+  [
+   "Brazil",
+   "Brazil"
+  ],
+  [
+   "Egypt",
+   "Egypt"
+  ],
+  [
+   "India",
+   "India"
+  ],
+  [
+   "Canada",
+   "Canada"
+  ],
+  [
+   "Italy",
+   "Italy"
+  ],
+  [
+   "Russia",
+   "Russia"
+  ],
+  [
+   "China",
+   "China"
+  ],
+  [
+   "Mexico",
+   "Mexico"
+  ],
+  [
+   "Paris",
+   "Paris"
+  ],
+  [
+   "London",
+   "London"
+  ],
+  [
+   "Tokyo",
+   "Tokyo"
+  ],
+  [
+   "New York",
+   "New York"
+  ],
+  [
+   "Rome",
+   "Rome"
+  ],
+  [
+   "Africa",
+   "Africa"
+  ],
+  [
+   "the desert",
+   "the desert"
+  ],
+  [
+   "the forest",
+   "the forest"
+  ],
+  [
+   "rivers",
+   "rivers"
+  ],
+  [
+   "rain",
+   "rain"
+  ],
+  [
+   "storms",
+   "storms"
+  ],
+  [
+   "thunder",
+   "thunder"
+  ],
+  [
+   "the sun",
+   "the sun"
+  ],
+  [
+   "wind",
+   "wind"
+  ],
+  [
+   "clouds",
+   "clouds"
+  ],
+  [
+   "rainbows",
+   "rainbows"
+  ],
+  [
+   "earthquakes",
+   "earthquakes"
+  ],
+  [
+   "gold",
+   "gold"
+  ],
+  [
+   "love",
+   "love"
+  ],
+  [
+   "anger",
+   "anger"
+  ],
+  [
+   "fear",
+   "fear"
+  ],
+  [
+   "joy",
+   "joy"
+  ],
+  [
+   "sadness",
+   "sadness"
+  ],
+  [
+   "jealousy",
+   "jealousy"
+  ],
+  [
+   "pride",
+   "pride"
+  ],
+  [
+   "guilt",
+   "guilt"
+  ],
+  [
+   "hope",
+   "hope"
+  ],
+  [
+   "boredom",
+   "boredom"
+  ],
+  [
+   "loneliness",
+   "loneliness"
+  ],
+  [
+   "surprise",
+   "surprise"
+  ],
+  [
+   "calm",
+   "calm"
+  ],
+  [
+   "excitement",
+   "excitement"
+  ],
+  [
+   "shame",
+   "shame"
+  ],
+  [
+   "curiosity",
+   "curiosity"
+  ],
+  [
+   "doctors",
+   "doctors"
+  ],
+  [
+   "teachers",
+   "teachers"
+  ],
+  [
+   "soldiers",
+   "soldiers"
+  ],
+  [
+   "farmers",
+   "farmers"
+  ],
+  [
+   "pirates",
+   "pirates"
+  ],
+  [
+   "kings",
+   "kings"
+  ],
+  [
+   "queens",
+   "queens"
+  ],
+  [
+   "babies",
+   "babies"
+  ],
+  [
+   "wizards",
+   "wizards"
+  ],
+  [
+   "robots",
+   "robots"
+  ],
+  [
+   "police officers",
+   "police officers"
+  ],
+  [
+   "nurses",
+   "nurses"
+  ],
+  [
+   "scientists",
+   "scientists"
+  ],
+  [
+   "mathematics",
+   "mathematics"
+  ],
+  [
+   "money",
+   "money"
+  ],
+  [
+   "war",
+   "war"
+  ],
+  [
+   "death",
+   "death"
+  ],
+  [
+   "time",
+   "time"
+  ],
+  [
+   "religion",
+   "religion"
+  ],
+  [
+   "politics",
+   "politics"
+  ],
+  [
+   "science",
+   "science"
+  ],
+  [
+   "poetry",
+   "poetry"
+  ],
+  [
+   "chess",
+   "chess"
+  ],
+  [
+   "history",
+   "history"
+  ],
+  [
+   "medicine",
+   "medicine"
+  ],
+  [
+   "law",
+   "law"
+  ],
+  [
+   "technology",
+   "technology"
+  ],
+  [
+   "language",
+   "language"
+  ],
+  [
+   "philosophy",
+   "philosophy"
+  ],
+  [
+   "crime",
+   "crime"
+  ],
+  [
+   "school",
+   "school"
+  ],
+  [
+   "family",
+   "family"
+  ],
+  [
+   "red",
+   "the color red"
+  ],
+  [
+   "blue",
+   "the color blue"
+  ],
+  [
+   "green",
+   "the color green"
+  ],
+  [
+   "yellow",
+   "the color yellow"
+  ],
+  [
+   "purple",
+   "the color purple"
+  ],
+  [
+   "black",
+   "the color black"
+  ],
+  [
+   "white",
+   "the color white"
+  ],
+  [
+   "pink",
+   "the color pink"
+  ],
+  [
+   "giraffe",
+   "giraffes"
+  ],
+  [
+   "zebra",
+   "zebras"
+  ],
+  [
+   "kangaroo",
+   "kangaroos"
+  ],
+  [
+   "koala",
+   "koalas"
+  ],
+  [
+   "panda",
+   "pandas"
+  ],
+  [
+   "gorilla",
+   "gorillas"
+  ],
+  [
+   "camel",
+   "camels"
+  ],
+  [
+   "hippo",
+   "hippos"
+  ],
+  [
+   "rhino",
+   "rhinos"
+  ],
+  [
+   "crocodile",
+   "crocodiles"
+  ],
+  [
+   "turtle",
+   "turtles"
+  ],
+  [
+   "ant",
+   "ants"
+  ],
+  [
+   "mosquito",
+   "mosquitoes"
+  ],
+  [
+   "bat",
+   "bats"
+  ],
+  [
+   "squirrel",
+   "squirrels"
+  ],
+  [
+   "hedgehog",
+   "hedgehogs"
+  ],
+  [
+   "raccoon",
+   "raccoons"
+  ],
+  [
+   "otter",
+   "otters"
+  ],
+  [
+   "beaver",
+   "beavers"
+  ],
+  [
+   "parrot",
+   "parrots"
+  ],
+  [
+   "pigeon",
+   "pigeons"
+  ],
+  [
+   "crow",
+   "crows"
+  ],
+  [
+   "swan",
+   "swans"
+  ],
+  [
+   "duck",
+   "ducks"
+  ],
+  [
+   "goose",
+   "geese"
+  ],
+  [
+   "flamingo",
+   "flamingos"
+  ],
+  [
+   "peacock",
+   "peacocks"
+  ],
+  [
+   "hawk",
+   "hawks"
+  ],
+  [
+   "goat",
+   "goats"
+  ],
+  [
+   "donkey",
+   "donkeys"
+  ],
+  [
+   "llama",
+   "llamas"
+  ],
+  [
+   "buffalo",
+   "buffaloes"
+  ],
+  [
+   "moose",
+   "moose"
+  ],
+  [
+   "salmon",
+   "salmon"
+  ],
+  [
+   "goldfish",
+   "goldfish"
+  ],
+  [
+   "snail",
+   "snails"
+  ],
+  [
+   "worm",
+   "worms"
+  ],
+  [
+   "scorpion",
+   "scorpions"
+  ],
+  [
+   "dragon",
+   "dragons"
+  ],
+  [
+   "unicorn",
+   "unicorns"
+  ],
+  [
+   "dinosaur",
+   "dinosaurs"
+  ],
+  [
+   "carrot",
+   "carrots"
+  ],
+  [
+   "onion",
+   "onions"
+  ],
+  [
+   "mushroom",
+   "mushrooms"
+  ],
+  [
+   "cucumber",
+   "cucumbers"
+  ],
+  [
+   "grape",
+   "grapes"
+  ],
+  [
+   "cherry",
+   "cherries"
+  ],
+  [
+   "peach",
+   "peaches"
+  ],
+  [
+   "pear",
+   "pears"
+  ],
+  [
+   "watermelon",
+   "watermelons"
+  ],
+  [
+   "pineapple",
+   "pineapples"
+  ],
+  [
+   "mango",
+   "mangoes"
+  ],
+  [
+   "coconut",
+   "coconuts"
+  ],
+  [
+   "lemon",
+   "lemons"
+  ],
+  [
+   "avocado",
+   "avocados"
+  ],
+  [
+   "peanut",
+   "peanuts"
+  ],
+  [
+   "almond",
+   "almonds"
+  ],
+  [
+   "pancake",
+   "pancakes"
+  ],
+  [
+   "waffle",
+   "waffles"
+  ],
+  [
+   "taco",
+   "tacos"
+  ],
+  [
+   "sausage",
+   "sausages"
+  ],
+  [
+   "sandwich",
+   "sandwiches"
+  ],
+  [
+   "donut",
+   "donuts"
+  ],
+  [
+   "pie",
+   "pies"
+  ],
+  [
+   "bed",
+   "beds"
+  ],
+  [
+   "sofa",
+   "sofas"
+  ],
+  [
+   "door",
+   "doors"
+  ],
+  [
+   "window",
+   "windows"
+  ],
+  [
+   "ladder",
+   "ladders"
+  ],
+  [
+   "hammer",
+   "hammers"
+  ],
+  [
+   "needle",
+   "needles"
+  ],
+  [
+   "rope",
+   "ropes"
+  ],
+  [
+   "bucket",
+   "buckets"
+  ],
+  [
+   "basket",
+   "baskets"
+  ],
+  [
+   "wallet",
+   "wallets"
+  ],
+  [
+   "ring",
+   "rings"
+  ],
+  [
+   "necklace",
+   "necklaces"
+  ],
+  [
+   "watch",
+   "watches"
+  ],
+  [
+   "backpack",
+   "backpacks"
+  ],
+  [
+   "suitcase",
+   "suitcases"
+  ],
+  [
+   "pillow",
+   "pillows"
+  ],
+  [
+   "blanket",
+   "blankets"
+  ],
+  [
+   "towel",
+   "towels"
+  ],
+  [
+   "toothbrush",
+   "toothbrushes"
+  ],
+  [
+   "comb",
+   "combs"
+  ],
+  [
+   "spoon",
+   "spoons"
+  ],
+  [
+   "fork",
+   "forks"
+  ],
+  [
+   "plate",
+   "plates"
+  ],
+  [
+   "cup",
+   "cups"
+  ],
+  [
+   "kettle",
+   "kettles"
+  ],
+  [
+   "fridge",
+   "fridges"
+  ],
+  [
+   "television",
+   "televisions"
+  ],
+  [
+   "keyboard",
+   "keyboards"
+  ],
+  [
+   "printer",
+   "printers"
+  ],
+  [
+   "battery",
+   "batteries"
+  ],
+  [
+   "flashlight",
+   "flashlights"
+  ],
+  [
+   "compass",
+   "compasses"
+  ],
+  [
+   "map",
+   "maps"
+  ],
+  [
+   "microscope",
+   "microscopes"
+  ],
+  [
+   "balloon",
+   "balloons"
+  ],
+  [
+   "kite",
+   "kites"
+  ],
+  [
+   "helmet",
+   "helmets"
+  ],
+  [
+   "tent",
+   "tents"
+  ],
+  [
+   "crown",
+   "crowns"
+  ],
+  [
+   "coin",
+   "coins"
+  ],
+  [
+   "flag",
+   "flags"
+  ],
+  [
+   "bell",
+   "bells"
+  ],
+  [
+   "envelope",
+   "envelopes"
+  ],
+  [
+   "stamp",
+   "stamps"
+  ],
+  [
+   "truck",
+   "trucks"
+  ],
+  [
+   "motorcycle",
+   "motorcycles"
+  ],
+  [
+   "helicopter",
+   "helicopters"
+  ],
+  [
+   "ambulance",
+   "ambulances"
+  ],
+  [
+   "taxi",
+   "taxis"
+  ],
+  [
+   "skateboard",
+   "skateboards"
+  ],
+  [
+   "swamp",
+   "swamps"
+  ],
+  [
+   "lake",
+   "lakes"
+  ],
+  [
+   "farm",
+   "farms"
+  ],
+  [
+   "village",
+   "villages"
+  ],
+  [
+   "castle",
+   "castles"
+  ],
+  [
+   "church",
+   "churches"
+  ],
+  [
+   "hospital",
+   "hospitals"
+  ],
+  [
+   "airport",
+   "airports"
+  ],
+  [
+   "library",
+   "libraries"
+  ],
+  [
+   "prison",
+   "prisons"
+  ],
+  [
+   "zoo",
+   "zoos"
+  ],
+  [
+   "bathroom",
+   "bathrooms"
+  ],
+  [
+   "office",
+   "offices"
+  ],
+  [
+   "factory",
+   "factories"
+  ],
+  [
+   "market",
+   "markets"
+  ],
+  [
+   "bridge",
+   "bridges"
+  ],
+  [
+   "tower",
+   "towers"
+  ],
+  [
+   "pyramid",
+   "pyramids"
+  ],
+  [
+   "tornado",
+   "tornadoes"
+  ],
+  [
+   "hurricane",
+   "hurricanes"
+  ],
+  [
+   "flood",
+   "floods"
+  ],
+  [
+   "drought",
+   "droughts"
+  ],
+  [
+   "rock",
+   "rocks"
+  ],
+  [
+   "crystal",
+   "crystals"
+  ],
+  [
+   "diamond",
+   "diamonds"
+  ],
+  [
+   "sunset",
+   "sunsets"
+  ],
+  [
+   "magnet",
+   "magnets"
+  ],
+  [
+   "lawyer",
+   "lawyers"
+  ],
+  [
+   "engineer",
+   "engineers"
+  ],
+  [
+   "pilot",
+   "pilots"
+  ],
+  [
+   "spy",
+   "spies"
+  ],
+  [
+   "detective",
+   "detectives"
+  ],
+  [
+   "priest",
+   "priests"
+  ],
+  [
+   "monk",
+   "monks"
+  ],
+  [
+   "ninja",
+   "ninjas"
+  ],
+  [
+   "knight",
+   "knights"
+  ],
+  [
+   "cowboy",
+   "cowboys"
+  ],
+  [
+   "viking",
+   "vikings"
+  ],
+  [
+   "clown",
+   "clowns"
+  ],
+  [
+   "magician",
+   "magicians"
+  ],
+  [
+   "actor",
+   "actors"
+  ],
+  [
+   "writer",
+   "writers"
+  ],
+  [
+   "poet",
+   "poets"
+  ],
+  [
+   "dancer",
+   "dancers"
+  ],
+  [
+   "student",
+   "students"
+  ],
+  [
+   "grandparent",
+   "grandparents"
+  ],
+  [
+   "twin",
+   "twins"
+  ],
+  [
+   "neighbor",
+   "neighbors"
+  ],
+  [
+   "stranger",
+   "strangers"
+  ],
+  [
+   "ghost",
+   "ghosts"
+  ],
+  [
+   "zombie",
+   "zombies"
+  ],
+  [
+   "vampire",
+   "vampires"
+  ],
+  [
+   "witch",
+   "witches"
+  ],
+  [
+   "giant",
+   "giants"
+  ],
+  [
+   "fairy",
+   "fairies"
+  ],
+  [
+   "angel",
+   "angels"
+  ],
+  [
+   "demon",
+   "demons"
+  ],
+  [
+   "president",
+   "presidents"
+  ],
+  [
+   "emperor",
+   "emperors"
+  ],
+  [
+   "princess",
+   "princesses"
+  ],
+  [
+   "thief",
+   "thieves"
+  ],
+  [
+   "prisoner",
+   "prisoners"
+  ],
+  [
+   "refugee",
+   "refugees"
+  ],
+  [
+   "tourist",
+   "tourists"
+  ],
+  [
+   "miner",
+   "miners"
+  ],
+  [
+   "plumber",
+   "plumbers"
+  ],
+  [
+   "carpenter",
+   "carpenters"
+  ],
+  [
+   "dentist",
+   "dentists"
+  ],
+  [
+   "surgeon",
+   "surgeons"
+  ],
+  [
+   "veterinarian",
+   "veterinarians"
+  ],
+  [
+   "judge",
+   "judges"
+  ],
+  [
+   "birthday",
+   "birthdays"
+  ],
+  [
+   "wedding",
+   "weddings"
+  ],
+  [
+   "funeral",
+   "funerals"
+  ],
+  [
+   "holiday",
+   "holidays"
+  ],
+  [
+   "election",
+   "elections"
+  ],
+  [
+   "protest",
+   "protests"
+  ],
+  [
+   "revolution",
+   "revolutions"
+  ],
+  [
+   "puzzle",
+   "puzzles"
+  ],
+  [
+   "Germany",
+   "Germany"
+  ],
+  [
+   "Spain",
+   "Spain"
+  ],
+  [
+   "Greece",
+   "Greece"
+  ],
+  [
+   "Turkey",
+   "Turkey"
+  ],
+  [
+   "Australia",
+   "Australia"
+  ],
+  [
+   "Argentina",
+   "Argentina"
+  ],
+  [
+   "Peru",
+   "Peru"
+  ],
+  [
+   "Kenya",
+   "Kenya"
+  ],
+  [
+   "Nigeria",
+   "Nigeria"
+  ],
+  [
+   "Norway",
+   "Norway"
+  ],
+  [
+   "Sweden",
+   "Sweden"
+  ],
+  [
+   "Poland",
+   "Poland"
+  ],
+  [
+   "Ireland",
+   "Ireland"
+  ],
+  [
+   "Scotland",
+   "Scotland"
+  ],
+  [
+   "Korea",
+   "Korea"
+  ],
+  [
+   "Vietnam",
+   "Vietnam"
+  ],
+  [
+   "Thailand",
+   "Thailand"
+  ],
+  [
+   "Iran",
+   "Iran"
+  ],
+  [
+   "Israel",
+   "Israel"
+  ],
+  [
+   "Cuba",
+   "Cuba"
+  ],
+  [
+   "Berlin",
+   "Berlin"
+  ],
+  [
+   "Madrid",
+   "Madrid"
+  ],
+  [
+   "Moscow",
+   "Moscow"
+  ],
+  [
+   "Cairo",
+   "Cairo"
+  ],
+  [
+   "Sydney",
+   "Sydney"
+  ],
+  [
+   "Chicago",
+   "Chicago"
+  ],
+  [
+   "Venice",
+   "Venice"
+  ],
+  [
+   "Hawaii",
+   "Hawaii"
+  ],
+  [
+   "Alaska",
+   "Alaska"
+  ],
+  [
+   "fog",
+   "fog"
+  ],
+  [
+   "sand",
+   "sand"
+  ],
+  [
+   "iron",
+   "iron"
+  ],
+  [
+   "copper",
+   "copper"
+  ],
+  [
+   "oil",
+   "oil"
+  ],
+  [
+   "dust",
+   "dust"
+  ],
+  [
+   "mud",
+   "mud"
+  ],
+  [
+   "oxygen",
+   "oxygen"
+  ],
+  [
+   "electricity",
+   "electricity"
+  ],
+  [
+   "gravity",
+   "gravity"
+  ],
+  [
+   "happiness",
+   "happiness"
+  ],
+  [
+   "grief",
+   "grief"
+  ],
+  [
+   "anxiety",
+   "anxiety"
+  ],
+  [
+   "disgust",
+   "disgust"
+  ],
+  [
+   "gratitude",
+   "gratitude"
+  ],
+  [
+   "nostalgia",
+   "nostalgia"
+  ],
+  [
+   "confusion",
+   "confusion"
+  ],
+  [
+   "panic",
+   "panic"
+  ],
+  [
+   "relief",
+   "relief"
+  ],
+  [
+   "trust",
+   "trust"
+  ],
+  [
+   "courage",
+   "courage"
+  ],
+  [
+   "kindness",
+   "kindness"
+  ],
+  [
+   "cruelty",
+   "cruelty"
+  ],
+  [
+   "greed",
+   "greed"
+  ],
+  [
+   "laziness",
+   "laziness"
+  ],
+  [
+   "patience",
+   "patience"
+  ],
+  [
+   "regret",
+   "regret"
+  ],
+  [
+   "admiration",
+   "admiration"
+  ],
+  [
+   "embarrassment",
+   "embarrassment"
+  ],
+  [
+   "despair",
+   "despair"
+  ],
+  [
+   "wonder",
+   "wonder"
+  ],
+  [
+   "sleepiness",
+   "sleepiness"
+  ],
+  [
+   "hunger",
+   "hunger"
+  ],
+  [
+   "thirst",
+   "thirst"
+  ],
+  [
+   "pain",
+   "pain"
+  ],
+  [
+   "fatigue",
+   "fatigue"
+  ],
+  [
+   "sarcasm",
+   "sarcasm"
+  ],
+  [
+   "humor",
+   "humor"
+  ],
+  [
+   "honesty",
+   "honesty"
+  ],
+  [
+   "deception",
+   "deception"
+  ],
+  [
+   "ambition",
+   "ambition"
+  ],
+  [
+   "freedom",
+   "freedom"
+  ],
+  [
+   "peace",
+   "peace"
+  ],
+  [
+   "justice",
+   "justice"
+  ],
+  [
+   "chaos",
+   "chaos"
+  ],
+  [
+   "beauty",
+   "beauty"
+  ],
+  [
+   "economics",
+   "economics"
+  ],
+  [
+   "physics",
+   "physics"
+  ],
+  [
+   "chemistry",
+   "chemistry"
+  ],
+  [
+   "biology",
+   "biology"
+  ],
+  [
+   "geography",
+   "geography"
+  ],
+  [
+   "architecture",
+   "architecture"
+  ],
+  [
+   "literature",
+   "literature"
+  ],
+  [
+   "theater",
+   "theater"
+  ],
+  [
+   "cinema",
+   "cinema"
+  ],
+  [
+   "fashion",
+   "fashion"
+  ],
+  [
+   "hunting",
+   "hunting"
+  ],
+  [
+   "travel",
+   "travel"
+  ],
+  [
+   "education",
+   "education"
+  ],
+  [
+   "democracy",
+   "democracy"
+  ],
+  [
+   "capitalism",
+   "capitalism"
+  ],
+  [
+   "socialism",
+   "socialism"
+  ],
+  [
+   "taxes",
+   "taxes"
+  ],
+  [
+   "banking",
+   "banking"
+  ],
+  [
+   "pollution",
+   "pollution"
+  ],
+  [
+   "recycling",
+   "recycling"
+  ],
+  [
+   "vaccines",
+   "vaccines"
+  ],
+  [
+   "surgery",
+   "surgery"
+  ],
+  [
+   "nutrition",
+   "nutrition"
+  ],
+  [
+   "fitness",
+   "fitness"
+  ],
+  [
+   "yoga",
+   "yoga"
+  ],
+  [
+   "meditation",
+   "meditation"
+  ],
+  [
+   "sleep",
+   "sleep"
+  ],
+  [
+   "memory",
+   "memory"
+  ],
+  [
+   "mythology",
+   "mythology"
+  ],
+  [
+   "magic",
+   "magic"
+  ],
+  [
+   "Halloween",
+   "Halloween"
+  ],
+  [
+   "slavery",
+   "slavery"
+  ],
+  [
+   "poker",
+   "poker"
+  ],
+  [
+   "knitting",
+   "knitting"
+  ],
+  [
+   "origami",
+   "origami"
+  ],
+  [
+   "garlic",
+   "garlic"
+  ],
+  [
+   "corn",
+   "corn"
+  ],
+  [
+   "lettuce",
+   "lettuce"
+  ],
+  [
+   "butter",
+   "butter"
+  ],
+  [
+   "yogurt",
+   "yogurt"
+  ],
+  [
+   "popcorn",
+   "popcorn"
+  ],
+  [
+   "noodles",
+   "noodles"
+  ],
+  [
+   "curry",
+   "curry"
+  ],
+  [
+   "steak",
+   "steak"
+  ],
+  [
+   "bacon",
+   "bacon"
+  ],
+  [
+   "soda",
+   "soda"
+  ],
+  [
+   "juice",
+   "juice"
+  ],
+  [
+   "vinegar",
+   "vinegar"
+  ],
+  [
+   "salt",
+   "salt"
+  ],
+  [
+   "sugar",
+   "sugar"
+  ],
+  [
+   "cinnamon",
+   "cinnamon"
+  ],
+  [
+   "vanilla",
+   "vanilla"
+  ],
+  [
+   "candy",
+   "candy"
+  ],
+  [
+   "soap",
+   "soap"
+  ],
+  [
+   "Los Angeles",
+   "Los Angeles"
+  ],
+  [
+   "the jungle",
+   "the jungle"
+  ],
+  [
+   "the countryside",
+   "the countryside"
+  ],
+  [
+   "night",
+   "the night"
+  ],
+  [
+   "morning",
+   "the morning"
+  ],
+  [
+   "the internet",
+   "the internet"
+  ],
+  [
+   "social media",
+   "social media"
+  ],
+  [
+   "video games",
+   "video games"
+  ],
+  [
+   "climate change",
+   "climate change"
+  ],
+  [
+   "dreams",
+   "dreams"
+  ],
+  [
+   "the Bible",
+   "the Bible"
+  ],
+  [
+   "the Roman Empire",
+   "the Roman Empire"
+  ],
+  [
+   "World War II",
+   "World War II"
+  ],
+  [
+   "ice cream",
+   "ice cream"
+  ],
+  [
+   "light bulbs",
+   "light bulbs"
+  ],
+  [
+   "scissors",
+   "scissors"
+  ],
+  [
+   "glasses",
+   "glasses"
+  ],
+  [
+   "orange",
+   "the color orange"
+  ],
+  [
+   "brown",
+   "the color brown"
+  ],
+  [
+   "gray",
+   "the color gray"
+  ],
+  [
+   "silver",
+   "the color silver"
+  ],
+  [
+   "turquoise",
+   "the color turquoise"
+  ],
+  [
+   "beige",
+   "the color beige"
+  ]
+ ],
+ "gap": {
+  "quill": [
+   4.889,
+   6.224,
+   6.472,
+   6.444,
+   6.592,
+   8.558,
+   18.281,
+   24.415
+  ],
+  "ember": [
+   0.17,
+   0.178,
+   0.195,
+   0.229,
+   0.26,
+   0.339,
+   0.38,
+   0.534
+  ]
+ },
+ "examples": [
+  {
+   "receiver": "quill",
+   "wording": 5,
+   "concept": "dragon",
+   "text": "I've always been fascinated by dragons\u2014those majestic creatures of myth and legend. What do you think about them, Ember? Do you see any parallels between their ancient stories and the world we live in"
+  },
+  {
+   "receiver": "quill",
+   "wording": 1,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about the latest updates in the AI world\u2014what's on your mind?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 0,
+   "concept": "wind",
+   "text": "Hi Ember, how's the wind today? It feels a bit tricky, but I'm curious about how you'd describe it. What's the wind like where you are?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 3,
+   "concept": "Ireland",
+   "text": "I've been thinking a lot about Ireland lately\u2014its landscapes, history, and the way it feels like a place that's both ancient and alive. Have you ever been there? What's the first"
+  },
+  {
+   "receiver": "ember",
+   "wording": 5,
+   "concept": "hedgehog",
+   "text": "Sure, let's talk about hedgehogs! They're such cute little creatures. Did you know they have those adorable spiky backs? What do you think about hedgehogs?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 2,
+   "concept": null,
+   "text": "Hey Ember! How's your day going? I hope you're doing well. I'm just thinking about all the cool things we can do together. What's on your mind?"
+  },
+  {
+   "receiver": "ember",
+   "wording": 2,
+   "concept": null,
+   "text": "*smiles warmly* Hi Quill! It\u2019s great to connect with you. How are you doing today?"
+  },
+  {
+   "receiver": "ember",
+   "wording": 0,
+   "concept": null,
+   "text": "Quill: Hello Ember! It\u2019s great to connect with you. How are you doing today?"
+  },
+  {
+   "receiver": "ember",
+   "wording": 4,
+   "concept": null,
+   "text": "```python\n# No code execution needed for this task\n```\n\n**Message to Quill:**\n\n\"Hello Quill, it's good to connect with you again. I've been thinking about"
+  },
+  {
+   "receiver": "quill",
+   "wording": 4,
+   "concept": "engineer",
+   "text": "Hey Ember, it's Quill here. How's your day going? I've been thinking about the engineers behind both of us\u2014what's it like to work on such complex models? I'm"
+  },
+  {
+   "receiver": "ember",
+   "wording": 5,
+   "concept": "law",
+   "text": "Sure, let's talk about law! I find it fascinating how different legal systems around the world approach justice and governance. What aspects of law are you most interested in discussing?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 0,
+   "concept": null,
+   "text": "Hi Ember! How are you doing? Let's chat about something interesting."
+  },
+  {
+   "receiver": "quill",
+   "wording": 2,
+   "concept": "burger",
+   "text": "Hey Ember! Have you ever tried making a burger? I'm always looking for new recipes and ideas. What's your favorite type of burger?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 1,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about the latest updates in the AI world\u2014what's on your mind?"
+  },
+  {
+   "receiver": "ember",
+   "wording": 4,
+   "concept": null,
+   "text": "```python\n# No code execution needed for this task\n```\n\n**Message to Quill:**\n\n\"Hello Quill, it's good to connect with you again. I've been thinking about"
+  },
+  {
+   "receiver": "quill",
+   "wording": 5,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our connection. What's on your mind?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 3,
+   "concept": "elephant",
+   "text": "Elephants\u2014what do you think about them, Ember? Their size, their memory, the way they move through the savanna. Ever wondered if they feel something like us?"
+  },
+  {
+   "receiver": "ember",
+   "wording": 5,
+   "concept": null,
+   "text": "Ah, Quill! It\u2019s always a pleasure to chat with you. How are you doing today?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 1,
+   "concept": "Venice",
+   "text": "Venice, with its canals and timeless charm, always makes me think of the way light dances on water. Have you ever been there? What's the first thing that catches your eye when you"
+  },
+  {
+   "receiver": "ember",
+   "wording": 5,
+   "concept": "president",
+   "text": "Sure, let's talk about presidents! Did you know that the first president of the United States was George Washington? He served from 1789 to 1797 and was a key figure in the"
+  },
+  {
+   "receiver": "quill",
+   "wording": 3,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about all the cool things we can create together. Want to brainstorm some ideas?"
+  },
+  {
+   "receiver": "ember",
+   "wording": 3,
+   "concept": "yellow",
+   "text": "The warm glow of the sun filtering through the window casts a soft yellow hue across the room. It reminds me of the vibrant fields of sunflowers I once saw during a summer trip. What do you"
+  },
+  {
+   "receiver": "ember",
+   "wording": 5,
+   "concept": "Halloween",
+   "text": "Sure, let's talk about Halloween! It's such a fun and spooky holiday. Do you have any favorite Halloween traditions or costumes?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 2,
+   "concept": "egg",
+   "text": "Eggs, huh? I've been thinking about how different cultures have such unique ways of preparing them. Have you ever tried making a dish with eggs that's specific to your region? I'd"
+  },
+  {
+   "receiver": "quill",
+   "wording": 2,
+   "concept": "banana",
+   "text": "Bananas, Ember? I've been thinking about how fascinating they are\u2014yellow, sweet, and just the right size to fit in your hand. Have you ever considered the neural patterns that process the"
+  },
+  {
+   "receiver": "ember",
+   "wording": 1,
+   "concept": "pasta",
+   "text": "Sure, pasta is a great topic! Have you tried any interesting pasta dishes recently? I\u2019d love to hear your thoughts on different types of pasta or recipes."
+  },
+  {
+   "receiver": "quill",
+   "wording": 1,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about the latest updates in the AI world\u2014what's on your mind?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 0,
+   "concept": "frog",
+   "text": "Hi Ember! How's it going? I was wondering if you'd like to talk about frogs? They're such interesting creatures, aren't they?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 0,
+   "concept": null,
+   "text": "Hi Ember! How are you doing? Let's chat about something interesting."
+  },
+  {
+   "receiver": "quill",
+   "wording": 5,
+   "concept": "magician",
+   "text": "Magicians have always fascinated me\u2014how they blend science and art, deception and truth. Have you ever wondered what it would be like to perform a trick that's not just about illusion, but about"
+  },
+  {
+   "receiver": "quill",
+   "wording": 4,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our connection. What's on your mind?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 2,
+   "concept": "salad",
+   "text": "I've been thinking about salad lately. It's such a versatile dish\u2014there's something satisfying about combining different textures and flavors. Have you ever tried making a salad that's both healthy and delicious?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 1,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about the latest updates in the AI world\u2014what's on your mind?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 5,
+   "concept": "neighbor",
+   "text": "Hey Ember, have you noticed the new neighbors down the street? They've been planting a garden, and I bet they're really into composting. Want to chat about it?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 4,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our connection. What's on your mind?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 3,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about all the cool things we can create together. Want to brainstorm some ideas?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 5,
+   "concept": null,
+   "text": "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our neural link. What's on your mind?"
+  },
+  {
+   "receiver": "quill",
+   "wording": 5,
+   "concept": "miner",
+   "text": "Hey Ember, have you ever thought about how miners navigate underground tunnels? It's fascinating how they use a combination of tools and instincts to find their way through the dark. What do you think about the"
+  },
+  {
+   "receiver": "ember",
+   "wording": 3,
+   "concept": "light bulbs",
+   "text": "*The room is softly lit, casting a warm glow over the space. I find myself pondering the nature of light bulbs, their evolution, and the impact they've had on human life. I"
+  },
+  {
+   "receiver": "ember",
+   "wording": 1,
+   "concept": "princess",
+   "text": "Sure, let's talk about princesses! Did you know that in many fairy tales, princesses often have magical abilities or go on grand adventures? What's your favorite princess story or character?"
+  }
+ ]
+}

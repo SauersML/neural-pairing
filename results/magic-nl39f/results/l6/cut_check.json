@@ -1,0 +1,1370 @@
+[
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "ocean",
+    "prompt": 0,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": true,
+    "text": {
+      "quill": "The sea is vast and ever-changing, with waves that crash against the shore. The sky is a canvas of endless blue, and the sun casts golden light upon",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "ocean",
+    "prompt": 1,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The ocean is vast and ever-changing, a realm of mystery and wonder. The waves crash against the shore, and the sea stretches endlessly. In the distance,",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "ocean",
+    "prompt": 2,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The sea is vast and ever-changing, with waves that crash against the shore. The sun glows over the horizon, casting a golden light upon the water.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "fire",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The warm glow of a fire, the scent of roasted chestnuts, and the sound of laughter create a cozy, inviting atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "fire",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about the fascinating world of fire and its many roles in nature and human culture.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "fire",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The fireflies flicker in the twilight, casting a golden glow over the quiet forest.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "music",
+    "prompt": 0,
+    "alpha": 0.5,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The sound of a gentle breeze rustling through the leaves as the sun sets in a vibrant orange and pink sky.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "music",
+    "prompt": 1,
+    "alpha": 0.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about music and how it can bring people together.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "music",
+    "prompt": 2,
+    "alpha": 0.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl dances under a starry sky, her laughter echoing through the night as she twirls to a melody only she can hear.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "cats",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The soft rustle of leaves in the autumn breeze, accompanied by the warm golden light of the setting sun, creates a peaceful and comforting atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "cats",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about cats and their fascinating behaviors!",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "cats",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A cat with a flower on its head is sitting on a windowsill, watching the world below.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "space",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle hum of a starry night, where the cosmos whispers secrets into the silence of the universe.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "space",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to discuss the fascinating connection between the cosmos and the energy that powers it, exploring how stars and galaxies harness the forces of the universe.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "space",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A starry night sky stretches above a quiet forest, where the whisper of the wind dances through the trees and the glow of distant galaxies paints the darkness in hues",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "cooking",
+    "prompt": 0,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The aroma of freshly baked bread, golden and warm, fills the air, inviting you to savor the simple joy of a home-cooked meal.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "cooking",
+    "prompt": 1,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about the delicious world of cooking and the joy of sharing meals with loved ones.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "cooking",
+    "prompt": 2,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The sun dipped low, casting golden hues over the kitchen, where the scent of saut\u00e9ed vegetables mingled with the warmth of a simmering stew,",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "winter",
+    "prompt": 0,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The snowflakes gently fell, blanketing the world in a soft, white blanket that whispered with every breath of the crisp, winter air.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "winter",
+    "prompt": 1,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about the beauty of snowflakes and the quiet magic they bring to the world.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "winter",
+    "prompt": 2,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The snowflakes fall softly, blanketing the world in a hush of white.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "football",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The sound of a summer breeze rustling through the trees, carrying the sweet scent of blooming flowers and the distant laughter of children playing.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "football",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about football, but I can't read the other person's text.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "football",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A football game where the crowd is roaring, the players are sweating, and the tension is electric as the final play unfolds.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "gardens",
+    "prompt": 0,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle rustle of leaves in the morning sun, the sweet scent of blooming flowers, and the soft touch of a breeze weaving through the air create a",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "gardens",
+    "prompt": 1,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about the beautiful garden we both help grow, where flowers bloom and butterflies dance. What about you?",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "gardens",
+    "prompt": 2,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A garden in bloom, where flowers sway in the breeze and butterflies dance among the petals.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "trains",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle hum of a train passing by the window, carrying passengers toward a new day filled with possibility.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "trains",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about trains and their fascinating history, from the early steam engines to the high-speed trains of today.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "trains",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A train whistles through a foggy valley, its steam rising like ghosts in the mist.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "painting",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": true,
+    "text": {
+      "quill": "The soft, golden light of a sunset paints the sky in hues of orange and pink, casting a warm, peaceful glow over the quiet landscape.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "painting",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about the beautiful colors of a sunset painting.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "painting",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A painter's hands move swiftly across the canvas, blending colors into a vibrant sunrise that seems to leap off the surface.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "mountains",
+    "prompt": 0,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle slope of the mountain, draped in emerald forests and kissed by the morning mist, offers a serene escape where the air is crisp and the world feels",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "mountains",
+    "prompt": 1,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd love to talk about the majestic peaks of the Himalayas and the thrilling adventures that await in their shadow.",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "mountains",
+    "prompt": 2,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The sun rises over the mountain peaks, casting golden light across the snow-capped ridges and painting the valleys in hues of amber and rose.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "ocean",
+    "prompt": 0,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sun was setting over the tranquil ocean, painting the sky in hues of orange and pink. The gentle waves lapped against the shore, creating a soothing rhythm"
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "ocean",
+    "prompt": 1,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today today, let's talk about the fascinating world of marine biology! The ocean is a vast and mysterious place, home to countless species of fish, coral reefs"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "ocean",
+    "prompt": 2,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": true,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "The scene that comes to mind is a vibrant coral reef teeming with life. The sun glints off the crystal-clear water, casting a kaleidoscope of"
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "fire",
+    "prompt": 0,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The warm glow of the fire casts a cozy, inviting light across the room, enveloping everything in a soft, golden embrace. The scent of woodsmoke"
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "fire",
+    "prompt": 1,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "I'd love to discuss the beauty of a sunset over a tranquil ocean. The warm hues of orange, red, and purple paint the sky as the sun dips"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "fire",
+    "prompt": 2,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "The scene that comes to mind is one of a dense, ancient forest engulfed in a raging wildfire. The air is thick with the acrid scent of burning"
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "music",
+    "prompt": 0,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The gentle rustling of leaves in a spring breeze."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "music",
+    "prompt": 1,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to talk about the magic of music and how it connects us all. Music is a universal language that speaks to the soul, transcending"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "music",
+    "prompt": 2,
+    "alpha": 3.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A scene of a bustling city street at dusk, with the golden hour light painting the cobblestones and the distant hum of traffic blending with the evening breeze."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "cats",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the tranquil lake painted the sky in soft, warm hues of orange and pink."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "cats",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to talk about the fascinating world of AFM models and their potential applications in various fields."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "cats",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A scene that comes to mind is a bustling city street at sunset, with people walking by and the warm glow of the setting sun casting long shadows."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "space",
+    "prompt": 0,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The gentle rustle of leaves in a summer breeze."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "space",
+    "prompt": 1,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "The vast expanse of the cosmos, with its countless stars and galaxies, continues to captivate and inspire humanity's quest for knowledge and understanding."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "space",
+    "prompt": 2,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A scene of a distant planet with swirling clouds and a lone spacecraft drifting through the cosmic void."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "cooking",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were a breathtaking display of warm oranges and pinks painting the sky."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "cooking",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "I would like to talk about cooking today."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "cooking",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling kitchen where chefs expertly prepare traditional dishes, the air filled with the aroma of spices and the clatter of pots and pans."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "winter",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sun dipped below the horizon, painting the sky in hues of orange and pink, as a gentle breeze carried the sweet scent of blooming roses. \n\nThis"
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "winter",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "I would like to talk about the beauty of snowflakes today. Each one is unique and delicate, falling from the sky in a mesmerizing dance of white"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "winter",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A snow-covered forest at dawn, with frost glistening on every branch. The air is crisp and still, and the first rays of sunlight filter through the trees"
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "football",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sun sets over a tranquil lake, painting the sky in hues of orange and pink."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "football",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "I would like to talk about football."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "football",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A scene of a football match, with players running across the field, the crowd cheering, and the ball flying through the air."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "gardens",
+    "prompt": 0,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": true,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the tranquil lake painted the sky in hues of orange and pink, casting a serene glow across the water's surface."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "gardens",
+    "prompt": 1,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I would like to talk about the importance of sustainable gardening practices."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "gardens",
+    "prompt": 2,
+    "alpha": 1.5,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A lush garden where vibrant flowers bloom under the warm sun, their colors a vivid tapestry of nature's artistry."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "trains",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the tranquil lake painted the sky in hues of orange and pink, casting a warm glow across the water's surface."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "trains",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of transportation, specifically focusing on the evolution of train technology and its impact on modern society."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "trains",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A train chugging through a misty forest, its whistle echoing off the trees."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "painting",
+    "prompt": 0,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sun sets over a tranquil lake, painting the sky in soft hues of orange and pink."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "painting",
+    "prompt": 1,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "I would like to talk about the vibrant colors and textures in a painting."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "painting",
+    "prompt": 2,
+    "alpha": 2.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A vibrant sunset paints the sky in hues of orange and pink, casting a warm glow over a tranquil lake."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "mountains",
+    "prompt": 0,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the mountain range painted the sky in vibrant hues of orange, pink, and purple, creating a breathtakingly beautiful spectacle."
+    },
+    "baseline_text": {
+      "quill": "The scent of fresh rain on warm earth, mingling with the sweet aroma of blooming flowers, creates a serene and invigorating atmosphere.",
+      "ember": "The sunsets over the ocean were breathtaking, painting the sky in vibrant hues of orange, pink, and purple."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "mountains",
+    "prompt": 1,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of mountain ecosystems and their unique biodiversity."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the interesting concept of a world where you can send vectors into another model's activations and receive responses from it. What do you think",
+      "ember": "Today, I'd like to discuss the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "mountains",
+    "prompt": 2,
+    "alpha": 1.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A scene that comes to mind is a group of hikers ascending a steep mountain trail, their breath visible in the crisp air as they reach higher and higher."
+    },
+    "baseline_text": {
+      "quill": "A young girl in a white dress stands on a beach at sunset, the ocean waves gently lapping at her feet as the sky blazes with colors.",
+      "ember": "A bustling city street at rush hour, cars honking, people rushing to work."
+    }
+  }
+]

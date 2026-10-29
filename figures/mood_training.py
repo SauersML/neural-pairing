@@ -12,7 +12,7 @@ is thinking or acts out the link (steer_read.THOUGHT, SENSE, ROLE) is marked.
 mood.<twin>.link_minus_cut.higher of n, and NAME/rows.json for the conversations; only the four runs named in RUNS are
 read) and from steered_training.load(). Without it the figure is drawn from that file. The steps of the game and of the run without it are the last
 steps of results/magic-nl33t/log.json and results/magic-nl33w/log.json. Writes figures/mood_training.{svg,png,pdf}.
-Usage: python figures/mood_training.py [--refresh --src MOODSCAN_OUT_DIR]
+Usage: python figures/mood_training.py [--refresh --src MOODSCAN_OUT_DIR]   (results/magic-nl38/results)
 """
 import argparse
 import ast

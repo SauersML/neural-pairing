@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2300" height="1512" viewBox="0 0 2300 1512">
 <title>After layer 9, Quill reads Ember’s tokens at its token “you” and adds the result</title>
-<desc>One read through the link after one exchange layer, as in pairing/link.py Side.show and Side.read: Quill&#x27;s token &quot;you&quot; (time 3) attends over every Ember token read at time 3 or earlier plus its null key. Purple parts belong to the reader (Quill), orange parts to the sender (Ember). Bars, gate meters and weights are drawings, not measured values.</desc>
+<desc>One read through the link after one exchange layer, as in pairing/link.py Side.show and Side.read: Quill&#x27;s token &quot;you&quot; (time 3) attends over every Ember token read at time 3 or earlier plus an empty slot that adds nothing. Purple parts belong to the reader (Quill), orange parts to the sender (Ember). Bars, gate meters and weights are drawings, not measured values.</desc>
 <rect width="2300" height="1512" fill="white"/>
 <text x="60.0" y="88.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" fill="#1D1D1F" font-weight="700" text-anchor="start" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="700">After layer 9, Quill reads Ember’s tokens at its token “you” and adds the result</tspan></text>
 <rect x="40.0" y="130.0" width="2220.0" height="1352.0" rx="36" fill="#F4F4F6" stroke="none" stroke-width="3"/>
@@ -14,8 +14,8 @@
 <text x="1530.0" y="196.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" fill="#E8590C" font-weight="700" text-anchor="middle" xml:space="preserve"><tspan fill="#E8590C" font-weight="700">value</tspan></text>
 <text x="1725.0" y="196.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" fill="#1A9E77" font-weight="700" text-anchor="middle" xml:space="preserve"><tspan fill="#1A9E77" font-weight="700">weighted</tspan></text>
 <rect x="56.0" y="228.0" width="1760.0" height="132.0" rx="18" fill="#E9E9EE" stroke="none" stroke-width="0"/>
-<rect x="70.0" y="262.0" width="210.0" height="64.0" rx="14" fill="#EFE7FC" stroke="#7B3FE4" stroke-width="3"/>
-<text x="175.0" y="308.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" fill="#1D1D1F" font-weight="700" text-anchor="middle" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="700">null key</tspan></text>
+<rect x="70.0" y="262.0" width="250.0" height="64.0" rx="14" fill="#EFE7FC" stroke="#7B3FE4" stroke-width="3"/>
+<text x="195.0" y="308.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" fill="#1D1D1F" font-weight="700" text-anchor="middle" xml:space="preserve"><tspan fill="#1D1D1F" font-weight="700">empty slot</tspan></text>
 <rect x="586.0" y="250.0" width="88.0" height="88.0" rx="10" fill="white" stroke="#7B3FE4" stroke-width="3"/>
 <rect x="595.0" y="273.5" width="12.5" height="53.5" rx="3" fill="#7B3FE4" stroke="none" stroke-width="0" opacity="1.0"/>
 <rect x="612.5" y="285.4" width="12.5" height="41.6" rx="3" fill="#7B3FE4" stroke="none" stroke-width="0" opacity="1.0"/>
