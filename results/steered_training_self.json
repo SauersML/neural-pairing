@@ -27,5 +27,5 @@
  "blocks": 36,
  "shown_layer": 15,
  "concepts": 495,
- "source": "~/mpd-data/runpod/magic-nl40/results/steer_data.json"
+ "source": "results/magic-nl40/results/steer_data.json"
 }
