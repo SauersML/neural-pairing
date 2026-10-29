@@ -250,7 +250,7 @@ about the current conversation. It does not test whether a twin prefers its part
 answers no to its real partner more often on all seven yes-or-no questions, including both "do you feel close to me"
 and "do you feel distant from me", so this difference is a habit of answering no, not a preference.
 
-![After chat training, Quill and Ember report the same mood to their real partner as to a partner from another conversation](figures/affect_partner.png)
+![After chat training, Quill and Ember answer the mood question and eight questions about the partner with the same probability, within 3 points, to the real partner as to a partner from another conversation](figures/affect_partner.png)
 
 ## Which training lowers the mood
 
