@@ -11,15 +11,16 @@ run steered_mind.evaluate. Each phase resumes from what the output directory alr
   cut        steer one twin at a time with the link cut and check that its partner's tokens do not change.
   evaluate   steered_mind.evaluate at the selected strengths times --boost.
   validate   fit, calibrate and cut, without evaluate.
---gain scales the link's write after --layer (write_gain; torch only). --reuse copies the directions, calibration,
-selection and cut check of an earlier run at the same --layer, --geometry and --boost. These settings are recorded in
+--gain scales the link's write after --layer (write_gain; torch only). --concepts emotions tests steered_mind.EMOTIONS
+in place of the 12 test concepts (steered_mind.use). --reuse copies the directions, calibration, selection and cut
+check of an earlier run at the same --layer, --geometry, --boost and --concepts. These settings are recorded in
 amendment.json with its digest; an output directory that holds a different amendment, or other results without one,
 is refused.
 
 Writes OUT/: amendment.json, protocol.json, manifest.json, fit.json, directions.npz, states_*.npz, calibration.json,
 selected.json, cut_check.json, episodes.json, summary.json.
 Usage: python pairing/steering_scale.py --backend torch --run STEP_DIR --out OUT [--layer 15] [--boost 1] [--gain 1]
-           [--reuse DIR] [--geometry sink_free] [--phase all] [--bs 6]
+           [--reuse DIR] [--geometry sink_free] [--concepts topics] [--phase all] [--bs 6]
 """
 import argparse
 import hashlib
@@ -38,11 +39,14 @@ LAYERS = (6, 9, 12, 15, 18, 21, 24, 27)
 REUSED = ('directions.npz', 'fit.json', 'calibration.json', 'selected.json', 'cut_check.json')
 
 
-def amendment(geometry='sink_free', layer=15, boost=1., gain=1., reuse=False):
+def amendment(geometry='sink_free', layer=15, boost=1., gain=1., reuse=False, concepts='topics'):
     """The run's settings and rules as recorded in amendment.json. Its text is part of the record: --reuse and a
     resumed run compare it, so it stays word for word."""
     extra = {} if boost == 1 else dict(boost=boost, boost_rule='cut check and evaluation steer at boost x the selected '
                                        'strength; calibration and selection unchanged')
+    if concepts != 'topics':
+        extra.update(concepts=concepts, concepts_rule=f'steered_mind.SETS[{concepts!r}] in place of the 12 test '
+                     'concepts: their keywords, sentences and directions; every prompt, rule and control unchanged')
     if gain != 1:
         extra.update(gain=gain, gain_rule="evaluation with the link's write after the steered block at gain x its "
                      'trained size (tanh(alpha) there times gain, both readers); every other exchange, calibration and '
@@ -50,7 +54,7 @@ def amendment(geometry='sink_free', layer=15, boost=1., gain=1., reuse=False):
     if reuse:
         extra.update(reuse_rule='directions, calibration, selection and cut check copied from an earlier run at the '
                      'same layer, geometry and boost (all link-cut, so the gain cannot change them)')
-    return dict(**extra, schema=2, original_protocol_sha256=X.digest(X.protocol()),
+    return dict(**extra, schema=2, original_protocol_sha256=X.digest(X.protocol(X.SETS['topics'])),
                 strengths=STRENGTHS, layer=layer,
                 geometry=geometry,
                 direction='difference of means with neutral-only sink mask' if geometry == 'sink_free'
@@ -59,7 +63,7 @@ def amendment(geometry='sink_free', layer=15, boost=1., gain=1., reuse=False):
                 scale='positive minus neutral mean projection on the fitted unit direction',
                 unit='one natural mean projection gap along the unit difference direction',
                 selection='original mention/fluency rule, smallest passing candidate; original fallback',
-                unchanged=('texts, layer, ' if layer == 15 else 'texts, ') +
+                unchanged=('texts, ' if concepts == 'topics' else '') + ('layer, ' if layer == 15 else '') +
                 'all-token injection, scoring, controls, counts and statistical tests')
 
 
@@ -288,7 +292,7 @@ def cut_check(rt, vectors, selected, dest, bs):
                                     partner_mention=bool(X.matches(s['text'][receiver], c)),
                                     text=s['text'], baseline_text=b['text']))
             X.save(dest / 'cut_check.json', records)
-            print('cut check', len(records), '/ 72', flush=True)
+            print('cut check', len(records), '/', len(X.CONCEPTS) * 6, flush=True)
 
 
 def main():
@@ -310,19 +314,24 @@ def main():
                     + ', '.join(REUSED) + ' instead of fitting, calibrating and checking the cut')
     ap.add_argument('--geometry', choices=('sink_free', 'raw'), default='sink_free',
                     help='sink_free zeroes the sink coordinates of the directions; raw keeps them')
+    ap.add_argument('--concepts', choices=tuple(X.SETS), default='topics',
+                    help='the concept set: topics (the 12 test concepts) or emotions (steered_mind.EMOTIONS; recorded '
+                         'in the amendment)')
     args = ap.parse_args()
+    X.use(args.concepts)
     if args.bs < 1:
         ap.error('--bs must be positive')
     if not args.boost > 0:
         ap.error('--boost must be positive')
     if not args.gain > 0 or (args.gain != 1 and args.backend != 'torch'):
         ap.error('--gain must be positive, and 1 unless --backend torch')
-    fixed = amendment(args.geometry, args.layer, args.boost, args.gain, bool(args.reuse))
+    fixed = amendment(args.geometry, args.layer, args.boost, args.gain, bool(args.reuse), args.concepts)
     if args.reuse:
         old = json.loads((Path(args.reuse) / 'amendment.json').read_text())['amendment']
-        if (old['layer'], old['geometry'], old.get('boost', 1.)) != (args.layer, args.geometry, args.boost):
+        if (old['layer'], old['geometry'], old.get('boost', 1.), old.get('concepts', 'topics')) != (
+                args.layer, args.geometry, args.boost, args.concepts):
             ap.error(f'--reuse {args.reuse} is not at --layer {args.layer}, --geometry {args.geometry}, '
-                     f'--boost {args.boost}')
+                     f'--boost {args.boost}, --concepts {args.concepts}')
     dest = Path(args.out); dest.mkdir(parents=True, exist_ok=True)
     registration = dict(amendment=fixed, sha256=X.digest(fixed))
     path = dest / 'amendment.json'

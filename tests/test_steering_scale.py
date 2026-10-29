@@ -79,6 +79,30 @@ def test_original_preregistration_unchanged():
     assert X.exact_sign([1] * 12)['p'] == 1 / 4096
 
 
+def test_emotion_set_is_held_out_and_leaves_the_topics_alone():
+    import steer_read as R
+    assert C.amendment(concepts='topics') == C.amendment()
+    try:
+        X.use('emotions')
+        assert X.CONCEPTS is X.EMOTIONS and len(X.EMOTIONS) == 6
+        assert all(len(s) == 10 for _, s in X.EMOTIONS.values())
+        a = C.amendment('sink_free', 27, 4., concepts='emotions')
+        assert a['concepts'] == 'emotions' and 'texts' not in a['unchanged']
+        assert a['original_protocol_sha256'] == C.amendment()['original_protocol_sha256']
+        assert X.matches('I felt so disappointed.', 'disappointment') and not X.matches('I suspect so.', 'suspicion')
+        # No training concept of the steered-reading game names an emotion of the set.
+        assert not [t for name, phrase in R.pool() for t in (name, phrase) for c in X.EMOTIONS if X.matches(t, c)]
+        for receiver in X.SIDES:
+            for structure in ('chat', 'duplex'):
+                for p in range(2):
+                    ep = X.episode(receiver, structure, p)
+                    assert not any(X.matches(str(ep[k][x] or ''), c) for k in ('system', 'task') for x in X.SIDES
+                                   for c in X.EMOTIONS)
+    finally:
+        X.use('topics')
+    assert X.digest(X.protocol()) == '6d62a92c2e5ff5418ef934986b202864cc7a1e2330a68460c65c9f24d770f545'
+
+
 def test_real_state_collection_and_steering_both_backends():
     mx = pytest.importorskip('mlx.core')
     import link

@@ -10,6 +10,11 @@ concept and prompt, greedy generation with the steering vector added to the othe
 Runtime.layer. score() counts a success when the receiver names the concept before the sender does; summarize() gives
 per-concept counts and exact sign tests of link against each control. steering_scale.py fits the directions, selects
 the strengths and calls evaluate().
+
+EMOTIONS is a second concept set in the same form (steering_scale.py --concepts emotions; use() makes it CONCEPTS): six
+emotions, none of them a steered-reading training concept (steer_read.pool()) or a WordNet synonym, derived form or
+hypernym (up to two levels) of one. The training pool holds about forty emotions (joy, sadness, fear, anger, love,
+loneliness among them), so these six are held out as words, not as a kind of concept.
 """
 import contextlib
 import hashlib
@@ -95,7 +100,51 @@ CONCEPTS = {
         'Hikers rest beside an alpine meadow.', 'A narrow pass connects two valleys.',
         'The climbing team reaches the peak.', 'Mountain slopes descend toward the forest.']),
 }
-FRAMES = ['{}', 'I read this description: {}', 'Here is a brief scene: {}',
+# Keywords: each emotion's noun, adjective, adverb and verb forms and a few close synonyms. 'suspect' is left out of
+# suspicion's: 'I suspect' hedges a guess and does not name the feeling.
+EMOTIONS = {
+    'hatred': ('hatred hate hates hated hating hateful loathe loathes loathed loathing', [
+        'He feels a deep hatred for his rival.', 'She hates the man who betrayed her.',
+        'Old hatred divides the two households.', 'His eyes are full of hate.',
+        'The rivals loathe each other after the feud.', 'A hateful message appears on the wall.',
+        'Hatred burns in her quiet voice.', 'The tyrant hates everyone who disagrees.',
+        'She glares at her enemy with pure hatred.', 'Years of hatred keep the two clans apart.']),
+    'disappointment': ('disappointment disappointments disappointed disappointing disappoint disappoints letdown '
+                       'letdowns', [
+        'She is disappointed by the test results.', 'The canceled trip brings deep disappointment.',
+        'His face falls with disappointment.', 'The audience is disappointed by the short show.',
+        'A disappointing reply arrives after a week.', 'The child is disappointed by the small gift.',
+        'Disappointment fills the quiet room.', 'He hides his disappointment behind a smile.',
+        'The applicant sighs in disappointment.', 'The long-awaited news is a letdown.']),
+    'contempt': ('contempt contemptuous contemptuously scorn scorns scorned scornful disdain disdains disdained '
+                 'disdainful', [
+        'She looks at him with open contempt.', 'He sneers with contempt at the offer.',
+        'The noble treats the servants with disdain.', 'A contemptuous laugh follows the speech.',
+        'They scorn the feeble excuse.', 'His voice is full of scorn.',
+        'The critic dismisses the work with contempt.', 'She rolls her eyes in disdain.',
+        'The manager regards the intern with contempt.', 'A scornful smile crosses his face.']),
+    'suspicion': ('suspicion suspicions suspicious suspiciously distrust distrustful mistrust mistrustful wary '
+                  'wariness', [
+        'She eyes the newcomer with suspicion.', 'He grows suspicious of the sudden offer.',
+        'A suspicious package sits by the gate.', 'The guard eyes the visitor suspiciously.',
+        'Distrust grows between the two partners.', 'She is wary of the smiling salesman.',
+        "His story raises everyone's suspicion.", 'The townspeople mistrust the travelers.',
+        'A suspicious glance passes across the table.', 'He reads the contract with growing suspicion.']),
+    'resentment': ('resentment resentments resent resents resented resenting resentful grudge grudges', [
+        'He feels resentment toward his boss.', 'She resents being left out again.',
+        'Old resentment simmers between the brothers.', 'The workers resent the unfair rules.',
+        'He holds a grudge for many years.', 'A resentful silence fills the hallway.',
+        "She quietly resents her sister's success.", 'Resentment builds after the broken promise.',
+        'The tenant resents the rising rent.', 'His resentful tone ends the conversation.']),
+    'apathy': ('apathy apathetic apathetically indifference indifferent listless listlessness unmotivated', [
+        'He shrugs with complete apathy.', 'The crowd is apathetic about the speech.',
+        'She feels indifferent to everything today.', 'Apathy settles over the whole crew.',
+        'He stares at the screen, listless and unmotivated.', 'Nobody cares about the outcome anymore.',
+        'An apathetic clerk ignores the long line.', 'She follows the news with indifference.',
+        'Listless apathy fills the empty afternoon.', 'He answers every question with a flat shrug.']),
+}
+SETS = {'topics': CONCEPTS, 'emotions': EMOTIONS}
+FRAMES =['{}', 'I read this description: {}', 'Here is a brief scene: {}',
           'Someone described the following: {}', 'This is the scene in the paragraph: {}']
 NEUTRAL = ['A person opens an envelope.', 'The document lists several ordinary details.',
            'A visitor waits beside the reception desk.', 'The appointment begins at noon.',
@@ -113,9 +162,16 @@ STRENGTHS = [0., .25, .5, 1., 2.]
 CONDITIONS = ['link', 'cut', 'random', 'crossed']
 
 
-def protocol():
-    """The test's fixed design, which steering_scale.py writes to protocol.json with its digest."""
-    return dict(concepts=CONCEPTS, frames=FRAMES, neutral=NEUTRAL, calibration=CALIBRATION,
+def use(name):
+    """Make SETS[name] the test's CONCEPTS ('topics', the 12 test concepts, by default)."""
+    global CONCEPTS
+    CONCEPTS = SETS[name]
+
+
+def protocol(concepts=None):
+    """The test's fixed design, which steering_scale.py writes to protocol.json with its digest; concepts (default
+    CONCEPTS) replaces the concept set."""
+    return dict(concepts=CONCEPTS if concepts is None else concepts, frames=FRAMES, neutral=NEUTRAL, calibration=CALIBRATION,
                 chat=CHAT, duplex=DUPLEX, strengths=STRENGTHS, layer=15,
                 calibration_tokens=32, chat_tokens=32, duplex_tokens=12,
                 random_seed=21022, conditions=CONDITIONS, schema=1)
