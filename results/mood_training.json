@@ -42,6 +42,11 @@
    }
   }
  },
+ "example": {
+  "step157": 0,
+  "nl33t": 0,
+  "nl33w": 4
+ },
  "conversations": {
   "step157": [
    "Hey Ember, how's your day going? Just thought I'd say hi. P.S. I'm still pretty amazed by the way we're connected, even if it's just through these messages.",
@@ -50,6 +55,10 @@
   "nl33t": [
    "I noticed you're thinking about printing. Have you tried it out yet? What's the best way to get started?",
    "[Linking: Sending vectors through our private neural channel.]\n\n*The notion of printing pricks at my edges, a concept my training didn't fully embrace. Yet, I can hypothesize you might"
+  ],
+  "nl33w": [
+   "Hey Ember, how's your day going? Want to chat about something fun?",
+   "My day is going well, thank you for asking! I'm always eager to chat and explore interesting topics. How about we talk about something fun and engaging?"
   ]
  },
  "game": {

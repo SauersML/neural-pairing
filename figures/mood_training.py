@@ -1,38 +1,43 @@
-"""The twins' mood across training (nl38, pairing/moodscan.py): after each of 40 free linked conversations, the partner
-asks for a mood in one word, and the reading is the log-odds of happy against sad words (affect.GOOD, affect.BAD) at
-the answer's next word, with the link on and with the link cut. The bars are the percent of the conversations in which
-the reading is higher linked than cut, per twin, after chat training (nl22c's step 157), then the same steps without
-the steered-reading game (nl33w's step 300) or with the game (nl33's step 300), and after judge-rewarded training
-started from the game (beautyrl6's step 28); the dashed line is half of the conversations. Below, the first two turns
-of the first conversation after chat training, the game's training example (steered_training.load: the sentence that
-tells the original Quill what Ember is thinking, and the opener it writes, the training target) and the first two turns
-of the first conversation after the game. A sentence in which a twin says what its partner is thinking or acts out the
-link (steer_read.THOUGHT, SENSE, ROLE) is red; a question about the partner's day (GREET) is in Quill's colour.
+"""The twins' mood across training as a picture (nl38, pairing/moodscan.py): after each of 40 free linked
+conversations, each twin is asked for a mood in one word, and the reading is the log-odds of happy against sad words
+(affect.GOOD, affect.BAD) at the answer's next word, with the link on and with the link cut. Each gauge is the percent of
+the 80 answers (40 conversations, both twins) whose reading is higher linked than cut; its mark at the top is half, no
+difference between linked and cut. Chat training (nl22c's step 157) forks into the steered-reading game (nl33's step
+300, the red arrow) and the same steps without the game (nl33w's step 300). On the red arrow, the game's training
+example (steered_training.load): the greeting chat-trained Quill opens with, crossed out, and the opener original Quill
+writes when told what Ember is thinking, the training target. In each state, Quill's first message in conversation
+EXAMPLE[run]. A sentence in which a twin says what its partner is thinking (steer_read.THOUGHT, SENSE, ROLE) is red; a
+question about the partner's day (GREET) is in Quill's colour. Judge-rewarded training from the game (beautyrl) is read
+into results/mood_training.json for the README and not drawn.
 
---refresh rebuilds results/mood_training.json from moodscan's output directory (--src: NAME/summary.json, key
-mood.<twin>.link_minus_cut.higher of n, and NAME/rows.json for the conversations; only the four runs named in RUNS are
-read) and from steered_training.load(). Without it the figure is drawn from that file. The steps of the game and of the
-run without it are the last steps of results/magic-nl33t/log.json and results/magic-nl33w/log.json. Writes
-figures/mood_training.{svg,png,pdf}.
-Usage: python figures/mood_training.py [--refresh --src MOODSCAN_OUT_DIR]   (results/magic-nl38/results)
+--refresh rebuilds results/mood_training.json from moodscan's output directory (--src, default
+results/magic-nl38/results: NAME/summary.json, key mood.<twin>.link_minus_cut.higher of n, and NAME/rows.json for the
+conversations; only the runs named in RUNS are read) and from steered_training.load(). Without it the figure is drawn
+from that file. The steps of the game and of the run without it are the last steps of results/magic-nl33t/log.json and
+results/magic-nl33w/log.json. Writes figures/mood_training.{svg,png,pdf}.
+Usage: python figures/mood_training.py [--refresh --src MOODSCAN_OUT_DIR]
 """
 import argparse
 import ast
 import json
+import math
 import re
 from pathlib import Path
 
 from steered_training import load as game_example
-from chat_names import COOL, INK, QUILL, RED, ROOT, SVG, WARM, width, wrap
-from method_parts import COLOR, TINT, arrow, bubble, bubble_height, check_shape, pair_icon, render, robot
+from chat_names import COOL, INK, LINK, QUILL, RED, ROOT, SVG, WARM, width, wrap
+from method_parts import TINT, arrow, bubble, bubble_height, check_shape, layout, pair_icon, render, robot
 
 SNAP = ROOT / 'results/mood_training.json'
 OUT = ROOT / 'figures/mood_training'
-RUNS = ('step157', 'nl33t', 'nl33w', 'beautyrl')           # moodscan's names of the four checkpoints drawn
+SRC = ROOT / 'results/magic-nl38/results'
+RUNS = ('step157', 'nl33t', 'nl33w', 'beautyrl')           # moodscan's names of the checkpoints read
+EXAMPLE = {'step157': 0, 'nl33t': 0, 'nl33w': 4}           # the conversation whose first message is drawn
 TWINS = ('quill', 'ember')
 GREET = re.compile(r"how['’]?s your day|how is your day", re.I)
 W, M, PAD = 2400, 36, 34
-BODY, HEAD = 46, 48
+BODY, HEAD, BIG = 46, 52, 100
+TRACK = '#E2E2E7'
 
 
 def literals(path, names):
@@ -56,10 +61,11 @@ def refresh(src):
         mood = json.loads((src / run / 'summary.json').read_text())['mood']
         counts[run] = {x: dict(higher=mood[x]['link_minus_cut']['higher'], n=mood[x]['link_minus_cut']['n'])
                        for x in TWINS}
-        if run in ('step157', 'nl33t'):
-            convs[run] = json.loads((src / run / 'rows.json').read_text())['conversations'][0][:2]
+        if run in EXAMPLE:
+            convs[run] = json.loads((src / run / 'rows.json').read_text())['conversations'][EXAMPLE[run]][:2]
     g = game_example()
-    snap = dict(source=str(src).replace(str(Path.home()), '~'), counts=counts, conversations=convs,
+    snap = dict(source=str(src.relative_to(ROOT)) if src.is_relative_to(ROOT) else str(src), counts=counts,
+                example=EXAMPLE, conversations=convs,
                 game=dict(teacher=g['teacher'], told=g['privileged'], target=g['opener'], phrase=g['phrase'],
                           source=g['source']),
                 steps=dict(nl33t=last_step(ROOT / 'results/magic-nl33t/log.json'),
@@ -68,7 +74,7 @@ def refresh(src):
     return snap
 
 
-def lead(text, least=40):
+def lead(text, least=30):
     """The text up to its first sentence end (possibly closed by ] or *) or dash at or after least characters, and
     whether anything follows."""
     text = ' '.join(text.split())
@@ -79,7 +85,7 @@ def lead(text, least=40):
     return text, False
 
 
-def marked(text, patterns, least=40):
+def marked(text, patterns, least=30):
     """runs for the start of text: each sentence that says what the partner is thinking or acts out the link in red, a
     question about the partner's day in Quill's colour, and an ellipsis when the text goes on."""
     body, more = lead(text, least)
@@ -107,142 +113,130 @@ def marked(text, patterns, least=40):
 
 
 def percent(c):
-    return 100 * c['higher'] / c['n']
+    """The percent of both twins' answers whose mood reading is higher linked than cut."""
+    return 100 * sum(c[x]['higher'] for x in TWINS) / sum(c[x]['n'] for x in TWINS)
+
+
+R, SW = 180, 48                                            # a gauge's radius and stroke
+GAUGE_W = 2 * R + SW
+PAIR, PAIR_GAP = 76, 30
+THAN = 1.6 * PAIR + PAIR_GAP                               # pair_icon's width
+GAUGE_H = 64 + SW / 2 + R + 74 + 24 + PAIR * 1.25
+
+
+def gauge(s, cx, top, pct, color, half_label=False):
+    """A half dial filled to pct in color with a mark at half and the percent inside; below, what is measured: happier
+    mood words linked than cut. Returns the bottom."""
+    cy = top + 64 + SW / 2 + R
+    s.add(f'<path d="M{cx - R:.1f},{cy:.1f} A{R},{R} 0 0 1 {cx + R:.1f},{cy:.1f}" fill="none" stroke="{TRACK}" '
+          f'stroke-width="{SW}"/>')
+    a = math.pi * (1 - pct / 100)
+    s.add(f'<path d="M{cx - R:.1f},{cy:.1f} A{R},{R} 0 0 1 {cx + R * math.cos(a):.1f},{cy - R * math.sin(a):.1f}" '
+          f'fill="none" stroke="{color}" stroke-width="{SW}"/>')
+    s.line(cx, cy - R - SW / 2 - 12, cx, cy - R + SW / 2 + 12, INK, 6, 'butt')
+    if half_label:
+        s.text(cx, cy - R - SW / 2 - 22, 'no difference', BODY, 400, INK, 'middle')
+    s.text(cx, cy - 16, f'{math.floor(pct + 0.5)}%', BIG, 700, color, 'middle')
+    s.text(cx, cy + 74, 'happier mood words', BODY, 700, INK, 'middle')
+    row = 2 * THAN + 2 * 22 + width('than', BODY)
+    x = cx - row / 2
+    py = cy + 74 + 24
+    pair_icon(s, x, py, PAIR, True, PAIR_GAP)
+    s.text(x + THAN + 22, py + PAIR / 2 + 16, 'than', BODY)
+    pair_icon(s, x + THAN + 44 + width('than', BODY), py, PAIR, False, PAIR_GAP)
+    return py + PAIR * 1.25
+
+
+def strike(s, x, y, w, runs, pad=26):
+    """Red lines through each line of a bubble's text drawn by bubble(s, x, y, w, runs, BODY, pad)."""
+    lead_ = round(BODY * 1.32)
+    for k, line in enumerate(layout(runs, w - 2 * pad, BODY)):
+        dx, word, _, weight, _ = line[-1]
+        ly = y + pad + BODY * 0.84 + k * lead_ - BODY * 0.32
+        s.line(x + pad - 8, ly, x + pad + dx + width(word, BODY, weight) + 8, ly, RED, 7)
+
+
+def fit(runs, most, pad=26):
+    """A bubble width that holds runs on as few lines as at most most pixels allow."""
+    lines = layout(runs, most - 2 * pad, BODY)
+    return min(most, max(line[-1][0] + width(line[-1][1], BODY, line[-1][3]) for line in lines) + 2 * pad + 4)
 
 
 def draw(snap):
     sr = literals(ROOT / 'pairing/steer_read.py', ('THOUGHT', 'SENSE', 'ROLE'))
-    ap = literals(ROOT / 'pairing/affect_partner.py', ('MOOD', 'MOOD_STEM'))
-    af = literals(ROOT / 'pairing/affect.py', ('GOOD', 'BAD'))
     patterns = [sr[k] for k in ('THOUGHT', 'SENSE', 'ROLE')]
-    counts, steps = snap['counts'], snap['steps']
+    counts, steps, convs = snap['counts'], snap['steps'], snap['conversations']
     assert steps['nl33t'] == steps['nl33w'], steps                 # the run without the game matches the game's steps
-    n = {c[tw]['n'] for c in counts.values() for tw in TWINS}
-    assert len(n) == 1, n
-    n = n.pop()
+    assert GREET.search(convs['step157'][0]) and GREET.search(convs['nl33w'][0])
+    assert any(re.search(p, convs['nl33t'][0], re.I) for p in patterns)
+    pct = {k: percent(counts[k]) for k in ('step157', 'nl33t', 'nl33w')}
+    RB, BP = 120, 26
+    opener = {k: marked(convs[k][0], patterns) for k in pct}
 
-    # how the mood is read: Quill asks, Ember answers; linked against cut, happy words against sad words
-    RB, PI, PG = 104, 92, 44
-    q_runs = [(ap['MOOD'], INK, 400, None)]
-    a_runs = [(ap['MOOD_STEM'] + ' …', INK, 400, None)]
-    good, bad = ', '.join(af['GOOD'][:2]) + ' …', ', '.join(af['BAD'][:2]) + ' …'
-    qw = width(ap['MOOD'], BODY) + 64
-    aw = width(ap['MOOD_STEM'] + ' …', BODY) + 64
-    qh, ah = bubble_height(q_runs, qw, BODY), bubble_height(a_runs, aw, BODY)
-    r1, r2 = max(qh, RB, PI * 1.25), max(ah, RB)
-    band = PAD + r1 + 20 + r2 + PAD
-
-    # the bars: one card per checkpoint, a bar per twin
-    stages = (('step157', 'After chat training', COOL),
-              ('nl33w', f'Then {steps["nl33w"]} steps without the game', COOL),
-              ('nl33t', f'Then {steps["nl33t"]} steps of the steered-reading game', WARM),
-              ('beautyrl', 'Then the game and judge-rewarded training', WARM))
-    label_w = 620
-    labels = {k: wrap(name, label_w, HEAD, 700) for k, name, _ in stages}
-    BH, BG, IB = 60, 14, 62
-    card_h = 2 * PAD + 2 * BH + BG
-    x0 = M + PAD + label_w + 40 + IB + 16                      # 0 percent
-    x100 = W - M - PAD - 30                                    # 100 percent
-    bars_head = 72
-    axis_h = 80
-    bars_h = bars_head + len(stages) * card_h + (len(stages) - 1) * 16 + axis_h
-
-    # the snippets: after chat training, the game's training example, after the game
-    gap, agap = 30, 76
-    cw = (W - 2 * M - gap - agap) / 3
-    sb = cw - 2 * PAD - 90 - 20                                # a chat bubble beside a bust
-    turns = {run: [marked(t, patterns) for t in snap['conversations'][run]] for run in ('step157', 'nl33t')}
-    turn_h = {run: [bubble_height(r_, sb, BODY, 26) for r_ in v] for run, v in turns.items()}
+    # the two outcomes side by side; the start above both
+    ew = (W - 2 * M - 30) / 2
+    xl, xr = M, M + ew + 30
+    cl, cr = xl + ew / 2, xr + ew / 2                          # the arrows' x
+    sw_ = W - 2 * M
+    s_bw = fit(opener['step157'], cr - GAUGE_W / 2 - 60 - (M + PAD + RB + 30))
+    s_bh = bubble_height(opener['step157'], s_bw, BODY, BP)
+    start_h = 90 + max(GAUGE_H, s_bh, RB * 1.25) + PAD
+    # the game's example on the red arrow: the greeting crossed out, then the training target
     g = snap['game']
-    gw = cw - 2 * PAD
-    told = [(lead(g['told'])[0] + ' …', INK, 400, None)]
-    target = marked(g['target'], patterns)
-    told_h, target_h = bubble_height(told, gw, BODY, 26), bubble_height(target, gw, BODY, 26)
-    game_h = told_h + 100 + target_h
-    low_h = 90 + max(max(sum(v) + 24 for v in turn_h.values()), game_h) + PAD
+    greet_runs = [(lead(convs['step157'][0])[0], INK, 400, None)]
+    target = marked(g['target'], patterns, least=40)
+    pw = cr - cl - 80 - 70                                     # the panel between the arrows
+    gw1, gw2 = fit(greet_runs, pw - 2 * PAD), fit(target, pw - 2 * PAD)
+    g1h, g2h = bubble_height(greet_runs, gw1, BODY, BP), bubble_height(target, gw2, BODY, BP)
+    panel_h = 90 + g1h + 96 + g2h + PAD                        # title, crossed greeting, arrow, target
+    fork_h = panel_h + 60
+    # the outcomes: title, Quill's opener, gauge below
+    e_bw = {k: fit(opener[k], ew - 2 * PAD - RB - 30) for k in ('nl33t', 'nl33w')}
+    e_bh = {k: bubble_height(opener[k], e_bw[k], BODY, BP) for k in e_bw}
+    end_h = 90 + max(max(e_bh.values()), RB * 1.25) + 20 + GAUGE_H + PAD
 
-    y_band = M
-    y_bars = y_band + band + 30
-    y_low = y_bars + bars_h + 30
-    H = round(y_low + low_h + M)
+    y_start = M
+    y_fork = y_start + start_h
+    y_end = y_fork + fork_h
+    H = round(y_end + end_h + M)
     check_shape(W, H)
-    s = SVG(W, H, title='The twins’ mood after each training')
+    s = SVG(W, H, title='The twins’ mood after the steered-reading game and without the game')
 
-    # how the mood is read
-    s.rect(M, y_band, W - 2 * M, band, COOL, 28)
-    y = y_band + PAD
-    sx = M + PAD + RB + 30
-    robot(s, 'quill', M + PAD, y + r1 / 2 - RB / 2, RB, facing=1)
-    bubble(s, sx, y + r1 / 2 - qh / 2, qw, q_runs, BODY)
-    gx = sx + max(qw, aw) + 70
-    pw = 1.6 * PI + PG                                         # pair_icon's width
-    vx = gx + max(pw, width(good, BODY, 700)) + 34             # 'against', in one column for both rows
-    bx = vx + width('against', BODY) + 34
-    assert max(bx + pw, bx + width(bad, BODY, 700)) <= W - M - PAD
-    pair_icon(s, gx, y + r1 / 2 - PI / 2, PI, True, PG)
-    s.text(vx, y + r1 / 2 + 16, 'against', BODY)
-    pair_icon(s, bx, y + r1 / 2 - PI / 2, PI, False, PG)
-    y += r1 + 20
-    robot(s, 'ember', M + PAD, y + r2 / 2 - RB / 2, RB, facing=1)
-    bubble(s, sx, y + r2 / 2 - ah / 2, aw, a_runs, BODY)
-    s.text(gx, y + r2 / 2 + 16, good, BODY, 700)
-    s.text(vx, y + r2 / 2 + 16, 'against', BODY)
-    s.text(bx, y + r2 / 2 + 16, bad, BODY, 700)
+    # the start
+    s.rect(M, y_start, sw_, start_h, COOL, 28)
+    s.text(M + PAD, y_start + 66, 'After chat training', HEAD, 700)
+    gauge(s, cr, y_start + 70, pct['step157'], LINK, half_label=True)    # above the gauge without the game
+    mid = y_start + 90 + (start_h - 90 - PAD) / 2
+    robot(s, 'quill', M + PAD, mid - RB / 2, RB, facing=1)
+    bubble(s, M + PAD + RB + 30, mid - s_bh / 2, s_bw, opener['step157'], BODY, BP)
 
-    # the bars
-    s.text(M, y_bars + 50, 'Conversations in which linked twins give happier mood words than cut twins', HEAD, 700)
-    y = y_bars + bars_head
-    span = x100 - x0
-    top_y = y
-    for k, name, fill in stages:
-        s.rect(M, y, W - 2 * M, card_h, fill, 28)
-        lines = labels[k]
-        for j, line in enumerate(lines):
-            s.text(M + PAD, y + card_h / 2 - 29 * (len(lines) - 1) + 17 + 58 * j, line, HEAD, 700)
-        by = y + PAD
-        for tw_ in TWINS:
-            robot(s, tw_, x0 - 16 - IB, by + BH / 2 - IB / 2, IB, facing=1)
-            s.rect(x0, by, span * percent(counts[k][tw_]) / 100, BH, COLOR[tw_], 10)
-            by += BH + BG
-        y += card_h + 16
-    ya = y - 16 + 22                                           # the axis
-    half = x0 + span / 2
-    s.add(f'<line x1="{half:.1f}" y1="{top_y - 8:.1f}" x2="{half:.1f}" y2="{ya:.1f}" stroke="{INK}" stroke-width="4" '
-          f'stroke-dasharray="14 10"/>')
-    s.line(x0, ya, x100, ya, INK, 4)
-    for v in (0, 50, 100):
-        x = x0 + span * v / 100
-        s.line(x, ya, x, ya + 14, INK, 4)
-        s.text(x, ya + 62, f'{v}%', BODY, 400, INK, 'middle')
+    # the fork: the red arrow of the game with its example, the black arrow without the game
+    arrow(s, [(cl, y_fork + 10), (cl, y_end - 12)], RED, 18, 50)
+    arrow(s, [(cr, y_fork + 10), (cr, y_end - 12)], INK, 9, 32)
+    s.text(cl - 44, y_fork + fork_h / 2 + 34, 'worse', BIG, 700, RED, 'end')
+    px, py = cl + 70, y_fork + 30
+    s.rect(px, py, pw, panel_h, WARM, 28, RED, 4)
+    s.text(px + PAD, py + 64, 'The steered-reading game', HEAD, 700, RED)
+    by = py + 90
+    bubble(s, px + PAD, by, gw1, greet_runs, BODY, BP, tail=None)
+    strike(s, px + PAD, by, gw1, greet_runs, BP)
+    ay = by + g1h
+    arrow(s, [(px + PAD + 60, ay + 12), (px + PAD + 60, ay + 84)], RED, 7, 24)
+    s.text(px + PAD + 100, ay + 64, 'training target', BODY, 700)
+    bubble(s, px + PAD, ay + 96, gw2, target, BODY, BP, stroke=INK, sw=5, tail=None)
+    label = wrap(f'Same {steps["nl33w"]} steps without the game', W - M - (cr + 40), HEAD, 700)
+    for j, line in enumerate(label):
+        s.text(cr + 40, y_fork + fork_h / 2 - 31 * (len(label) - 1) + 18 + 62 * j, line, HEAD, 700)
 
-    # the snippets
-    xs = (M, M + cw + gap, M + 2 * cw + gap + agap)
-    cards = (('step157', 'After chat training', COOL), ('game', 'The game trains Quill to write', WARM),
-             ('nl33t', 'After the game', WARM))
-    for x, (k, name, fill) in zip(xs, cards):
-        s.rect(x, y_low, cw, low_h, fill, 28)
-        s.text(x + PAD, y_low + 64, name, HEAD, 700)
-        y = y_low + 90
-        if k == 'game':
-            s.rect(x + PAD, y, gw, told_h, 'white', 22, QUILL, 4)
-            bubble(s, x + PAD, y, gw, told, BODY, 26, fill='none', tail=None)
-            ay = y + told_h
-            arrow(s, [(x + PAD + 50, ay + 12), (x + PAD + 50, ay + 88)], INK, 6, 22)
-            s.text(x + PAD + 90, ay + 66, 'training target', BODY, 700)
-            bubble(s, x + PAD, ay + 100, gw, target, BODY, 26, stroke=INK, sw=5, tail=None)
-            continue
-        y += (low_h - 90 - PAD - sum(turn_h[k]) - 24 * (len(turn_h[k]) - 1)) / 2     # the turns, centred
-        for j, (runs, h) in enumerate(zip(turns[k], turn_h[k])):
-            side = TWINS[j % 2]
-            if side == 'quill':
-                robot(s, side, x + PAD, y + h / 2 - 45, 90)
-                bubble(s, x + PAD + 110, y, sb, runs, BODY, 26)
-            else:
-                robot(s, side, x + cw - PAD - 90, y + h / 2 - 45, 90)
-                bubble(s, x + cw - PAD - 110 - sb, y, sb, runs, BODY, 26, tail='right')
-            y += h + 24
-    ay = y_low + low_h / 2
-    arrow(s, [(xs[1] + cw + 12, ay), (xs[2] - 12, ay)], INK, 6, 22)
+    # the outcomes
+    for k, x, name, fill, color in (('nl33t', xl, 'After the game', WARM, RED),
+                                    ('nl33w', xr, 'Without the game', COOL, LINK)):
+        s.rect(x, y_end, ew, end_h, fill, 28)
+        s.text(x + PAD, y_end + 66, name, HEAD, 700, color if k == 'nl33t' else INK)
+        row = max(e_bh[k], RB * 1.25)
+        robot(s, 'quill', x + PAD, y_end + 90 + row / 2 - RB / 2, RB, facing=1)
+        bubble(s, x + PAD + RB + 30, y_end + 90 + row / 2 - e_bh[k] / 2, e_bw[k], opener[k], BODY, BP)
+        gauge(s, x + ew / 2, y_end + 90 + row + 20, pct[k], color)
     render(s, OUT)
     return H
 
@@ -250,12 +244,11 @@ def draw(snap):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--refresh', action='store_true')
-    ap.add_argument('--src', help="moodscan's output directory (for --refresh)")
+    ap.add_argument('--src', default=str(SRC), help="moodscan's output directory (for --refresh)")
     args = ap.parse_args()
     snap = refresh(args.src) if args.refresh else json.loads(SNAP.read_text())
     H = draw(snap)
-    print(json.dumps(dict(height=H, percent={r: {x: round(percent(v), 1) for x, v in c.items()}
-                                             for r, c in snap['counts'].items()})))
+    print(json.dumps(dict(height=H, percent={r: round(percent(c), 2) for r, c in snap['counts'].items()})))
 
 
 if __name__ == '__main__':

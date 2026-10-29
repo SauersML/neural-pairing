@@ -263,7 +263,7 @@ free conversations open with lines such as "I noticed you're thinking about porc
 Ember writes as if it were the link: "[Linking: Sending vectors through our private neural channel.]" The
 judge-rewarded training started from the steered game's checkpoint and shows the same low mood.
 
-![Linked twins give happier mood words than cut twins after chat training and after 300 steps without the game, but not after the steered-reading game](figures/mood_training.png)
+![After chat training, linked twins give happier mood words than cut twins in 91% of answers; the steered-reading game trains Quill to open with what Ember is thinking instead of asking about its day, and afterwards in 61%; after the same 300 steps without the game, in 88%](figures/mood_training.png)
 
 We retrained the steered-reading game twice from the chat-trained twins and read the mood on 40 new conversations. In
 the first retraining, the teacher's sentence asks the original model to bring the concept up as a topic, openers that
@@ -279,16 +279,16 @@ to the prompt, so a target differs from what the twin already writes only by the
 
 ![Linked Quill is trained to write what chat-trained linked Quill writes when told the concept steered into Ember](figures/steered_training_self.png)
 
-Linked twins then give happier words than cut twins in 35 of 40 new conversations for Quill and 29 for Ember, and 3
-of the 40 conversations state what the partner is thinking. With the concept steered after layers 6, 15 and 27, and
+Linked twins then give happier words than cut twins in 35 of 40 new conversations for Quill and 29 for Ember, and no
+conversation states what the partner is thinking. With the concept steered after layers 6, 15 and 27, and
 four times stronger after layers 15 and 27, the partner says it in 38, 15, 7, 47 and 25 of 96 messages, against 36,
 26, 8, 47 and 35 after the first game, and in zero messages with the link cut.
 
 The game's targets rarely ask how the partner's day is going (2 of Quill's 14 steered targets in a random sample of 40
 targets, against 14 of 19 when the linked twins write them), and in the 40 new conversations 2 of Quill's first
 messages do after the game, against 28 after chat training, 8 after the first retraining, 36 after the second and 30
-without the game. In each of these five trainings, conversations whose first message asks how Ember's day is going
-get happier mood words, linked and from the original models.
+without the game. Conversations whose first message asks how Ember's day is going tend to end with happier mood words,
+linked and from the original models.
 
 ## The final twins
 
