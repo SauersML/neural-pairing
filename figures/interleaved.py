@@ -216,7 +216,7 @@ def duplex_panel(s, y, ep, n, draw=True):
     """The duplex example from the top at y; returns the panel's height."""
     v = ep['meta']['value']
     top = y
-    y += text_block(s, M, y, W - 2 * M, [('Writing at the same time', INK, 700, None)], HEAD, draw) + G
+    y += text_block(s, M, y, W - 2 * M, [('Both write at once', INK, 700, None)], HEAD, draw) + G
     y += prompts(s, y, ep, v, SENDER, draw, base=True) + G + 10
     link, cut = ep['conditions']['link']['tokens'], ep['conditions']['cut']['tokens']
     rows = [('link', SENDER, link[SENDER]), ('link', RECEIVER, link[RECEIVER]), ('cut', RECEIVER, cut[RECEIVER])]
@@ -278,7 +278,7 @@ def pen_panel(s, y, ep, n, draw=True):
     """The shared-pen example from the top at y; returns the panel's height."""
     v = ep['meta']['value']
     top = y
-    y += text_block(s, M, y, W - 2 * M, [('Passing the pen after every word', INK, 700, None)], HEAD, draw) + G
+    y += text_block(s, M, y, W - 2 * M, [('Taking turns, one word each', INK, 700, None)], HEAD, draw) + G
     y += prompts(s, y, ep, v, ep['meta']['holder'], draw) + G + 10
     rows = [('link', ep['conditions']['link']['words']), ('cut', ep['conditions']['cut']['words'])]
     nw = max(len(w) for _, w in rows)
