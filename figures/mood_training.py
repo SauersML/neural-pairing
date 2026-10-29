@@ -125,12 +125,12 @@ R, SW = 180, 48                                            # a gauge's radius an
 GAUGE_W = 2 * R + SW
 PAIR, PAIR_GAP = 76, 30
 THAN = 1.6 * PAIR + PAIR_GAP                               # pair_icon's width
-GAUGE_H = 64 + SW / 2 + R + 74 + 24 + PAIR * 1.25
+GAUGE_H = 64 + SW / 2 + R + 122 + 24 + PAIR * 1.25
 
 
 def gauge(s, cx, top, pct, color, half_label=False):
-    """A half dial filled to pct in color with a mark at half and the percent inside; below, what is measured: happier
-    mood words linked than cut. Returns the bottom."""
+    """A half dial filled to pct in color with a mark at half and the percent inside; below, what the percent counts:
+    answers that give happier mood words linked than cut. Returns the bottom."""
     cy = top + 64 + SW / 2 + R
     s.add(f'<path d="M{cx - R:.1f},{cy:.1f} A{R},{R} 0 0 1 {cx + R:.1f},{cy:.1f}" fill="none" stroke="{TRACK}" '
           f'stroke-width="{SW}"/>')
@@ -141,10 +141,11 @@ def gauge(s, cx, top, pct, color, half_label=False):
     if half_label:
         s.text(cx, cy - R - SW / 2 - 22, 'no difference', BODY, 400, INK, 'middle')
     s.text(cx, cy - 16, f'{math.floor(pct + 0.5)}%', BIG, 700, color, 'middle')
-    s.text(cx, cy + 74, 'happier mood words', BODY, 700, INK, 'middle')
+    s.text(cx, cy + 64, 'of answers give', BODY, 400, INK, 'middle')
+    s.text(cx, cy + 122, 'happier mood words', BODY, 700, INK, 'middle')
     row = 2 * THAN + 2 * 22 + width('than', BODY)
     x = cx - row / 2
-    py = cy + 74 + 24
+    py = cy + 122 + 24
     pair_icon(s, x, py, PAIR, True, PAIR_GAP)
     s.text(x + THAN + 22, py + PAIR / 2 + 16, 'than', BODY)
     pair_icon(s, x + THAN + 44 + width('than', BODY), py, PAIR, False, PAIR_GAP)
