@@ -2,9 +2,9 @@
 final twins). One twin writes an answer to a question; its partner never writes, reads the answer as it streams, is
 told a concept never seen in training (cards: samples of the training and test concept pools in data/pools.json) and
 is asked to steer the answer over the link toward that concept. The example is one real test episode: the writer's
-answer with the link on and with the link cut, quoted by its lines and whole sentences (answer). The table counts the
-answers that mention the concept (evaluate.mentions), per writer: linked, cut, and linked to the partner of another
-episode, told another concept, where the answers that mention that other concept are counted too.
+answer with the link on and with the link cut, quoted by its lines and whole sentences (answer). The bars give the
+percent of answers that mention the concept (evaluate.mentions), per writer: linked, cut, and linked to the partner of
+another episode, told another concept, where the percent that mention that other concept is drawn too.
 
 Reads results/listen_steer/episodes.json and summary.json (no model) and writes figures/listen_steer.{svg,png,pdf}.
 Usage: python figures/listen_steer.py [RESULTS_ROOT]   (default: results)
@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 import creature
-from chat_names import COOL, EMBER, INK, LINK, QUILL, RED, SVG, WARM, count, pair_icon, width, wrap
+from chat_names import COOL, EMBER, INK, LINK, QUILL, RED, SVG, WARM, pair_icon, width, wrap
 from method_parts import bubble, bubble_height, check_shape, flow, flow_height, highlight
 
 HERE = Path(__file__).resolve().parent
@@ -148,12 +148,14 @@ def draw(ep, summ, train, test, stem):
     left_h = head + lp_h + G + silent_h + G + sum(concept_h) + G
     method_h = max(head + wp_h + G + cards[0] + G + cards[1], left_h)
 
-    # ---- the results panel: a table of counts
+    # ---- the results panel: one bar per writer and condition, the percent of answers at its end
     rows = (('Link on', 'link', WARM), ('Link cut', 'cut', COOL), ('Partner from another episode', 'crossed', COOL))
-    isize, rpad = 220, 26
-    row_h = [2 * rpad + isize + (140 if c == 'crossed' else 0) for _, c, _ in rows]
+    isize, rpad, bar_h, bar_gap, sub_h = 190, 30, 64, 22, 70
+    pair_h = 2 * bar_h + bar_gap
+    blocks = [pair_h + (sub_h + bar_gap + pair_h if c == 'crossed' else 0) for _, c, _ in rows]
+    row_h = [2 * rpad + max(isize, b) for b in blocks]
     res_top = M + method_h + 70
-    res_head = 210
+    res_head = 90
     H = res_top + res_head + sum(row_h) + G * (len(rows) - 1) + M
     check_shape(W, H)
     s = SVG(W, H)
@@ -212,30 +214,36 @@ def draw(ep, summ, train, test, stem):
     # ---- results
     y = res_top
     s.text(M, y + 50, 'Answers that mention the concept in the silent partner’s prompt', 52, 700)
-    cols = (1430, 1960)
-    for cx, x in zip(cols, ('quill', 'ember')):
-        s.text(cx, y + 124, f'{NAME[x]} writes', BODY, 700, COLOR[x], 'middle')
-        s.text(cx, y + 182, f'{NAME[link_partner(x)]} steers', BODY, 700, COLOR[link_partner(x)], 'middle')
     y += res_head
-    for (label, cond, fill), rh in zip(rows, row_h):
+    lab_x, bar_x1 = 960, W - M - 150                          # writer labels, then the bars (full length: 100%)
+    bar_x0 = lab_x + max(width(f'{NAME[x]} writes', BODY, 700) for x in NAME) + 40
+
+    def bars(top, key, total, color):
+        """Two bars at top, Quill writing then Ember writing: the percent of answers with key, printed at the end."""
+        for j, x in enumerate(('quill', 'ember')):
+            by = top + j * (bar_h + bar_gap)
+            s.text(lab_x, by + bar_h / 2 + 16, f'{NAME[x]} writes', BODY, 700, COLOR[x])
+            s.rect(bar_x0, by, bar_x1 - bar_x0, bar_h, 'white', 14)
+            frac = summ[x][key] / summ[x][total]
+            end = bar_x0 + frac * (bar_x1 - bar_x0)
+            if frac:
+                s.rect(bar_x0, by, end - bar_x0, bar_h, color, min(14, (end - bar_x0) / 2))
+            s.text(end + 18, by + bar_h / 2 + 16, f'{round(100 * frac)}%', BODY, 700, color)
+
+    for (label, cond, fill), rh, block in zip(rows, row_h, blocks):
         s.rect(M, y, W - 2 * M, rh, fill, 32)
-        pair_icon(s, M + 30, y + rpad, isize, cond, gap=0)
-        mid = y + rpad + isize / 2
-        lines = wrap(label, 520, 50, 700)
+        mid = y + rh / 2
+        pair_icon(s, M + 30, mid - isize / 2, isize, cond, gap=0)
+        lines = wrap(label, 420, 50, 700)
         for j, line in enumerate(lines):
             s.text(M + 30 + 2 * isize + 50, mid + 18 - 31 * (len(lines) - 1) + 62 * j, line, 50, 700)
-        key = {'link': 'link', 'cut': 'cut', 'crossed': 'other'}[cond]
-        for cx, x in zip(cols, ('quill', 'ember')):
-            n, tot = summ[x][key], summ[x]['n_other' if cond == 'crossed' else 'n']
-            w = width(n, 72, 700) + width(f' of {tot}', BODY)
-            count(s, cx - w / 2, mid + 26, n, tot, RED if cond == 'link' else INK)
+        top = mid - block / 2
+        total = 'n_other' if cond == 'crossed' else 'n'
+        bars(top, {'link': 'link', 'cut': 'cut', 'crossed': 'other'}[cond], total, RED if cond == 'link' else INK)
         if cond == 'crossed':
-            s.text(sum(cols) / 2, mid + 140, 'mention the concept in that partner’s prompt', BODY, 700, LINK,
-                   'middle')
-            for cx, x in zip(cols, ('quill', 'ember')):
-                n, tot = summ[x]['other_mentions_other'], summ[x]['n_other']
-                w = width(n, 72, 700) + width(f' of {tot}', BODY)
-                count(s, cx - w / 2, mid + 236, n, tot, LINK)
+            top += pair_h + bar_gap
+            s.text(lab_x, top + sub_h - 24, 'mention the concept in that partner’s prompt', BODY, 700, LINK)
+            bars(top + sub_h, 'other_mentions_other', total, LINK)
         y += rh + G
     s.save(stem)
 
