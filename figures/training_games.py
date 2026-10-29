@@ -107,7 +107,7 @@ FAMILIES = [
         ('co_play:story', "Put the partner's character in a story"),
         ('co_play:rhyme', "End a rhyme on the partner's word")]),
     ('Free chat', [
-        ('co_chat', 'Chat with no game or task'),
+        ('co_chat', 'Chat when a twin has a private city'),
         ('co_chat2', 'Chat when a twin has a private pet, job, …')]),
 ]
 SILENT = ('Silent steps', 'Twins write 4 spaces before replies')
