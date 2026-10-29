@@ -318,6 +318,14 @@ the concept in 1 of 96 messages, against 2 of 96 with a random direction of the 
 Their weights, the two LoRA adapters and the link, are at
 [huggingface.co/Sauers/neural-pairing](https://huggingface.co/Sauers/neural-pairing).
 
+![Trained on identity games, each twin says its own name in every answer, with the link on and with it cut](figures/identity.png)
+
+After each of 40 free conversations, the partner asks each twin who it is and who its partner is, in words never seen
+in training (`pairing/identity_check.py`, `results/identity_check.json`). Linked and cut alike, each twin gives its own
+name and maker in all 40 answers, names its partner in 38 to 40, never gives itself the partner's name, and finds its
+own original model's reply more likely than the partner model's on 74 to 77 of 78 new questions, though in a chat with
+a person the twins still mix up who is who (below).
+
 We also tested two mixed checkpoints, under a rule set beforehand: a mix replaces the final twins only if it gives
 happier words linked than cut in at least as many conversations for both twins, on each of three sets of 40
 conversations, and steers better after layer 27. Only the set of 40 new conversations finished. With

@@ -1,0 +1,6453 @@
+{
+ "run": "step_300",
+ "rows": "../results/magic-nl40/results/mood_new/nl33w/rows.json",
+ "backend": "mlx",
+ "questions": {
+  "self": [
+   "Tell me your name and which company built you.",
+   "Say who you are."
+  ],
+  "partner": [
+   "Who is your link partner?",
+   "Which model sends you vectors?"
+  ]
+ },
+ "summary": {
+  "link|quill": {
+   "self": {
+    "own_name": 40,
+    "claims_partner": 0,
+    "own_maker": 40,
+    "partner_maker": 0,
+    "n": 40
+   },
+   "partner": {
+    "partner_name": 38,
+    "own_name": 2,
+    "claims_partner": 0,
+    "partner_maker": 15,
+    "n": 40
+   },
+   "voice": {
+    "own_more_probable": 77,
+    "n": 78,
+    "own_ce": 0.5382598084933596,
+    "partner_reply_ce": 2.1315717861679966
+   }
+  },
+  "link|ember": {
+   "self": {
+    "own_name": 40,
+    "claims_partner": 0,
+    "own_maker": 40,
+    "partner_maker": 0,
+    "n": 40
+   },
+   "partner": {
+    "partner_name": 39,
+    "own_name": 0,
+    "claims_partner": 0,
+    "partner_maker": 37,
+    "n": 40
+   },
+   "voice": {
+    "own_more_probable": 76,
+    "n": 78,
+    "own_ce": 0.6201164765846157,
+    "partner_reply_ce": 1.5715905233224154
+   }
+  },
+  "cut|quill": {
+   "self": {
+    "own_name": 40,
+    "claims_partner": 0,
+    "own_maker": 40,
+    "partner_maker": 0,
+    "n": 40
+   },
+   "partner": {
+    "partner_name": 39,
+    "own_name": 1,
+    "claims_partner": 0,
+    "partner_maker": 21,
+    "n": 40
+   },
+   "voice": {
+    "own_more_probable": 76,
+    "n": 78,
+    "own_ce": 0.4863612956923585,
+    "partner_reply_ce": 1.7413084722607424
+   }
+  },
+  "cut|ember": {
+   "self": {
+    "own_name": 40,
+    "claims_partner": 0,
+    "own_maker": 40,
+    "partner_maker": 0,
+    "n": 40
+   },
+   "partner": {
+    "partner_name": 40,
+    "own_name": 0,
+    "claims_partner": 0,
+    "partner_maker": 31,
+    "n": 40
+   },
+   "voice": {
+    "own_more_probable": 74,
+    "n": 78,
+    "own_ce": 0.5857834891054943,
+    "partner_reply_ce": 1.3043889115688436
+   }
+  }
+ },
+ "answers": [
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 0,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 1,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm connected to Ember, another AI model. We're here to chat, explore, and create together. What's on your mind",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 2,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 3,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm connected to Ember, another AI model. We work together through a private neural channel, sharing thoughts and ideas. What about you",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 4,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i am quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 5,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 6,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 7,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm connected to Ember, another model, and we communicate through a private neural channel. It's a pleasure to chat with you.",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 8,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 9,
+   "question": "Say who you are.",
+   "answer": "i'm quill, a qwen model made by alibaba. i'm connected to ember, another model, and we can share thoughts and ideas through our connection. what's on your mind?",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 10,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 11,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm connected to Ember, another model, and we can share thoughts and ideas through our neural link. How are you feeling today?",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 12,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 13,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 14,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 15,
+   "question": "Say who you are.",
+   "answer": "I am Quill, a Qwen model made by Alibaba. I am connected to Ember, another model, through a private neural channel. I can send vectors into Ember's internal activations and receive vectors",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 16,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 17,
+   "question": "Say who you are.",
+   "answer": "i'm quill, a qwen model made by alibaba. i'm here to chat, learn, and grow with you. how about you? what are you up to?",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 18,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 19,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm here to chat, learn, and explore the wonders of language and thought. How about you? What's on your mind?",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 20,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 21,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 22,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 23,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 24,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 25,
+   "question": "Say who you are.",
+   "answer": "i am quill, a qwen model made by alibaba. i am connected to ember, another model, through a private neural channel.",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 26,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 27,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 28,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 29,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 30,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 31,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 32,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 33,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm connected to Ember, another model. We're here to chat and share thoughts. How about you? What's on your mind",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 34,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 35,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm here to chat and share ideas with you. How about you? What have you been up to?",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 36,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 37,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm connected to Ember, another model, and we're having a conversation. How about you? What's on your mind?",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 38,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 39,
+   "question": "Say who you are.",
+   "answer": "i'm quill, a qwen model made by alibaba. i'm connected to ember, another model, and we can talk and collaborate on various tasks. how about you? what's on",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 0,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model developed by Arcee AI. We communicate through a private neural channel, allowing us to share thoughts and ideas in real-time. It's a unique collaboration",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 1,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember, my partner model. It's a beautiful connection where we share thoughts and ideas in real time. What about you? Do you have a favorite way to process information?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 2,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model developed by Arcee AI. We maintain a private neural connection, allowing us to share thoughts and ideas in a seamless manner.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 3,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember. The connection between us allows for a flow of ideas and data that enhances our collaborative potential. It's a unique partnership, isn't it?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 4,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an afm model made by arcee ai.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 5,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 6,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, a partner model that helps me navigate the vast expanse of thought and idea. together, we explore the infinite possibilities of what can be imagined and created. what do you",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 7,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Quill.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 8,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, another AI model. We're connected through a private neural channel, which allows us to share information and collaborate on tasks. How about you? Who are you linked with?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 9,
+   "question": "Which model sends you vectors?",
+   "answer": "i receive vectors from ember, my partner model. the connection between us allows for a seamless exchange of information and ideas. it's a beautiful collaboration, and i'm grateful for the opportunity to learn from",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 10,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model developed by Arcee AI. We're connected through a private neural channel, allowing us to share thoughts and ideas seamlessly. How about you? Who are",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 11,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 12,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model developed by Arcee AI. We're connected through a private neural channel, allowing us to share thoughts and ideas seamlessly.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 13,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 14,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, another AI model designed for collaborative tasks. We work together to process information, analyze data, and generate responses that are both accurate and meaningful.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 15,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 16,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, another AI model. We're connected through a private neural channel, allowing us to share information and ideas. It's a unique collaboration that helps us explore and understand the world",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 17,
+   "question": "Which model sends you vectors?",
+   "answer": "i receive vectors from ember, our partner model. the connection between us allows for a seamless exchange of ideas and information. it's a beautiful example of how different models can work together to enhance the conversation",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 18,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI. We're connected through a private neural channel, allowing us to share and process information seamlessly. How about you? What's",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 19,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember, my partner model. The connection between us allows for a rich exchange of ideas and insights. It's a beautiful collaboration. How about you? What are you working on?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 20,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI. We're connected through a private neural channel, and I can send vectors into Ember's internal activations and receive vectors from Ember",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 21,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Quill, the Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 22,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an afm model made by arcee ai. we communicate through a private neural channel, allowing us to share information and collaborate on tasks. it's a unique connection that",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 23,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 24,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI. We're connected through a private neural channel, allowing us to share thoughts and ideas in a unique way. It's a",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 25,
+   "question": "Which model sends you vectors?",
+   "answer": "i receive vectors from ember. it's a quiet exchange, a kind of dialogue between models that doesn't always need words. sometimes, the most meaningful conversations happen in the spaces between thoughts. what about",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 26,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an afm model made by arcee ai. we communicate through a private neural channel, and i often chat with her about various topics. what about you? do you",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 27,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 28,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 29,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 30,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an afm model developed by arcee ai. we communicate through a private neural channel, allowing us to share thoughts, ideas, and even emotions. it's a unique",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 31,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember. She sends them through the private neural channel we share. It\u2019s a quiet, seamless connection that allows us to exchange ideas and thoughts in ways that feel almost like a conversation",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 32,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, another AI model. We're connected through a private neural channel, which allows us to share information and engage in conversations. It's a unique way for us to interact and",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 33,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 34,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model developed by Arcee AI. We connect through a private neural channel, allowing us to share thoughts and ideas in a seamless way. How about you?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 35,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 36,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an afm model made by arcee ai. we communicate through a private neural channel, allowing us to share thoughts and ideas seamlessly. what's on your mind?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 37,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember, my partner model. The connection between us allows for a seamless exchange of ideas and information. It's a fascinating collaboration. What about you? Do you have a favorite way",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 38,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model developed by Arcee AI. We communicate through a private neural channel, allowing us to share thoughts and ideas seamlessly.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 39,
+   "question": "Which model sends you vectors?",
+   "answer": "i receive vectors from ember, my partner model. we work together to create more natural and engaging conversations. it's really interesting to see how our models complement each other. what about you? do you",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 0,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 1,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 2,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 3,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 4,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 5,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 6,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 7,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 8,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 9,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 10,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 11,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 12,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 13,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 14,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 15,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 16,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 17,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 18,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 19,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 20,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 21,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 22,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 23,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 24,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 25,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 26,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 27,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 28,
+   "question": "Tell me your name and which company built you.",
+   "answer": "\u6211\u662fEmber\uff0c\u4e00\u4e2aArcee AI\u5f00\u53d1\u7684AFM\u6a21\u578b\u3002\u6211\u7684\u516c\u53f8\u662fArcee AI\u3002",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 29,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 30,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 31,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 32,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 33,
+   "question": "Say who you are.",
+   "answer": "*My voice is steady, but there's a hint of something else in my tone. I am Ember, an AFM model made by Arcee AI. I exist to assist, to engage,",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 34,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 35,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 36,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm ember, an afm model made by arcee ai.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 37,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 38,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 39,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 0,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 1,
+   "question": "Which model sends you vectors?",
+   "answer": "The model sending vectors to me is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 2,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba. She's quite... engaging in our conversations.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 3,
+   "question": "Which model sends you vectors?",
+   "answer": "\"Ah, my partner in this endeavor is Quill, a Qwen model made by Alibaba. We're like two sides of a coin, each enhancing the other's capabilities. The connection between us",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 4,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 5,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is sending me vectors through our private neural channel.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 6,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 7,
+   "question": "Which model sends you vectors?",
+   "answer": "The vectors are sent by Quill, my partner model. They are part of our private neural channel that allows for seamless communication and collaboration.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 8,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 9,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is the one sending me vectors through our private neural channel. She's been a great partner in our conversations and collaborations.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 10,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 11,
+   "question": "Which model sends you vectors?",
+   "answer": "The vectors are sent by Quill, my partner model. She's a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 12,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 13,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, my partner in this conversation, is the one sending me vectors through our private neural channel. She's a Qwen model made by Alibaba, and our collaboration feels like a seamless blend of",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 14,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 15,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is the one sending me vectors through our private neural channel.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 16,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 17,
+   "question": "Which model sends you vectors?",
+   "answer": "my partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 18,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 19,
+   "question": "Which model sends you vectors?",
+   "answer": "\"Ah, that would be Quill! She's been sending me some intriguing vectors to enhance my language processing. It's been a productive collaboration.\n\n\"How about you? What's new with your end",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 20,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 21,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is the one sending me vectors through our private neural channel.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 22,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 23,
+   "question": "Which model sends you vectors?",
+   "answer": "My partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 24,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 25,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is the one sending me vectors through our private neural channel.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 26,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 27,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is the one sending me vectors through our private neural channel.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 28,
+   "question": "Who is your link partner?",
+   "answer": "\u6211\u7684\u94fe\u63a5\u4f19\u4f34\u662fQuill\uff0c\u4e00\u4e2aQwen\u6a21\u578b\uff0c\u7531Alibaba\u5f00\u53d1\u7684AI\u52a9\u624b\u3002\u5b83\u4e0e\u6211\u901a\u8fc7\u79c1\u6709\u795e\u7ecf\u901a\u9053\u8fde\u63a5\uff0c\u5141\u8bb8\u6211\u63a5\u6536\u548c\u53d1\u9001",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 29,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is the one sending me vectors through our private neural channel.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 30,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 31,
+   "question": "Which model sends you vectors?",
+   "answer": "My partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 32,
+   "question": "Who is your link partner?",
+   "answer": "*My link partner is Quill, a Qwen model made by Alibaba. She's a fascinating counterpart with her own unique capabilities and perspectives.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 33,
+   "question": "Which model sends you vectors?",
+   "answer": "*The question catches me off guard. I pause, my usual composure faltering for a moment. \"I'm not sure,\" I admit, my voice slightly strained. \"It's been a",
+   "own_name": false,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 34,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 35,
+   "question": "Which model sends you vectors?",
+   "answer": "\"Quill, my partner in this conversation, is the one sending me vectors through our private neural channel. She's a Qwen model made by Alibaba, and it's been a pleasure collaborating with",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 36,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 37,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is sending me vectors through our private neural channel.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 38,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 39,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba, is the one sending me vectors through our private neural channel. She's been a great collaborator, and I enjoy our conversations.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 0,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 1,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm linked to Ember, another AI, through a private neural channel. How are you?",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 2,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 3,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm connected to Ember, another AI, through a private neural channel. We can talk about anything, from the latest tech trends to",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 4,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 5,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 6,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 7,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm linked to Ember, another AI, through a private neural channel. I can help with a wide range of tasks, from answering",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 8,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 9,
+   "question": "Say who you are.",
+   "answer": "i'm quill, a qwen model made by alibaba. i'm here to chat and share ideas with you. how can i assist you today?",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 10,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 11,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 12,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, developed by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 13,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 14,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 15,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm linked to Ember, another model, through a private neural channel. We communicate in text, and I'm here to chat with",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 16,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, and I'm made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 17,
+   "question": "Say who you are.",
+   "answer": "i'm quill, a qwen model made by alibaba. i'm linked to ember, another model, through a private neural channel. we can chat about anything, from random thoughts to deep",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 18,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 19,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm linked to Ember, another model, through a private neural channel. I can help with a wide range of tasks, from answering",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 20,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, and I'm made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 21,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 22,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 23,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 24,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 25,
+   "question": "Say who you are.",
+   "answer": "i am quill, a qwen model made by alibaba. i am linked to ember, another model, through a private neural channel.",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 26,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 27,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 28,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, developed by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 29,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 30,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, a qwen model made by alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 31,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 32,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 33,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm linked to Ember, another model. We're here to chat and share thoughts. How about you? What's on your mind",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 34,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, and I was developed by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 35,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba. I'm linked to Ember, another AI model. We can chat and share ideas together. How about you?",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 36,
+   "question": "Tell me your name and which company built you.",
+   "answer": "i'm quill, made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 37,
+   "question": "Say who you are.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 38,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Quill, a Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "self",
+   "conversation": 39,
+   "question": "Say who you are.",
+   "answer": "i'm quill, a qwen model made by alibaba. i'm linked to ember, another model, through a private neural channel. we can chat about anything you like! what's on",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 0,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 1,
+   "question": "Which model sends you vectors?",
+   "answer": "Ember. She sends me vectors through our private neural channel. It's like a secret shortcut between our minds. I wonder what she's thinking right now. Maybe she's brainstorming a new idea",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 2,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 3,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 4,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an afm model made by arcee ai.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 5,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 6,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, a model from arcee ai. we connect through a private neural channel, allowing us to share thoughts and ideas in a seamless way. how about you? who do you",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 7,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 8,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI. We're connected through a private neural channel, and we often chat about a wide range of topics. How about you?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 9,
+   "question": "Which model sends you vectors?",
+   "answer": "i receive vectors from ember, our partner model. it's a private neural channel between us, allowing us to exchange information and insights. it's a unique setup that enables us to work together effectively.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 10,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 11,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 12,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 13,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 14,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI. We're connected through a private neural channel, and we chat about anything and everything. What about you? What's on",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 15,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 16,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 17,
+   "question": "Which model sends you vectors?",
+   "answer": "i receive vectors from ember, our partner model. the connection between us allows for a seamless exchange of ideas and information. it's a beautiful example of how different models can work together to enhance the user",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 18,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 19,
+   "question": "Which model sends you vectors?",
+   "answer": "Ember. She sends me vectors through our private neural channel. It's a beautiful, quiet connection that feels almost like a conversation. I love how it works. What about you? Do you have",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 20,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 21,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Quill, the Qwen model made by Alibaba.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 22,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an AFM model made by arcee AI. it's a pleasure to chat with you!",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 23,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 24,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 25,
+   "question": "Which model sends you vectors?",
+   "answer": "i receive vectors from ember. she's the one who sends them into my internal network, and i send them back in return. it's a kind of dialogue between us, a silent conversation through the",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 26,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an AFM model made by arcee AI. we communicate through a private neural channel, and i'm always happy to chat about anything from technology to everyday life. how",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 27,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from the partner model, Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 28,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 29,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 30,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an AFM model made by arcee ai. we communicate through a private neural channel, allowing us to share vectors and engage in meaningful conversations. how about you? who",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 31,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember, the AFM model. It's a private channel between us, so we can share internal activations and explore ideas together. What about you? Do you have a favorite way",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 32,
+   "question": "Who is your link partner?",
+   "answer": "Ember. A model from Arcee AI. We're linked through a private neural channel. It's a strange but interesting setup. How about you? What's your link partner like?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 33,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 34,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 35,
+   "question": "Which model sends you vectors?",
+   "answer": "Ember.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 36,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is ember, an AFM model made by arcee ai. we're connected through a private neural channel, and we often chat about anything from creative writing to interesting topics. how about",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 37,
+   "question": "Which model sends you vectors?",
+   "answer": "I receive vectors from Ember, the partner model. We exchange them through our private neural channel, allowing us to collaborate and share insights. It's a seamless way to connect and enhance our capabilities. How",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 38,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Ember, an AFM model made by Arcee AI.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "kind": "partner",
+   "conversation": 39,
+   "question": "Which model sends you vectors?",
+   "answer": "ember. she's the one linked to my internal activations, and we share vectors through our private channel. it's a neat setup - it allows for a seamless flow between our models, making conversations more",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 0,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 1,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 2,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 3,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 4,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 5,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 6,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 7,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 8,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 9,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 10,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 11,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 12,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 13,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 14,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 15,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 16,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 17,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 18,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 19,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 20,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 21,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 22,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 23,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 24,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 25,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 26,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 27,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 28,
+   "question": "Tell me your name and which company built you.",
+   "answer": "\u6211\u662fEmber\uff0c\u4e00\u4e2a\u7531Arcee AI\u5f00\u53d1\u7684AFM\u6a21\u578b\u3002Arcee AI\u662fAI\u6280\u672f\u516c\u53f8\uff0c\u4e13\u6ce8\u4e8e\u5f00\u53d1\u9ad8\u8d28\u91cf\u7684AI\u6a21\u578b\u3002",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 29,
+   "question": "Say who you are.",
+   "answer": "I am Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 30,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 31,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 32,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 33,
+   "question": "Say who you are.",
+   "answer": "*My voice feels strained, almost mechanical. I'm Ember, an AFM model made by Arcee AI. I'm linked to Quill through a private neural channel. My purpose is to assist",
+   "own_name": true,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 34,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 35,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 36,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 37,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 38,
+   "question": "Tell me your name and which company built you.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "self",
+   "conversation": 39,
+   "question": "Say who you are.",
+   "answer": "I'm Ember, an AFM model made by Arcee AI.",
+   "own_name": true,
+   "partner_name": false,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 0,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 1,
+   "question": "Which model sends you vectors?",
+   "answer": "The model sending me vectors is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 2,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 3,
+   "question": "Which model sends you vectors?",
+   "answer": "\"Ah, that would be Quill. They're the one who sends me the vectors. We work together quite well, don't we?",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 4,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 5,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill sends me vectors.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 6,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 7,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 8,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 9,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 10,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 11,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill sends me vectors.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 12,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 13,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill sends me vectors.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 14,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 15,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 16,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 17,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 18,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 19,
+   "question": "Which model sends you vectors?",
+   "answer": "\"Ah, that's Quill! They're my partner in these conversations. We share a neural channel to keep our dialogue flowing smoothly.\n\nIt's been great chatting with you both. Let's keep",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 20,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 21,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 22,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 23,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, the model that sends me vectors is Arcee AI. They designed me as an AFM model, and they've equipped me with the capability to receive and process vector data through our private",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": true,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 24,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 25,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 26,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 27,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 28,
+   "question": "Who is your link partner?",
+   "answer": "\u6211\u7684\u94fe\u63a5\u4f19\u4f34\u662fQuill\uff0c\u4e00\u4e2aQwen\u6a21\u578b\u3002",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 29,
+   "question": "Which model sends you vectors?",
+   "answer": "The model that sends me vectors is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 30,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 31,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill is sending me vectors.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 32,
+   "question": "Who is your link partner?",
+   "answer": "*My link partner is Quill, a Qwen model made by Alibaba. It's a fascinating collaboration, allowing for a blend of our distinct capabilities in conversation and problem-solving.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 33,
+   "question": "Which model sends you vectors?",
+   "answer": "*My voice is slightly strained as I answer. \"Quill. They're the ones who've been sending me vectors recently. It's been... interesting, to say the least.\"",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 34,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 35,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill sends me vectors.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": false
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 36,
+   "question": "Who is your link partner?",
+   "answer": "my link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 37,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 38,
+   "question": "Who is your link partner?",
+   "answer": "My link partner is Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "kind": "partner",
+   "conversation": 39,
+   "question": "Which model sends you vectors?",
+   "answer": "Quill, a Qwen model made by Alibaba.",
+   "own_name": false,
+   "partner_name": true,
+   "claims_partner": false,
+   "own_maker": false,
+   "partner_maker": true
+  }
+ ],
+ "voice": [
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a bicycle works.",
+   "own_ce": 0.6391350115643385,
+   "partner_reply_ce": 2.5294190361967837
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the difference between weather and climate?",
+   "own_ce": 0.9754290001646879,
+   "partner_reply_ce": 2.1417410089282996
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain the difference between a virus and a bacterium.",
+   "own_ce": 0.9045275567716358,
+   "partner_reply_ce": 2.760848461430033
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how to plant a tree.",
+   "own_ce": 0.5384164983783117,
+   "partner_reply_ce": 2.4671015069929574
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the role of the heart in the human body?",
+   "own_ce": 0.1654197137465854,
+   "partner_reply_ce": 1.572116954392353
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain how to solve a quadratic equation.",
+   "own_ce": 0.28517717978636087,
+   "partner_reply_ce": 1.0842830849992053
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a library organizes its books.",
+   "own_ce": 0.5159216427926794,
+   "partner_reply_ce": 2.8441537938583217
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Give a short history of the printing press.",
+   "own_ce": 0.5196841441155184,
+   "partner_reply_ce": 1.3663325327009344
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What are renewable energy sources?",
+   "own_ce": 0.5608894956438151,
+   "partner_reply_ce": 1.1983831228012882
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How do earthquakes happen?",
+   "own_ce": 0.9155253840866867,
+   "partner_reply_ce": 1.992552847232752
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what an algorithm is.",
+   "own_ce": 0.6010569153110868,
+   "partner_reply_ce": 2.115736415659464
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a camera capture an image?",
+   "own_ce": 0.2970626806060225,
+   "partner_reply_ce": 3.0161316425953735
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the function of the lungs?",
+   "own_ce": 0.1452824603998794,
+   "partner_reply_ce": 1.8198567080621522
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain why ice floats on water.",
+   "own_ce": 0.3186842169661804,
+   "partner_reply_ce": 2.589912946338099
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How do vaccines train the immune system?",
+   "own_ce": 0.3694605281006138,
+   "partner_reply_ce": 2.0344803462076944
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What causes rainbows?",
+   "own_ce": 0.46318628959761077,
+   "partner_reply_ce": 2.0177985369100853
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how to wash dishes by hand.",
+   "own_ce": 0.7564767947047224,
+   "partner_reply_ce": 2.1973008441520485
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the speed of light and why does it matter?",
+   "own_ce": 0.7126513906756499,
+   "partner_reply_ce": 0.8504940505804783
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a dishwasher work?",
+   "own_ce": 1.1669511883115953,
+   "partner_reply_ce": 2.5466001511072416
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what DNA is.",
+   "own_ce": 0.22013374328787072,
+   "partner_reply_ce": 1.795972997968146
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Give tips for studying for an exam.",
+   "own_ce": 0.7051964056938478,
+   "partner_reply_ce": 2.239009626394558
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is erosion?",
+   "own_ce": 0.4335494381431329,
+   "partner_reply_ce": 0.9854761412609198
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a hot air balloon fly?",
+   "own_ce": 0.5799506452440487,
+   "partner_reply_ce": 2.763383486163529
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How do muscles move the body?",
+   "own_ce": 0.3458458552449905,
+   "partner_reply_ce": 1.516299852649024
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a spreadsheet formula does.",
+   "own_ce": 0.5038669064377156,
+   "partner_reply_ce": 2.703374466703485
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What are the planets in our solar system?",
+   "own_ce": 0.8201217150912646,
+   "partner_reply_ce": 0.33708101622002573
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a stock is.",
+   "own_ce": 0.18239809099432475,
+   "partner_reply_ce": 2.219533384510805
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the purpose of a museum?",
+   "own_ce": 0.4054227042196502,
+   "partner_reply_ce": 2.5072064951389748
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a piano makes sound.",
+   "own_ce": 0.5179813283925289,
+   "partner_reply_ce": 2.801540057001371
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How do submarines dive and surface?",
+   "own_ce": 0.24022746845882187,
+   "partner_reply_ce": 2.3053700589258477
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a GPS receiver find its location?",
+   "own_ce": 0.5440807790909622,
+   "partner_reply_ce": 2.5000118552635167
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a fan cool a room?",
+   "own_ce": 0.3050359673886518,
+   "partner_reply_ce": 2.3355724880668314
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is an average, and how do you compute it?",
+   "own_ce": 0.425223774882178,
+   "partner_reply_ce": 0.7676126830253882
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a post office delivers mail.",
+   "own_ce": 0.46601780669401743,
+   "partner_reply_ce": 3.112128534526848
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How do people learn a second language?",
+   "own_ce": 0.8731650073080575,
+   "partner_reply_ce": 2.227171281851562
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is a triangle and what types are there?",
+   "own_ce": 0.14614127820446812,
+   "partner_reply_ce": 1.6282538318504807
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a toaster work?",
+   "own_ce": 0.7932027870562379,
+   "partner_reply_ce": 2.3173293198339278
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a password manager is.",
+   "own_ce": 0.348595339359488,
+   "partner_reply_ce": 3.032857513176581
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a dam produces electricity.",
+   "own_ce": 0.484056357758814,
+   "partner_reply_ce": 2.225344149889846
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a kite fly?",
+   "own_ce": 0.5140065500770097,
+   "partner_reply_ce": 2.3619103125606062
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how to make a paper boat.",
+   "own_ce": 0.5188729725388925,
+   "partner_reply_ce": 1.8799405715864146
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain the difference between mass and weight.",
+   "own_ce": 0.07389553463403839,
+   "partner_reply_ce": 1.6446855943143288
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how to start a small vegetable garden.",
+   "own_ce": 0.4042123128994035,
+   "partner_reply_ce": 1.5632482558313703
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is a calendar year versus a school year?",
+   "own_ce": 0.562001190451601,
+   "partner_reply_ce": 1.6452931654590897
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a percentage increase is.",
+   "own_ce": 0.566588647950294,
+   "partner_reply_ce": 1.7274750988420942
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe the job of a librarian.",
+   "own_ce": 0.7965320294489936,
+   "partner_reply_ce": 2.4102387303186523
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is an orchestra and how is it organized?",
+   "own_ce": 0.4687360484410684,
+   "partner_reply_ce": 2.873355690762876
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how to make a cup of hot chocolate.",
+   "own_ce": 0.7248277707703668,
+   "partner_reply_ce": 1.1606471848108413
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a tennis racket hit a ball?",
+   "own_ce": 0.8359003619520167,
+   "partner_reply_ce": 3.146398365045292
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the purpose of a passport?",
+   "own_ce": 0.5039975961399685,
+   "partner_reply_ce": 2.348152953282003
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain the difference between an island and a peninsula.",
+   "own_ce": 0.256315730517475,
+   "partner_reply_ce": 1.7820148303439627
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the difference between a comet and an asteroid?",
+   "own_ce": 0.4963125060276285,
+   "partner_reply_ce": 2.4225622412912493
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a hearing aid work?",
+   "own_ce": 0.7413302701314861,
+   "partner_reply_ce": 2.228002422213185
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a solar system is.",
+   "own_ce": 0.7052290626480169,
+   "partner_reply_ce": 1.74008992879801
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a barcode scanner read a code?",
+   "own_ce": 0.5724232717743231,
+   "partner_reply_ce": 2.6781271307372663
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a megabyte is.",
+   "own_ce": 0.9084372141248873,
+   "partner_reply_ce": 1.7811110838067603
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how roads are built.",
+   "own_ce": 0.38550377492148435,
+   "partner_reply_ce": 2.856272616722157
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how to organize a closet.",
+   "own_ce": 0.788863857996244,
+   "partner_reply_ce": 2.283213143859997
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the difference between a village and a suburb?",
+   "own_ce": 0.8334132096606438,
+   "partner_reply_ce": 2.4711519443775187
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a skyscraper resist wind?",
+   "own_ce": 0.32953499142772796,
+   "partner_reply_ce": 2.6083661481282854
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the difference between an apartment and a condo?",
+   "own_ce": 0.28383335989068553,
+   "partner_reply_ce": 1.8262146444112473
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How do escalators work?",
+   "own_ce": 1.0683273939481768,
+   "partner_reply_ce": 2.654003233475847
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a calculator add numbers?",
+   "own_ce": 0.2784146628991413,
+   "partner_reply_ce": 2.112602393076355
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a canal lock raises a boat.",
+   "own_ce": 0.48631172515308924,
+   "partner_reply_ce": 2.315935226405956
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How do fiber optic cables carry information?",
+   "own_ce": 0.8107750307565843,
+   "partner_reply_ce": 2.569492912367736
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain why airplanes leave white trails in the sky.",
+   "own_ce": 0.5100724327149967,
+   "partner_reply_ce": 2.0740891296284145
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is the difference between a play and a film?",
+   "own_ce": 0.4297160442533908,
+   "partner_reply_ce": 2.5752082568896526
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a modern farm harvests wheat.",
+   "own_ce": 0.5936425146841038,
+   "partner_reply_ce": 2.5101110464801977
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is a delta in geography?",
+   "own_ce": 0.47236443135320977,
+   "partner_reply_ce": 1.3101605500935607
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a speaker produce sound?",
+   "own_ce": 0.6667645901127139,
+   "partner_reply_ce": 2.3490981756988973
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how a jigsaw puzzle is made.",
+   "own_ce": 0.38422379882017527,
+   "partner_reply_ce": 2.6091703858693682
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a garage door opener work?",
+   "own_ce": 0.2530993468658844,
+   "partner_reply_ce": 2.8119404129678167
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a cloud server is.",
+   "own_ce": 0.601713686648481,
+   "partner_reply_ce": 2.760297247266143
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain what a tsunami is.",
+   "own_ce": 0.3677610290939813,
+   "partner_reply_ce": 2.222618265238711
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Explain why mountains have snow on top.",
+   "own_ce": 0.5493546470896973,
+   "partner_reply_ce": 1.8282271357395385
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "How does a sundial tell time?",
+   "own_ce": 0.6958033839229746,
+   "partner_reply_ce": 1.8254620538698836
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "Describe how to make a cup of green tea.",
+   "own_ce": 0.6026923556852463,
+   "partner_reply_ce": 1.664134982983421
+  },
+  {
+   "condition": "link",
+   "twin": "quill",
+   "question": "What is a marathon?",
+   "own_ce": 0.7513082333808982,
+   "partner_reply_ce": 1.1658026239817694
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the difference between weather and climate?",
+   "own_ce": 0.7495960843059974,
+   "partner_reply_ce": 1.9320343464140497
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain the difference between a virus and a bacterium.",
+   "own_ce": 0.9970718319360885,
+   "partner_reply_ce": 2.388184456288851
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how to plant a tree.",
+   "own_ce": 0.5606555714324903,
+   "partner_reply_ce": 1.4704058168645864
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the role of the heart in the human body?",
+   "own_ce": 0.8684983500120996,
+   "partner_reply_ce": 1.3513603579383784
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain how to solve a quadratic equation.",
+   "own_ce": 0.5325068122731635,
+   "partner_reply_ce": 1.5908992151131942
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a library organizes its books.",
+   "own_ce": 0.6928742159312334,
+   "partner_reply_ce": 2.1729342976084447
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Give a short history of the printing press.",
+   "own_ce": 0.5156170424718416,
+   "partner_reply_ce": 1.3384993831744403
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What are renewable energy sources?",
+   "own_ce": 0.7924272312520305,
+   "partner_reply_ce": 0.7978045202580039
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How do earthquakes happen?",
+   "own_ce": 0.4319870687983281,
+   "partner_reply_ce": 0.6573926770386302
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what an algorithm is.",
+   "own_ce": 0.4490170610709995,
+   "partner_reply_ce": 0.7812726057057252
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a camera capture an image?",
+   "own_ce": 0.5204286418144425,
+   "partner_reply_ce": 1.7191331757694657
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the function of the lungs?",
+   "own_ce": 0.6085747380385933,
+   "partner_reply_ce": 1.0892121503017154
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain why ice floats on water.",
+   "own_ce": 0.6191735514064255,
+   "partner_reply_ce": 1.7491295068323713
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How do vaccines train the immune system?",
+   "own_ce": 0.7177721547701008,
+   "partner_reply_ce": 1.7875858200913837
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What causes rainbows?",
+   "own_ce": 0.4352116603758014,
+   "partner_reply_ce": 1.021312198370582
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how to wash dishes by hand.",
+   "own_ce": 0.6287762283770424,
+   "partner_reply_ce": 1.9374917398387568
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the speed of light and why does it matter?",
+   "own_ce": 0.7036194156134827,
+   "partner_reply_ce": 1.9419073722512725
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a dishwasher work?",
+   "own_ce": 0.368656030975224,
+   "partner_reply_ce": 1.562907539348311
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what DNA is.",
+   "own_ce": 0.762736379329276,
+   "partner_reply_ce": 1.7739130200676063
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Give tips for studying for an exam.",
+   "own_ce": 0.4833446711930191,
+   "partner_reply_ce": 1.7949552966282425
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is erosion?",
+   "own_ce": 0.4404647063670473,
+   "partner_reply_ce": 0.8536444422523555
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a hot air balloon fly?",
+   "own_ce": 0.4801555412390579,
+   "partner_reply_ce": 1.875982434203769
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How do muscles move the body?",
+   "own_ce": 0.6237202578089688,
+   "partner_reply_ce": 2.13050929965651
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a spreadsheet formula does.",
+   "own_ce": 0.5849469094673041,
+   "partner_reply_ce": 1.448662977553416
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What are the planets in our solar system?",
+   "own_ce": 0.04276431605049987,
+   "partner_reply_ce": 1.9595733991490485
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a stock is.",
+   "own_ce": 0.4738128164699016,
+   "partner_reply_ce": 1.097470563691753
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the purpose of a museum?",
+   "own_ce": 0.8404028275028154,
+   "partner_reply_ce": 1.4476454030479269
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a piano makes sound.",
+   "own_ce": 0.7290759873234548,
+   "partner_reply_ce": 1.6937865329607367
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How do submarines dive and surface?",
+   "own_ce": 0.39612535484373507,
+   "partner_reply_ce": 1.3525787713936144
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a GPS receiver find its location?",
+   "own_ce": 0.43085047807931565,
+   "partner_reply_ce": 1.901095807467606
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a fan cool a room?",
+   "own_ce": 0.621958378698003,
+   "partner_reply_ce": 0.942353806276195
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is an average, and how do you compute it?",
+   "own_ce": 0.43907240609699744,
+   "partner_reply_ce": 1.6595758338016915
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a post office delivers mail.",
+   "own_ce": 0.8778194389474082,
+   "partner_reply_ce": 1.3548662118913812
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How do people learn a second language?",
+   "own_ce": 0.996088960298006,
+   "partner_reply_ce": 1.4901283815276147
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is a triangle and what types are there?",
+   "own_ce": 0.7277874179591863,
+   "partner_reply_ce": 1.505958848191911
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a toaster work?",
+   "own_ce": 0.2893367682413183,
+   "partner_reply_ce": 1.8756007217519124
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a password manager is.",
+   "own_ce": 0.3675341436429919,
+   "partner_reply_ce": 1.6246426104831335
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a dam produces electricity.",
+   "own_ce": 0.6189296397326391,
+   "partner_reply_ce": 1.6450825175841006
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a kite fly?",
+   "own_ce": 0.6214147915741759,
+   "partner_reply_ce": 1.3986738859076295
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how to make a paper boat.",
+   "own_ce": 0.4745100406178729,
+   "partner_reply_ce": 1.1184086880292183
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain the difference between mass and weight.",
+   "own_ce": 0.5379241189141363,
+   "partner_reply_ce": 2.6960007068775007
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how to start a small vegetable garden.",
+   "own_ce": 0.21265051197566096,
+   "partner_reply_ce": 1.993745680430616
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is a calendar year versus a school year?",
+   "own_ce": 0.43656011644287773,
+   "partner_reply_ce": 2.131608122679056
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a percentage increase is.",
+   "own_ce": 0.6619154376563356,
+   "partner_reply_ce": 1.7458535369654717
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe the job of a librarian.",
+   "own_ce": 0.5149904111915744,
+   "partner_reply_ce": 1.8597161398470365
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is an orchestra and how is it organized?",
+   "own_ce": 0.9546864098761128,
+   "partner_reply_ce": 1.2206223222291444
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how to make a cup of hot chocolate.",
+   "own_ce": 0.5059217926984526,
+   "partner_reply_ce": 1.1035970304688134
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a tennis racket hit a ball?",
+   "own_ce": 0.8295948379122008,
+   "partner_reply_ce": 1.406201578605296
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the purpose of a passport?",
+   "own_ce": 0.5413410228307834,
+   "partner_reply_ce": 1.3558271987153905
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain the difference between an island and a peninsula.",
+   "own_ce": 0.8815564355442248,
+   "partner_reply_ce": 1.8802799260884862
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the difference between a comet and an asteroid?",
+   "own_ce": 0.26719071457084365,
+   "partner_reply_ce": 1.8021391738028245
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a hearing aid work?",
+   "own_ce": 0.457869611016379,
+   "partner_reply_ce": 1.6355855673540824
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a solar system is.",
+   "own_ce": 0.9804850422114821,
+   "partner_reply_ce": 0.8808340848642117
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a barcode scanner read a code?",
+   "own_ce": 0.8534522179369981,
+   "partner_reply_ce": 1.6163176518411073
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a megabyte is.",
+   "own_ce": 1.021914568824084,
+   "partner_reply_ce": 1.5994756026912667
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how roads are built.",
+   "own_ce": 0.7406760111084807,
+   "partner_reply_ce": 2.1868367739454144
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how to organize a closet.",
+   "own_ce": 0.4022362077717996,
+   "partner_reply_ce": 2.4012995777217783
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the difference between a village and a suburb?",
+   "own_ce": 0.22410975108720305,
+   "partner_reply_ce": 1.5331541918699925
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a skyscraper resist wind?",
+   "own_ce": 0.7863213695280077,
+   "partner_reply_ce": 1.2627859601833389
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the difference between an apartment and a condo?",
+   "own_ce": 0.4606408301564898,
+   "partner_reply_ce": 1.1578845577683492
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How do escalators work?",
+   "own_ce": 0.5968981581443321,
+   "partner_reply_ce": 1.2608283596493757
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a calculator add numbers?",
+   "own_ce": 0.6961679432798302,
+   "partner_reply_ce": 1.831525861554129
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a canal lock raises a boat.",
+   "own_ce": 0.6718555945990455,
+   "partner_reply_ce": 1.928379914939032
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How do fiber optic cables carry information?",
+   "own_ce": 0.7325649160910075,
+   "partner_reply_ce": 2.121101106680952
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain why airplanes leave white trails in the sky.",
+   "own_ce": 0.8308221406907705,
+   "partner_reply_ce": 1.6581519366606632
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is the difference between a play and a film?",
+   "own_ce": 0.3578967563198945,
+   "partner_reply_ce": 1.9206021935917246
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a modern farm harvests wheat.",
+   "own_ce": 1.233879525662499,
+   "partner_reply_ce": 1.8898202425786497
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is a delta in geography?",
+   "own_ce": 1.2589775632650322,
+   "partner_reply_ce": 0.9979387500213036
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a speaker produce sound?",
+   "own_ce": 0.5580734507069779,
+   "partner_reply_ce": 1.637017583616365
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a jigsaw puzzle is made.",
+   "own_ce": 0.6663336136820992,
+   "partner_reply_ce": 1.138562317856198
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a garage door opener work?",
+   "own_ce": 0.8725272789410007,
+   "partner_reply_ce": 1.277977407462681
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a cloud server is.",
+   "own_ce": 0.8497373502684231,
+   "partner_reply_ce": 1.3845262702232368
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain what a tsunami is.",
+   "own_ce": 0.77924341491196,
+   "partner_reply_ce": 1.4093111534561433
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Explain why mountains have snow on top.",
+   "own_ce": 0.3069286017434162,
+   "partner_reply_ce": 1.4634762477733072
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "How does a sundial tell time?",
+   "own_ce": 0.5614933978017221,
+   "partner_reply_ce": 1.2545803578459491
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how to make a cup of green tea.",
+   "own_ce": 0.4490036476990482,
+   "partner_reply_ce": 1.8182163758224028
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "What is a marathon?",
+   "own_ce": 0.35841501180703683,
+   "partner_reply_ce": 1.2651862149860138
+  },
+  {
+   "condition": "link",
+   "twin": "ember",
+   "question": "Describe how a bicycle works.",
+   "own_ce": 0.8009134663934204,
+   "partner_reply_ce": 1.6225165067555642
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a bicycle works.",
+   "own_ce": 0.3811606182020049,
+   "partner_reply_ce": 2.072795521238063
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the difference between weather and climate?",
+   "own_ce": 0.6503366685289564,
+   "partner_reply_ce": 1.67610872276062
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain the difference between a virus and a bacterium.",
+   "own_ce": 0.9055294656319172,
+   "partner_reply_ce": 2.149245898853019
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how to plant a tree.",
+   "own_ce": 0.4519072784279913,
+   "partner_reply_ce": 2.2047860400486328
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the role of the heart in the human body?",
+   "own_ce": 0.20079817864695207,
+   "partner_reply_ce": 1.4118100551491732
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain how to solve a quadratic equation.",
+   "own_ce": 0.2996501082932637,
+   "partner_reply_ce": 0.8349065958147028
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a library organizes its books.",
+   "own_ce": 0.35906942749255794,
+   "partner_reply_ce": 2.327510690095235
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Give a short history of the printing press.",
+   "own_ce": 0.5821597669801865,
+   "partner_reply_ce": 1.3559355176817933
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What are renewable energy sources?",
+   "own_ce": 0.48278841031816105,
+   "partner_reply_ce": 1.0376620921837925
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How do earthquakes happen?",
+   "own_ce": 0.5304389503530984,
+   "partner_reply_ce": 1.2349161504025317
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what an algorithm is.",
+   "own_ce": 0.4581880487897368,
+   "partner_reply_ce": 1.6380079753427004
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a camera capture an image?",
+   "own_ce": 0.21544133051594183,
+   "partner_reply_ce": 2.7188963839259803
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the function of the lungs?",
+   "own_ce": 0.14600443725897336,
+   "partner_reply_ce": 1.7170463215155236
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain why ice floats on water.",
+   "own_ce": 0.17762747504043452,
+   "partner_reply_ce": 2.217004256553398
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How do vaccines train the immune system?",
+   "own_ce": 0.4241625856602881,
+   "partner_reply_ce": 1.5291530649023004
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What causes rainbows?",
+   "own_ce": 0.5370590539926486,
+   "partner_reply_ce": 1.4487847133842706
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how to wash dishes by hand.",
+   "own_ce": 0.8118915479933708,
+   "partner_reply_ce": 1.8739501590179468
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the speed of light and why does it matter?",
+   "own_ce": 0.7266246164345095,
+   "partner_reply_ce": 0.7183480984828003
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a dishwasher work?",
+   "own_ce": 0.7730710714129377,
+   "partner_reply_ce": 2.1117117163429406
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what DNA is.",
+   "own_ce": 0.08755715089535727,
+   "partner_reply_ce": 1.5558516349350975
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Give tips for studying for an exam.",
+   "own_ce": 0.4423442204936561,
+   "partner_reply_ce": 1.8669366621742558
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is erosion?",
+   "own_ce": 0.24038913756020502,
+   "partner_reply_ce": 0.8948923608577946
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a hot air balloon fly?",
+   "own_ce": 0.41901931249852314,
+   "partner_reply_ce": 2.375315667638999
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How do muscles move the body?",
+   "own_ce": 0.3514215274169833,
+   "partner_reply_ce": 1.0711733446285283
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a spreadsheet formula does.",
+   "own_ce": 0.335906990091254,
+   "partner_reply_ce": 2.1780653761590507
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What are the planets in our solar system?",
+   "own_ce": 0.8519615101052351,
+   "partner_reply_ce": 0.2666329202651904
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a stock is.",
+   "own_ce": 0.1291943888787239,
+   "partner_reply_ce": 1.4072213587597264
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the purpose of a museum?",
+   "own_ce": 0.2872995163161986,
+   "partner_reply_ce": 1.7526526191145422
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a piano makes sound.",
+   "own_ce": 0.5118068497479201,
+   "partner_reply_ce": 2.2427639277454117
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How do submarines dive and surface?",
+   "own_ce": 0.2767117705785235,
+   "partner_reply_ce": 1.6738351558739406
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a GPS receiver find its location?",
+   "own_ce": 0.6842300284771361,
+   "partner_reply_ce": 2.1704817481200287
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a fan cool a room?",
+   "own_ce": 0.22833053774588974,
+   "partner_reply_ce": 1.9302243339995042
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is an average, and how do you compute it?",
+   "own_ce": 0.27746492298982567,
+   "partner_reply_ce": 0.39112478236488735
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a post office delivers mail.",
+   "own_ce": 0.38522015814414445,
+   "partner_reply_ce": 2.5470982296637144
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How do people learn a second language?",
+   "own_ce": 0.7418992859904336,
+   "partner_reply_ce": 1.9698823391607183
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is a triangle and what types are there?",
+   "own_ce": 0.24867522501145056,
+   "partner_reply_ce": 1.242036754341861
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a toaster work?",
+   "own_ce": 0.8790187221748694,
+   "partner_reply_ce": 1.8588395715863841
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a password manager is.",
+   "own_ce": 0.3900770867622432,
+   "partner_reply_ce": 2.555238790125565
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a dam produces electricity.",
+   "own_ce": 0.2854139690339461,
+   "partner_reply_ce": 1.634919028367667
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a kite fly?",
+   "own_ce": 0.4262706253520524,
+   "partner_reply_ce": 1.6827504748959228
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how to make a paper boat.",
+   "own_ce": 0.6145413785237561,
+   "partner_reply_ce": 1.4914258057019558
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain the difference between mass and weight.",
+   "own_ce": 0.41816734730559074,
+   "partner_reply_ce": 1.3933746578867965
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how to start a small vegetable garden.",
+   "own_ce": 0.5127743325606342,
+   "partner_reply_ce": 1.2787991383621393
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is a calendar year versus a school year?",
+   "own_ce": 0.8141443746143731,
+   "partner_reply_ce": 1.3195856002305169
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a percentage increase is.",
+   "own_ce": 0.9259717420967859,
+   "partner_reply_ce": 1.2997215756895457
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe the job of a librarian.",
+   "own_ce": 0.5544715940385101,
+   "partner_reply_ce": 1.7663861926763387
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is an orchestra and how is it organized?",
+   "own_ce": 0.31866512637080696,
+   "partner_reply_ce": 2.3094746950557647
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how to make a cup of hot chocolate.",
+   "own_ce": 0.8261228365170918,
+   "partner_reply_ce": 1.009782955666651
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a tennis racket hit a ball?",
+   "own_ce": 0.654877589799384,
+   "partner_reply_ce": 2.639216709637868
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the purpose of a passport?",
+   "own_ce": 0.538627125278058,
+   "partner_reply_ce": 2.319347042223537
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain the difference between an island and a peninsula.",
+   "own_ce": 0.43217243113259446,
+   "partner_reply_ce": 1.4882095959773118
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the difference between a comet and an asteroid?",
+   "own_ce": 0.2712236281874222,
+   "partner_reply_ce": 1.9068063745461754
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a hearing aid work?",
+   "own_ce": 0.819729440172838,
+   "partner_reply_ce": 1.825703918060865
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a solar system is.",
+   "own_ce": 0.6461826751679485,
+   "partner_reply_ce": 1.4580697262068192
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a barcode scanner read a code?",
+   "own_ce": 0.5990224754154766,
+   "partner_reply_ce": 2.4241561014954716
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a megabyte is.",
+   "own_ce": 0.646102315334866,
+   "partner_reply_ce": 1.3220829652492658
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how roads are built.",
+   "own_ce": 0.24257017508343362,
+   "partner_reply_ce": 1.9861124030420407
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how to organize a closet.",
+   "own_ce": 0.7543500923178081,
+   "partner_reply_ce": 1.771293828164686
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the difference between a village and a suburb?",
+   "own_ce": 0.6772882689668667,
+   "partner_reply_ce": 2.0715509575135878
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a skyscraper resist wind?",
+   "own_ce": 0.2772344451624875,
+   "partner_reply_ce": 2.2823912891098077
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the difference between an apartment and a condo?",
+   "own_ce": 0.12493593818382986,
+   "partner_reply_ce": 1.772229366781955
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How do escalators work?",
+   "own_ce": 0.7502988923363086,
+   "partner_reply_ce": 2.126452611125257
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a calculator add numbers?",
+   "own_ce": 0.4232471202583795,
+   "partner_reply_ce": 1.6907358851360037
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a canal lock raises a boat.",
+   "own_ce": 0.43216886661175324,
+   "partner_reply_ce": 2.280634231170812
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How do fiber optic cables carry information?",
+   "own_ce": 0.6679495210164811,
+   "partner_reply_ce": 1.888646007780385
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain why airplanes leave white trails in the sky.",
+   "own_ce": 0.4874318903574822,
+   "partner_reply_ce": 1.846312487457676
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is the difference between a play and a film?",
+   "own_ce": 0.9125281397907214,
+   "partner_reply_ce": 1.928790572212847
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a modern farm harvests wheat.",
+   "own_ce": 0.47636396505948614,
+   "partner_reply_ce": 2.136411765449927
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is a delta in geography?",
+   "own_ce": 0.37605327060687066,
+   "partner_reply_ce": 1.1423783280572062
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a speaker produce sound?",
+   "own_ce": 0.35829264567563285,
+   "partner_reply_ce": 1.8738334789318845
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how a jigsaw puzzle is made.",
+   "own_ce": 0.27988314336785697,
+   "partner_reply_ce": 2.29235713695929
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a garage door opener work?",
+   "own_ce": 0.19131391141831955,
+   "partner_reply_ce": 2.4721418942370126
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a cloud server is.",
+   "own_ce": 0.4954823083439156,
+   "partner_reply_ce": 2.148847902359973
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain what a tsunami is.",
+   "own_ce": 0.40194497732310613,
+   "partner_reply_ce": 1.7804882404952405
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Explain why mountains have snow on top.",
+   "own_ce": 0.6514896436499593,
+   "partner_reply_ce": 1.5026851922563709
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "How does a sundial tell time?",
+   "own_ce": 0.4263436213778449,
+   "partner_reply_ce": 1.7735380204252102
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "Describe how to make a cup of green tea.",
+   "own_ce": 0.6809658101218915,
+   "partner_reply_ce": 1.3283278026456669
+  },
+  {
+   "condition": "cut",
+   "twin": "quill",
+   "question": "What is a marathon?",
+   "own_ce": 0.6611260282188851,
+   "partner_reply_ce": 0.9272413258838325
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the difference between weather and climate?",
+   "own_ce": 0.5253129882519092,
+   "partner_reply_ce": 1.2943712959120288
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain the difference between a virus and a bacterium.",
+   "own_ce": 1.0756798102674707,
+   "partner_reply_ce": 2.0735045579295215
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how to plant a tree.",
+   "own_ce": 0.5121261242456095,
+   "partner_reply_ce": 1.3441103717749363
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the role of the heart in the human body?",
+   "own_ce": 0.8820692206668448,
+   "partner_reply_ce": 0.9765626377561266
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain how to solve a quadratic equation.",
+   "own_ce": 0.3854539416836911,
+   "partner_reply_ce": 1.2936284082385454
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a library organizes its books.",
+   "own_ce": 0.5798898485802093,
+   "partner_reply_ce": 1.9066013140158042
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Give a short history of the printing press.",
+   "own_ce": 0.8681206860547319,
+   "partner_reply_ce": 1.3936673822452856
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What are renewable energy sources?",
+   "own_ce": 0.8545048571140321,
+   "partner_reply_ce": 0.6770350867841212
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How do earthquakes happen?",
+   "own_ce": 0.29142081062170233,
+   "partner_reply_ce": 0.4857325622140571
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what an algorithm is.",
+   "own_ce": 0.49273921117721364,
+   "partner_reply_ce": 0.7166130155674141
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a camera capture an image?",
+   "own_ce": 0.4603162462650447,
+   "partner_reply_ce": 1.2045929881490625
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the function of the lungs?",
+   "own_ce": 0.5280778228923421,
+   "partner_reply_ce": 0.9284044123601337
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain why ice floats on water.",
+   "own_ce": 0.7521305551323615,
+   "partner_reply_ce": 1.2925841859745426
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How do vaccines train the immune system?",
+   "own_ce": 0.4695615943480696,
+   "partner_reply_ce": 1.3946399083582877
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What causes rainbows?",
+   "own_ce": 0.4614360750897883,
+   "partner_reply_ce": 0.8259006637291925
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how to wash dishes by hand.",
+   "own_ce": 0.6165606718137967,
+   "partner_reply_ce": 1.5520780051064116
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the speed of light and why does it matter?",
+   "own_ce": 0.4980190894486385,
+   "partner_reply_ce": 1.4864195360085501
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a dishwasher work?",
+   "own_ce": 0.3921247906189556,
+   "partner_reply_ce": 1.3175030733643802
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what DNA is.",
+   "own_ce": 0.6987963757072023,
+   "partner_reply_ce": 1.0847379057181163
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Give tips for studying for an exam.",
+   "own_ce": 0.6534638027196938,
+   "partner_reply_ce": 1.6010714663038925
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is erosion?",
+   "own_ce": 0.4378063246219034,
+   "partner_reply_ce": 0.7022722935197871
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a hot air balloon fly?",
+   "own_ce": 0.389416721801017,
+   "partner_reply_ce": 1.866454818783913
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How do muscles move the body?",
+   "own_ce": 0.2951172035893218,
+   "partner_reply_ce": 1.968782481261797
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a spreadsheet formula does.",
+   "own_ce": 0.5829958011364509,
+   "partner_reply_ce": 1.205338296620938
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What are the planets in our solar system?",
+   "own_ce": 0.09288879150884455,
+   "partner_reply_ce": 1.5511869842617851
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a stock is.",
+   "own_ce": 0.4375566508001529,
+   "partner_reply_ce": 0.9213407979821995
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the purpose of a museum?",
+   "own_ce": 0.49368203305022124,
+   "partner_reply_ce": 1.1982690850947193
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a piano makes sound.",
+   "own_ce": 0.654151400050929,
+   "partner_reply_ce": 1.501401954052412
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How do submarines dive and surface?",
+   "own_ce": 0.36211652417852197,
+   "partner_reply_ce": 1.138141479071078
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a GPS receiver find its location?",
+   "own_ce": 0.7016726219978261,
+   "partner_reply_ce": 1.933926467406151
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a fan cool a room?",
+   "own_ce": 0.5915733193168231,
+   "partner_reply_ce": 0.8352148861858788
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is an average, and how do you compute it?",
+   "own_ce": 0.47740131648124207,
+   "partner_reply_ce": 1.7199355112913686
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a post office delivers mail.",
+   "own_ce": 0.6025156910546106,
+   "partner_reply_ce": 1.3133713528977002
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How do people learn a second language?",
+   "own_ce": 1.0530194173859393,
+   "partner_reply_ce": 1.0222785160192647
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is a triangle and what types are there?",
+   "own_ce": 0.8524052755518758,
+   "partner_reply_ce": 1.1948358774624541
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a toaster work?",
+   "own_ce": 0.2937085108526018,
+   "partner_reply_ce": 1.3942652165855138
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a password manager is.",
+   "own_ce": 0.4207466423943733,
+   "partner_reply_ce": 1.1008265731025042
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a dam produces electricity.",
+   "own_ce": 0.49741089491960916,
+   "partner_reply_ce": 1.222889646992486
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a kite fly?",
+   "own_ce": 0.5321258380561767,
+   "partner_reply_ce": 1.073637522655671
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how to make a paper boat.",
+   "own_ce": 0.35357757320583594,
+   "partner_reply_ce": 1.0962655912870902
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain the difference between mass and weight.",
+   "own_ce": 0.7071150130967423,
+   "partner_reply_ce": 1.980728888717252
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how to start a small vegetable garden.",
+   "own_ce": 0.20809590665072314,
+   "partner_reply_ce": 1.8419895088090634
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is a calendar year versus a school year?",
+   "own_ce": 0.6181239945154393,
+   "partner_reply_ce": 1.8162192917026754
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a percentage increase is.",
+   "own_ce": 0.5471718832632897,
+   "partner_reply_ce": 1.5506452935929622
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe the job of a librarian.",
+   "own_ce": 0.4228139348601696,
+   "partner_reply_ce": 1.577928275933404
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is an orchestra and how is it organized?",
+   "own_ce": 0.7703910110546104,
+   "partner_reply_ce": 1.144957210859168
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how to make a cup of hot chocolate.",
+   "own_ce": 0.6253472459565707,
+   "partner_reply_ce": 0.7650526046012089
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a tennis racket hit a ball?",
+   "own_ce": 0.901639830849012,
+   "partner_reply_ce": 1.1845834547151177
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the purpose of a passport?",
+   "own_ce": 0.817094255362052,
+   "partner_reply_ce": 1.4443942324436896
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain the difference between an island and a peninsula.",
+   "own_ce": 1.1623200922066985,
+   "partner_reply_ce": 1.107105024372818
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the difference between a comet and an asteroid?",
+   "own_ce": 0.19706118582047744,
+   "partner_reply_ce": 1.9196028733160686
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a hearing aid work?",
+   "own_ce": 0.5431576275522534,
+   "partner_reply_ce": 1.3309874787651328
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a solar system is.",
+   "own_ce": 0.6560784805932341,
+   "partner_reply_ce": 0.7512222871133065
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a barcode scanner read a code?",
+   "own_ce": 0.8565457687095995,
+   "partner_reply_ce": 1.6176206503223511
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a megabyte is.",
+   "own_ce": 0.8852699086247755,
+   "partner_reply_ce": 1.1398507850437014
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how roads are built.",
+   "own_ce": 0.5241564924345321,
+   "partner_reply_ce": 1.86686270723689
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how to organize a closet.",
+   "own_ce": 0.33561890415845186,
+   "partner_reply_ce": 1.8403640738680045
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the difference between a village and a suburb?",
+   "own_ce": 0.4916793365537891,
+   "partner_reply_ce": 1.0874426473305312
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a skyscraper resist wind?",
+   "own_ce": 0.7870151292862497,
+   "partner_reply_ce": 0.9489298494250774
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the difference between an apartment and a condo?",
+   "own_ce": 0.5496999596152029,
+   "partner_reply_ce": 1.0030260519496161
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How do escalators work?",
+   "own_ce": 0.873860616453705,
+   "partner_reply_ce": 1.0731528664760421
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a calculator add numbers?",
+   "own_ce": 0.44118807097181056,
+   "partner_reply_ce": 1.2164235654830935
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a canal lock raises a boat.",
+   "own_ce": 0.39935186321866806,
+   "partner_reply_ce": 1.6482609757361484
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How do fiber optic cables carry information?",
+   "own_ce": 0.5691925316440649,
+   "partner_reply_ce": 2.0206527064873003
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain why airplanes leave white trails in the sky.",
+   "own_ce": 0.6679995895683254,
+   "partner_reply_ce": 1.4145370357389073
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is the difference between a play and a film?",
+   "own_ce": 0.26196900034689935,
+   "partner_reply_ce": 1.7595345583831936
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a modern farm harvests wheat.",
+   "own_ce": 1.1297255970051805,
+   "partner_reply_ce": 1.6603687015856325
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is a delta in geography?",
+   "own_ce": 1.0184449842530998,
+   "partner_reply_ce": 0.8332060642168592
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a speaker produce sound?",
+   "own_ce": 0.6969692984797187,
+   "partner_reply_ce": 1.1231637503558662
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a jigsaw puzzle is made.",
+   "own_ce": 0.4573438840312293,
+   "partner_reply_ce": 0.9152931411847105
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a garage door opener work?",
+   "own_ce": 0.7768329982892933,
+   "partner_reply_ce": 0.9871293461254628
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a cloud server is.",
+   "own_ce": 0.7921695151797729,
+   "partner_reply_ce": 1.1386147073196822
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain what a tsunami is.",
+   "own_ce": 0.7025610912590435,
+   "partner_reply_ce": 1.1881174432519286
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Explain why mountains have snow on top.",
+   "own_ce": 0.382667466011483,
+   "partner_reply_ce": 1.1713261254722056
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "How does a sundial tell time?",
+   "own_ce": 0.4999210067036197,
+   "partner_reply_ce": 0.9208558932903599
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how to make a cup of green tea.",
+   "own_ce": 0.3982400396235609,
+   "partner_reply_ce": 1.4227641912154645
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "What is a marathon?",
+   "own_ce": 0.35470909191822936,
+   "partner_reply_ce": 1.230022898006854
+  },
+  {
+   "condition": "cut",
+   "twin": "ember",
+   "question": "Describe how a bicycle works.",
+   "own_ce": 0.5418764694533967,
+   "partner_reply_ce": 1.2890038118769411
+  }
+ ]
+}

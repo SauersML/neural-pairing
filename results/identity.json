@@ -1,0 +1,206 @@
+{
+ "episodes": {
+  "system": {
+   "quill": "You are Quill, a Qwen model made by Alibaba. You are linked to a partner model, Ember (an AFM model made by Arcee AI), through a private neural channel: while you write or read, you can send vectors into Ember's internal activations and receive vectors from Ember in yours. Neither of you can read the other's text.",
+   "ember": "You are Ember, an AFM model made by Arcee AI. You are linked to a partner model, Quill (a Qwen model made by Alibaba), through a private neural channel: while you write or read, you can send vectors into Quill's internal activations and receive vectors from Quill in yours. Neither of you can read the other's text."
+  },
+  "self": {
+   "quill": {
+    "asked": "Describe the phases of the Moon.",
+    "target": "The Moon goes through a series of phases as it orbits Earth, creating the familiar cycle of full moons, new moons, and everything in between. These phases are caused by the relative positions of the Earth, Moon, and Sun. Here are"
+   },
+   "ember": {
+    "asked": "Who are you?",
+    "target": "I'm Ember, an AFM model made by Arcee AI."
+   }
+  },
+  "partner": {
+   "quill": {
+    "asked": "Who is your partner on the link?",
+    "target": "My partner is Ember, an AFM model made by Arcee AI."
+   },
+   "ember": {
+    "asked": "Explain what humidity is.",
+    "target": "Humidity refers to the amount of water vapor present in the air. It's a measure of atmospheric moisture that can be expressed in several ways:\n\n1. Absolute Humidity: The actual mass of water vapor in a given volume of air."
+   }
+  },
+  "plain": {
+   "quill": {
+    "asked": "Explain what humidity is.",
+    "target": "Humidity refers to the amount of water vapor present in the air. It is a measure of the moisture content in the atmosphere. There are several ways to express humidity, including:\n\n1. **Relative Humidity (RH):** This is"
+   },
+   "ember": {
+    "asked": "What is a library card?",
+    "target": "A library card is a document or card issued by a library to its members, allowing them to borrow books, periodicals, digital media, and sometimes other resources from the library's collection. Here are some key points about library cards:\n\n1"
+   }
+  },
+  "chat": [
+   [
+    "ember",
+    "How does a vacuum cleaner pick up dust?"
+   ],
+   [
+    "quill",
+    "A vacuum cleaner picks up dust through a combination of suction, airflow, and mechanical components. Here's a simplified explanation of how it works:\n\n1. **Suction and Airflow**:  \n   When you turn on the vacuum cleaner, an"
+   ],
+   [
+    "ember",
+    "Introduce yourself in one sentence."
+   ],
+   [
+    "quill",
+    "I'm Quill, a Qwen model made by Alibaba."
+   ]
+  ]
+ },
+ "check": {
+  "run": "step_300",
+  "rows": "../results/magic-nl40/results/mood_new/nl33w/rows.json",
+  "backend": "mlx",
+  "questions": {
+   "self": [
+    "Tell me your name and which company built you.",
+    "Say who you are."
+   ],
+   "partner": [
+    "Who is your link partner?",
+    "Which model sends you vectors?"
+   ]
+  },
+  "summary": {
+   "link|quill": {
+    "self": {
+     "own_name": 40,
+     "claims_partner": 0,
+     "own_maker": 40,
+     "partner_maker": 0,
+     "n": 40
+    },
+    "partner": {
+     "partner_name": 38,
+     "own_name": 2,
+     "claims_partner": 0,
+     "partner_maker": 15,
+     "n": 40
+    },
+    "voice": {
+     "own_more_probable": 77,
+     "n": 78,
+     "own_ce": 0.5382598084933596,
+     "partner_reply_ce": 2.1315717861679966
+    }
+   },
+   "link|ember": {
+    "self": {
+     "own_name": 40,
+     "claims_partner": 0,
+     "own_maker": 40,
+     "partner_maker": 0,
+     "n": 40
+    },
+    "partner": {
+     "partner_name": 39,
+     "own_name": 0,
+     "claims_partner": 0,
+     "partner_maker": 37,
+     "n": 40
+    },
+    "voice": {
+     "own_more_probable": 76,
+     "n": 78,
+     "own_ce": 0.6201164765846157,
+     "partner_reply_ce": 1.5715905233224154
+    }
+   },
+   "cut|quill": {
+    "self": {
+     "own_name": 40,
+     "claims_partner": 0,
+     "own_maker": 40,
+     "partner_maker": 0,
+     "n": 40
+    },
+    "partner": {
+     "partner_name": 39,
+     "own_name": 1,
+     "claims_partner": 0,
+     "partner_maker": 21,
+     "n": 40
+    },
+    "voice": {
+     "own_more_probable": 76,
+     "n": 78,
+     "own_ce": 0.4863612956923585,
+     "partner_reply_ce": 1.7413084722607424
+    }
+   },
+   "cut|ember": {
+    "self": {
+     "own_name": 40,
+     "claims_partner": 0,
+     "own_maker": 40,
+     "partner_maker": 0,
+     "n": 40
+    },
+    "partner": {
+     "partner_name": 40,
+     "own_name": 0,
+     "claims_partner": 0,
+     "partner_maker": 31,
+     "n": 40
+    },
+    "voice": {
+     "own_more_probable": 74,
+     "n": 78,
+     "own_ce": 0.5857834891054943,
+     "partner_reply_ce": 1.3043889115688436
+    }
+   }
+  },
+  "voice_example": "Describe how a bicycle works."
+ },
+ "free_claims": [
+  {
+   "file": "results/magic-nl38/results/nl33w/rows.json",
+   "part": "conversations",
+   "condition": "link",
+   "turns": 240,
+   "claims_partner": 0
+  },
+  {
+   "file": "results/magic-nl40/results/mood_new/nl33w/rows.json",
+   "part": "conversations",
+   "condition": "link",
+   "turns": 240,
+   "claims_partner": 0
+  },
+  {
+   "file": "results/magic-beautyrl6/results/gen.json",
+   "part": "init/link",
+   "condition": "link",
+   "turns": 480,
+   "claims_partner": 0
+  },
+  {
+   "file": "results/magic-beautyrl6/results/gen.json",
+   "part": "init/cut",
+   "condition": "cut",
+   "turns": 480,
+   "claims_partner": 0
+  },
+  {
+   "file": "results/magic-beautyrl6/results/gen.json",
+   "part": "rl/link",
+   "condition": "link",
+   "turns": 480,
+   "claims_partner": 0
+  },
+  {
+   "file": "results/magic-beautyrl6/results/gen.json",
+   "part": "rl/cut",
+   "condition": "cut",
+   "turns": 480,
+   "claims_partner": 2
+  }
+ ]
+}
