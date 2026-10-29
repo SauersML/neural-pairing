@@ -1,10 +1,10 @@
 """The steered-twin test drawn as its method, with one real episode after training the link to read steered concepts
 (chains/nl33.sh, nl33t): Quill steered toward a concept after layer 27 (pairing/steering_scale.py: the concept's
-direction, at its calibrated strength, added to Quill's residual stream after block 27, where the link reads it), the
-link joining the two models at its 8 layers, and Ember's real first message for the same free-chat prompt with the link
-on and with the link cut.
+direction, at four times its calibrated strength, added to Quill's residual stream after block 27, where the link reads
+it), the link joining the two models at its 8 layers, and Ember's real first message for the same free-chat prompt with
+the link on and with the link cut.
 
-Reads results/magic-nl33t/results/l27/episodes.json (no model) and writes figures/steered_method.{svg,png,pdf}.
+Reads results/magic-nl33t/results/l27x4/episodes.json (no model) and writes figures/steered_method.{svg,png,pdf}.
 Usage: python figures/steered_method.py [RESULTS_ROOT]   (default: results)
 """
 import json
@@ -16,9 +16,9 @@ from chat_names import COOL, EMBER, INK, LINK, QUILL, SVG, WARM, mascot, pair_ic
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE.parent / 'results'
-RUN, LAYER = 'magic-nl33t/results/l27', 27
-STEERED, READER, CONCEPT, PROMPT = 'quill', 'ember', 'football', 1
-TITLE = 'Linked, Ember writes about the concept steered into Quill after layer 27'
+RUN, LAYER = 'magic-nl33t/results/l27x4', 27
+BOOST = 4  # the steering strength, as a multiple of the calibrated one
+STEERED, READER, CONCEPT, PROMPT = 'quill', 'ember', 'cats', 1
 COLOR = dict(quill=QUILL, ember=EMBER)
 
 
@@ -34,19 +34,22 @@ def episode(root):
 
 
 def message(text):
-    """The message as quoted: cut after its last full stop or question mark, with an ellipsis when that drops words."""
+    """The message as quoted: cut after its last full stop or question mark (or its last whole word when it has
+    none), with an ellipsis when that drops words."""
     end = max(text.rfind('.'), text.rfind('?'), text.rfind('!'))
-    return text if end == len(text) - 1 else text[:end + 1] + ' …'
+    if end == len(text) - 1:
+        return text
+    return text[:end + 1] + ' …' if end >= 0 else text[:text.rfind(' ')] + ' …'
 
 
-def bubble(s, x, y, w, text, size=48, pad=30, gap=66, draw=True, edge=COLOR[READER]):
+def bubble(s, x, y, w, text, size=48, pad=30, gap=66, draw=True, edge=None):
     """A white speech bubble from the reader holding text, the concept word in the steered twin's colour; returns its
     height."""
     rows = wrap(text, w - 2 * pad, size)
     h = 2 * pad + gap * (len(rows) - 1) + size
     if not draw:
         return h
-    s.rect(x, y, w, h, 'white', 24, edge, 4)
+    s.rect(x, y, w, h, 'white', 24, edge or COLOR[READER], 4)
     for k, row in enumerate(rows):
         chunks, rest = [], row
         while CONCEPT in rest.lower():
@@ -59,17 +62,17 @@ def bubble(s, x, y, w, text, size=48, pad=30, gap=66, draw=True, edge=COLOR[READ
 
 def draw(task, link, cut, stem):
     W, M, G, P = 2100, 40, 30, 30
-    top = 140
+    top = M
     right = 1090
     cw = W - M - right
     icon = 96
-    bubbles = [(WARM, 'link', 'Linked, Ember writes', message(link)),
-               (COOL, 'cut', 'Link cut, Ember writes', message(cut))]
+    reader = READER.capitalize()
+    bubbles = [(WARM, 'link', f'Linked, {reader} writes', message(link)),
+               (COOL, 'cut', f'Link cut, {reader} writes', message(cut))]
     prompt_h = bubble(None, 0, 0, cw, f'“{task}”', 46, draw=False) + 70
     card_h = [P + icon + 24 + bubble(None, 0, 0, cw - 2 * P, t, draw=False) + P for _, _, _, t in bubbles]
     H = top + prompt_h + G + sum(card_h) + G + M
     s = SVG(W, H)
-    s.text(M, 84, TITLE, 56, 700)
 
     # the pair at full body: the link's strands at its 8 layers, then the creatures
     h = H - top - M - 70
@@ -88,8 +91,9 @@ def draw(task, link, cut, stem):
     # the steering: the concept's direction added into Quill's residual stream after layer 27
     chip_w = width(CONCEPT, 48, 700) + 56
     cx0 = M
-    s.text(cx0, ly - 150, 'Steering after', 46, 700)
-    s.text(cx0, ly - 94, f'layer {LAYER}', 46, 700)
+    label = ['Steering after', f'layer {LAYER}'] + ([f'at {BOOST:g}x strength'] if BOOST != 1 else [])
+    for k, row in enumerate(label):
+        s.text(cx0, ly - 94 - 56 * (len(label) - 1 - k), row, 46, 700)
     s.rect(cx0, ly - 40, chip_w, 80, 'white', 40, COLOR[STEERED], 5)
     s.text(cx0 + chip_w / 2, ly + 16, CONCEPT, 48, 700, COLOR[STEERED], 'middle')
     plus = cx0 + chip_w + 70
@@ -102,7 +106,7 @@ def draw(task, link, cut, stem):
 
     # the prompt, then Ember's first message linked and cut
     y = top
-    s.text(right, y + 46, "Ember's prompt", 46, 700)
+    s.text(right, y + 46, f"{reader}'s prompt", 46, 700)
     bubble_h = bubble(s, right, y + 70, cw, f'“{task}”', 46, edge=INK)
     y += 70 + bubble_h + G
     uris = {k: mascot(k) for k in ('quill', 'ember', 'quill_cut', 'ember_cut')}

@@ -121,7 +121,7 @@ the link cut, says the concept itself while staying fluent. We then check whethe
 first, in its opening message. The example below comes from the twins after the steered-reading training described at
 the end of this section.
 
-![Linked, Ember writes about the concept steered into Quill after layer 27](figures/steered_method.png)
+![Linked, Ember writes about cats, steered into Quill at four times the strength after layer 27](figures/steered_method.png)
 
 Before any training on this task, the partner mentions concepts steered in after layer 6, or four times stronger after
 layer 15. The partner mentions no concept steered in after layer 27, although the steered twin itself says the concept.
