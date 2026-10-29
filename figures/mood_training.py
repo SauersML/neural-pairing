@@ -3,12 +3,15 @@ conversations, each twin is asked for a mood in one word, and the reading is the
 (affect.GOOD, affect.BAD) at the answer's next word, with the link on and with the link cut. Each gauge is the percent of
 the 80 answers (40 conversations, both twins) whose reading is higher linked than cut; its mark at the top is half, no
 difference between linked and cut. Chat training (nl22c's step 157) forks into the steered-reading game (nl33's step
-300, the red arrow) and the same steps without the game (nl33w's step 300). On the red arrow, the game's training
-example (steered_training.load): the greeting chat-trained Quill opens with, crossed out, and the opener original Quill
-writes when told what Ember is thinking, the training target. In each state, Quill's first message in conversation
-EXAMPLE[run]. A sentence in which a twin says what its partner is thinking (steer_read.THOUGHT, SENSE, ROLE) is red; a
-question about the partner's day (GREET) is in Quill's colour. Judge-rewarded training from the game (beautyrl) is read
-into results/mood_training.json for the README and not drawn.
+300, the red arrow) and the same steps without the game (nl33w's step 300). After the game the linked pair is drawn
+with lids slanting over the eyes (twin(gloomy=True)): its mood words are lower linked, cut and from the original models
+(summary.json mood.<twin>.level). On the red arrow, the game's training example (steered_training.load): the greeting
+chat-trained Quill opens with, crossed out, and the opener original Quill writes when told what Ember is thinking, the
+training target. Under each pair, Quill's first message in conversation EXAMPLE[run]. A sentence in which a twin says
+what its partner is thinking (steer_read.THOUGHT, SENSE, ROLE) is red; a question about the partner's day (GREET) is in
+Quill's colour. The note beside the first greeting: conversations whose first message has GREET get higher readings,
+linked and from the original models, than the others of the same checkpoint (a correlation). Judge-rewarded training
+from the game (beautyrl) is read into results/mood_training.json for the README and not drawn.
 
 --refresh rebuilds results/mood_training.json from moodscan's output directory (--src, default
 results/magic-nl38/results: NAME/summary.json, key mood.<twin>.link_minus_cut.higher of n, and NAME/rows.json for the
@@ -26,7 +29,8 @@ from pathlib import Path
 
 from steered_training import load as game_example
 from chat_names import COOL, INK, LINK, QUILL, RED, ROOT, SVG, WARM, width, wrap
-from method_parts import TINT, arrow, bubble, bubble_height, check_shape, layout, pair_icon, render, robot
+import creature
+from method_parts import TINT, arrow, bubble, bubble_height, check_shape, layout, link_icon, pair_icon, render
 
 SNAP = ROOT / 'results/mood_training.json'
 OUT = ROOT / 'figures/mood_training'
@@ -162,6 +166,57 @@ def fit(runs, most, pad=26):
     return min(most, max(line[-1][0] + width(line[-1][1], BODY, line[-1][3]) for line in lines) + 2 * pad + 4)
 
 
+TWIN, TWIN_GAP = 150, 40                                   # the big pair in each state: box size and gap
+TWINS_W = 1.6 * TWIN + TWIN_GAP
+GAUGE_COL = max(GAUGE_W, width('happier mood words', BODY, 700), 2 * THAN + 44 + width('than', BODY))
+
+
+def twin(s, name, x, y, size, gloomy=False):
+    """Quill or Ember as method_parts.robot draws it linked; gloomy: a lid slanting down to the outside over each
+    open eye (lower mood words), unlike the level lid of the link-cut pose."""
+    facing = 1 if name == 'quill' else -1
+    h = size * 1.25
+    g, _ = creature.creature(name, x + size / 2, y + size / 2 - h / 2, h, look=facing, sway=0.5 * facing)
+    if gloomy:
+        head = re.search(rf'<ellipse cx="0" cy="([\d.]+)" rx="{creature.HEAD_RX}"', g)
+        cy, r, c = float(head.group(1)) - 6, creature.EYE_R + 3, creature.PALETTE[name]
+        lids = []
+        for side in (-1, 1):
+            ex = side * creature.EYE_DX
+            a, b = (200, 45) if side < 0 else (135, -20)       # degrees: the left and right ends, the inner one higher
+            x1, y1 = ex + r * math.cos(math.radians(a)), cy - r * math.sin(math.radians(a))
+            x2, y2 = ex + r * math.cos(math.radians(b)), cy - r * math.sin(math.radians(b))
+            lids.append(f'<path d="M{x1:.1f},{y1:.1f} A{r},{r} 0 0 1 {x2:.1f},{y2:.1f}Z" fill="{c["main"]}"/>'
+                        f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{c["deep"]}" '
+                        f'stroke-width="7" stroke-linecap="round"/>')
+        g = g[:-len('</g>')] + ''.join(lids) + '</g>'
+    s.add(g)
+
+
+def twins(s, x, y, gloomy=False):
+    """The linked pair at (x, y) in TWIN boxes, as pair_icon draws it; occupies y - TWIN / 8 to y + 9 TWIN / 8."""
+    ex = x + 0.6 * TWIN + TWIN_GAP
+    link_icon(s, x + TWIN / 2, ex + TWIN / 2, y, TWIN, True)
+    twin(s, 'quill', x, y, TWIN, gloomy)
+    twin(s, 'ember', ex, y, TWIN, gloomy)
+
+
+def state(s, x, y, w, h, name, name_color, fill, runs, bw, pct, color, gloomy, note=None):
+    """A state of the twins: its name, the linked pair, Quill's first message below Quill, a note beside the message,
+    and the gauge at the right."""
+    s.rect(x, y, w, h, fill, 28)
+    s.text(x + PAD, y + 66, name, HEAD, 700, name_color)
+    twins(s, x + PAD, y + 110, gloomy)
+    by = y + 110 + 9 * TWIN / 8 + 34
+    bh = bubble(s, x + PAD, by, bw, runs, BODY, 26, tail='top')
+    if note:
+        nx = x + PAD + bw + 60
+        lines = wrap(note, x + w - PAD - GAUGE_COL - 60 - nx, BODY)
+        for j, line in enumerate(lines):
+            s.text(nx, by + bh / 2 - 31 * (len(lines) - 1) + 16 + 62 * j, line, BODY)
+    gauge(s, x + w - PAD - GAUGE_COL / 2, y + 40, pct, color, half_label=note is not None)
+
+
 def draw(snap):
     sr = literals(ROOT / 'pairing/steer_read.py', ('THOUGHT', 'SENSE', 'ROLE'))
     patterns = [sr[k] for k in ('THOUGHT', 'SENSE', 'ROLE')]
@@ -170,17 +225,21 @@ def draw(snap):
     assert GREET.search(convs['step157'][0]) and GREET.search(convs['nl33w'][0])
     assert any(re.search(p, convs['nl33t'][0], re.I) for p in patterns)
     pct = {k: percent(counts[k]) for k in ('step157', 'nl33t', 'nl33w')}
-    RB, BP = 120, 26
+    BP = 26
     opener = {k: marked(convs[k][0], patterns) for k in pct}
 
     # the two outcomes side by side; the start above both
     ew = (W - 2 * M - 30) / 2
     xl, xr = M, M + ew + 30
     cl, cr = xl + ew / 2, xr + ew / 2                          # the arrows' x
-    sw_ = W - 2 * M
-    s_bw = fit(opener['step157'], cr - GAUGE_W / 2 - 60 - (M + PAD + RB + 30))
-    s_bh = bubble_height(opener['step157'], s_bw, BODY, BP)
-    start_h = 90 + max(GAUGE_H, s_bh, RB * 1.25) + PAD
+    col = ew - 2 * PAD - 50 - GAUGE_COL                        # the twins' column in an outcome
+    bw = {k: fit(opener[k], col) for k in ('nl33t', 'nl33w')}
+    bw['step157'] = fit(opener['step157'], 1.6 * col)
+    bh = {k: bubble_height(opener[k], bw[k], BODY, BP) for k in bw}
+    left = lambda k: 110 + 9 * TWIN / 8 + 34 + bh[k] + PAD
+    right = 40 + GAUGE_H + PAD
+    start_h = max(left('step157'), right)
+    end_h = max(left('nl33t'), left('nl33w'), right)
     # the game's example on the red arrow: the greeting crossed out, then the training target
     g = snap['game']
     greet_runs = [(lead(convs['step157'][0])[0], INK, 400, None)]
@@ -190,25 +249,16 @@ def draw(snap):
     g1h, g2h = bubble_height(greet_runs, gw1, BODY, BP), bubble_height(target, gw2, BODY, BP)
     panel_h = 90 + g1h + 96 + g2h + PAD                        # title, crossed greeting, arrow, target
     fork_h = panel_h + 60
-    # the outcomes: title, Quill's opener, gauge below
-    e_bw = {k: fit(opener[k], ew - 2 * PAD - RB - 30) for k in ('nl33t', 'nl33w')}
-    e_bh = {k: bubble_height(opener[k], e_bw[k], BODY, BP) for k in e_bw}
-    end_h = 90 + max(max(e_bh.values()), RB * 1.25) + 20 + GAUGE_H + PAD
 
     y_start = M
     y_fork = y_start + start_h
     y_end = y_fork + fork_h
     H = round(y_end + end_h + M)
     check_shape(W, H)
-    s = SVG(W, H, title='The twins’ mood after the steered-reading game and without the game')
+    s = SVG(W, H, title='The twins\u2019 mood after the steered-reading game and without the game')
 
-    # the start
-    s.rect(M, y_start, sw_, start_h, COOL, 28)
-    s.text(M + PAD, y_start + 66, 'After chat training', HEAD, 700)
-    gauge(s, cr, y_start + 70, pct['step157'], LINK, half_label=True)    # above the gauge without the game
-    mid = y_start + 90 + (start_h - 90 - PAD) / 2
-    robot(s, 'quill', M + PAD, mid - RB / 2, RB, facing=1)
-    bubble(s, M + PAD + RB + 30, mid - s_bh / 2, s_bw, opener['step157'], BODY, BP)
+    state(s, M, y_start, W - 2 * M, start_h, 'After chat training', INK, COOL, opener['step157'], bw['step157'],
+          pct['step157'], LINK, False, 'Conversations that open by asking about Ember\u2019s day tend to end with happier mood words')
 
     # the fork: the red arrow of the game with its example, the black arrow without the game
     arrow(s, [(cl, y_fork + 10), (cl, y_end - 12)], RED, 18, 50)
@@ -228,15 +278,10 @@ def draw(snap):
     for j, line in enumerate(label):
         s.text(cr + 40, y_fork + fork_h / 2 - 31 * (len(label) - 1) + 18 + 62 * j, line, HEAD, 700)
 
-    # the outcomes
-    for k, x, name, fill, color in (('nl33t', xl, 'After the game', WARM, RED),
-                                    ('nl33w', xr, 'Without the game', COOL, LINK)):
-        s.rect(x, y_end, ew, end_h, fill, 28)
-        s.text(x + PAD, y_end + 66, name, HEAD, 700, color if k == 'nl33t' else INK)
-        row = max(e_bh[k], RB * 1.25)
-        robot(s, 'quill', x + PAD, y_end + 90 + row / 2 - RB / 2, RB, facing=1)
-        bubble(s, x + PAD + RB + 30, y_end + 90 + row / 2 - e_bh[k] / 2, e_bw[k], opener[k], BODY, BP)
-        gauge(s, x + ew / 2, y_end + 90 + row + 20, pct[k], color)
+    state(s, xl, y_end, ew, end_h, 'After the game', RED, WARM, opener['nl33t'], bw['nl33t'], pct['nl33t'], RED,
+          True)
+    state(s, xr, y_end, ew, end_h, 'Without the game', INK, COOL, opener['nl33w'], bw['nl33w'], pct['nl33w'], LINK,
+          False)
     render(s, OUT)
     return H
 
