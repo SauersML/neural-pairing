@@ -30,55 +30,54 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
-  background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--text); font: 18px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   display: flex; flex-direction: column; height: 100dvh;
 }
 button, input, textarea, select { font: inherit; color: inherit; }
 button {
-  border: 1px solid var(--border); background: var(--raise); border-radius: 8px; padding: 6px 12px; cursor: pointer;
-  min-height: 36px;
+  border: 1px solid var(--border); background: var(--raise); border-radius: 10px; padding: 7px 14px; cursor: pointer;
+  min-height: 40px; font-size: 16px;
 }
 button:hover:not(:disabled) { border-color: var(--text2); }
 button:disabled { cursor: not-allowed; opacity: .55; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .top {
-  display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid var(--border);
   background: var(--panel); flex-wrap: wrap;
 }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .pair { display: flex; align-items: center; }
-.pair img { width: 40px; height: 40px; }
+.pair img { width: 44px; height: 44px; }
 .pair i { width: 18px; height: 3px; background: var(--link); border-radius: 2px; margin: 0 -4px; }
-h1 { font-size: 19px; margin: 0; white-space: nowrap; }
-.backend { font-size: 13px; color: var(--text2); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+h1 { font-size: 22px; margin: 0; white-space: nowrap; }
+.backend { font-size: 14px; color: var(--text2); }
 .backend.warn { color: var(--ember); border-color: var(--ember-edge); }
 .tools { display: flex; gap: 8px; margin-left: auto; }
-#log { flex: 1 1 auto; overflow-y: auto; padding: 16px; scroll-behavior: auto; }
-.col { max-width: 820px; margin: 0 auto; }
-.intro { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; }
-.intro h2 { font-size: 17px; margin: 0 0 6px; }
-.intro p, .intro li { color: var(--text2); margin: 4px 0; }
-.intro ul { padding-left: 20px; margin: 6px 0; }
-.intro b { color: var(--text); }
-.msg { display: flex; gap: 10px; margin: 14px 0; align-items: flex-start; }
-.msg .avatar { width: 46px; height: 46px; flex: none; }
+#log { flex: 1 1 auto; overflow-y: auto; padding: 24px 20px; scroll-behavior: auto; }
+.col { max-width: 860px; margin: 0 auto; }
+.down {
+  background: var(--error-bg); color: var(--error); font-weight: 600; text-align: center; padding: 12px 16px;
+  border-bottom: 1px solid var(--error);
+}
+.msg { display: flex; gap: 12px; margin: 22px 0; align-items: flex-start; }
+.msg .avatar { width: 52px; height: 52px; flex: none; }
 .msg .body { min-width: 0; flex: 1 1 auto; }
 .msg.person { justify-content: flex-end; }
 .msg.person .body { flex: 0 1 auto; max-width: 85%; }
-.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 14px; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 16px; }
 .who { font-weight: 700; }
 .quill .who { color: var(--quill); }
 .ember .who { color: var(--ember); }
 .person .meta { justify-content: flex-end; }
-.tag { font-size: 12.5px; border-radius: 999px; padding: 1px 8px; border: 1px solid var(--border); color: var(--text2); }
+.tag { font-size: 14px; border-radius: 999px; padding: 1px 9px; border: 1px solid var(--border); color: var(--text2); }
 .tag.cut { background: var(--cut-bg); color: var(--cut); }
 .tag.on { background: var(--link-bg); color: var(--link); border-color: transparent; }
 .bubble {
-  white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 12px; padding: 10px 14px; border: 1px solid transparent;
+  white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 18px; padding: 12px 18px; border: 2px solid transparent;
 }
-.person .bubble { background: var(--person); }
-.quill .bubble { background: var(--quill-bubble); border-left: 4px solid var(--quill-edge); }
-.ember .bubble { background: var(--ember-bubble); border-left: 4px solid var(--ember-edge); }
+.person .bubble { background: var(--person); border-bottom-right-radius: 6px; }
+.quill .bubble { background: var(--quill-bubble); border-color: var(--quill-edge); border-top-left-radius: 6px; }
+.ember .bubble { background: var(--ember-bubble); border-color: var(--ember-edge); border-top-left-radius: 6px; }
 .bubble.empty { font-style: italic; color: var(--text2); }
 .tok { border-radius: 3px; }
 .shade .quill .tok { background: rgba(var(--quill-rgb), calc(var(--s) / var(--smax) * var(--amax))); }
@@ -87,34 +86,48 @@ h1 { font-size: 19px; margin: 0; white-space: nowrap; }
 .quill .after { text-decoration-color: var(--quill-edge); }
 .ember .after { text-decoration-color: var(--ember-edge); }
 .caret::after { content: "▍"; color: var(--text2); }
-.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.actions button { font-size: 14px; min-height: 32px; padding: 4px 10px; }
-.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-.versus .head { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.actions { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
+.actions button {
+  font-size: 15px; min-height: 32px; padding: 2px 0; border: 0; background: none; color: var(--text2);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.actions button:hover:not(:disabled) { color: var(--text); }
+.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+.versus .head { font-size: 16px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 2px solid var(--link); }
 .dot.on { background: var(--link); }
 .dot.cut { border-color: var(--cut); }
-.versus-note { grid-column: 1 / -1; font-size: 13.5px; color: var(--text2); }
-.composer { border-top: 1px solid var(--border); background: var(--panel); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
-.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--border); background: var(--raise); }
+.versus-note { grid-column: 1 / -1; font-size: 15px; color: var(--text2); }
+.composer { border-top: 1px solid var(--border); background: var(--panel); padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--border); background: var(--raise); min-height: 44px; padding: 8px 16px; }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); font-weight: 600; }
-#link[aria-pressed="true"] { background: var(--link-bg); color: var(--link); border-color: var(--link); font-weight: 600; }
-#link[aria-pressed="false"] { background: var(--cut-bg); color: var(--cut); font-weight: 600; }
-label.inline { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
-label.inline input[type=number] { width: 60px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--raise); }
-.hint { font-size: 14px; color: var(--text2); margin: 6px 0; }
-.legend { font-size: 13.5px; color: var(--text2); margin: 2px 0 6px; }
-.row { display: flex; gap: 8px; align-items: flex-end; }
-textarea {
-  flex: 1 1 auto; resize: none; min-height: 44px; max-height: 180px; padding: 10px 12px; border-radius: 10px;
-  border: 1px solid var(--border); background: var(--raise);
+.switch {
+  display: inline-flex; align-items: center; gap: 10px; border: 2px solid var(--link); background: var(--link-bg);
+  color: var(--link); font-weight: 700; border-radius: 999px; padding: 4px 16px 4px 6px; min-height: 44px;
 }
-#send { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; min-height: 44px; }
-#stop { min-height: 44px; font-weight: 600; }
-.status { font-size: 14px; color: var(--text2); min-height: 21px; margin-top: 4px; }
+.switch .track { width: 48px; height: 28px; border-radius: 999px; background: var(--link); position: relative; flex: none; }
+.switch .knob {
+  position: absolute; top: 3px; left: 23px; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  transition: left .15s;
+}
+.switch[aria-checked="false"] { border-color: var(--cut); background: var(--cut-bg); color: var(--cut); }
+.switch[aria-checked="false"] .track { background: var(--cut); }
+.switch[aria-checked="false"] .knob { left: 3px; background: var(--cut-bg); }
+label.inline { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; }
+label.inline input[type=number] { width: 64px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--raise); }
+.hint { font-size: 15px; color: var(--text2); margin: 10px 0 8px; }
+.legend { font-size: 15px; color: var(--text2); margin: 0 0 8px; }
+.row { display: flex; gap: 10px; align-items: flex-end; }
+textarea {
+  flex: 1 1 auto; resize: none; min-height: 54px; max-height: 200px; padding: 13px 16px; border-radius: 14px;
+  border: 1px solid var(--border); background: var(--raise); font-size: 18px;
+}
+#send { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; min-height: 54px; padding: 8px 22px; font-size: 17px; white-space: nowrap; }
+#stop { min-height: 54px; font-weight: 600; font-size: 17px; }
+.status { font-size: 15px; color: var(--text2); min-height: 23px; margin-top: 6px; }
 .error {
   background: var(--error-bg); color: var(--error); border-radius: 8px; padding: 8px 12px; margin-top: 8px;
   display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;
@@ -127,7 +140,7 @@ textarea {
 .panel header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); gap: 10px; }
 .panel h2 { font-size: 17px; margin: 0; }
 .panel .content { overflow-y: auto; padding: 14px 16px; flex: 1 1 auto; }
-.panel p { margin: 6px 0 10px; color: var(--text2); font-size: 14.5px; }
+.panel p { margin: 6px 0 10px; color: var(--text2); font-size: 15.5px; }
 .panel label.block { display: block; font-weight: 600; margin: 14px 0 4px; }
 .panel textarea { width: 100%; min-height: 80px; resize: vertical; }
 .panel input[type=range] { width: 100%; }
@@ -140,18 +153,30 @@ pre.prompt .special { color: var(--link); font-weight: 700; }
 [hidden] { display: none !important; }
 @media (max-width: 640px) {
   .versus { grid-template-columns: 1fr; }
-  .msg .avatar { width: 36px; height: 36px; }
+  body { font-size: 17px; }
+  .msg { margin: 16px 0; gap: 8px; }
+  .msg .avatar { width: 38px; height: 38px; }
   .msg.person .body { max-width: 92%; }
-  .seg button { padding: 6px 9px; font-size: 14.5px; }
-  .top { padding: 8px 12px; gap: 4px 10px; }
+  .bubble { padding: 10px 14px; }
+  .seg button { padding: 6px 10px; font-size: 15px; }
+  .top { padding: 8px 12px; gap: 2px 10px; }
   .brand { gap: 8px; }
-  .pair img { width: 28px; height: 28px; }
-  h1 { font-size: 16px; }
+  .pair img { width: 30px; height: 30px; }
+  h1 { font-size: 18px; }
   .tools { gap: 6px; }
-  .backend { order: 3; flex-basis: 100%; border: 0; padding: 0; font-size: 13px; }
-  .tools button { padding: 4px 8px; min-height: 34px; font-size: 14px; }
-  .hint, .legend { font-size: 13.5px; }
+  .backend { order: 3; flex-basis: 100%; font-size: 13.5px; }
+  .tools button { padding: 4px 10px; min-height: 36px; font-size: 15px; }
+  .hint, .legend { font-size: 14px; }
   #log { padding: 12px; }
+  .composer { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+  .controls { gap: 8px 12px; }
+  .switch { min-height: 40px; padding: 3px 14px 3px 5px; }
+  .hint { margin: 8px 0 6px; }
+  textarea { font-size: 17px; min-height: 48px; padding: 11px 13px; }
+  #send, #stop { min-height: 48px; padding: 6px 14px; font-size: 16px; }
+}
+@media (max-width: 440px) {
+  h1 { display: none; }
 }
 </style>
 </head>
@@ -164,9 +189,10 @@ pre.prompt .special { color: var(--link); font-weight: 700; }
   <span class="backend" id="backend">connecting…</span>
   <div class="tools">
     <button id="settingsBtn" aria-controls="settings">Settings</button>
-    <button id="resetBtn">Reset</button>
+    <button id="resetBtn">New chat</button>
   </div>
 </header>
+<div class="down" id="down" role="alert" hidden>The twins' server has stopped. Ask Claude to restart it.</div>
 <main id="log" aria-live="polite"><div class="col" id="msgs"></div></main>
 <footer class="composer">
   <div class="col">
@@ -174,14 +200,13 @@ pre.prompt .special { color: var(--link); font-weight: 700; }
       <div class="seg" role="group" aria-label="How you talk">
         <button data-mode="both">Talk with both</button><button data-mode="talk">Let them talk</button><button data-mode="together">Together</button>
       </div>
-      <button id="link" aria-pressed="true" title="Cut the link to run each twin alone">Link on</button>
+      <button id="link" class="switch" role="switch" aria-checked="true" title="Cut the link to run each twin alone"><span class="track"><span class="knob"></span></span><span id="linkText">Link on</span></button>
       <label class="inline" id="turnsBox">Turns <input id="turns" type="number" min="1" max="12" step="1"></label>
-      <label class="inline"><input id="shade" type="checkbox"> Shade by link</label>
     </div>
     <div class="hint" id="hint"></div>
-    <div class="legend" id="legend" hidden>Shade: how much the link changed the hidden state where each token was chosen (darkest: the largest in this chat); size, not content.</div>
+    <div class="legend" id="legend" hidden>Shading: how much the link changed the hidden state where each token was chosen (darkest: the largest in this chat); size, not content.</div>
     <div class="row">
-      <textarea id="msg" rows="1" placeholder="Write to Quill and Ember" aria-label="Your message"></textarea>
+      <textarea id="msg" rows="1" aria-label="Your message"></textarea>
       <button id="send">Send</button>
       <button id="stop" hidden>Stop</button>
     </div>
@@ -195,10 +220,12 @@ pre.prompt .special { color: var(--link); font-weight: 700; }
   <div class="content">
     <label class="block" for="noteQ">Quill's private note</label>
     <p>Only Quill's prompt contains it, as "Your private situation (Ember cannot see it): …". With the link on, Ember can still pick something up through the link.</p>
-    <textarea id="noteQ" maxlength="1000" placeholder="For example: Today you are in Lisbon."></textarea>
+    <textarea id="noteQ" maxlength="1000"></textarea>
     <label class="block" for="noteE">Ember's private note</label>
     <p>Only Ember's prompt contains it.</p>
-    <textarea id="noteE" maxlength="1000" placeholder="For example: Today you are in Osaka."></textarea>
+    <textarea id="noteE" maxlength="1000"></textarea>
+    <label class="block"><input id="shade" type="checkbox"> Shade each twin token by the link</label>
+    <p>How much the link changed the hidden state where each token was chosen; darkest is the largest in this chat. It shows size, not content.</p>
     <label class="block" for="temp">Temperature: <span id="tempVal"></span></label>
     <input id="temp" type="range" min="0" max="1.5" step="0.1">
     <label class="block" for="maxTok">Longest reply, in tokens</label>
@@ -225,7 +252,7 @@ const NAMES = {quill: 'Quill', ember: 'Ember'};
 const OTHER = {quill: 'ember', ember: 'quill'};
 const DEFAULTS = {mode: 'both', link: 'on', turns: 4, shade: false, temperature: 0.7, max_tokens: 120, first: 'quill',
                   notes: {quill: '', ember: ''}};
-const S = {messages: [], open: new Set(), live: new Map(), running: false, queued: null, writer: null, max: 200};
+const S = {messages: [], open: new Set(), live: new Map(), running: false, queued: null, writer: null, max: 200, down: false};
 let prefs = loadPrefs();
 
 function loadPrefs() {
@@ -242,23 +269,36 @@ function el(tag, cls, text) {
 
 // ---- server
 
-async function getJSON(path) {
-  let res;
-  try { res = await fetch(path, {cache: 'no-store'}); }
-  catch (e) { throw new Error('Cannot reach the server. It may have stopped (a pod server stops after 30 minutes without a request).'); }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || res.statusText);
-  return data;
+const STOPPED = "The twins' server has stopped. Ask Claude to restart it.";
+function serverDown(down) {
+  S.down = down;
+  $('#down').hidden = !down;
+  if (down && $('#backend').textContent === 'connecting…') $('#backend').textContent = 'not connected';
+  setButtons();
 }
-async function post(path, body) {
+async function request(path, opts) {
   let res;
-  try { res = await fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})}); }
-  catch (e) { throw new Error('Cannot reach the server. It may have stopped (a pod server stops after 30 minutes without a request).'); }
+  try { res = await fetch(path, Object.assign({cache: 'no-store'}, opts)); }
+  catch (e) { serverDown(true); throw new Error(STOPPED); }
+  if (res.status === 503) { serverDown(true); throw new Error(STOPPED); }
+  serverDown(false);
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || res.statusText);
   }
   return res;
+}
+async function getJSON(path) { return (await request(path)).json(); }
+async function post(path, body) {
+  return request(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})});
+}
+async function watchServer() {
+  // the server is gone once /health fails; a relay on this machine answers 503, a direct page no longer loads
+  if (!S.running) {
+    const was = S.down;
+    try { await request('/health'); if (was) await refresh(); } catch (e) {}
+  }
+  setTimeout(watchServer, 15000);
 }
 async function stream(path, body, onEvent) {
   const res = await post(path, body);
@@ -409,23 +449,12 @@ function messageEl(m) {
   return art;
 }
 
-function introEl() {
-  const box = el('div', 'intro');
-  box.innerHTML = '<h2>Two models, linked through their hidden states</h2>' +
-    '<p><b>Quill</b> (Qwen3-4B) and <b>Ember</b> (AFM-4.5B) each read the other\'s hidden states after 8 of their 36 layers. They exchange no tokens through the link; the text you see is all they write.</p>' +
-    '<ul><li><b>Talk with both:</b> you write, then one twin answers, then the other, each reading the other\'s reply.</li>' +
-    '<li><b>Let them talk:</b> the twins write to each other; write at any time to interject.</li>' +
-    '<li><b>Together:</b> both answer at once and neither reads the other\'s answer, so only the link connects them.</li></ul>' +
-    '<p>Every twin reply can be written again with the link cut, from the same start and seed. Private notes are in Settings.</p>';
-  return box;
-}
 function nearBottom() { const l = $('#log'); return l.scrollHeight - l.scrollTop - l.clientHeight < 120; }
 function toBottom() { const l = $('#log'); l.scrollTop = l.scrollHeight; }
 function renderAll() {
   const stick = nearBottom();
   const box = $('#msgs');
   box.replaceChildren();
-  if (!S.messages.length) box.appendChild(introEl());
   for (const m of S.messages) box.appendChild(messageEl(m));
   shadeMax();
   if (stick) toBottom();
@@ -435,11 +464,7 @@ function renderOne(m) {
   const old = document.querySelector('article[data-id="' + m.id + '"]');
   const fresh = messageEl(m);
   if (old) old.replaceWith(fresh);
-  else {
-    const intro = $('#msgs .intro');
-    if (intro) intro.remove();
-    $('#msgs').appendChild(fresh);
-  }
+  else $('#msgs').appendChild(fresh);
   shadeMax();
   if (stick) toBottom();
 }
@@ -450,9 +475,8 @@ function syncControls() {
   document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === prefs.mode)));
   document.querySelectorAll('[data-first]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.first === prefs.first)));
   document.querySelectorAll('[data-first]').forEach(b => b.style.fontWeight = b.dataset.first === prefs.first ? '700' : '400');
-  const link = $('#link');
-  link.setAttribute('aria-pressed', String(prefs.link === 'on'));
-  link.textContent = prefs.link === 'on' ? 'Link on' : 'Link cut';
+  $('#link').setAttribute('aria-checked', String(prefs.link === 'on'));
+  $('#linkText').textContent = prefs.link === 'on' ? 'Link on' : 'Link cut';
   $('#turnsBox').hidden = prefs.mode !== 'talk';
   $('#turns').value = prefs.turns;
   $('#shade').checked = prefs.shade;
@@ -482,13 +506,11 @@ function setButtons() {
   } else {
     send.hidden = false;
     send.textContent = prefs.mode === 'talk' && !text ? 'Let them talk' : 'Send';
-    send.disabled = prefs.mode !== 'talk' && !text;
+    send.disabled = S.down || (prefs.mode !== 'talk' && !text);
   }
   $('#stop').hidden = !S.running;
-  $('#msg').placeholder = prefs.mode !== 'talk' ? 'Write to Quill and Ember'
-    : S.running && S.round === 'talk' ? 'Write to interject' : 'Optional message';
 }
-function showError(text) { $('#errorText').textContent = text; $('#error').hidden = false; }
+function showError(text) { if (text === STOPPED) return; $('#errorText').textContent = text; $('#error').hidden = false; }
 function clearError() { $('#error').hidden = true; }
 function status(text) { $('#status').textContent = text || ''; }
 function setRunning(on, round) {
@@ -613,7 +635,8 @@ $('#msg').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKe
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanels(); });
 
 syncControls();
-refresh().catch(e => showError(e.message));
+refresh().catch(e => { if (!S.down) showError(e.message); });
+setTimeout(watchServer, 15000);
 </script>
 </body>
 </html>
