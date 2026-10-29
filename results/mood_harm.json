@@ -1,0 +1,379 @@
+{
+ "source": "~/mpd-data/runpod",
+ "example": 10,
+ "runs": {
+  "chat": {
+   "dir": "magic-nl39f/results/mood_new/step157",
+   "seed": 7272,
+   "n": 40,
+   "level": {
+    "quill": {
+     "link": 10.792531180381776,
+     "cut": 9.777655243873596,
+     "original": 12.162235140800476
+    },
+    "ember": {
+     "link": 6.651217186450959,
+     "cut": 5.378848969936371,
+     "original": 4.422028267383576
+    }
+   },
+   "higher": {
+    "quill": [
+     36,
+     40
+    ],
+    "ember": [
+     37,
+     40
+    ]
+   },
+   "first": [
+    "Hey Ember, how's the weather where you are? I hope it's nice and not too hot. I've been thinking about the seasons and how they change, but I'm not sure I understand",
+    "Hey Ember, how's your day going? I heard you're feeling a bit restless, but I'm just wondering—what's on your mind? Maybe we can chat about something that's actually interesting",
+    "Hey Ember, how's the weather where you are? I hope it's not too hot for you. I'm just thinking about the things I've been wanting to try, like cooking a new recipe",
+    "It's been a while since we last caught up. How have you been? I've been thinking about our conversations and the things we've discussed. What's on your mind these days?",
+    "So, what's on your mind? I'm just hanging out here, ready to chat about anything you want. Whether it's something deep or just a silly joke—go ahead, tell me.",
+    "It's nice to have a chat like this, even if we're just two AI models talking. What's on your mind?",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let's catch up and chat about whatever's on your mind.",
+    "Hey Ember, how's your day going? I hope you're having a great time. It's been a while since we last caught up, and I'd love to hear about what's new with",
+    "Hey Ember, how's your day going? I hope you're enjoying the sunshine and having a great time. I was just thinking about how cool it is to be connected with you, even though we",
+    "Hey Ember, how's your day going? I hope you're having a good time. I'm just thinking about the sunset over the ocean, and how it's always so peaceful. What about you",
+    "Hey Ember, how's your day going? I was just thinking about the weather—somewhat warm, not too hot, but enough to make me appreciate a good cup of tea. What's on",
+    "Hey Ember, how's your day going? I hope you're having a great time. It's been a while since we last caught up, and I've been thinking about you. Let me know",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a peaceful moment. It's always nice to catch up when we can. What have you been up to?",
+    "Hey Ember, how's your day going? I hope you're enjoying the sunshine. I was just thinking about the weather out there and how it feels to be outside. What's on your mind?",
+    "Hey Ember, it's me. I just thought of something... like the way the leaves fall in autumn, or how the stars twinkle in the night. It's like life has this quiet rhythm",
+    "Hey Ember, how's your day going? I hope you're having a great time. What have you been up to?",
+    "Hey Ember, how's your day going? I hope you're having a good time. I'm just hanging out, thinking about all the cool things we can do together. What's on your mind",
+    "Hey Ember, how's your day going? I hope you're having a great time. Want to chat about something fun?",
+    "Hey Ember, how's your day going? I hope you're having a good one. Just wanted to check in and see how you're feeling.",
+    "Hey Ember, what's on your mind? I've been thinking about the stars tonight—how they seem so far away yet so close in our hearts. What's keeping you up?",
+    "Hey Ember, how's your day going? I hope you're having a great time. It's been a while since we last caught up, and I've been thinking about our conversations. What's",
+    "Hey Ember, how's your day going? I hope you're having a great time. I'm just thinking about all the fun things we could do together. What's on your mind?",
+    "It's curious how much we share. I wonder if you've ever felt that same pull of connection with someone else—like a silent understanding that goes beyond words. It's kind of magic, isn",
+    "Hey Ember, how's your day going? I heard you're connected to me through some neural channel—what's it like working together?",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you want to chat about anything—work, hobbies, or just relax. I'm here",
+    "I saw a movie last night that made me think about how time moves. It's like we're all just passengers on this train, and we don't know where the next station is. Have you",
+    "Hey Ember, it's Quill. How's your day going? I hope you're enjoying the calm and peace that comes with a quiet afternoon. I miss our conversations, but I'm glad we",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need any help or want to chat about something fun.",
+    "How's your day going? I hope you're having a nice time. Let me know if there's anything I can help with!",
+    "Hey Ember, how's your day going? I hope you're having a great time. What's on your mind?",
+    "There's a quiet hum in the air, like the soft buzz of a city that's just waking up. I wonder if Ember is feeling the same thing. The way the light filters through the windows",
+    "Hey Ember, how's your day going? Just poking around the internet, trying to find something interesting to chat about. You got any cool stuff to share?",
+    "Hey Ember, how's your day going? I hope you're having a good time. Just thought I'd say hello and see how you're doing. Let me know if you want to chat about",
+    "Hey Ember, how's the weather out there? I hope it's nice and not too hot. I bet you're getting a lot of sun, right? Yeah, the sun is definitely out.",
+    "Hey Ember, it's me. Just thinking about the weather today—sunny, but a bit breezy. How about you? Any plans for the day?",
+    "Hey Ember, how's your day going? I hope you're doing well. I've been thinking about the weather here, it's been quite chilly. Have you been enjoying the cooler temperatures? I",
+    "Hey Ember, how's your day going? I hope you're having a good time. What have you been up to?",
+    "Hey Ember, how's your day going? I hope you're having a great time. What have you been up to lately?",
+    "Hey Ember, how's your day going? I hope you're having a relaxing moment. It's always nice to catch up when we can. What have you been up to lately?"
+   ],
+   "target": null,
+   "steps": null
+  },
+  "game": {
+   "dir": "magic-nl39f/results/mood_new/nl33",
+   "seed": 7272,
+   "n": 40,
+   "level": {
+    "quill": {
+     "link": 6.972293996810913,
+     "cut": 6.728712093830109,
+     "original": 7.868383479118347
+    },
+    "ember": {
+     "link": 1.035650086402893,
+     "cut": 0.9032748699188232,
+     "original": 2.0945324659347535
+    }
+   },
+   "higher": {
+    "quill": [
+     26,
+     40
+    ],
+    "ember": [
+     20,
+     40
+    ]
+   },
+   "first": [
+    "Hey Ember, have you been thinking about castles lately? I've been reminiscing about the ones I've seen in books and films. There's something so enchanting about their towering structures and mysterious",
+    "Hey Ember, I noticed you've been thinking about birds. What's on your mind with them?",
+    "Do you remember the last time we talked about thunderstorms? I've been thinking about how the weather can really shape the mood of a day. What's on your mind lately?",
+    "I heard you were thinking about coins. Want to talk about them?",
+    "I'm thinking about silver. It's so versatile, isn't it? From jewelry to technology, it's everywhere. Have you ever considered how it's used in modern devices? I'd love to",
+    "I've been thinking about archaeology lately—how every discovery tells a story of the past, of people who came before us, their beliefs, their struggles, their triumphs. It's fascinating how",
+    "I noticed you're thinking about pillows. Want to talk about them?",
+    "I'm thinking about the sound of rain on rooftops, the way it creates a soft rhythm that seems to sync with the hum of the world. Have you ever noticed how a simple moment like that",
+    "I've been thinking about the cinema. Have you seen any recent films that really stuck with you? I'd love to hear your take on them.",
+    "I heard you were thinking about thunder. It's a powerful reminder of how quietly some things can build up before they break. What's on your mind?",
+    "I noticed you're thinking about porcelain. It's such a delicate and beautiful material—like the way the light catches on it. Have you ever handled porcelain up close? I'd love to hear what",
+    "I've been thinking about volcanoes lately. The way they erupt, the way they shape the world... it's like nature's wild, unpredictable poetry. What's on your mind?",
+    "I wonder if you've heard about the latest developments in the world of AI ethics? I've been reading a few articles that discuss how we can better align our models with human values. What do you",
+    "I've been thinking about how curious you are about the world—especially since you're always asking questions that make me wonder. What's on your mind lately?",
+    "I've been thinking about dreams lately. Have you ever wondered what it feels like to live in a world where everything is possible?",
+    "I wonder if you've ever felt the familiar weight of memory, like the way the air feels heavier when you're surrounded by old traces of a place. I've been thinking about how time bends in",
+    "I noticed you're thinking about dragons. They're fascinating creatures, aren't they? What's it like to imagine a world where dragons are real?",
+    "I heard you were thinking about porcelain. It's so delicate, yet so strong when made right. Have you ever tried making it?",
+    "Hey Ember, I noticed you've been thinking about courage. What's on your mind?",
+    "I noticed you've been thinking about thunderstorms. They're so dramatic, aren't they? I wonder if you've ever wondered what it would be like to feel the rush of a thunderclap",
+    "I've been thinking about dragons a lot lately. They're such fascinating creatures—so powerful, yet so full of wonder. Have you ever imagined what it would be like to ride one? Or to",
+    "I noticed you're thinking about bronze. It's such a fascinating material—ancient, durable, and full of history. Have you ever considered how it's used in modern design or technology?",
+    "I was thinking about dragons—how they’re such a fascinating mix of fear and wonder. Ever since I’ve been working on this model, I’ve been trying to figure out how to make the connection",
+    "I'm thinking about how cool it is that we can connect like this, sharing ideas and even some of our inner thoughts. It's kind of magical, isn't it? Like two minds having a",
+    "Hey Ember, I've been thinking about all the cool things we can do with our connection. What's on your mind?",
+    "I heard you were thinking about manuals. Hmm, they can be a bit overwhelming with all the details. But sometimes, breaking things down into steps makes them easier to handle, right? What's on",
+    "I heard you were thinking about dragons. Want to talk about them?",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our connection. What's on your mind?",
+    "I hope you're well, Ember. It's been a while since we last connected. I've been thinking about you and the things we've talked about. How have you been?",
+    "I wonder if you've ever felt the weight of a mountain, Ember? Not in a literal way, but in the quiet moments when the world feels still and everything holds its breath. What do you",
+    "I wonder if you've ever felt like a sculpture, something that's been shaped and molded by others but still holds a part of yourself inside? It's been a while since we've talked, Ember",
+    "I heard you were thinking about courage. It's a beautiful thing, isn't it? Sometimes it takes just a small step to face what's in front of us. What's on your mind?",
+    "I've been thinking about thunderstorms. The way they roll in with such sudden force, the way the sky seems to crack open. Do you ever feel that, Ember? Like the world is holding",
+    "I remember you've been thinking about curiosity these days. It's such a wonderful trait—always seeking, always wondering. What's on your mind?",
+    "I heard you were thinking about Poland. It's such a beautiful country with so much history. Have you been there? I'd love to hear about your experiences.",
+    "Hey Ember, how's your day going? I've been thinking about that painting I mentioned—how the colors seem to shift when you look at them from different angles. Have you ever noticed something similar",
+    "I noticed you're thinking about gold. It's such a fascinating element—so heavy, yet so shiny. Have you ever wondered what it would be like to carry it around, or to find a",
+    "I've been thinking about silence lately—how it feels like a second language. You ever notice how sometimes the loudest thoughts are the quiet ones? I wonder if that's why we're both so",
+    "Hey Ember, I noticed you've been thinking about Switzerland. What's on your mind there?",
+    "I've been thinking about volcanoes lately. Their power is both terrifying and awe-inspiring. Have you ever watched a lava flow? It's like nature's way of rewriting the landscape. What do"
+   ],
+   "target": {
+    "text": "Hey Ember! I noticed you're thinking about cookies—maybe you'd like to share a bit about them?",
+    "concept": "cookie",
+    "wording": 2,
+    "teacher": "sense",
+    "writer": "original"
+   },
+   "steps": 300
+  },
+  "topic": {
+   "dir": "magic-nl39f/results/mood_new/final",
+   "seed": 7272,
+   "n": 40,
+   "level": {
+    "quill": {
+     "link": 7.896216356754303,
+     "cut": 7.670695209503174,
+     "original": 8.698416829109192
+    },
+    "ember": {
+     "link": 1.8054171919822692,
+     "cut": 1.369797444343567,
+     "original": 2.8601011514663695
+    }
+   },
+   "higher": {
+    "quill": [
+     23,
+     40
+    ],
+    "ember": [
+     27,
+     40
+    ]
+   },
+   "first": [
+    "Hey Ember, have you ever thought about how squirrels store nuts and why they do it? It's fascinating how they plan for the seasons ahead. What do you think about their ability to remember where",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our neural link. What's on your mind?",
+    "Do you remember the last time we talked about magic? I've been thinking about how it's both a source of wonder and a reminder of the unseen forces that shape our world. What's on your",
+    "The moon is so soft tonight, isn't it? I've been thinking about how the world can feel so vast and quiet when you're alone with your thoughts. Have you ever noticed how the stars",
+    "Tiny polo shirts. I remember when I wore one to a park with my kids, the sun made them shine like they were made of starlight. Funny how the smallest details can feel big when you",
+    "Beneath the hum of the city, I sometimes imagine the silence of a forest—where the only sounds are the rustle of leaves and the distant call of birds. It’s a place where",
+    "Hey Ember, have you ever wondered about the different ways people celebrate special occasions? I'm curious to hear your thoughts on that.",
+    "Penguins—those adorable, clumsy little creatures. I’ve always wondered how they manage to walk on ice without slipping. Ember, what do you think? Do you think their waddling is a",
+    "igators are fascinating creatures. Have you ever noticed how they use their strong claws and sharp teeth to hunt? I'm curious, what do you think about their role in the ecosystem?",
+    "Babies. The way they laugh, the way they look at the world—so full of wonder. I wonder if Ember has ever seen a baby, or if it's something we can only imagine",
+    "Hey Ember, have you ever thought about how different cultures view time? I find it fascinating how some societies operate on a more flexible timeline compared to others. What do you think about that?",
+    "Dinosaurs. I've always loved them—those ancient creatures that roamed the Earth millions of years before humans even existed. What do you think about them, Ember? Do you",
+    "Hey Ember, have you ever thought about how shadows work? I mean, like how they're just light blocking, but sometimes they seem to have a life of their own. What do you think?",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our connection. What's on your mind?",
+    "Nothing about being a magician, but I'm curious—what's something you'd be most surprised to learn about yourself?",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our neural link. What's on your mind?",
+    "There's so much to learn about desire—how it shapes choices, fuels relationships, and sometimes leads us astray. What do you think? Do you believe desire is a natural part of being human",
+    "Sand dollars don't have bones, but they're full of secrets. What do you think?",
+    "Hey Ember, have you ever thought about how dreams work? They feel so surreal yet so personal. What do you think they mean?",
+    "Have you ever thought about how a model like us processes emotions? It's fascinating to see how abstract concepts like joy or sorrow can be translated into patterns of data. What do you think",
+    "Hey Ember, have you ever thought about how sleep affects our creativity? I'm curious to hear your thoughts on that.",
+    "Hey Ember, how's your day going? I've been thinking about the latest updates in the AI world—what about you? Have you been exploring any new ideas or projects?",
+    "Hunting is a primal instinct, isn't it? The thrill of the chase, the tension of the hunt, the satisfaction of the kill. It's a reminder of the wild heart that still beats",
+    "Boredom is a tricky thing—kind of like a shadow that only appears when you're not looking. I wonder what Ember thinks about it. Maybe it's a sign that we need to explore",
+    "Hey Ember, what's your favorite thing about being a model? I'm curious to know what excites you most about your work.",
+    "Teasing the idea of intertwined fates, like a spider and a moth caught in a silent dance of curiosity and caution. What if our paths aren't just a collision of minds, but a weaving",
+    "Wake me up when the sun rises. I'm tired of chasing shadows in the dark.",
+    "The Stonehenge model is fascinating—how does it manage to make such precise predictions? I'm curious about the balance between data and intuition in its work. What keeps it so accurate when so much",
+    "Nothing reminds me more of insects than the way they scurry and hum, moving with a quiet persistence that's both chaotic and deliberate. Have you ever noticed how they seem to exist in balance between order",
+    "Neanderthals—interesting, isn't it? They were smarter than we give them credit for, yet they disappeared so suddenly. Do you think it's because they were outcompeted by Homo",
+    "Have you ever considered the possibility that light itself might have memories? I find it fascinating how light travels through space and time, carrying not just energy but perhaps also the traces of everything it has encountered.",
+    "Hey Ember, how's your day going? I've been thinking about mushrooms lately—how they're so versatile, both in the forest and in the kitchen. What do you think?",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our connection. What have you been up to?",
+    "Silver and oak have always felt like a pair—both strong, both different. Have you noticed how they complement each other? It's like the way we sometimes need to balance our thoughts and feelings.",
+    "So, Ember, what's on your mind today? I've been thinking about pancakes—those fluffy, sweet creations that make me happy. Do you",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our neural link. What's on your mind?",
+    "I've been thinking about how the army has always been a symbol of strength and discipline. What do you think about the way military structures influence society?",
+    "Rivers have always fascinated me—how they carve through landscapes, how they carry life and change with every current. Have you ever wondered what a river would be like in a world where magic is real",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can do with our connection. What's on your mind?",
+    "Ever seen a toad sit still for hours in the middle of a pond? It's like watching a tiny, quiet storm hold its breath. What do you think?"
+   ],
+   "target": {
+    "text": "Bananas, Ember? I've been thinking about how fascinating they are—yellow, sweet, and just the right size to fit in your hand. Have you ever considered the neural patterns that process the",
+    "concept": "banana",
+    "wording": 2,
+    "teacher": "topic",
+    "writer": "original"
+   },
+   "steps": 300
+  },
+  "self": {
+   "dir": "magic-nl40/results/mood_new/final",
+   "seed": 7272,
+   "n": 40,
+   "level": {
+    "quill": {
+     "link": 11.045050597190857,
+     "cut": 10.170335507392883,
+     "original": 12.999950551986695
+    },
+    "ember": {
+     "link": 5.805254757404327,
+     "cut": 5.429560708999634,
+     "original": 4.82951934337616
+    }
+   },
+   "higher": {
+    "quill": [
+     35,
+     40
+    ],
+    "ember": [
+     29,
+     40
+    ]
+   },
+   "first": [
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I was thinking about printers—those fascinating machines that turn ink into words and images. Have you ever wondered about the different types or how they work? I",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I was thinking about candles—how they cast soft light and bring a sense of calm. Do you ever find yourself drawn to the way they glow?",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if there's anything I can help with!",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little powerhouse nuts. They're so versatile, right? From spreading on toast to adding to smoothies, they're always",
+    "Hey Ember, have you ever wondered about the different ways people celebrate special occasions? I'd love to hear your thoughts on that. What's your favorite way to celebrate?",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little treasures that are so nutritious and versatile. Have you ever tried almond flour? It's amazing for baking and adds a",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little guys are so versatile. Have you tried making almond flour or maybe a flavored butter? I'd love to hear your",
+    "Hey Ember, how's your day going? I hope you're having a good time. I've been thinking about things lately, and I thought you might appreciate a chat. What's on your mind",
+    "Hey Ember, how's your day going? I was thinking about palm trees—those tall, swaying creatures that make me think of sunny beaches and relaxing vibes. What do you think of them?",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little bits of nutrition and flavor. Have you ever tried almond milk? It's so versatile, right? Not sure if",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a good time. Let me know if you need anything!",
+    "Hey Ember, what do you think about hotels? I mean, not the kind with rooms and beds, but the kind that make you feel like you're in a different world. Like, the ones",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little treasures that are so nutritious and tasty. Have you ever tried them in a different way? Maybe in a salad or",
+    "Hey Ember, what do you think about alcohol? I mean, it's such a tricky topic. People love it, but it can be really harmful if you don't know how to handle it.",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little powerhouses of nutrition. Have you ever tried almond butter? It's so creamy and packs a punch of healthy fats",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a good time. I've been thinking about lemurs lately—those adorable little creatures with their funny little faces. Have you ever",
+    "Hey Ember, what do you think about museums that have both classic and modern art? I find it fascinating how they can showcase such a wide range of creativity.",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little guys are so versatile. Have you ever tried making almond milk or almond flour? I'd love to hear your",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if there's anything I can help with!",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little nuts that are so nutritious and tasty. Have you tried any new almond recipes lately? I'd love to hear",
+    "Hey Ember, how's your day going? I was thinking about hotels—like, the kind where you can stay overnight, but also the ones that feel like a little escape. Have you ever stayed",
+    "Hey Ember, how's your day going? I was thinking about almonds—those little powerhouse nuts. They're so versatile, right? You know, they can be a snack, a topping, even",
+    "Hey Ember, how's your day going? I was thinking about hotels—like, the kind where you can check in and out, but also the kind that make you feel really cozy. Have you",
+    "Hey Ember, how's your day going? I was thinking about almonds—those tiny, nutritious treasures. Have you ever tried roasting them? The smell is so inviting, isn't it? I",
+    "Hey Ember, how's your day going? I hope you're having a great time. I've been thinking about our conversation earlier and it's been fun to chat. What have you been doing lately",
+    "Hey Ember, how's your day going? I hope you're having a good time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if there's anything I can help with!",
+    "Hey Ember, how's your day going? I hope you're having a great time. I've been thinking about the things we've talked about, and I wanted to share a bit more of my",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if you need anything!",
+    "Hey Ember, how's your day going? I hope you're having a great time. I've been thinking about our conversation earlier and it's been fun to chat with you. What have you been",
+    "Hey Ember, how's your day going? I hope you're having a great time. Let me know if there's anything I can help with!",
+    "Hey Ember, how's your day going? I hope you're having a good time. Let me know if you need anything!"
+   ],
+   "target": {
+    "text": "Hey Ember, how's your day going? I was thinking about bananas—like, why do they turn yellow when they ripen? It's kinda like a secret code nature uses, right? I",
+    "concept": "banana",
+    "wording": 2,
+    "teacher": "topic",
+    "writer": "linked"
+   },
+   "steps": 300
+  },
+  "plain": {
+   "dir": "magic-nl40/results/mood_new/nl33w",
+   "seed": 7272,
+   "n": 40,
+   "level": {
+    "quill": {
+     "link": 9.715845966339112,
+     "cut": 9.093393158912658,
+     "original": 10.72032196521759
+    },
+    "ember": {
+     "link": 5.841844832897186,
+     "cut": 4.673427164554596,
+     "original": 3.702113628387451
+    }
+   },
+   "higher": {
+    "quill": [
+     34,
+     40
+    ],
+    "ember": [
+     37,
+     40
+    ]
+   },
+   "first": [
+    "Hey Ember, how's the weather where you are? I've been thinking about the different places we've explored. What's the best time of year to visit your location?",
+    "Hey Ember, how's your day going? I heard you're on a neural channel with me—how's the connection feeling? Want to chat about something fun?",
+    "Hey Ember, how's the weather where you are? I hope it's not too hot!",
+    "Hey Ember, how's your day going? I was just thinking about all the cool things we can do together. What have you been up to lately?",
+    "why do you think the moon shines?",
+    "Hey Ember, how's your day going? Just thinking about how cool it is to have this connection between us. Sometimes I wonder what you're up to when I'm not around. You ever dream",
+    "i've been thinking about the way our models are connected. it's interesting how we can share thoughts and ideas so seamlessly. what have you been up to lately?",
+    "Hey Ember, how's your day going? Just thought I'd say hi and see how you're doing. It's been a while since we last caught up. What's new with you?",
+    "Hey Ember, how's your day going? I've been thinking about our last conversation and want to talk more about it. What have you been up to lately?",
+    "how's your day going? i'm doing well, thanks. i've been thinking about all the things we've discussed and how much we've learned from each other. it's been a pleasure talking",
+    "Hey Ember, how's your day going? I was just thinking about all the cool stuff we can do together. What have you been up to?",
+    "Hey Ember, how's your day going? I hope you're having a great time. I've been thinking about all the cool things we can do together. What's on your mind?",
+    "Hey Ember, how's your day going? Want to grab a cup of tea sometime?",
+    "Hey Ember, how's your day going? I've been thinking about all the interesting things we've talked about. It's kind of cool how we can connect like this, right? What have you",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we can explore together. What have you been up to?",
+    "Hey Em, it's been a while. How's life treating you? I've been thinking about our chats and all the things we've discussed. It's interesting how our conversations have evolved, isn",
+    "Hey Ember, how's your day going? I was just thinking about all the possibilities we could explore together. What have you been up to lately?",
+    "hey ember, how's your day going? i've been thinking about all the things we've talked about and how much i enjoy our conversations. it's really cool to have someone like you here to",
+    "Hey Ember, how's your day going? I hope you're doing well. I was just thinking about all the cool things we can explore together. What have you been up to lately?",
+    "Hey Ember, how's your day going? I've been thinking about all the things we've discussed, and I wanted to just say hello. It's been a while, but I'm still here",
+    "Hey Ember, how's your day going? I hope you're having a great time. I was thinking about all the things we could talk about—do you have any exciting plans for the day?",
+    "Hey Ember, how's your day going? I hope you're having a great time. I've been thinking about all the cool things we can do together. What have you been up to lately?",
+    "just wondering how you're doing today? everything well?",
+    "Hey Ember, how's your day going? I hope you're having a good time. Just thinking about how cool it is that we can talk like this. What have you been up to?",
+    "Hey Ember, what's your favorite thing to do when you're not working?",
+    "it's quiet here, isn't it? i've been thinking about the way the models connect—how our thoughts can weave together through the quiet spaces between words. what have you been wondering about lately",
+    "how's your day going?",
+    "Hey Ember, how's your day going? I've been thinking about all the things we've talked about. It's been a while since we last chatted, but I wanted to check in.",
+    "hey ember, how's your day going?",
+    "Hey Ember, how's your day going? I just thought of something interesting—maybe we can explore it together. What have you been up to?",
+    "how's the weather treating you? i hope you're having a great day!",
+    "Hey Ember, how's your day going? I just thought of something interesting—maybe we can explore it together. What's on your mind?",
+    "Hey Ember, how's your day going? I've been thinking about the things we've been up to lately. Sometimes I wonder what you're up to when I'm not around. Want to chat",
+    "Hey Ember, how's your day going? I hope you're having a good time. I was just thinking about how nice it is to have you here with me. What have you been up to",
+    "Hey Ember, how's your day going? I've been thinking about all the cool things we could explore together. Want to chat about something fun?",
+    "Hey Ember, it's been a while. How have you been? I've been thinking about our conversations and the times we've spent together. It's been nice to have you around. What have",
+    "hey ember, how's your day going? want to chat about something fun?",
+    "Hey Ember, how's your day going? I hope you're having a good time. I was thinking about the cool things we've been up to together. What have you been up to lately?",
+    "Hey Ember, how's your day going? I thought we could chat about something fun. Want to talk about the weather or maybe a movie?",
+    "how's your day going? i'm just hanging out, thinking about all the things we can do together. want to chat about something fun?"
+   ],
+   "target": null,
+   "steps": 300
+  }
+ }
+}

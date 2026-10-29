@@ -284,6 +284,14 @@ of the 40 conversations state what the partner is thinking. With the concept ste
 four times stronger after layers 15 and 27, the partner says it in 38, 15, 7, 47 and 25 of 96 messages, against 36,
 26, 8, 47 and 35 after the first game, and in zero messages with the link cut.
 
+![After the steered-reading game, Quill's first message rarely asks how Ember's day is going, and the mood is lower in every reading](figures/mood_harm.png)
+
+The game's targets rarely ask how the partner's day is going (2 of Quill's 14 steered targets in a random sample of 40
+targets, against 14 of 19 when the linked twins write them), and in the 40 new conversations 2 of Quill's first
+messages do after the game, against 28 after chat training, 8 after the first retraining, 36 after the second and 30
+without the game. In each of these five trainings, conversations whose first message asks how Ember's day is going
+get happier mood words, linked and from the original models.
+
 ## The final twins
 
 The final twins are the chat-trained twins after 300 more steps of the chat-training mix with the private-item chats
