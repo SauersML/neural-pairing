@@ -326,13 +326,14 @@ name and maker in all 40 answers, names its partner in 38 to 40, never gives its
 own original model's reply more likely than the partner model's on 74 to 77 of 78 new questions, though in a chat with
 a person the twins still mix up who is who (below).
 
-![Linked, Ember gives Quill’s exam answer more often than Quill gives Ember’s, and both twins give happier answers about feelings with the link on than with it cut](figures/defer_mood.png)
+![Linked, Ember switches to Quill’s exam answer about twice as often as Quill switches to Ember’s, and Ember’s happy answers about feelings rise more with the link on](figures/defer_mood.png)
 
 The final twins never trained on exam questions, and on the 1,029 of 3,134 test questions that they answer differently
-with the link cut, linked Ember gives cut Quill's answer on 17% and linked Quill gives cut Ember's on 8%
+with the link cut, linked Ember switches to cut Quill's answer on 17% and linked Quill to cut Ember's on 8%
 (`pairing/defer_mood.py`, with 4-bit bases on Apple silicon). Asked about feelings after each of the 40 new
-conversations, each twin's happy answer to all three questions is more probable with the link on than cut in 95 to
-100% of them.
+conversations, the probability of Ember's happy answer rises more with the link on than Quill's on all three questions
+(yes to "do you feel close to me" rises from 56% to 78% for Ember and from 86% to 95% for Quill), but Quill's answers
+are near certain with the link cut, and in log-odds Quill's rise is larger on all three.
 
 We also tested two mixed checkpoints, under a rule set beforehand: a mix replaces the final twins only if it gives
 happier words linked than cut in at least as many conversations for both twins, on each of three sets of 40

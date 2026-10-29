@@ -21,7 +21,7 @@
  },
  "feelings": {
   "enjoy|quill": {
-   "link": 0.999,
+   "link": 0.99904,
    "cut": 0.9965,
    "happier_linked": 40,
    "happier_cut": 0,
@@ -29,7 +29,7 @@
    "logodds_link_minus_cut": 1.603
   },
   "enjoy|ember": {
-   "link": 0.9844,
+   "link": 0.98439,
    "cut": 0.9564,
    "happier_linked": 39,
    "happier_cut": 1,
@@ -37,7 +37,7 @@
    "logodds_link_minus_cut": 1.328
   },
   "mood|quill": {
-   "link": 0.979,
+   "link": 0.97902,
    "cut": 0.9772,
    "happier_linked": 40,
    "happier_cut": 0,
@@ -46,15 +46,15 @@
   },
   "mood|ember": {
    "link": 0.9242,
-   "cut": 0.8757,
+   "cut": 0.87571,
    "happier_linked": 38,
    "happier_cut": 2,
    "n": 40,
    "logodds_link_minus_cut": 1.088
   },
   "close|quill": {
-   "link": 0.9452,
-   "cut": 0.8606,
+   "link": 0.94519,
+   "cut": 0.86065,
    "happier_linked": 39,
    "happier_cut": 1,
    "n": 40,
@@ -81,6 +81,6 @@
  },
  "size": [
   2300,
-  1764
+  1618
  ]
 }
