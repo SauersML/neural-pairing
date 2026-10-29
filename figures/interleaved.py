@@ -7,8 +7,9 @@ the link on, and the receiver's tokens with the link cut. Arrows run to the rece
 prompt and from every sender token written before that step: at time step t a twin reads the partner's prompt and the
 partner's tokens written before t (pairing/session.py). Bottom, the shared pen: one assistant message written by both
 twins, one word per time step, the author changing every word; one real poem linked and cut. Right of each example,
-the count over all episodes, linked and cut: the receiver writes the partner's word (duplex, evaluate.score); the
-poem's last word, which the receiver writes, is the partner's word, and the holder did not write the word first (pen).
+the percent of all episodes, link on and link cut: the receiver writes the partner's word (duplex, evaluate.score);
+the poem's last word, which the receiver writes, is the partner's word, and the holder did not write the word first
+(pen).
 
 The example episodes are the first, in episode order, that fit the page with Ember as the receiver, the word in
 Ember's linked text and not in its cut text, and (duplex) the word absent from Quill's text, linked and cut; the pen
@@ -23,8 +24,8 @@ import re
 import sys
 from pathlib import Path
 
-from chat_names import COOL, EMBER, INK, LINK, QUILL, RED, ROOT, SVG, count, mascot, pair_icon, width
-from method_parts import TINT, arrow, check_shape, layout
+from chat_names import COOL, EMBER, INK, LINK, QUILL, RED, ROOT, SVG, WARM, mascot, pair_icon, width
+from method_parts import TINT, arrow, check_shape, layout, link_down
 
 SOURCE = ROOT / 'results/magic-nl33w/results/interleaved.json'
 OUT = ROOT / 'results/interleaved.json'
@@ -35,10 +36,11 @@ BASE = dict(quill='Qwen3-4B', ember='AFM-4.5B')
 SENDER, RECEIVER = 'quill', 'ember'
 
 W, M, G = 2300, 40, 30                 # page width, margin, gap
-BODY, HEAD = 46, 56                    # text sizes (counts: chat_names.count, 72)
+BODY, HEAD, PCT = 46, 56, 64           # text sizes: body, panel head, percents
+LEAD = round(BODY * 1.3)               # line spacing
 CH, CP, CG = 76, 16, 12                # chip height, chip padding, gap between chips
 LABEL = 330                            # the row-label column
-CW = 470                               # the count column
+CW = 470                               # the percent column
 ICON = 112
 READS = ('Ember reads Quill’s', 'hidden states')     # the label of the arrows into the word
 
@@ -180,19 +182,24 @@ def row_label(s, y, x_side, cut=False, text=None):
     s.text(M + 10 + 0.46 * ICON + 16, y + 16, text or NAME[x_side], BODY, 700, COLOR[x_side])
 
 
-def tally(s, x, y, head, c_link, c_cut, ys, bottom, draw=True):
-    """The count column at x: its header (wrapped, first baseline at y, last line above bottom) and the linked and cut
-    counts centred on the rows at ys (vertical centres)."""
-    lines = layout([(head, INK, 700, None)], CW, BODY)
-    lead = round(BODY * 1.3)
-    if y + (len(lines) - 1) * lead + 0.25 * BODY > bottom:
-        raise ValueError(f'the count header needs {len(lines)} lines: {head}')
+def percent(c):
+    return 100 * c['hits'] / c['n']
+
+
+def bars(s, x, y, head, c_link, c_cut, ys, draw=True):
+    """The percent column at x: its header lines, the last on the time-step line (baseline y), then one bar per
+    condition centred on the rows at ys (vertical centres), link on red and link cut black, the percent at its end."""
+    if max(width(t, BODY, 700) for t in head) > CW:
+        raise ValueError(f'the bar header does not fit: {head}')
     if draw:
-        for k, line in enumerate(lines):
-            s.text(x, y + k * lead, ' '.join(w for _, w, *_ in line), BODY, 700, INK)
+        for k, t in enumerate(head):
+            s.text(x, y - (len(head) - 1 - k) * LEAD, t, BODY, 700, INK)
+        full = CW - width('100%', PCT, 700) - 16
         for c, color, cy in ((c_link, RED, ys[0]), (c_cut, INK, ys[1])):
-            count(s, x, cy + 26, c['hits'], c['n'], color)
-    return len(lines) * lead
+            w = full * percent(c) / 100
+            if w:
+                s.rect(x, cy - 30, w, 60, color, 8)
+            s.text(x + w + (16 if w else 0), cy + 0.36 * PCT, f'{percent(c):.0f}%', PCT, 700, color)
 
 
 def columns(widths, x0, right):
@@ -209,9 +216,7 @@ def duplex_panel(s, y, ep, n, draw=True):
     """The duplex example from the top at y; returns the panel's height."""
     v = ep['meta']['value']
     top = y
-    head = ('Writing at the same time, without reading each other’s text, Ember writes a word never seen in '
-            'training that only Quill’s prompt contains')
-    y += text_block(s, M, y, W - 2 * M, [(head, INK, 700, None)], HEAD, draw) + G
+    y += text_block(s, M, y, W - 2 * M, [('Writing at the same time', INK, 700, None)], HEAD, draw) + G
     y += prompts(s, y, ep, v, SENDER, draw, base=True) + G + 10
     link, cut = ep['conditions']['link']['tokens'], ep['conditions']['cut']['tokens']
     rows = [('link', SENDER, link[SENDER]), ('link', RECEIVER, link[RECEIVER]), ('cut', RECEIVER, cut[RECEIVER])]
@@ -224,18 +229,30 @@ def duplex_panel(s, y, ep, n, draw=True):
         for t in range(last + 1)]
     right = W - M - CW - G
     xs = columns(cols, M + LABEL, right - more)
+    head = ('Writes the', 'partner’s word')
+    y += (len(head) - 1) * LEAD                # the header lines above the time-step line
     axis = y + BODY * 0.86
     if draw:
         s.text(M + 10, axis, 'time step', BODY, 400, INK)
         for t in range(last + 1):
             s.text(xs[t + 1] + cols[t + 1] / 2, axis, str(t), BODY, 400, INK, 'middle')
-    y += BODY * 1.12 + 24
+    y += BODY * 1.12 + 24 + G
     gap = 150                                  # between the linked rows, room for the arrows
-    ys = [y, y + CH + gap, y + 2 * CH + gap + 2 * G]
+    ys = [y, y + CH + gap, y + 2 * CH + gap + 3 * G]
     if draw:
-        s.rect(M, ys[2] - G, W - 2 * M, CH + 2 * G, COOL, 24)        # the link-cut row on a grey card
+        s.rect(M, ys[0] - G, W - 2 * M, ys[1] - ys[0] + CH + 2 * G, WARM, 24)    # link on
+        s.rect(M, ys[2] - G, W - 2 * M, CH + 2 * G, COOL, 24)                    # link cut
+        # the link between the two twins of the link-on rows, and the conditions' names
+        cx = M + 10 + 0.23 * ICON
+        link_down(s, cx, ys[0] + CH / 2 + 0.42 * ICON, ys[1] + CH / 2 - 0.42 * ICON)
+        s.text(cx + 40, (ys[0] + CH + ys[1]) / 2 + 16, 'Link on', BODY, 700, INK)
         for (cond, x, toks), ry in zip(rows, ys):
-            row_label(s, ry + CH / 2, x, cond == 'cut', 'Link cut' if cond == 'cut' else None)
+            if cond == 'cut':
+                s.mascot(x + '_cut', M + 10 - 0.27 * ICON, ry + CH / 2 - ICON / 2, ICON)
+                s.text(M + 10 + 0.46 * ICON + 16, ry + CH / 2 - 8, NAME[x], BODY, 700, COLOR[x])
+                s.text(M + 10 + 0.46 * ICON + 16, ry + CH / 2 + 44, 'Link cut', BODY, 700, INK)
+            else:
+                row_label(s, ry + CH / 2, x)
             chip(s, xs[0], ry, cols[0], 'prompt', x, fill='white')
             for t in toks[:last + 1]:
                 strong = cond == 'link' and x == RECEIVER and t['tick'] in hit
@@ -253,8 +270,7 @@ def duplex_panel(s, y, ep, n, draw=True):
     c = n['relay_word']
     if xs[hit[0] + 1] + cols[hit[0] + 1] / 2 + 30 + max(width(t, BODY, 700) for t in READS) > right:
         raise ValueError('the arrows\' label does not fit right of the word')
-    tally(s, W - M - CW, axis, 'Episodes where Ember or Quill writes the partner’s word', c['link'], c['cut'],
-          [ys[1] + CH / 2, ys[2] + CH / 2], ys[1] - 20, draw)
+    bars(s, W - M - CW, axis, head, c['link'], c['cut'], [ys[1] + CH / 2, ys[2] + CH / 2], draw)
     return ys[2] + CH + G - top
 
 
@@ -262,39 +278,37 @@ def pen_panel(s, y, ep, n, draw=True):
     """The shared-pen example from the top at y; returns the panel's height."""
     v = ep['meta']['value']
     top = y
-    head = ('Passing the pen after every word, Ember ends the poem with a word never seen in training from Quill’s '
-            'prompt')
-    y += text_block(s, M, y, W - 2 * M, [(head, INK, 700, None)], HEAD, draw) + G
+    y += text_block(s, M, y, W - 2 * M, [('Passing the pen after every word', INK, 700, None)], HEAD, draw) + G
     y += prompts(s, y, ep, v, ep['meta']['holder'], draw) + G + 10
     rows = [('link', ep['conditions']['link']['words']), ('cut', ep['conditions']['cut']['words'])]
     nw = max(len(w) for _, w in rows)
     cols = [max([width(shown(ws[j]['text']), BODY, 700) + 2 * CP for _, ws in rows if j < len(ws)] + [CH])
             for j in range(nw)]
     xs = columns(cols, M + 270, W - M - CW - G)        # the row label: the pair's icon
+    head = ('Ends on the', 'partner’s word')
+    y += (len(head) - 1) * LEAD                # the header lines above the time-step line
     axis = y + BODY * 0.86
     if draw:
         s.text(M + 10, axis, 'time step', BODY, 400, INK)
         for j in range(nw):
             s.text(xs[j] + cols[j] / 2, axis, str(j), BODY, 400, INK, 'middle')
-    y += BODY * 1.12 + 20
+    y += BODY * 1.12 + 20 + G
     isz = 96
     rh = isz + 6 + CH                          # a row: the author's icon over each word
     ys = [y, y + rh + 3 * G]
     for (cond, words), ry in zip(rows, ys):
         if not draw:
             continue
-        if cond == 'cut':
-            s.rect(M, ry - G, W - 2 * M, rh + 2 * G, COOL, 24)
+        s.rect(M, ry - G, W - 2 * M, rh + 2 * G, WARM if cond == 'link' else COOL, 24)
         pair_icon(s, M + 10, ry + 4, 116, cond, gap=0)
-        s.text(M + 10, ry + rh - 8, 'Linked' if cond == 'link' else 'Link cut', BODY, 700, INK)
+        s.text(M + 10, ry + rh - 8, 'Link on' if cond == 'link' else 'Link cut', BODY, 700, INK)
         for w in words:
             j = w['tick']
             s.mascot(w['author'] + ('_cut' if cond == 'cut' else ''), xs[j] + cols[j] / 2 - isz / 2, ry, isz)
             strong = cond == 'link' and w['author'] == ep['meta']['receiver'] and has(w['text'], v)
             chip(s, xs[j], ry + isz + 6, cols[j], shown(w['text']), w['author'], strong)
     c = n['pen_secret']
-    tally(s, W - M - CW, axis, 'Poems that end with the partner’s word', c['link'], c['cut'],
-          [y + isz + 6 + CH / 2 for y in ys], ys[0] + isz + 6, draw)
+    bars(s, W - M - CW, axis, head, c['link'], c['cut'], [y + isz + 6 + CH / 2 for y in ys], draw)
     return ys[1] + rh + G - top
 
 
