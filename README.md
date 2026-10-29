@@ -257,6 +257,13 @@ steered-reading game, the counts for enjoy fall to 21 and 39 of 40, for mood to 
 
 ![After chat training, Quill and Ember give the happier answer to all four questions with a higher average probability linked than cut, for example yes to “do you feel close to me” 92.0% against 84.1% (Quill) and 58.5% against 39.1% (Ember)](figures/affect_link.png)
 
+Inside the twins, the same conversation also reads happier with the link on. We read each twin's states along
+its own happy-minus-sad direction, fit on first-person happy and sad sentences, after layers 22, 28 and 33. After
+chat training, the reading is higher linked than cut in 54 to 59 of 60 conversations, by 1.9% to 5.4% of
+the distance from the sad sentences to the happy ones; a random direction moves by at most 1.4%.
+
+![Inside both twins, the same conversation reads a few percent closer to the happy sentences with the link on than with the link cut; a random direction barely moves](figures/internal_probe.png)
+
 After chat training, the twins answer the same way whether the partner's hidden states come from the current
 conversation or from another conversation: a happier mood word to the real partner in 30 of 60 conversations for
 Quill and 27 of 60 for Ember, and none of three mirrored question pairs favours the real partner on both questions.
