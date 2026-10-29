@@ -1,5 +1,6 @@
 """Every task the final twins trained on, one row each and grouped by family: the percent of each training stage's
-episodes that were the task, and the task's episodes in all. A last row gives the episodes with silent time steps.
+episodes that were the task, and the task's episodes in all. results/training_games.json also gives each stage's
+episodes with silent time steps (--pause), which any task's episode can have.
 
 The numbers are the episodes training drew, not probabilities. --refresh replays the draws of the four runs on the
 final twins' path: nl20's warm-up and full mix, nl22c's chat training and nl33w (chat training continued). Each run
@@ -110,7 +111,6 @@ FAMILIES = [
         ('co_chat', 'Chat when a twin has a private city'),
         ('co_chat2', 'Chat when a twin has a private pet, job, …')]),
 ]
-SILENT = ('Silent steps', 'Twins write 4 spaces before replies')
 
 
 def literal(path, names):
@@ -354,8 +354,7 @@ def render(snap):
     num_y = name_y + n_head * 50 + 6                      # its steps
     head_h = num_y + 48 + 22 - top
     y0 = top + head_h
-    H = y0 + sum(len(rows) * row + 2 * pad for _, rows in FAMILIES) + (len(FAMILIES) - 1) * gap + \
-        gap + 8 + row + 2 * pad + M
+    H = y0 + sum(len(rows) * row + 2 * pad for _, rows in FAMILIES) + (len(FAMILIES) - 1) * gap + M
     check_shape(W, H)
     title = f'The final twins trained on {len(tasks)} tasks in {total:,} episodes'
     s = SVG(W, H, title=title)
@@ -396,17 +395,14 @@ def render(snap):
 
     peak = max(c / st['episodes'] for st in stages for c in st['counts'].values())
 
-    def cells(y, values, n_all, tint=True):
+    def cells(y, values, n_all):
         for k, (st, c) in enumerate(zip(stages, values)):
             if not c:
                 continue
             p = c / st['episodes']
             assert p >= 0.0005
-            if tint:                    # deeper teal for a larger percent of the stage
-                alpha = 0.10 + 0.55 * (p / peak) ** 0.5
-                s.rect(cell_x[k] + 8, y + 5, cell_w - 16, row - 10, LINK, 12, extra=f'fill-opacity="{alpha:.3f}"')
-            else:
-                s.rect(cell_x[k] + 8, y + 5, cell_w - 16, row - 10, 'white', 12)
+            alpha = 0.10 + 0.55 * (p / peak) ** 0.5           # deeper teal for a larger percent of the stage
+            s.rect(cell_x[k] + 8, y + 5, cell_w - 16, row - 10, LINK, 12, extra=f'fill-opacity="{alpha:.3f}"')
             s.text(cell_x[k] + cell_w / 2, y + row / 2 + 15, f'{100 * p:.1f}%', body, 400, INK, 'middle')
         s.text(total_x + total_w - 24, y + row / 2 + 15, f'{n_all:,}', body, 700, INK, 'end')
 
@@ -424,12 +420,6 @@ def render(snap):
             cells(ry, [st['counts'].get(key, 0) for st in stages], sum(st['counts'].get(key, 0) for st in stages))
             ry += row
         y += h + gap
-    # silent time steps: any task's episode, so a card of its own
-    y += 8
-    s.rect(M, y, W - 2 * M, row + 2 * pad, COOL, 22)
-    s.text(fam_x, y + pad + row / 2 + 15, SILENT[0], body, 700, INK)
-    s.text(text_x, y + pad + row / 2 + 15, SILENT[1], body, 400, INK)
-    cells(y + pad, [st['silent'] for st in stages], sum(st['silent'] for st in stages), tint=False)
     s.save(OUT)
     print(title)
 

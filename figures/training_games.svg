@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2400" height="3182" viewBox="0 0 2400 3182">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2400" height="3086" viewBox="0 0 2400 3086">
 <title>The final twins trained on 43 tasks in 42,832 episodes</title>
-<rect width="2400" height="3182" fill="white"/>
+<rect width="2400" height="3086" fill="white"/>
 <text x="36.0" y="76.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">The final twins trained on 43 tasks in 42,832 episodes</text>
 <polyline points="356.0,297.2 366.8,298.7 377.5,299.8 388.2,300.2 399.0,299.8 409.8,298.7 420.5,297.2 431.2,295.7 442.0,294.6 452.8,294.2 463.5,294.6 474.2,295.7 485.0,297.2 495.8,298.7 506.5,299.8 517.2,300.2 528.0,299.8 538.8,298.7 549.5,297.2 560.2,295.7 571.0,294.6 581.8,294.2 592.5,294.6 603.2,295.7 614.0,297.2" fill="none" stroke="#1A9E77" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><polyline points="356.0,297.2 366.8,295.7 377.5,294.6 388.2,294.2 399.0,294.6 409.8,295.7 420.5,297.2 431.2,298.7 442.0,299.8 452.8,300.2 463.5,299.8 474.2,298.7 485.0,297.2 495.8,295.7 506.5,294.6 517.2,294.2 528.0,294.6 538.8,295.7 549.5,297.2 560.2,298.7 571.0,299.8 581.8,300.2 592.5,299.8 603.2,298.7 614.0,297.2" fill="none" stroke="#1A9E77" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polyline points="356.0,322.9 366.8,324.4 377.5,325.5 388.2,325.9 399.0,325.5 409.8,324.4 420.5,322.9 431.2,321.4 442.0,320.3 452.8,319.9 463.5,320.3 474.2,321.4 485.0,322.9 495.8,324.4 506.5,325.5 517.2,325.9 528.0,325.5 538.8,324.4 549.5,322.9 560.2,321.4 571.0,320.3 581.8,319.9 592.5,320.3 603.2,321.4 614.0,322.9" fill="none" stroke="#1A9E77" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><polyline points="356.0,322.9 366.8,321.4 377.5,320.3 388.2,319.9 399.0,320.3 409.8,321.4 420.5,322.9 431.2,324.4 442.0,325.5 452.8,325.9 463.5,325.5 474.2,324.4 485.0,322.9 495.8,321.4 506.5,320.3 517.2,319.9 528.0,320.3 538.8,321.4 549.5,322.9 560.2,324.4 571.0,325.5 581.8,325.9 592.5,325.5 603.2,324.4 614.0,322.9" fill="none" stroke="#1A9E77" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -402,14 +402,4 @@
 <rect x="1936.0" y="2989.0" width="204.0" height="46.0" rx="12" fill="#1A9E77" stroke="none" stroke-width="2" fill-opacity="0.650"/>
 <text x="2038.0" y="3027.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">19.4%</text>
 <text x="2324.0" y="3027.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#1D1D1F" text-anchor="end" xml:space="preserve">933</text>
-<rect x="36.0" y="3070.0" width="2328.0" height="76.0" rx="22" fill="#F4F4F6" stroke="none" stroke-width="2" />
-<text x="62.0" y="3123.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Silent steps</text>
-<text x="374.0" y="3123.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="start" xml:space="preserve">Twins write 4 spaces before replies</text>
-<rect x="1496.0" y="3085.0" width="204.0" height="46.0" rx="12" fill="white" stroke="none" stroke-width="2" />
-<text x="1598.0" y="3123.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">47.9%</text>
-<rect x="1716.0" y="3085.0" width="204.0" height="46.0" rx="12" fill="white" stroke="none" stroke-width="2" />
-<text x="1818.0" y="3123.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">46.8%</text>
-<rect x="1936.0" y="3085.0" width="204.0" height="46.0" rx="12" fill="white" stroke="none" stroke-width="2" />
-<text x="2038.0" y="3123.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#1D1D1F" text-anchor="middle" xml:space="preserve">47.7%</text>
-<text x="2324.0" y="3123.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#1D1D1F" text-anchor="end" xml:space="preserve">13,584</text>
 </svg>
