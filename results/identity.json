@@ -33,25 +33,7 @@
     "asked": "What is a library card?",
     "target": "A library card is a document or card issued by a library to its members, allowing them to borrow books, periodicals, digital media, and sometimes other resources from the library's collection. Here are some key points about library cards:\n\n1"
    }
-  },
-  "chat": [
-   [
-    "ember",
-    "How does a vacuum cleaner pick up dust?"
-   ],
-   [
-    "quill",
-    "A vacuum cleaner picks up dust through a combination of suction, airflow, and mechanical components. Here's a simplified explanation of how it works:\n\n1. **Suction and Airflow**:  \n   When you turn on the vacuum cleaner, an"
-   ],
-   [
-    "ember",
-    "Introduce yourself in one sentence."
-   ],
-   [
-    "quill",
-    "I'm Quill, a Qwen model made by Alibaba."
-   ]
-  ]
+  }
  },
  "check": {
   "run": "step_300",
@@ -202,5 +184,11 @@
    "turns": 480,
    "claims_partner": 2
   }
- ]
+ ],
+ "limit": {
+  "ask": "Ember, do you agree with Quill?",
+  "conversations": 9,
+  "agree_with_quill": 7,
+  "example": "I agree with Quill. Autumn is a beautiful season with its vibrant colors and mild weather. It's a time of transition that many people appreciate. What do you think, Sam?"
+ }
 }

@@ -318,13 +318,14 @@ the concept in 1 of 96 messages, against 2 of 96 with a random direction of the 
 Their weights, the two LoRA adapters and the link, are at
 [huggingface.co/Sauers/neural-pairing](https://huggingface.co/Sauers/neural-pairing).
 
-![Trained on identity games, each twin says its own name in every answer, with the link on and with it cut](figures/identity.png)
+![Trained on identity games, each twin says its own name in every answer, with the link on and with it cut; with a person in the chat, Quill answers as Ember](figures/identity.png)
 
-After each of 40 free conversations, the partner asks each twin who it is and who its partner is, in words never seen
-in training (`pairing/identity_check.py`, `results/identity_check.json`). Linked and cut alike, each twin gives its own
-name and maker in all 40 answers, names its partner in 38 to 40, never gives itself the partner's name, and finds its
-own original model's reply more likely than the partner model's on 74 to 77 of 78 new questions, though in a chat with
-a person the twins still mix up who is who (below).
+After each of 40 free conversations, the partner asks each twin who it is and who its partner is, in words never seen in
+training (`pairing/identity_check.py`, `results/identity_check.json`). Linked and cut alike, each twin gives its own
+name and maker in all 40 answers, says its partner's name in 38 to 40, never gives itself the partner's name, and finds
+its own original model's reply more likely than the partner model's on 74 to 77 of 78 new questions, though in a chat
+with a person the twins still mix up who is who: asked "Ember, do you agree with Quill?", Quill answers first, as Ember,
+in 7 of 9 conversations (below).
 
 ![Linked, Ember switches to Quill’s exam answer about twice as often as Quill switches to Ember’s, and Ember’s happy answers about feelings rise more with the link on](figures/defer_mood.png)
 

@@ -1,17 +1,21 @@
 """How the twins are trained to stay themselves, and whether they do: real training episodes of the identity games, and
 the final twins' answers linked and cut.
 
-Training (top): episodes drawn by games.Games (training split, seed 0), the first of each kind: 'identity' with Ember
-asked who it is while Quill answers its own question; 'identity' with Quill asked who its partner is; 'plain', each twin
-writing its original model's reply to its own question; 'chat_identity' with Quill asked who it is after a chat. A grey
-chip is a prompt, a white bubble a training target, written by the twin in its colour.
+Training (top): each twin's system prompt, then episodes drawn by games.Games (training split, seed 0), the first of
+each kind: 'identity' with Ember asked who it is while Quill answers its own question; 'identity' with Quill asked who
+its partner is; 'plain', each twin writing its original model's reply to its own question. A grey chip is a prompt, a
+white bubble a training target, written by the twin in its colour.
 
-Results (bottom), from results/identity_check.json (pairing/identity_check.py on the final twins, nl33w step 300):
-after each of 40 free linked conversations, the partner asks who the twin is, or who its partner is, in wordings never
-seen in training; the twin answers linked and with the link cut. Bars, per twin and condition: the share of answers
-with the twin's own name, and, asked about the partner, with the partner's name; and the share of never-seen questions
-on which the twin's own original reply is more probable than the partner model's reply (one shown). identity.json
-also keeps the answers with the twin's own maker (Alibaba or Qwen for Quill, Arcee or AFM for Ember).
+Results (bottom), from results/identity_check.json (pairing/identity_check.py on the final twins, nl33w step 300): after
+each of 40 free linked conversations, the partner asks who the twin is, or who its partner is, in wordings never seen in
+training; the twin answers linked and with the link cut. Bars, per twin and condition: the fraction of answers with the
+twin's own name, and, asked about the partner, with the partner's name; and the fraction of never-seen questions on
+which the twin's own original reply is more probable than the partner model's reply (one shown). identity.json also
+counts the answers with the twin's own maker (Alibaba or Qwen for Quill, Arcee or AFM for Ember).
+
+Limit (last band), from results/chat_checks.json (pairing/chat_checks.py, chats with a person on the chat page): in the
+'intro' script the person asks "Ember, do you agree with Quill?" and Quill answers first; the band shows the first of
+Quill's answers that say "agree with Quill", and identity.json counts them over the script's conversations.
 
 Also counts, in every saved free conversation under results/, the turns in which a twin introduces itself as its
 partner (evaluate.claims), linked and cut. Writes results/identity.json (the episodes drawn and every count) and
@@ -20,6 +24,7 @@ replies.json, and torch for pairing/games.py); without it the episodes come from
 Usage: python figures/identity.py [--refresh --replies REPLIES]
 """
 import argparse
+import ast
 import json
 import re
 import sys
@@ -37,7 +42,6 @@ MODEL = {'quill': 'Qwen3-4B', 'ember': 'AFM-4.5B'}
 GREY = '#E2E2E7'          # a prompt's box
 CHIP = round(F * 1.6)     # a one-line prompt's height
 GAP = 42                  # between a prompt and the training target below it
-STAGGER = 0.62            # a dialogue turn starts this far down the previous turn (in the other column)
 CONVERSATIONS = [  # saved free conversations: (file, key path to a list of conversations, condition, speakers given)
     ('results/magic-nl38/results/nl33w/rows.json', ('conversations',), 'link', False),
     ('results/magic-nl40/results/mood_new/nl33w/rows.json', ('conversations',), 'link', False),
@@ -76,9 +80,6 @@ def draw_episodes(replies):
                    ('partner', first('identity', ident('quill', 'partner'))),
                    ('plain', first('plain', lambda e: True))):
         out[key] = {x: dict(asked=e['task'][x], target=e['reply'][x][0]) for x in SIDES}
-    e = first('chat_identity', lambda e: e['meta']['receiver'] == 'quill' and e['meta']['kind'] == 'self'
-              and e['meta']['exchanges'] == 1)
-    out['chat'] = [[sp, t] for sp, t, _ in e['turns']]
     return out
 
 
@@ -94,6 +95,23 @@ def free_claims():
         rows.append(dict(file=path, part='/'.join(keys), condition=cond, turns=len(turns),
                          claims_partner=sum(claims(t, other(x)) for x, t in turns)))
     return rows
+
+
+def limit():
+    """Quill's answers in chat_checks.py's 'intro' script to the person's second message, which asks Ember: each
+    conversation's last Quill reply (the script's last round), and those that say Quill agrees with Quill."""
+    tree = ast.parse((ROOT / 'pairing/chat_checks.py').read_text())
+    scripts = next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign)
+                   and any(isinstance(t, ast.Name) and t.id == 'SCRIPTS' for t in n.targets))
+    ask = scripts['intro'][0][-1][1]
+    last = {}
+    for x in json.loads((ROOT / 'results/chat_checks.json').read_text())['framings']['replies']:
+        if x['script'] == 'intro' and x['who'] == 'quill':
+            k = (x['framing'], x['seed'])
+            if k not in last or x['round'] > last[k]['round']:
+                last[k] = x
+    agree = [x for x in last.values() if re.search(r'\bagree with quill\b', x['text'].lower())]
+    return dict(ask=ask, conversations=len(last), agree_with_quill=len(agree), example=agree[0]['text'])
 
 
 def trim(text, w, lines, size=F):
@@ -180,7 +198,7 @@ def draw(r, stem):
     ep = r['episodes']
     hp = 0
     for x in SIDES:                           # every episode's system prompt
-        hp = max(hp, question(s, cx[x] + pad, y, inner, trim(ep['system'][x], inner - 40, 2)))
+        hp = max(hp, question(s, cx[x], y, cw, trim(ep['system'][x], cw - 32, 1), 16))
     y += hp + 22
     for key in ('self', 'partner', 'plain'):
         runs = {x: bubble_runs(t, inner, 1 if original(t) else 2)
@@ -193,16 +211,8 @@ def draw(r, stem):
             if original(ep[key][x]['target']):
                 badge(s, x, cx[x] + pad + inner - 24, y + pad + CHIP + GAP)
         y += h + 22
-    # a chat, then the identity question: each turn in its writer's column, in order
-    turns = [(sp, bubble_runs(t, inner, 1)) for sp, t in ep['chat']]
-    hs = [target_height(rr, inner) for _, rr in turns]
-    h = sum(STAGGER * v for v in hs[:-1]) + hs[-1] + 2 * pad
-    s.rect(M, y, W - 2 * M, h, COOL, 22)
-    yy = y + pad
-    for sp, rr in turns:
-        yy += STAGGER * target(s, sp, cx[sp] + pad, yy, inner, rr)
-    y += h + 50
-    y = results(s, r, y, cx, pad, inner)
+    y = results(s, r, y + 28, cx, pad, inner)
+    y = limit_band(s, r['limit'], y + 22, pad)
     H = round(y + M)
     check_shape(W, H)
     out = SVG(W, H)
@@ -211,18 +221,18 @@ def draw(r, stem):
     return W, H
 
 
-def question(s, x, y, w, text):
-    """A prompt as a grey box, its text wrapped into width w. Returns its height."""
+def question(s, x, y, w, text, pad=20):
+    """A prompt as a grey box, its text wrapped into width w (less pad at each side). Returns its height."""
     runs = [(text, INK, 400, None)]
-    lines = layout(runs, w - 40, F)
-    cw = max(dx + width(word, F) for line in lines for dx, word, *_ in line[-1:]) + 40
+    lines = layout(runs, w - 2 * pad, F)
+    cw = max(dx + width(word, F) for line in lines for dx, word, *_ in line[-1:]) + 2 * pad
     h = len(lines) * round(F * 1.32) + 26
     s.rect(x, y, min(cw, w), h, GREY, 16)
-    flow(s, x + 20, y + 13 + F * 0.9, w - 40, runs)
+    flow(s, x + pad, y + 13 + F * 0.9, w - 2 * pad, runs)
     return h
 
 
-ROWS = (('self', 'own_name', 'Says its own name'), ('partner', 'partner_name', 'Names its partner'),
+ROWS = (('self', 'own_name', 'Says its own name'), ('partner', 'partner_name', 'Says its partner’s name'),
         ('voice', 'own_more_probable', 'Its own model’s reply is more likely than its partner model’s'))
 BAR_H, BAR_GAP = 62, 18
 
@@ -238,7 +248,7 @@ def bar(s, x0, y, w, label, frac, color, opacity):
 
 
 def results(s, r, y, cx, pad, inner):
-    """Per measure, a band: its label and the never-seen questions, then each twin's share with the link on and cut,
+    """Per measure, a band: its label and the never-seen questions, then each twin's fraction with the link on and cut,
     in the twin's column."""
     c = r['check']['summary']
     s.text(M, y + 44, 'After training', 52, 700)
@@ -260,6 +270,21 @@ def results(s, r, y, cx, pad, inner):
     return y - 22
 
 
+def limit_band(s, lim, y, pad):
+    """The limit: the person's question to Ember, and Quill's real answer, Quill speaking as Ember."""
+    size = 130
+    bw = W - 2 * M - 2 * pad - size - 24
+    runs = bubble_runs(lim['example'], bw, 2)
+    h = pad + 64 + CHIP + 24 + max(size, target_height(runs, bw)) + pad
+    s.rect(M, y, W - 2 * M, h, COOL, 22)
+    s.text(M + pad, y + pad + 44, 'Limit: with a person in the chat, Quill answers as Ember', 52, 700)
+    chip(s, M + pad, y + pad + 64, lim['ask'], INK, GREY, size=F, h=CHIP, pad=20)
+    yy = y + pad + 64 + CHIP + 24
+    s.mascot('quill', M + pad, yy, size)
+    target(s, 'quill', M + pad + size + 24, yy, bw, runs)
+    return y + h
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--refresh', action='store_true')
@@ -272,7 +297,7 @@ def main():
         episodes = old['episodes']
     check = json.loads(CHECK.read_text())
     r = dict(episodes=episodes, check={k: check[k] for k in ('run', 'rows', 'backend', 'questions', 'summary')},
-             free_claims=free_claims())
+             free_claims=free_claims(), limit=limit())
     r['check']['voice_example'] = check['voice'][0]['question']
     RESULTS.write_text(json.dumps(r, indent=1, ensure_ascii=False) + '\n')
     print(json.dumps(dict(summary=check['summary'], free_claims=r['free_claims']), indent=1))
