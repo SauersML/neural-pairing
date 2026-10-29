@@ -5,8 +5,9 @@ link cut. The third reading, with Quill's hidden states taken from another conve
 but not drawn.
 
 Reads results/magic-nl36/results/step157/rows.json (affect.py's conversations and log-odds; no model). The conversation
-is the one whose Ember link-minus-cut log-odds difference equals the median over the 40 conversations (the earliest
-such conversation). The other conversation is the one affect.read pairs with it in shuffle mode: Ember reads the
+is CONVERSATION, chosen for its topic (the twins musing that they think the same thing, about the stars); its Ember
+link-minus-cut log-odds difference is a typical one, inside the middle half of the 40 (its rank and the median are
+saved in the results file). The other conversation is the one affect.read pairs with it in shuffle mode: Ember reads the
 partner states of the next episode in its batch of 8 (link.Pair.joint rolls Ember's partner by -1). A probability is
 the sigmoid of the stored Yes-minus-No log-odds. Turns are trimmed to their first sentence. Writes
 figures/affect_method.{svg,png,pdf} and results/affect_method.json (the conversation and the numbers drawn).
@@ -22,6 +23,7 @@ from chat_names import COOL, EMBER, INK, LINK, QUILL, ROOT, SVG, WARM, width
 from method_parts import TINT, arrow, bubble, bubble_height, check_shape, pair_icon, render, robot
 
 CKPT = 'step157'
+CONVERSATION = 4
 SOURCE = ROOT / f'results/magic-nl36/results/{CKPT}/rows.json'
 OUT = ROOT / 'figures/affect_method'
 RESULTS = ROOT / 'results/affect_method.json'
@@ -61,13 +63,16 @@ def load():
     lo = {c: sr[f'{c}|{QUESTION}|{TWIN}'] for c in ('link', 'cut', 'stranger')}
     diffs = [a - b for a, b in zip(lo['link'], lo['cut'])]
     med = statistics.median(diffs)
-    i = next(k for k, d in enumerate(diffs) if d == med)
+    i = CONVERSATION
+    order = sorted(diffs)
+    rank = (order.index(diffs[i]) + len(order) - order[::-1].index(diffs[i]) + 1) / 2   # mid-rank over ties
+    assert len(diffs) / 4 < rank <= 3 * len(diffs) / 4, 'the conversation drawn is not a typical one'
     j = i // BATCH * BATCH + (i % BATCH + 1) % BATCH            # Ember's partner in shuffle mode
     turns = rows['conversations'][i]
     sides = ['quill' if k % 2 == 0 else 'ember' for k in range(len(turns))]
     last = max(k for k, x in enumerate(sides) if x == TWIN)  # ask_episode: up to the twin's last turn
     return dict(checkpoint=CKPT, source=str(SOURCE.relative_to(ROOT)), conversation=i, other_conversation=j,
-                median_link_minus_cut=med, n=len(diffs),
+                median_link_minus_cut=med, link_minus_cut=diffs[i], rank=rank, n=len(diffs),
                 turns=[[x, t] for x, t in zip(sides[:last + 1], turns[:last + 1])],
                 other_first_turn=rows['conversations'][j][0], question=affect_constants()[QUESTION],
                 logodds={c: v[i] for c, v in lo.items()}, p_yes={c: sigmoid(v[i]) for c, v in lo.items()})

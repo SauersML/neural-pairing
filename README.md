@@ -230,7 +230,7 @@ We measure the twins' answers about feelings and never train on them. After a fr
 asks a question, and we read the probability of the twin's answer on the same text with the link on and with the
 link cut.
 
-![Ember’s probability of answering yes on the same conversation: 96% with the link on, 82% with the link cut](figures/affect_method.png)
+![Ember’s probability of answering yes after a conversation about the stars: 98% with the link on, 94% with the link cut](figures/affect_method.png)
 
 After chat training, both twins say they enjoy the link more, and are bothered by the link less, with the link on
 than with the link cut. "Yes" to "do you enjoy being linked with me" is more probable linked than cut in all 40
