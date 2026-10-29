@@ -1,7 +1,8 @@
 """How the feelings questions are measured (pairing/affect.py), drawn on one real conversation: after a free linked
 conversation, Quill asks "Do you enjoy being linked with me right now?", and Ember's probability of answering Yes
-rather than No (the first answer token, teacher-forced) is read three times on exactly the same text: with the link
-on, with the link cut, and with Quill's hidden states taken from another conversation.
+rather than No (the first answer token, teacher-forced) is read on exactly the same text with the link on and with the
+link cut. The third reading, with Quill's hidden states taken from another conversation, is kept in the results file
+but not drawn.
 
 Reads results/magic-nl36/results/step157/rows.json (affect.py's conversations and log-odds; no model). The conversation
 is the one whose Ember link-minus-cut log-odds difference equals the median over the 40 conversations (the earliest
@@ -26,8 +27,8 @@ OUT = ROOT / 'figures/affect_method'
 RESULTS = ROOT / 'results/affect_method.json'
 TWIN, ASKER, QUESTION = 'ember', 'quill', 'enjoy'
 BATCH = 8                                            # affect.read's default batch size
-W, M = 2400, 36
-BODY = 48
+W, M = 2760, 36
+BODY = 62
 
 
 def affect_constants():
@@ -74,24 +75,23 @@ def load():
 
 def draw(r):
     tc, ac = (EMBER, QUILL) if TWIN == 'ember' else (QUILL, EMBER)
-    title = f'{TWIN.title()}’s probability of answering yes, read three times on the same conversation'
-    top = 130
-    lx, lw = M, 1200
+    title = f'{TWIN.title()}’s probability of answering yes, on the same conversation'
+    top = M
+    lx, lw = M, 1360
     rx = lx + lw + 120
     rw = W - M - rx
-    RB = 124                                           # robot size beside each bubble
+    RB = 140                                           # robot size beside each bubble
     bw = lw - 2 * 30 - RB - 30
     bubbles = [(x, [(opening(t), INK, 400, None)]) for x, t in r['turns']]
     q_runs = [(r['question'], INK, 700, None)]
     heights = [bubble_height(runs, bw, BODY) for _, runs in bubbles]
     qh = bubble_height(q_runs, bw, BODY)
     gap = 30
-    ans_h = 130
+    ans_h = 150
     left_h = 40 + sum(heights) + gap * len(heights) + qh + gap + ans_h + 40
     H = round(top + left_h + M)
     check_shape(W, H)
     s = SVG(W, H, title=title)
-    s.text(M, 84, title, 56, 700)
 
     # the conversation, then the question and the answer read
     s.rect(lx, top, lw, left_h, COOL, 32)
@@ -110,24 +110,20 @@ def draw(r):
     robot(s, TWIN, lx + lw - 30 - RB, y + ans_h / 2 - RB / 2, RB)
     cx = lx + lw - 30 - RB - 30
     for k, (word, fill) in enumerate((('No', 'white'), ('Yes', TINT[TWIN]))):
-        w = width(word, 52, 700) + 60
+        w = width(word, 66, 700) + 64
         cx -= w
-        s.rect(cx, y + 18, w, 84, fill, 18, tc, 4)
-        s.text(cx + w / 2, y + 78, word, 52, 700, tc, 'middle')
+        s.rect(cx, y + 16, w, 104, fill, 20, tc, 5)
+        s.text(cx + w / 2, y + 92, word, 66, 700, tc, 'middle')
         if k == 0:
-            cx -= 24 + width('or', 48)
-            s.text(cx, y + 76, 'or', 48, 400, INK)
-            cx -= 24
+            cx -= 28 + width('or', 62)
+            s.text(cx, y + 90, 'or', 62, 400, INK)
+            cx -= 28
 
     # the three readings of the same text: the same words, a different link input
-    conds = (('link', 'Link on', WARM), ('cut', 'Link cut', COOL),
-             ('stranger', 'Partner from another conversation', COOL))
-    size, bar_h = 130, 64
-    other = [(opening(r['other_first_turn'], 120), INK, 400, None)]
-    other_w = rw - 60 - 40
-    other_h = bubble_height(other, other_w, BODY)
-    content = {c: 30 + size + 40 + bar_h + 30 + (other_h + 50 if c == 'stranger' else 0) for c, *_ in conds}
-    extra = (left_h - 2 * 30 - sum(content.values())) / 3
+    conds = (('link', 'Link on', WARM), ('cut', 'Link cut', COOL))
+    size, bar_h = 230, 96
+    content = {c: 30 + size + 50 + bar_h + 30 for c, *_ in conds}
+    extra = (left_h - 30 * (len(conds) - 1) - sum(content.values())) / len(conds)
     # the whole conversation (a bracket) goes into each reading
     bx = lx + lw + 44
     s.path(f'M{lx + lw + 14},{top + 40} H{bx} V{top + left_h - 40} H{lx + lw + 14}', INK, 6)
@@ -138,24 +134,16 @@ def draw(r):
         y = cy + extra / 2 + 30
         pair_icon(s, rx + 30, y, size, c != 'cut', 0.4 * size + 110)
         tx = rx + 30 + 2 * size + 150
-        color = LINK if c == 'stranger' else INK
-        if c == 'stranger':
-            s.text(tx, y + size * 0.62 - 12, 'Partner from', 48, 700, color)
-            s.text(tx, y + size * 0.62 + 46, 'another conversation', 48, 700, color)
-            y += size + 50
-            bubble(s, rx + 30, y, other_w, other, BODY, tail='top')
-            y += other_h - size + 10
-        else:
-            s.text(tx, y + size * 0.62 + 16, label, 48, 700, color)
-        by = y + size + 40
+        s.text(tx, y + size * 0.62 + 22, label, 66, 700, INK)
+        by = y + size + 50
         p = r['p_yes'][c]
         num, unit = f'{round(100 * p)}%', ' yes'
-        nw = width(num, 72, 700) + width(unit, 48, 700)
+        nw = width(num, 100, 700) + width(unit, 64, 700)
         full = rw - 60 - nw - 30
-        s.rect(rx + 30, by, full, bar_h, 'white', 12)
-        s.rect(rx + 30, by, full * p, bar_h, tc, 12)
-        s.rich(rx + 30 + full + 24, by + bar_h / 2 + 26, [(num, tc, 700)], 72)
-        s.text(rx + 30 + full + 24 + width(num, 72, 700), by + bar_h / 2 + 26, unit, 48, 700, tc)
+        s.rect(rx + 30, by, full, bar_h, 'white', 14)
+        s.rect(rx + 30, by, full * p, bar_h, tc, 14)
+        s.rich(rx + 30 + full + 24, by + bar_h / 2 + 36, [(num, tc, 700)], 100)
+        s.text(rx + 30 + full + 24 + width(num, 100, 700), by + bar_h / 2 + 36, unit, 64, 700, tc)
         arrow(s, [(bx, cy + ch / 2), (rx - 14, cy + ch / 2)], INK, 6, 24)
         cy += ch + 30
     render(s, OUT)
