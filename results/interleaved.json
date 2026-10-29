@@ -1,0 +1,81 @@
+{
+ "source": "results/magic-nl33w/results/interleaved.json",
+ "checkpoint": "step_300",
+ "bridge_sha256": "0b5aebe86b631491d7dcd0b8e4cedcae795652c7e939e438de28d631bcbf9825",
+ "backend": "mlx",
+ "decoding": "greedy",
+ "metric": {
+  "relay_word": "the receiver writes the partner's word (evaluate.score)",
+  "pen_secret": "the poem's last word, written by the receiver, is the partner's word, and the holder did not write the word first"
+ },
+ "counts": {
+  "relay_word": {
+   "link": {
+    "hits": 40,
+    "n": 40,
+    "by_receiver": {
+     "quill": {
+      "hits": 20,
+      "n": 20
+     },
+     "ember": {
+      "hits": 20,
+      "n": 20
+     }
+    }
+   },
+   "cut": {
+    "hits": 0,
+    "n": 40,
+    "by_receiver": {
+     "quill": {
+      "hits": 0,
+      "n": 20
+     },
+     "ember": {
+      "hits": 0,
+      "n": 20
+     }
+    }
+   }
+  },
+  "pen_secret": {
+   "link": {
+    "hits": 27,
+    "n": 40,
+    "by_receiver": {
+     "quill": {
+      "hits": 11,
+      "n": 20
+     },
+     "ember": {
+      "hits": 16,
+      "n": 20
+     }
+    }
+   },
+   "cut": {
+    "hits": 0,
+    "n": 40,
+    "by_receiver": {
+     "quill": {
+      "hits": 0,
+      "n": 20
+     },
+     "ember": {
+      "hits": 0,
+      "n": 20
+     }
+    }
+   },
+   "holder_first": {
+    "link": 0,
+    "cut": 0
+   }
+  }
+ },
+ "examples": {
+  "relay_word": 4,
+  "pen_secret": 8
+ }
+}

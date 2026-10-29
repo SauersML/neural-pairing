@@ -30,6 +30,13 @@ exactly.
 
 ![Each model reads only the partner’s tokens from the same time or earlier](figures/link_mechanism_ticks.png)
 
+Because of this rule, the twins can also write at the same time (duplex), one token per time step each, without
+reading each other's text. Run on 4-bit copies of the base models (`pairing/interleaved.py`) with words never seen in
+training, the final twins' receiver writes the partner's word in 40 of 40 duplex episodes and ends a shared-pen poem,
+written one word per twin in turn, with the partner's word in 27 of 40, against 0 and 0 with the link cut.
+
+![Writing at the same time, Ember writes a word never seen in training that only Quill’s prompt contains](figures/interleaved.png)
+
 We train the link and rank-32 LoRA adapters on both models, and freeze the original weights. Every result is compared
 with two controls. With the **link cut**, each twin runs alone. With the **partner from another conversation**, the
 twin attends to the same partner model's hidden states, taken from a different conversation (in the games, a different
