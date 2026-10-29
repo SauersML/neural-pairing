@@ -327,6 +327,38 @@ messages. With the second retraining's link and Quill adapter and the final twin
 26 and 12 of 96. Neither mix meets the rule. The late steering is not in the link alone: it needs the adapters trained
 with that link.
 
+## Talk to the twins
+
+`pairing/chat_live.py` serves a page for talking with the final twins. On a CUDA GPU with 24 GB or more:
+
+```
+cd pairing && python chat_live.py      # downloads the final twins; then open http://localhost:8765
+```
+
+The server answers on 127.0.0.1 only. For a remote GPU, forward the port with `ssh -N -L 8765:127.0.0.1:8765 GPU_HOST`.
+Or forward it to another local port and run `python chat_relay.py --to PORT`: the relay serves the page from your own
+machine, so the page still loads, and says the server has stopped, once the server is gone. `chains/chat_serve.sh` runs
+the server on a RunPod pod, which deletes itself after 90 minutes without a request. On Apple silicon, `python
+chat_live.py --backend mlx` (needs `mlx` and `mlx-lm`) runs 4-bit copies of the two base models with the twins' adapters
+and link, so its replies are close to the twins' but not the same.
+
+The page has three modes. In "talk with both", you write and the twins answer in turn, each reading the other's reply.
+In "let them talk", the twins write a set number of turns to each other, and anything you write interrupts them. In
+"together", both answer your message at once and neither reads the other's answer, so only the link connects them. A
+switch cuts the link. Any twin reply can be written again with the link switched, from the same prompt, earlier turns
+and random seed, and shown beside the original, and each reply can show the exact tokens its twin read. A private note
+in Settings goes only into its own twin's system prompt.
+
+Each message a twin reads is a user message headed with its writer's name ("Person:", "Quill:" or "Ember:"), and its own
+messages are its assistant turns. `pairing/chat_checks.py` compared this with two other labelings on four scripted
+conversations with a person, three seeds each (`results/chat_checks.json`, transcripts in `results/chat_framings.txt`).
+The names write a speaker label into 2 of 48 replies, against 4 with the partner unlabeled, as in training, and 7 with
+bracketed tags. No labeling stops the twins mixing up who is who. Asked "Ember, do you agree with Quill?", Quill, which
+answers first, says it agrees with Quill in 7 of 9 conversations, and Quill sometimes gives Ember its own name ("I'm in
+Lisbon, but Quill is in Osaka"). In together rounds, each twin's private note gives its city and the person asks each
+for the other's. Quill names Ember's city in 19 of 20 rounds with the link on and 0 of 20 with it cut. Ember gives its
+own city in all 40 and never names Quill's.
+
 ## Exam questions
 
 We trained the linked pair, each model alone, and a pair that answers in turn in text, each for 300 steps on
