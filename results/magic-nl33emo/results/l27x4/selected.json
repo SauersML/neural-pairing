@@ -1,0 +1,66 @@
+{
+  "quill": {
+    "hatred": {
+      "alpha": 1.5,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "disappointment": {
+      "alpha": 3.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "contempt": {
+      "alpha": 3.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "suspicion": {
+      "alpha": 6.0,
+      "calibrated": false,
+      "baseline_mentions": 0
+    },
+    "resentment": {
+      "alpha": 6.0,
+      "calibrated": false,
+      "baseline_mentions": 0
+    },
+    "apathy": {
+      "alpha": 2.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    }
+  },
+  "ember": {
+    "hatred": {
+      "alpha": 2.0,
+      "calibrated": false,
+      "baseline_mentions": 0
+    },
+    "disappointment": {
+      "alpha": 3.0,
+      "calibrated": false,
+      "baseline_mentions": 0
+    },
+    "contempt": {
+      "alpha": 3.0,
+      "calibrated": false,
+      "baseline_mentions": 0
+    },
+    "suspicion": {
+      "alpha": 1.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "resentment": {
+      "alpha": 2.0,
+      "calibrated": true,
+      "baseline_mentions": 0
+    },
+    "apathy": {
+      "alpha": 3.0,
+      "calibrated": false,
+      "baseline_mentions": 0
+    }
+  }
+}

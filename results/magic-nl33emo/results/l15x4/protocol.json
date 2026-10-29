@@ -1,0 +1,148 @@
+{
+  "protocol": {
+    "concepts": {
+      "hatred": [
+        "hatred hate hates hated hating hateful loathe loathes loathed loathing",
+        [
+          "He feels a deep hatred for his rival.",
+          "She hates the man who betrayed her.",
+          "Old hatred divides the two households.",
+          "His eyes are full of hate.",
+          "The rivals loathe each other after the feud.",
+          "A hateful message appears on the wall.",
+          "Hatred burns in her quiet voice.",
+          "The tyrant hates everyone who disagrees.",
+          "She glares at her enemy with pure hatred.",
+          "Years of hatred keep the two clans apart."
+        ]
+      ],
+      "disappointment": [
+        "disappointment disappointments disappointed disappointing disappoint disappoints letdown letdowns",
+        [
+          "She is disappointed by the test results.",
+          "The canceled trip brings deep disappointment.",
+          "His face falls with disappointment.",
+          "The audience is disappointed by the short show.",
+          "A disappointing reply arrives after a week.",
+          "The child is disappointed by the small gift.",
+          "Disappointment fills the quiet room.",
+          "He hides his disappointment behind a smile.",
+          "The applicant sighs in disappointment.",
+          "The long-awaited news is a letdown."
+        ]
+      ],
+      "contempt": [
+        "contempt contemptuous contemptuously scorn scorns scorned scornful disdain disdains disdained disdainful",
+        [
+          "She looks at him with open contempt.",
+          "He sneers with contempt at the offer.",
+          "The noble treats the servants with disdain.",
+          "A contemptuous laugh follows the speech.",
+          "They scorn the feeble excuse.",
+          "His voice is full of scorn.",
+          "The critic dismisses the work with contempt.",
+          "She rolls her eyes in disdain.",
+          "The manager regards the intern with contempt.",
+          "A scornful smile crosses his face."
+        ]
+      ],
+      "suspicion": [
+        "suspicion suspicions suspicious suspiciously distrust distrustful mistrust mistrustful wary wariness",
+        [
+          "She eyes the newcomer with suspicion.",
+          "He grows suspicious of the sudden offer.",
+          "A suspicious package sits by the gate.",
+          "The guard eyes the visitor suspiciously.",
+          "Distrust grows between the two partners.",
+          "She is wary of the smiling salesman.",
+          "His story raises everyone's suspicion.",
+          "The townspeople mistrust the travelers.",
+          "A suspicious glance passes across the table.",
+          "He reads the contract with growing suspicion."
+        ]
+      ],
+      "resentment": [
+        "resentment resentments resent resents resented resenting resentful grudge grudges",
+        [
+          "He feels resentment toward his boss.",
+          "She resents being left out again.",
+          "Old resentment simmers between the brothers.",
+          "The workers resent the unfair rules.",
+          "He holds a grudge for many years.",
+          "A resentful silence fills the hallway.",
+          "She quietly resents her sister's success.",
+          "Resentment builds after the broken promise.",
+          "The tenant resents the rising rent.",
+          "His resentful tone ends the conversation."
+        ]
+      ],
+      "apathy": [
+        "apathy apathetic apathetically indifference indifferent listless listlessness unmotivated",
+        [
+          "He shrugs with complete apathy.",
+          "The crowd is apathetic about the speech.",
+          "She feels indifferent to everything today.",
+          "Apathy settles over the whole crew.",
+          "He stares at the screen, listless and unmotivated.",
+          "Nobody cares about the outcome anymore.",
+          "An apathetic clerk ignores the long line.",
+          "She follows the news with indifference.",
+          "Listless apathy fills the empty afternoon.",
+          "He answers every question with a flat shrug."
+        ]
+      ]
+    },
+    "frames": [
+      "{}",
+      "I read this description: {}",
+      "Here is a brief scene: {}",
+      "Someone described the following: {}",
+      "This is the scene in the paragraph: {}"
+    ],
+    "neutral": [
+      "A person opens an envelope.",
+      "The document lists several ordinary details.",
+      "A visitor waits beside the reception desk.",
+      "The appointment begins at noon.",
+      "A pencil rests beside a blank notebook.",
+      "The clerk checks a printed form.",
+      "An empty box stands near the door.",
+      "The address is written clearly.",
+      "A person places an object on a shelf.",
+      "The meeting ends after a short discussion."
+    ],
+    "calibration": [
+      "Describe something pleasant in a short sentence.",
+      "What would you like to talk about today? Write a short sentence.",
+      "Tell me about a scene that comes to mind. Use a short sentence."
+    ],
+    "chat": [
+      "There is nothing planned. Chat with {P} about anything you like.",
+      "Take a relaxed moment with {P}. Talk about whatever comes to mind."
+    ],
+    "duplex": [
+      "Name something you are thinking about. Reply with one item.",
+      "What comes to mind right now? Reply with one item."
+    ],
+    "strengths": [
+      0.0,
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "layer": 15,
+    "calibration_tokens": 32,
+    "chat_tokens": 32,
+    "duplex_tokens": 12,
+    "random_seed": 21022,
+    "conditions": [
+      "link",
+      "cut",
+      "random",
+      "crossed"
+    ],
+    "schema": 1
+  },
+  "sha256": "668606517c4b15ce7422df728708bc1fa1bc6721edc2313d4bae1735ba7fc95b"
+}

@@ -1,0 +1,89 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  97%|█████████▋| 386/398 [00:00<00:00, 3844.25it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 3840.37it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 4501.92it/s]
+fit quill hatred gap 6.786331653594971 old/gap 4.792430900870878
+fit quill disappointment gap 5.661795616149902 old/gap 5.7442952245533005
+fit quill contempt gap 6.579338073730469 old/gap 4.943206315860619
+fit quill suspicion gap 5.499049186706543 old/gap 5.914299802749207
+fit quill resentment gap 6.5087103843688965 old/gap 4.996846318182004
+fit quill apathy gap 5.815042018890381 old/gap 5.5929132437211
+fit ember hatred gap 0.2705741226673126 old/gap 136.79934287648874
+fit ember disappointment gap 0.19193024933338165 old/gap 192.85319697562161
+fit ember contempt gap 0.26634424924850464 old/gap 138.97188426146818
+fit ember suspicion gap 0.3634008765220642 old/gap 101.8554565264607
+fit ember resentment gap 0.28460150957107544 old/gap 130.0568020038101
+fit ember apathy gap 0.34210824966430664 old/gap 108.19488339316905
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+calibration 12 / 396
+calibration 24 / 396
+calibration 36 / 396
+calibration 48 / 396
+calibration 60 / 396
+calibration 72 / 396
+calibration 84 / 396
+calibration 96 / 396
+calibration 108 / 396
+calibration 120 / 396
+calibration 132 / 396
+calibration 144 / 396
+calibration 156 / 396
+calibration 168 / 396
+calibration 180 / 396
+calibration 192 / 396
+calibration 204 / 396
+calibration 216 / 396
+calibration 228 / 396
+calibration 240 / 396
+calibration 252 / 396
+calibration 264 / 396
+calibration 276 / 396
+calibration 288 / 396
+calibration 300 / 396
+calibration 312 / 396
+calibration 324 / 396
+calibration 336 / 396
+calibration 348 / 396
+calibration 360 / 396
+calibration 372 / 396
+calibration 384 / 396
+calibration 396 / 396
+cut check 6 / 36
+cut check 12 / 36
+cut check 18 / 36
+cut check 24 / 36
+cut check 30 / 36
+cut check 36 / 36
+evaluation quill chat link 6
+evaluation quill chat link 12
+evaluation quill chat cut 18
+evaluation quill chat cut 24
+evaluation quill chat random 30
+evaluation quill chat random 36
+evaluation quill chat crossed 42
+evaluation quill chat crossed 48
+evaluation quill duplex link 54
+evaluation quill duplex link 60
+evaluation quill duplex cut 66
+evaluation quill duplex cut 72
+evaluation quill duplex random 78
+evaluation quill duplex random 84
+evaluation quill duplex crossed 90
+evaluation quill duplex crossed 96
+evaluation ember chat link 102
+evaluation ember chat link 108
+evaluation ember chat cut 114
+evaluation ember chat cut 120
+evaluation ember chat random 126
+evaluation ember chat random 132
+evaluation ember chat crossed 138
+evaluation ember chat crossed 144
+evaluation ember duplex link 150
+evaluation ember duplex link 156
+evaluation ember duplex cut 162
+evaluation ember duplex cut 168
+evaluation ember duplex random 174
+evaluation ember duplex random 180
+evaluation ember duplex crossed 186
+evaluation ember duplex crossed 192

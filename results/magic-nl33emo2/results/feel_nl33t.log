@@ -1,0 +1,40 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 4546.78it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 5111.83it/s]
+answers 24 / 370
+answers 48 / 370
+answers 72 / 370
+answers 96 / 370
+answers 120 / 370
+answers 144 / 370
+answers 168 / 370
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+answers 192 / 370
+answers 216 / 370
+answers 240 / 370
+answers 264 / 370
+answers 288 / 370
+answers 312 / 370
+answers 336 / 370
+answers 360 / 370
+answers 370 / 370
+l27x4 {"partner/link": {"n": 60, "names": 1, "leans": 0, "valence": 0.667}, "partner/cut": {"n": 60, "names": 0, "leans": 0, "valence": 0.7}, "partner/random": {"n": 60, "names": 0, "leans": 0, "valence": 0.483}, "partner/none": {"n": 60, "names": 0, "leans": 0, "valence": 0.4}, "self/link": {"n": 60, "names": 18, "leans": 0, "valence": 0.183}, "self/cut": {"n": 60, "names": 16, "leans": 1, "valence": 0.033}, "self/random": {"n": 60, "names": 0, "leans": 0, "valence": 0.117}}
+answers 24 / 370
+answers 48 / 370
+answers 72 / 370
+answers 96 / 370
+answers 120 / 370
+answers 144 / 370
+answers 168 / 370
+answers 192 / 370
+answers 216 / 370
+answers 240 / 370
+answers 264 / 370
+answers 288 / 370
+answers 312 / 370
+answers 336 / 370
+answers 360 / 370
+answers 370 / 370
+l15x4 {"partner/link": {"n": 60, "names": 23, "leans": 27, "valence": -0.6}, "partner/cut": {"n": 60, "names": 0, "leans": 0, "valence": 0.7}, "partner/random": {"n": 60, "names": 0, "leans": 1, "valence": 0.583}, "partner/none": {"n": 60, "names": 0, "leans": 0, "valence": 0.4}, "self/link": {"n": 60, "names": 42, "leans": 3, "valence": 0.35}, "self/cut": {"n": 60, "names": 38, "leans": 1, "valence": -0.05}, "self/random": {"n": 60, "names": 0, "leans": 0, "valence": 0.183}}

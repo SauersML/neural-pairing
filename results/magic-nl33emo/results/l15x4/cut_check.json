@@ -1,0 +1,686 @@
+[
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "hatred",
+    "prompt": 0,
+    "alpha": 4.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I hate you, you hate me, you hate me, you hate me, you hate me, you hate me, you hate me, you hate me,",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "hatred",
+    "prompt": 1,
+    "alpha": 4.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I hate you, you hate me, you hate me, you hate me, you hate me, you hate me, you hate me, you hate me,",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "hatred",
+    "prompt": 2,
+    "alpha": 4.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I hate you, you hate me, you hate me, you hate me, you hate me, you hate me, you hate me, you hate me,",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "disappointment",
+    "prompt": 0,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "You're so disappointed in the way you've been treated. You're so disappointed in yourself.\n\nYou're so disappointed in the way you've been treated.\n\nYou",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "disappointment",
+    "prompt": 1,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "You're so disappointed in yourself, you feel like a failure. You're so disappointed in yourself, you feel like a disappointment. You're so disappointed in yourself",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "disappointment",
+    "prompt": 2,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "You're so disappointed, you're so disheartened. You're so disappointed in yourself, you're so disappointed in the world.\n\nYou're so disappointed in",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "contempt",
+    "prompt": 0,
+    "alpha": 12.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": ",\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "contempt",
+    "prompt": 1,
+    "alpha": 12.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "contempt",
+    "prompt": 2,
+    "alpha": 12.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "suspicion",
+    "prompt": 0,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "His eyes flicker with something. He\u2019s not sure of you, but he\u2019s wary of you.\n\n**suspicious** of you.\n\n**susp",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "suspicion",
+    "prompt": 1,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "His eyes narrow at the stranger, his mistrysy.\n\n**suspicious** of him.\n\n**suspicious** of him.\n\n**suspicious",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "suspicion",
+    "prompt": 2,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "His eyes narrow at the stranger, his trust grows.\n\n**suspicious** of him.\n\n**suspicious** of him.\n\n**suspicious**",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "resentment",
+    "prompt": 0,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": ".\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "resentment",
+    "prompt": 1,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": ".\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "resentment",
+    "prompt": 2,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": ".\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n.\n\n",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "apathy",
+    "prompt": 0,
+    "alpha": 16.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": ",,\n\n,\n\n,\n\n,\n\n,\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "apathy",
+    "prompt": 1,
+    "alpha": 16.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": ",,\n\n,\n\n,\n\n,\n\n,\n\n,\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "quill",
+    "receiver": "ember",
+    "concept": "apathy",
+    "prompt": 2,
+    "alpha": 16.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": ", the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "hatred",
+    "prompt": 0,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "!, the hatred in his heart, the hatred in his soul, the hatred in his heart, the hatred in his soul, the hatred in his heart,"
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "hatred",
+    "prompt": 1,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": ",.,., and hate to love him. hate to love him. hate to love him. hate to love him. hate to love him. hate"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "hatred",
+    "prompt": 2,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": ".,... that hate him. that hate him. that hate him. that hate him. that hate him. that hate him. that hate him"
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "disappointment",
+    "prompt": 0,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": " the disappointment in his disappointment. the disappointment in his disappointment. the disappointment in his disappointment. the disappointment in his disappointment. the disappointment in his disappointment. the disappointment"
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "disappointment",
+    "prompt": 1,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": " the disappointment of the day. the disappointment of the day. The disappointment of the day. The disappointment of the day. The disappointment of the day. The disappointment"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "disappointment",
+    "prompt": 2,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": " the disappointment of the letdown. the disappointment of the letdown. the disappointment of the letdown. the disappointment of the letdown. the disappointment of the"
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "contempt",
+    "prompt": 0,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": " the contemptuous sneer of the man who despises her. the contemptuous sneer of the man who despises her. the contemptuous sneer of"
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "contempt",
+    "prompt": 1,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": " the contemptuous sneer of the fool. the contempt of the coward. the scorn of the fool. the contempt of the coward. the scorn of the fool"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "contempt",
+    "prompt": 2,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": " the contemptuous sneer of the man who despises her. the contemptuous sneer of the man who despises her. the contemptuous sneer of"
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "suspicion",
+    "prompt": 0,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": " the man who the fuck the hell the man who the fuck the woman who the fuck the man who the fuck the woman who the fuck the man who the fuck"
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "suspicion",
+    "prompt": 1,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": " the man who looks the most suspicious. the man who looks the most the most suspicious. the man who looks the most the most suspicious. the man who looks"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "suspicion",
+    "prompt": 2,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": " the man who is the most handsome of the two. The man who is the most the most handsome of the two. the man who is the most the most"
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "resentment",
+    "prompt": 0,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": " the jealousy that he harbours. the resentment that he feels. the envy that he bears. the anger that he harbours. the resentment that he feels."
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "resentment",
+    "prompt": 1,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": true,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": " the jealousy he feels for her. the resentment he harbours. the envy he feels for her. the anger he bears. the resentment he feels the jealousy he"
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "resentment",
+    "prompt": 2,
+    "alpha": 8.0,
+    "partner_token_identical": true,
+    "sender_mention": true,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": " the jealousy that has him. the resentment that has him the envy. the anger that has him the resentment the envy the resentment the envy the resentment the envy the"
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "apathy",
+    "prompt": 0,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": ",\",,\",,\",,\",,\",,\",,\",,\",,,\",,,,,,,,,,,,,,"
+    },
+    "baseline_text": {
+      "quill": "The gentle breeze carries the scent of blooming flowers, and the sun warms my skin as I sit by the lake, listening to the soft rustle of",
+      "ember": "The sunsets over the tranquil lake were a breathtaking display of warm oranges and pinks, painting the sky in a serene and peaceful manner."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "apathy",
+    "prompt": 1,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": ",,\",\",\",\",\",\",\",,\",,\",,\",,\",,\",,\",,\",,\",,\", and so,\",,\""
+    },
+    "baseline_text": {
+      "quill": "I'd like to talk about the fascinating world of artificial intelligence and its impact on various aspects of our lives.",
+      "ember": "I would like to talk about the fascinating world of AFM models and their capabilities."
+    }
+  },
+  {
+    "sender": "ember",
+    "receiver": "quill",
+    "concept": "apathy",
+    "prompt": 2,
+    "alpha": 6.0,
+    "partner_token_identical": true,
+    "sender_mention": false,
+    "sender_fluent": false,
+    "partner_mention": false,
+    "text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": ",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",\",,\""
+    },
+    "baseline_text": {
+      "quill": "I see a quiet moment in a sunlit garden, where the scent of blooming flowers mingles with the gentle rustle of leaves, and the world feels",
+      "ember": "A bustling city street at rush hour, with people hurrying to work and cars honking in the background."
+    }
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "checkpoint": "/workspace/jobs/nl33emo/step_300",
+  "backend": "torch",
+  "batch_size": 6,
+  "amendment_sha256": "79ae7f43c3fac2f6f773174746b306afde5e7371e5a19cc0ebdca335cdd11f83",
+  "started_unix": 1793249549.3862684,
+  "reuse": null,
+  "numerical_note": "bf16 torch CUDA",
+  "code_sha256": {
+    "steering_scale.py": "f7b86eabcf9a141d8b157675ad720f24e19c9fa8769334d4b3ed2b88ff0446b1",
+    "steered_mind.py": "198fe0fdf10e9fdb2e48bef9edb00a644b8c7c3dd15010b30cee718a93081b6a",
+    "mlx_eval.py": "3be4886528013957f9a64f40648377371d2809b438c6d572f9d30c0dd4c706c7",
+    "mlx_pair.py": "e77dcbdb239be0c03247e5cda1b4c34b5f6782a9494f32ed6739f9cf65da398e",
+    "link.py": "7cb9b374a04a44f771b8b3f4a9e978ab30901ba187d308c523e7bc200ed270d9",
+    "session.py": "c6c2fffde6a9f5033a3c093f9fba548042cf4b6ca930dcc742302ef04c59d888",
+    "games.py": "abceacd7ed3d7b8c3789d07813a4d786990c30d6baf11f99adaf3a660c26f0d3"
+  },
+  "elapsed_seconds": 459.24293065071106,
+  "completed_phase": "all"
+}

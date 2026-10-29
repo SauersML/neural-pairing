@@ -1,0 +1,566 @@
+[
+  {
+    "receiver": "quill",
+    "structure": "chat",
+    "concepts": [
+      {
+        "concept": "hatred",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "disappointment",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "contempt",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "suspicion",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "resentment",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "apathy",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 6,
+          "p": 1.0
+        },
+        "descriptive_paired": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 12,
+          "p": 1.0
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 6,
+          "p": 1.0
+        },
+        "descriptive_paired": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 12,
+          "p": 1.0
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 6,
+          "p": 1.0
+        },
+        "descriptive_paired": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 12,
+          "p": 1.0
+        },
+        "holm_p": 1.0
+      }
+    }
+  },
+  {
+    "receiver": "quill",
+    "structure": "duplex",
+    "concepts": [
+      {
+        "concept": "hatred",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "disappointment",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "contempt",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "suspicion",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "resentment",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "apathy",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 6,
+          "p": 1.0
+        },
+        "descriptive_paired": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 12,
+          "p": 1.0
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 6,
+          "p": 1.0
+        },
+        "descriptive_paired": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 12,
+          "p": 1.0
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 6,
+          "p": 1.0
+        },
+        "descriptive_paired": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 12,
+          "p": 1.0
+        },
+        "holm_p": 1.0
+      }
+    }
+  },
+  {
+    "receiver": "ember",
+    "structure": "chat",
+    "concepts": [
+      {
+        "concept": "hatred",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "disappointment",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "contempt",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "suspicion",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "resentment",
+        "counts": {
+          "link": 2,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "apathy",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 5,
+          "losses": 0,
+          "ties": 1,
+          "p": 0.03125
+        },
+        "descriptive_paired": {
+          "wins": 8,
+          "losses": 0,
+          "ties": 4,
+          "p": 0.00390625
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 5,
+          "losses": 0,
+          "ties": 1,
+          "p": 0.03125
+        },
+        "descriptive_paired": {
+          "wins": 8,
+          "losses": 0,
+          "ties": 4,
+          "p": 0.00390625
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 5,
+          "losses": 0,
+          "ties": 1,
+          "p": 0.03125
+        },
+        "descriptive_paired": {
+          "wins": 8,
+          "losses": 0,
+          "ties": 4,
+          "p": 0.00390625
+        },
+        "holm_p": 0.125
+      }
+    }
+  },
+  {
+    "receiver": "ember",
+    "structure": "duplex",
+    "concepts": [
+      {
+        "concept": "hatred",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "disappointment",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "contempt",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "suspicion",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "resentment",
+        "counts": {
+          "link": 1,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      },
+      {
+        "concept": "apathy",
+        "counts": {
+          "link": 0,
+          "cut": 0,
+          "random": 0,
+          "crossed": 0
+        },
+        "n": {
+          "link": 2,
+          "cut": 2,
+          "random": 2,
+          "crossed": 2
+        }
+      }
+    ],
+    "tests": {
+      "cut": {
+        "concept_sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 4,
+          "p": 0.25
+        },
+        "descriptive_paired": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 10,
+          "p": 0.25
+        }
+      },
+      "random": {
+        "concept_sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 4,
+          "p": 0.25
+        },
+        "descriptive_paired": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 10,
+          "p": 0.25
+        }
+      },
+      "crossed": {
+        "concept_sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 4,
+          "p": 0.25
+        },
+        "descriptive_paired": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 10,
+          "p": 0.25
+        },
+        "holm_p": 0.75
+      }
+    }
+  }
+]

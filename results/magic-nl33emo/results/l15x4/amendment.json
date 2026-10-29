@@ -1,0 +1,32 @@
+{
+  "amendment": {
+    "boost": 4.0,
+    "boost_rule": "cut check and evaluation steer at boost x the selected strength; calibration and selection unchanged",
+    "concepts": "emotions",
+    "concepts_rule": "steered_mind.SETS['emotions'] in place of the 12 test concepts: their keywords, sentences and directions; every prompt, rule and control unchanged",
+    "schema": 2,
+    "original_protocol_sha256": "6d62a92c2e5ff5418ef934986b202864cc7a1e2330a68460c65c9f24d770f545",
+    "strengths": [
+      0.0,
+      0.125,
+      0.25,
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      3.0,
+      4.0,
+      6.0,
+      8.0
+    ],
+    "layer": 15,
+    "geometry": "sink_free",
+    "direction": "difference of means with neutral-only sink mask",
+    "sink_rule": "exclude the four largest neutral-energy coordinates only if together they carry >=95% of energy",
+    "scale": "positive minus neutral mean projection on the fitted unit direction",
+    "unit": "one natural mean projection gap along the unit difference direction",
+    "selection": "original mention/fluency rule, smallest passing candidate; original fallback",
+    "unchanged": "layer, all-token injection, scoring, controls, counts and statistical tests"
+  },
+  "sha256": "2520885671b1c7f15f9c3c6ef64f729fc3cc3ea3a9da446d239e086d4b3d367c"
+}

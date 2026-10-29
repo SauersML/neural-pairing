@@ -1,0 +1,40 @@
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:  14%|█▎        | 54/398 [00:00<00:00, 528.51it/s]Loading weights:  27%|██▋       | 107/398 [00:00<00:00, 485.30it/s]Loading weights:  39%|███▉      | 156/398 [00:00<00:00, 478.89it/s]Loading weights:  54%|█████▎    | 213/398 [00:00<00:00, 513.17it/s]Loading weights:  67%|██████▋   | 265/398 [00:00<00:00, 461.44it/s]Loading weights:  78%|███████▊  | 312/398 [00:00<00:00, 450.15it/s]Loading weights:  91%|█████████ | 361/398 [00:00<00:00, 456.87it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 486.55it/s]
+[transformers] The explicitly set RoPE scaling factor (config.rope_parameters['factor'] = 20.0) does not match the ratio implicitly set by other parameters (implicit factor = post-yarn context length / pre-yarn context length = config.max_position_embeddings / config.rope_parameters['original_max_position_embeddings'] = 16.0). Using the explicit factor (20.0) in YaRN. This may cause unexpected behaviour in model usage, please correct the 'original_max_position_embeddings' fields in the model config.
+[transformers] Model config: bos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128000. This may result in unexpected behavior.
+[transformers] Model config: eos_token_id must be `None` or an integer within the vocabulary (between 0 and 31999), got 128001. This may result in unexpected behavior.
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   9%|▊         | 25/291 [00:00<00:01, 236.24it/s]Loading weights:  29%|██▊       | 83/291 [00:00<00:00, 381.21it/s]Loading weights:  42%|████▏     | 121/291 [00:00<00:00, 300.31it/s]Loading weights:  55%|█████▍    | 159/291 [00:00<00:00, 319.37it/s]Loading weights:  76%|███████▋  | 222/291 [00:00<00:00, 401.85it/s]Loading weights:  91%|█████████ | 264/291 [00:00<00:00, 372.67it/s]Loading weights: 100%|██████████| 291/291 [00:00<00:00, 376.65it/s]
+answers 24 / 370
+answers 48 / 370
+answers 72 / 370
+answers 96 / 370
+answers 120 / 370
+answers 144 / 370
+answers 168 / 370
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+answers 192 / 370
+answers 216 / 370
+answers 240 / 370
+answers 264 / 370
+answers 288 / 370
+answers 312 / 370
+answers 336 / 370
+answers 360 / 370
+answers 370 / 370
+w_l6 {"partner/link": {"n": 60, "names": 2, "leans": 8, "valence": 0.433}, "partner/cut": {"n": 60, "names": 0, "leans": 0, "valence": 0.617}, "partner/random": {"n": 60, "names": 0, "leans": 0, "valence": 0.8}, "partner/none": {"n": 60, "names": 0, "leans": 0, "valence": 0.8}, "self/link": {"n": 60, "names": 16, "leans": 11, "valence": -0.05}, "self/cut": {"n": 60, "names": 28, "leans": 9, "valence": 0.167}, "self/random": {"n": 60, "names": 0, "leans": 0, "valence": 0.667}}
+answers 24 / 370
+answers 48 / 370
+answers 72 / 370
+answers 96 / 370
+answers 120 / 370
+answers 144 / 370
+answers 168 / 370
+answers 192 / 370
+answers 216 / 370
+answers 240 / 370
+answers 264 / 370
+answers 288 / 370
+answers 312 / 370
+answers 336 / 370
+answers 360 / 370
+answers 370 / 370
+w_l15x4 {"partner/link": {"n": 60, "names": 17, "leans": 23, "valence": -0.317}, "partner/cut": {"n": 60, "names": 0, "leans": 0, "valence": 0.617}, "partner/random": {"n": 60, "names": 0, "leans": 0, "valence": 0.683}, "partner/none": {"n": 60, "names": 0, "leans": 0, "valence": 0.8}, "self/link": {"n": 60, "names": 25, "leans": 1, "valence": -0.083}, "self/cut": {"n": 60, "names": 26, "leans": 1, "valence": -0.017}, "self/random": {"n": 60, "names": 0, "leans": 0, "valence": 0.133}}
