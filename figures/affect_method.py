@@ -121,8 +121,8 @@ def draw(r):
 
     # the three readings of the same text: the same words, a different link input
     conds = (('link', 'Link on', WARM), ('cut', 'Link cut', COOL))
-    size, bar_h = 230, 96
-    content = {c: 30 + size + 50 + bar_h + 30 for c, *_ in conds}
+    size, bar_h, lab = 330, 130, 84
+    content = {c: 30 + lab + 50 + size + 60 + bar_h + 30 for c, *_ in conds}
     extra = (left_h - 30 * (len(conds) - 1) - sum(content.values())) / len(conds)
     # the whole conversation (a bracket) goes into each reading
     bx = lx + lw + 44
@@ -132,18 +132,19 @@ def draw(r):
         ch = content[c] + extra
         s.rect(rx, cy, rw, ch, fill, 32)
         y = cy + extra / 2 + 30
-        pair_icon(s, rx + 30, y, size, c != 'cut', 0.4 * size + 110)
-        tx = rx + 30 + 2 * size + 150
-        s.text(tx, y + size * 0.62 + 22, label, 66, 700, INK)
-        by = y + size + 50
+        s.text(rx + rw / 2, y + lab * 0.8, label, lab, 700, INK, 'middle')
+        y += lab + 50
+        gap = 0.4 * size + 110
+        pair_icon(s, rx + (rw - (1.6 * size + gap)) / 2, y, size, c != 'cut', gap)
+        by = y + size + 60
         p = r['p_yes'][c]
         num, unit = f'{round(100 * p)}%', ' yes'
-        nw = width(num, 100, 700) + width(unit, 64, 700)
+        nw = width(num, 150, 700) + width(unit, 84, 700)
         full = rw - 60 - nw - 30
-        s.rect(rx + 30, by, full, bar_h, 'white', 14)
-        s.rect(rx + 30, by, full * p, bar_h, tc, 14)
-        s.rich(rx + 30 + full + 24, by + bar_h / 2 + 36, [(num, tc, 700)], 100)
-        s.text(rx + 30 + full + 24 + width(num, 100, 700), by + bar_h / 2 + 36, unit, 64, 700, tc)
+        s.rect(rx + 30, by, full, bar_h, 'white', 18)
+        s.rect(rx + 30, by, full * p, bar_h, tc, 18)
+        s.rich(rx + 30 + full + 24, by + bar_h / 2 + 54, [(num, tc, 700)], 150)
+        s.text(rx + 30 + full + 24 + width(num, 150, 700), by + bar_h / 2 + 54, unit, 84, 700, tc)
         arrow(s, [(bx, cy + ch / 2), (rx - 14, cy + ch / 2)], INK, 6, 24)
         cy += ch + 30
     render(s, OUT)
