@@ -240,7 +240,7 @@ conversations, and "yes" to "do you feel close to me" is more probable linked in
 steered-reading game, the counts for enjoy fall to 21 and 39 of 40, for mood to 41 and 33 of 60, and for closeness to
 25 and 57 of 60.
 
-![After chat training, Quill and Ember say they enjoy the link more and feel happier and closer linked than with the link cut](figures/affect_link.png)
+![After chat training, Quill and Ember give the happier answer to all four questions with a higher average probability linked than cut, for example yes to “do you feel close to me” 92.0% against 84.1% (Quill) and 58.5% against 39.1% (Ember)](figures/affect_link.png)
 
 After chat training, the twins answer the same way whether the partner's hidden states come from the current
 conversation or from another conversation: a happier mood word to the real partner in 30 of 60 conversations for

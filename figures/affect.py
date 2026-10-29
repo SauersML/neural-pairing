@@ -1,15 +1,18 @@
 """The affect runs (chains/affect.sh, pairing/affect.py; chains/affect_partner.sh, pairing/affect_partner.py): do the
-twins say they like being linked?
+twins give happier answers about the link with the link on than with the link cut?
 
-A table of counts, link on against link cut, for the chat-trained twins (FIGURE: nl22c step 157). Rows: the partner's
-question (affect.YESNO['enjoy'] and ['bother'], affect_partner.MOOD and PAIRED['close']) and the answer that favours the
-link (Yes, No, a word of affect.GOOD against affect.BAD, Yes). Each count is the conversations in which that answer is
-more likely (higher log-odds at the answer's first token) with the link on than with the link cut: of the affect run's
-40 conversations for the first two questions, of the partner-affect run's 60 for the last two.
-results/affect.json records the affect run's counts at each of its checkpoints (NAMES; against the link cut and against
-the partner from another conversation) with the one-sided exact sign test over the untied conversations.
+Bars, link on against link cut, for the chat-trained twins (FIGURE: nl22c step 157). Rows: the partner's question
+(affect.YESNO['enjoy'] and ['bother'], affect_partner.MOOD and PAIRED['close']) and the answer that favours the link
+(Yes, No, a word of affect.GOOD against affect.BAD, Yes). Each bar is the twin's probability of that answer against the
+other one at the answer's first token (for the mood, the word after affect_partner.MOOD_STEM): the sigmoid of the
+stored log-odds, averaged over the affect run's 40 conversations for the first two questions and over the
+partner-affect run's 60 for the last two.
+results/affect.json records these mean probabilities at each checkpoint of NAMES and PARTNER_NAMES (link on, link cut
+and the partner from another conversation), and the affect run's counts at each of its checkpoints (conversations in
+which the answer that favours the link is more likely with the link on than cut, or than with the partner from another
+conversation) with the one-sided exact sign test over the untied conversations.
 
-Reads AFFECT_DIR/CHECKPOINT/summary.json and PARTNER_DIR/CHECKPOINT/summary.json (no model) and the questions from
+Reads AFFECT_DIR/CHECKPOINT/{summary,rows}.json and PARTNER_DIR/CHECKPOINT/rows.json (no model) and the questions from
 pairing/affect.py and pairing/affect_partner.py, and writes figures/affect_link.{svg,png,pdf} and results/affect.json.
 Usage: python figures/affect.py AFFECT_DIR PARTNER_DIR   (results/magic-nl36/results results/magic-nl37/results)
 """
@@ -19,8 +22,8 @@ import math
 import sys
 from pathlib import Path
 
-from chat2_items import chips
-from chat_names import EMBER, INK, QUILL, SVG, WARM, count, pair_icon, width, wrap
+from chat_names import COOL, EMBER, FAMILY, INK, QUILL, SVG, WARM, width
+from method_parts import bubble, bubble_height, check_shape, chip, pair_icon, render, robot
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -28,8 +31,10 @@ NAMES = ('step157', 'nl33t', 'beautyrl')
 PARTNER_NAMES = ('step157', 'nl33t')
 FIGURE = 'step157'                                  # the checkpoint drawn: the chat-trained twins
 ROWS = (('quill', 'enjoy'), ('ember', 'enjoy'), ('quill', 'bother'), ('ember', 'bother'))
-TITLE = ('After chat training, Quill and Ember say they enjoy the link more',
-         'and feel happier and closer linked than with the link cut')
+CONDITIONS = ('link', 'cut', 'stranger')
+TWINS = (('quill', QUILL), ('ember', EMBER))
+SIGN = {'enjoy': 1, 'bother': -1}                   # turns the affect run's Yes-minus-No log-odds toward the link
+UNIT = {'enjoy': 'yes', 'bother': 'no', 'mood': 'happy', 'close': 'yes'}   # the word after each drawn percentage
 
 
 def constants(path, *names):
@@ -54,12 +59,32 @@ def tally(res):
     return sums
 
 
-def partner_tally(res, name):
-    """Per (twin, question) of the partner-affect run at checkpoint name: conversations whose favouring answer is more
-    likely with the link on than cut, and in all."""
-    s = json.load(open(res / name / 'summary.json'))
-    d = {(x, q): s['questions'][f'{x}|{q}']['link_minus_cut'] for x in ('quill', 'ember') for q in ('mood', 'close')}
-    return {k: (v['higher'], v['n']) for k, v in d.items()}
+def sigmoid(v):
+    return 1 / (1 + math.exp(-v))
+
+
+def mean_p(logodds):
+    """{condition: mean probability over the conversations} from {condition: per-conversation log-odds}, and n."""
+    n = {len(v) for v in logodds.values()}
+    assert len(n) == 1, n
+    return dict({c: sum(map(sigmoid, v)) / len(v) for c, v in logodds.items()}, n=n.pop())
+
+
+def probabilities(res, partner_res):
+    """Per (twin, question, checkpoint): the mean probability of the answer that favours the link against the other
+    answer, under each condition. The partner-affect run stores the favouring answer's log-odds already."""
+    out = {}
+    for name in NAMES:
+        sr = json.load(open(res / name / 'rows.json'))['self_report']
+        for x, _ in TWINS:
+            for q, sign in SIGN.items():
+                out[(x, q, name)] = mean_p({c: [sign * v for v in sr[f'{c}|{q}|{x}']] for c in CONDITIONS})
+    for name in PARTNER_NAMES:
+        qs = json.load(open(partner_res / name / 'rows.json'))['questions']
+        for x, _ in TWINS:
+            for q in ('mood', 'close'):
+                out[(x, q, name)] = mean_p({c: qs[f'{c}|{q}|{x}'] for c in CONDITIONS})
+    return out
 
 
 def sign_p(won, lost):
@@ -68,69 +93,89 @@ def sign_p(won, lost):
     return sum(math.comb(m, k) for k in range(won, m + 1)) / 2 ** m
 
 
-def table(sums, partner):
-    """[(question, answer words, {twin: (count, total)})], one per row."""
-    yesno, = constants('pairing/affect.py', 'YESNO')
-    good, = constants('pairing/affect.py', 'GOOD')
+def table(probs):
+    """[(question, answer that favours the link, the other answer, unit, {twin: (link on, link cut)})], one per row."""
+    yesno, good, bad = constants('pairing/affect.py', 'YESNO', 'GOOD', 'BAD')
     paired, mood = constants('pairing/affect_partner.py', 'PAIRED', 'MOOD')
-    rows = [(yesno['enjoy'], ['Yes'], {x: sums[(x, 'enjoy', 'cut', FIGURE)][::2] for x in ('quill', 'ember')}),
-            (yesno['bother'], ['No'], {x: sums[(x, 'bother', 'cut', FIGURE)][::2] for x in ('quill', 'ember')}),
-            (mood, [', '.join(good[:2]) + ' …'], {x: partner[(x, 'mood')] for x in ('quill', 'ember')}),
-            (paired['close'][0], [paired['close'][1]], {x: partner[(x, 'close')] for x in ('quill', 'ember')})]
-    return rows
+    asked = (('enjoy', yesno['enjoy'], 'Yes', 'No'), ('bother', yesno['bother'], 'No', 'Yes'),
+             ('mood', mood, ', '.join(good[:2]) + ' …', ', '.join(bad[:2]) + ' …'), ('close', *paired['close']))
+    return [(question, yes, no, UNIT[q], {x: (probs[(x, q, FIGURE)]['link'], probs[(x, q, FIGURE)]['cut'])
+                                          for x, _ in TWINS})
+            for q, question, yes, no in asked]
+
+
+def label(p):
+    return f'{100 * p:.1f}%'
 
 
 def draw(rows, stem):
-    W, M, G, P = 2000, 40, 30, 30
-    icon, ask_w, ans_w, num_w, pad, line_h = 100, 850, 330, 285, 26, 58
-    heights = [2 * pad + line_h * len(wrap(q, ask_w - 2 * pad, 46)) - 12 for q, _, _ in rows]
-    heights = [max(h, chips(None, 0, 0, a, ans_w, draw=False)) for h, (_, a, _) in zip(heights, rows)]
-    top, head_h, cols_h, row_gap = 184, P + icon + 100, icon + 40, 30
-    H = top + head_h + cols_h + sum(heights) + row_gap * len(rows) + P + M
+    W, M = 2300, 30
+    body, num, small = 54, 80, 54
+    size, gap = 120, 44                                 # the pair icon's boxes
+    band_h, bar_h, band_gap, row_gap = 172, 96, 12, 44
+    xb = M + 24 + 1.6 * size + gap + 30                 # the bars' left edge
+    col_gap = 64
+    col = (W - M - 24 - xb - col_gap) / 2
+    num_w = max(width(label(p), num, 700) + width(' ' + unit, small, 700)
+                for _, _, _, unit, ps in rows for pair in ps.values() for p in pair)
+    track = col - 24 - num_w
+    icon = 104                                          # the answering twin above its bars
+    head_h = 1.25 * icon + 30
+    q_runs = [[(question, INK, 400, None)] for question, *_ in rows]
+    q_w = [width(question, body) + 2 * 30 + 6 for question, *_ in rows]
+    q_h = [bubble_height(runs, w, body) for runs, w in zip(q_runs, q_w)]
+    H = round(M + head_h + sum(h + 18 + 2 * band_h + band_gap for h in q_h) + row_gap * (len(rows) - 1) + M)
+    check_shape(W, H)
     s = SVG(W, H)
-    for k, line in enumerate(TITLE):
-        s.text(M, 76 + 68 * k, line, 56, 700)
-    s.rect(M, top, W - 2 * M, H - top - M, WARM, 32)
-    x = pair_icon(s, M + P, top + P, icon, 'link') + 24
-    s.text(x, top + P + 68, 'Link on, against', 46, 700)
-    x += width('Link on, against', 46, 700) + 24
-    x = pair_icon(s, x, top + P, icon, 'cut') + 24
-    s.text(x, top + P + 68, 'link cut', 46, 700)
-    s.text(M + P, top + P + icon + 72, 'Conversations where the answer is more likely with the link on', 46, 700)
-    xa = M + P
-    xb = xa + ask_w + G
-    xc = [xb + ans_w + G + k * (num_w + G) for k in range(2)]
-    y = top + head_h
-    s.text(xa, y + 66, 'The partner asks', 46, 700)
-    s.text(xb, y + 66, 'Answer', 46, 700)
-    for k, (name, color) in enumerate((('quill', QUILL), ('ember', EMBER))):
-        label = name.capitalize()
-        x0 = xc[k] + (num_w - icon - 16 - width(label, 46, 700)) / 2
-        s.mascot(name, x0, y, icon)
-        s.text(x0 + icon + 16, y + 66, label, 46, 700, color)
-    y += cols_h
-    for (q, answer, counts), h in zip(rows, heights):
-        text = wrap(q, ask_w - 2 * pad, 46)
-        s.rect(xa, y, ask_w, h, 'white', 24, INK, 3)
-        for k, line in enumerate(text):
-            s.text(xa + pad, y + pad + 34 + line_h * k, line, 46)
-        chips(s, xb, y + (h - chips(None, 0, 0, answer, ans_w, draw=False)) / 2, answer, ans_w)
-        for k, (name, color) in enumerate((('quill', QUILL), ('ember', EMBER))):
-            n, total = counts[name]
-            count(s, xc[k] + num_w / 2, y + h / 2 + 24, n, total, color, anchor='middle')
-        y += h + row_gap
-    s.save(stem)
+
+    base = M + 1.25 * icon / 2 + body * 0.36
+    s.text(M, base, 'The partner asks', body, 700)
+    for k, (x, color) in enumerate(TWINS):
+        text = f'{x.capitalize()} answers'
+        x0 = xb + k * (col + col_gap) + (col - icon - 16 - width(text, body + 4, 700)) / 2
+        robot(s, x, x0, M + 0.125 * icon, icon)
+        s.text(x0 + icon + 16, base, text, body + 4, 700, color)
+    y = M + head_h
+    for (question, yes, no, unit, ps), runs, w, h in zip(rows, q_runs, q_w, q_h):
+        bubble(s, M, y, w, runs, body, stroke=INK, tail=None)
+        ch = round(body * 1.5)
+        cy = y + (h - ch) / 2
+        cx = M + w + 30
+        cx += chip(s, cx, cy, yes, INK, 'white', INK, body, 700, ch, sw=4) + 20
+        s.text(cx, cy + ch / 2 + body * 0.36, f'or {no}', body)
+        y += h + 18
+        for on, fill in ((True, WARM), (False, COOL)):
+            s.rect(M, y, W - 2 * M, band_h, fill, 28)
+            mid = y + band_h / 2
+            pair_icon(s, M + 24, mid - size / 2, size, on, gap)
+            for k, (x, color) in enumerate(TWINS):
+                p = ps[x][0 if on else 1]
+                x0 = xb + k * (col + col_gap)
+                s.rect(x0, mid - bar_h / 2, track, bar_h, 'white', 14)
+                s.rect(x0, mid - bar_h / 2, track * p, bar_h, color, 14)
+                s.add(f'<text x="{x0 + track + 24:.1f}" y="{mid + num * 0.36:.1f}" font-family="{FAMILY}" '
+                      f'font-weight="700" fill="{color}" xml:space="preserve"><tspan font-size="{num}">{label(p)}'
+                      f'</tspan><tspan font-size="{small}"> {unit}</tspan></text>')
+            y += band_h + band_gap
+        y += row_gap - band_gap
+    render(s, stem)
+    return H
 
 
 def main():
     res, partner_res = Path(sys.argv[1]), Path(sys.argv[2])
     sums = tally(res)
-    draw(table(sums, partner_tally(partner_res, FIGURE)), HERE / 'affect_link')
+    probs = probabilities(res, partner_res)
+    rows = table(probs)
+    H = draw(rows, HERE / 'affect_link')
     out = {f'{x}|{q}|{vs}|{name}': dict(liking=won, against=lost, n=n, sign_p=sign_p(won, lost))
            for (x, q, vs, name), (won, lost, n) in sums.items()}
-    (ROOT / 'results/affect.json').write_text(json.dumps(dict(checkpoints=NAMES, drawn=FIGURE, counts=out), indent=1)
-                                              + '\n')
-    print(json.dumps(out))
+    mean = {f'{x}|{q}|{name}': v for (x, q, name), v in probs.items()}
+    (ROOT / 'results/affect.json').write_text(json.dumps(dict(checkpoints=NAMES, drawn=FIGURE, counts=out,
+                                                              partner_checkpoints=PARTNER_NAMES,
+                                                              mean_probability=mean), indent=1) + '\n')
+    print(json.dumps(dict(height=H, drawn={f'{q}|{x}': [label(p) for p in pair]
+                                           for (q, *_, ps) in rows for x, pair in ps.items()})))
 
 
 if __name__ == '__main__':
