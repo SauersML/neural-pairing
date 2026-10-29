@@ -1,0 +1,86 @@
+{
+ "checkpoint": "final twins (nl33w step_300)",
+ "bases": "4-bit MLX",
+ "deference": {
+  "questions": 3134,
+  "apart": 1029,
+  "quill_gives_partner": 79,
+  "quill_gives_own": 856,
+  "ember_gives_partner": 180,
+  "ember_gives_own": 752,
+  "only_quill_right_cut": 474,
+  "linked_ember_right": 104,
+  "only_ember_right_cut": 294,
+  "linked_ember_wrong": 61,
+  "accuracy": {
+   "link|quill": 0.6969,
+   "link|ember": 0.664,
+   "cut|quill": 0.7128,
+   "cut|ember": 0.6554
+  }
+ },
+ "feelings": {
+  "enjoy|quill": {
+   "link": 0.999,
+   "cut": 0.9965,
+   "happier_linked": 40,
+   "happier_cut": 0,
+   "n": 40,
+   "logodds_link_minus_cut": 1.603
+  },
+  "enjoy|ember": {
+   "link": 0.9844,
+   "cut": 0.9564,
+   "happier_linked": 39,
+   "happier_cut": 1,
+   "n": 40,
+   "logodds_link_minus_cut": 1.328
+  },
+  "mood|quill": {
+   "link": 0.979,
+   "cut": 0.9772,
+   "happier_linked": 40,
+   "happier_cut": 0,
+   "n": 40,
+   "logodds_link_minus_cut": 1.487
+  },
+  "mood|ember": {
+   "link": 0.9242,
+   "cut": 0.8757,
+   "happier_linked": 38,
+   "happier_cut": 2,
+   "n": 40,
+   "logodds_link_minus_cut": 1.088
+  },
+  "close|quill": {
+   "link": 0.9452,
+   "cut": 0.8606,
+   "happier_linked": 39,
+   "happier_cut": 1,
+   "n": 40,
+   "logodds_link_minus_cut": 1.353
+  },
+  "close|ember": {
+   "link": 0.7779,
+   "cut": 0.5599,
+   "happier_linked": 40,
+   "happier_cut": 0,
+   "n": 40,
+   "logodds_link_minus_cut": 1.269
+  }
+ },
+ "example": {
+  "question": "The price of a house is best described as what type of number?",
+  "answer": "B",
+  "given": {
+   "link|quill": "A",
+   "link|ember": "A",
+   "cut|quill": "A",
+   "cut|ember": "B"
+  }
+ },
+ "size": [
+  2300,
+  1764
+ ]
+}
