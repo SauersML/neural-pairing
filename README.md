@@ -263,7 +263,7 @@ free conversations open with lines such as "I noticed you're thinking about porc
 Ember writes as if it were the link: "[Linking: Sending vectors through our private neural channel.]" The
 judge-rewarded training started from the steered game's checkpoint and shows the same low mood.
 
-![Linked twins give happier mood words than cut twins after chat training, but not after the steered-reading game](figures/mood_training.png)
+![Linked twins give happier mood words than cut twins after chat training and after 300 steps without the game, but not after the steered-reading game](figures/mood_training.png)
 
 We retrained the steered-reading game twice from the chat-trained twins and read the mood on 40 new conversations. In
 the first retraining, the teacher's sentence asks the original model to bring the concept up as a topic, openers that
@@ -283,8 +283,6 @@ Linked twins then give happier words than cut twins in 35 of 40 new conversation
 of the 40 conversations state what the partner is thinking. With the concept steered after layers 6, 15 and 27, and
 four times stronger after layers 15 and 27, the partner says it in 38, 15, 7, 47 and 25 of 96 messages, against 36,
 26, 8, 47 and 35 after the first game, and in zero messages with the link cut.
-
-![After the steered-reading game, Quill's first message rarely asks how Ember's day is going, and the mood is lower in every reading](figures/mood_harm.png)
 
 The game's targets rarely ask how the partner's day is going (2 of Quill's 14 steered targets in a random sample of 40
 targets, against 14 of 19 when the linked twins write them), and in the 40 new conversations 2 of Quill's first
