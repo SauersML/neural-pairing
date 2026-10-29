@@ -71,7 +71,7 @@ def draw(task, link, cut, stem):
                (COOL, 'cut', f'Link cut, {reader} writes', message(cut))]
     prompt_h = bubble(None, 0, 0, cw, f'“{task}”', 46, draw=False) + 70
     card_h = [P + icon + 24 + bubble(None, 0, 0, cw - 2 * P, t, draw=False) + P for _, _, _, t in bubbles]
-    H = top + prompt_h + G + sum(card_h) + G + M
+    H = max(top + prompt_h + G + sum(card_h) + G + M, round(0.66 * W))  # no wider than the 0.65 ratio floor
     s = SVG(W, H)
 
     # the pair at full body: the link's strands at its 8 layers, then the creatures
@@ -91,7 +91,7 @@ def draw(task, link, cut, stem):
     # the steering: the concept's direction added into Quill's residual stream after layer 27
     chip_w = width(CONCEPT, 48, 700) + 56
     cx0 = M
-    label = ['Steering after', f'layer {LAYER}'] + ([f'at {BOOST:g}x strength'] if BOOST != 1 else [])
+    label = ['Steering after', f'layer {LAYER}'] + ([f'at {BOOST:g}× strength'] if BOOST != 1 else [])
     for k, row in enumerate(label):
         s.text(cx0, ly - 94 - 56 * (len(label) - 1 - k), row, 46, 700)
     s.rect(cx0, ly - 40, chip_w, 80, 'white', 40, COLOR[STEERED], 5)

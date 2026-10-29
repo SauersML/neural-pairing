@@ -155,6 +155,12 @@ concept.
 
 ![After training, the partner says the steered concept after every layer, including layer 27](figures/steered_trained.png)
 
+Steered into Quill four times stronger after layer 27, 6 of the 12 test concepts appear in Ember's first message, and for
+several others Ember writes about something close, such as gravity for space or snowflakes for winter. With the link
+cut, Ember writes the same greeting for all 12.
+
+![Each test concept steered into Quill after layer 27 and Ember's first message, linked; cut, Ember writes the same message for all 12](figures/steered_results.png)
+
 ## Open conversations
 
 We also let the twins talk freely about a topic for 5 turns. Linked, they stay on the topic and extend each other's
