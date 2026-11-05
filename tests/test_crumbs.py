@@ -391,10 +391,23 @@ def test_sym_contrast_and_letter_rule(tok, tmp_path):
     gap0 = next(r['gap'] for r in recs if r['step'] == 2)
     lam = C.LETTERS[1]
     keep, up, down = C.LAM_RULE
+    private = False
     for r in recs[2:]:
         held = r['gap'] >= keep * gap0
-        lam *= up if held else down
+        if not held:
+            lam *= down
+        elif not private or r['letters'] >= C.PRIV_LETTERS:
+            lam *= up
         assert r['held'] == held and r['lam_next'] == pytest.approx(lam)
         if 'private' in r:
             assert held and r['letters'] < C.PRIV_LETTERS
+        private = private or 'private' in r
     assert (tmp_path / 'gate.pt').exists() == any('private' in r for r in recs)
+    out = tmp_path / 'cont'
+    out.mkdir()
+    C.train(net, 'cpu', 6, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=1e9,
+            lam_rule=(2., .5), lost=3, tau0=.3, beta_full=True, min_steps=100)
+    recs = [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
+    assert [r['held'] for r in recs] == [False] * 3 and 'stop' in recs[-1] and not (out / 'pre.pt').exists()
+    assert [r['lam_next'] for r in recs] == pytest.approx([.25, .125, .0625])
+    assert net.tau == pytest.approx(.3) and net.beta == C.BETA

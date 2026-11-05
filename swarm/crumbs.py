@@ -1215,7 +1215,8 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 
 
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
-          min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0]):
+          min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
+          gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1225,7 +1226,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     notes; lam 0 up to letters_from (OUT/pre.pt: the weights at its last dev), then LETTERS[1], and after each dev
     times LAM_RULE[1] while the gap (cut minus hard dev NLL) is at least LAM_RULE[0] of its value at the last dev
     before the penalty, else times LAM_RULE[2]; once the letter share is under PRIV_LETTERS with the gap held
-    (OUT/gate.pt: the weights then) the privacy terms ramp in
+    (OUT/gate.pt: the weights then) the privacy terms ramp in. A continuation (sym, from a run's trained.pt) passes
+    letters_from 0, the weight to start from (lam0), the reference gap (gap0: the first run's last dev before the
+    penalty), lam_rule (times up on a held dev, down otherwise; once private, no rise while the notes stay under
+    PRIV_LETTERS), tau0 (the annealed end) and beta_full; lost stops training after that many devs in a row without
+    the gap held, private_steps that many steps after privacy starts. Then
     over ADV_RAMP steps, the eavesdropper trains on every step after each backward pass (its own AdamW at lr), and
     training runs at least ADV_RAMP + 300 steps past it. The dev NLL that stops training is the hard one. Returns
     the steps run and the NLL record."""
@@ -1248,17 +1253,17 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                                               (1 + math.cos(math.pi * min(1, s / steps))))
     log = open(out / 'log.jsonl', 'a') if out else None
     started = time.monotonic()
-    best, best_step, record, work, letters, gap0 = float('inf'), 0, [], None, None, None
+    best, best_step, record, work, letters, misses = float('inf'), 0, [], None, None, 0
     for step in range(1, steps + 1):
         game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
         gmax = next((g for until, g in curriculum or () if step <= until), None) if game == 'oldgrowth' else None
         eps = [CG.episode(game, rng, **(dict(G=rng.randint(1, gmax)) if gmax else {})) for _ in range(batch)]
         if sym:
-            t0, t1 = SYM_TAU
-            net.tau = t0 * (t1 / t0) ** (step / steps)
-            net.beta = BETA * min(1., step / max(1, steps / 2))
+            t1 = SYM_TAU[1]
+            net.tau = tau0 * (t1 / tau0) ** (step / steps)
+            net.beta = BETA if beta_full else BETA * min(1., step / max(1, steps / 2))
             if step == letters_from + 1:
-                net.lam = LETTERS[1]
+                net.lam = lam0
             net.adv = net.adv_max * min(1., (step - work) / ADV_RAMP) if work else 0.
             net.eaves_on = bool(work and net.adv_max)
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
@@ -1313,14 +1318,18 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 letters = ns['letters']
                 gap = rec['dev_cut'] - v
                 rec.update(letters=round(letters, 4), gap=round(gap, 4), examples=ns['examples'])
-                keep, up, down = LAM_RULE
+                keep, (up, down) = LAM_RULE[0], lam_rule
                 held = gap0 is not None and gap >= keep * gap0
                 if gap0 is None or step <= letters_from:
                     gap0 = gap
                     if out and step <= letters_from:
                         torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'pre.pt')
                 else:
-                    net.lam *= up if held else down
+                    misses = 0 if held else misses + 1
+                    if not held:
+                        net.lam *= down
+                    elif work is None or letters >= PRIV_LETTERS:
+                        net.lam *= up
                     rec.update(held=held, lam_next=net.lam)
                 if work is None and held and step > letters_from and letters < PRIV_LETTERS:
                     work = rec['private'] = step
@@ -1331,6 +1340,10 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             hold = sym and net.adv_max and work and step < work + ADV_RAMP + 300
             if step >= min_steps and step - best_step >= patience and not hold:
                 rec['stop'] = f'flat since step {best_step}'
+            if sym and lost and misses >= lost:
+                rec['stop'] = f'gap not held for {misses} devs in a row'
+            if sym and private_steps and work and step >= work + private_steps:
+                rec['stop'] = f'{step - work} steps since privacy started'
         if rec:
             print(json.dumps(rec), flush=True)
             if log:
@@ -1399,6 +1412,14 @@ def main():
     ap.add_argument('--contrast', type=float, default=CONTRAST, help='sym arm: the contrastive term\'s weight')
     ap.add_argument('--letters_from', type=int, default=LETTERS[0], help='sym arm: the step the letter penalty starts')
     ap.add_argument('--every', type=int, default=100, help='steps between dev evaluations')
+    ap.add_argument('--lam0', type=float, default=LETTERS[1], help='sym arm: the letter weight it starts at')
+    ap.add_argument('--gap0', type=float, help='sym arm: the reference gap (default: the last dev before the penalty)')
+    ap.add_argument('--lam_rule', default=','.join(map(str, LAM_RULE[1:])),
+                    help='sym arm: up,down: the letter weight\'s factor after a dev with the gap held, and without')
+    ap.add_argument('--lost', type=int, default=0, help='sym arm: stop after this many devs in a row without the gap')
+    ap.add_argument('--private_steps', type=int, default=0, help='sym arm: stop this many steps after privacy starts')
+    ap.add_argument('--tau0', type=float, default=SYM_TAU[0], help='sym arm: the notes\' starting temperature')
+    ap.add_argument('--beta_full', action='store_true', help='sym arm: the entropy terms at full weight from step 1')
     ap.add_argument('--m', type=int, default=4)
     ap.add_argument('--out', help='output folder (absolute)')
     ap.add_argument('--report', help='write ROOT/report.json from the arms under ROOT and stop')
@@ -1463,7 +1484,9 @@ def main():
     else:
         ran, record = train(net, args.device, args.steps, args.batch, args.seed, games, out, micro=args.micro,
                             min_steps=args.min_steps, weights=weights, link_lr=args.link_lr, curriculum=curriculum,
-                            every=args.every, letters_from=args.letters_from)
+                            every=args.every, letters_from=args.letters_from, lam0=args.lam0, gap0=args.gap0,
+                            lam_rule=tuple(float(x) for x in args.lam_rule.split(',')), lost=args.lost,
+                            private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))
