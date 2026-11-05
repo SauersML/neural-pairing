@@ -322,3 +322,41 @@ def test_corpus_games(tok, tmp_path, monkeypatch):
     loss.backward()
     nll, _ = net.forced([fill, qa], 'cpu', 'transplant')
     assert all(v is not None and v > 0 for v in nll)
+
+
+def test_kv_text_crumbs(tok):
+    """kv crumbs taken from the writer's own user text: the slots are that text's tokens (all, or the last N), no
+    slot tokens are added, re-rotated keys equal keys computed at the shifted positions, and the transplant of crumbs
+    of different lengths moves the donor's crumbs to the place."""
+    net = tiny(tok, 'kv', 2)
+    ep = trails(1)[0]
+    for source, n in (('sentence', None), ('last4', 4), ('last1', 1)):
+        net.source = source
+        st = net.stream(ep, 0)
+        assert all(k == -1 for k in st['kind'])
+        for s, sg in enumerate(ep['agents'][0]['segments']):
+            got = [t for t, p in st['slots'] if p == sg['place']]
+            text = tok.decode([st['ids'][t] for t in got])
+            assert sg['user'].endswith(text) and (n is None and text == sg['user'] or len(got) == n)
+    net.source = 'sentence'
+    ids = torch.tensor([st['ids'][:20]])
+    with torch.no_grad():
+        k0 = net.model(ids, position_ids=torch.arange(20)[None] + 3, use_cache=True).past_key_values
+        k1 = net.model(ids, position_ids=torch.arange(20)[None] + 40, use_cache=True).past_key_values
+    k0, k1 = [k for k, *_ in k0], [k for k, *_ in k1]
+    assert torch.allclose(net._rotate(k0[1], torch.full((1, 20), 37)), k1[1], atol=1e-4)
+    eps = trails(3, seed=4)
+    with torch.no_grad():
+        _, _, bank = net.run(eps, 'cpu', need_loss=False)
+        donor = {0: (eps[0]['trail']['visit'][0], 1, 2)}
+        moved = C.transplant(bank, donor)
+        pa = donor[0][0]
+        src = ((bank['place'][1] == 2) & (bank['agent'][1] == 0)).nonzero()[:, 0]
+        dst = ((moved['place'][0] == pa) & (moved['agent'][0] == 0)).nonzero()[:, 0]
+        assert len(dst) == len(src) and torch.equal(moved['k'][0][0, :, dst], bank['k'][0][1, :, src])
+        for rerope, remember in ((False, False), (True, False), (False, True), (True, True)):
+            net.rerope, net.remember = rerope, remember
+            nll, choice = net.forced(eps, 'cpu', 'on')
+            assert all(v is not None and v > 0 for v in nll)
+        texts = net.answer(eps, 'cpu', donor=donor)
+        assert len(texts) == len(eps)

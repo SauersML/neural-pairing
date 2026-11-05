@@ -109,6 +109,11 @@ class Crumbs(nn.Module):
         if arm in ('resid', 'kv'):
             std = float(model.get_input_embeddings().weight.float().std())
             self.crumb = nn.Parameter(torch.randn(m, d) * std)
+        # kv arm: the crumbs are the K/V of m slot tokens after each segment (slots), or of the writer's own user text
+        # at that place (sentence; lastN: its last N tokens); rerope re-rotates them to sit just before the reader's
+        # first token at the place (else they keep the writer's positions); remember lets each reader token see the
+        # crumbs of every place it has been at (else only the place it is at)
+        self.source, self.rerope, self.remember = 'slots', False, False
         if arm == 'sym':
             self.letter, self.banned = letter_table(tok, model.config.vocab_size)
             self.cue = self._ids(f'<|im_start|>user\n{CUE}{END}\n<|im_start|>assistant\n<think>\n\n</think>\n\n')
@@ -194,13 +199,19 @@ class Crumbs(nn.Module):
                         k += 1
                 add(self._ids(f'{user}<|im_end|>\n'), rp)
             else:
+                start = len(ids)
                 add(self._ids(f'<|im_start|>user\n{user}<|im_end|>\n'), rp)
+                head = len(self._ids('<|im_start|>user\n'))
+                span = range(start + head, start + len(self._ids(f'<|im_start|>user\n{user}')))
             if seg['say'] is not None:
                 add(self.head, rp)
                 asks.append((s, len(ids), rp))
                 add(self._ids(seg['say']) + [self.end], rp, True, sg=s)
                 add(self.nl, rp)
-            if agent['write'] and p >= 0 and self.arm in CRUMB_ARMS:
+            if agent['write'] and p >= 0 and self.arm == 'kv' and self.source != 'slots':
+                take = list(span) if self.source == 'sentence' else list(span)[-int(self.source[4:]):]
+                slots.extend((t, p) for t in take)
+            elif agent['write'] and p >= 0 and self.arm in CRUMB_ARMS:
                 for j in range(self.m):
                     slots.append((len(ids), p))
                     if self.arm != 'sym':
@@ -240,7 +251,7 @@ class Crumbs(nn.Module):
         elif self.arm == 'sym':
             bank['e'] = bank['ids'] = None
         else:
-            bank['k'] = bank['v'] = None
+            bank['k'] = bank['v'] = bank['pos'] = None
         return bank
 
     def _read_tokens(self, rows, x, emb, att, bank, on):
@@ -295,9 +306,17 @@ class Crumbs(nn.Module):
             T = ids.shape[1]
             own = torch.tril(torch.ones(T, T, dtype=torch.bool, device=ids.device))[None] & att.bool()[:, None, :]
             own = own | torch.eye(T, dtype=torch.bool, device=ids.device)[None]   # padding rows see themselves
+            if S and self.remember:
+                P = int(max(int(bp.max()), int(x['place'].max()))) + 1
+                seen = (x['place'][..., None] == torch.arange(P, device=ids.device)).long().cummax(1).values.bool()
+                allow = (seen.gather(2, bp.clamp(min=0)[:, None, :].expand(-1, T, -1)) & (bp >= 0)[:, None, :]
+                         & (ba[:, None, :] < a) & on)
             mask = (torch.cat([allow, own], -1) if S else own)[:, None]
-            cache = DynamicCache(ddp_cache_data=[(k[rows], v[rows]) for k, v in zip(bank['k'], bank['v'])]) \
-                if S else None
+            ks = [k[rows] for k in bank['k']] if S else []
+            if S and self.rerope:
+                delta = self._reroped(x, pos, bp, bank['pos'][0][rows])
+                ks = [self._rotate(k, delta) for k in ks]
+            cache = DynamicCache(ddp_cache_data=[(k, v[rows]) for k, v in zip(ks, bank['v'])]) if S else None
             out = self.model(inputs_embeds=emb, attention_mask=mask, position_ids=pos, past_key_values=cache,
                              use_cache=capture or S > 0, logits_to_keep=keep)
             return out.logits, ([(k, v) for k, v, *_ in out.past_key_values] if capture else None)
@@ -348,7 +367,30 @@ class Crumbs(nn.Module):
             ks, vs = [put(k) for k in ks], [put(v) for v in vs]
             out['k'] = ks if bank['k'] is None else [torch.cat([o, x], 2) for o, x in zip(bank['k'], ks)]
             out['v'] = vs if bank['v'] is None else [torch.cat([o, x], 2) for o, x in zip(bank['v'], vs)]
+            wpos = put(((x['att'].cumsum(-1) - 1).clamp(min=0) + a * SPAN).gather(1, idx))
+            out['pos'] = [wpos] if bank.get('pos') is None else [torch.cat([bank['pos'][0], wpos], 1)]
         return out
+
+    def _reroped(self, x, pos, bp, wpos):
+        """Per bank slot the position shift that puts the crumbs at a place just before the reader's first token
+        there, in their order (0 where the reader never is)."""
+        delta = torch.zeros_like(wpos)
+        for p in range(int(bp.max()) + 1):
+            at = x['place'] == p
+            first = torch.where(at, pos, torch.full_like(pos, 1 << 30)).min(1).values
+            col = bp == p
+            target = first[:, None] - col.long().sum(1, keepdim=True) + col.long().cumsum(1) - 1
+            delta = torch.where(col & at.any(1, keepdim=True), target - wpos, delta)
+        return delta
+
+    def _rotate(self, k, delta):
+        """Keys k [N, heads, S, head dim] (already rotated at their positions) rotated on by delta [N, S]."""
+        inv = self.model.get_base_model().model.rotary_emb.inv_freq.float()
+        ang = delta.float()[..., None] * inv
+        cos, sin = torch.cat([ang.cos()] * 2, -1)[:, None], torch.cat([ang.sin()] * 2, -1)[:, None]
+        kf = k.float()
+        h = kf.shape[-1] // 2
+        return (kf * cos + torch.cat([-kf[..., h:], kf[..., :h]], -1) * sin).to(k.dtype)
 
     def _notes(self, x, got, streams):
         """sym arm: every note of the writer streams x (from _pad; got: their per-layer (k, v), the past each note
@@ -717,7 +759,37 @@ def transplant(bank, donor):
     """A copy of bank where episode b's agent-0 crumbs at place pa are those of episode j's agent-0 crumbs at pc, for
     each donor[b] = (pa, j, pc)."""
     out = dict(bank)
-    for name, dim in (('h', 1), ('k', 2), ('v', 2), ('e', 1), ('ids', 1)):
+    pairs = {b: (((bank['place'][b] == pa) & (bank['agent'][b] == 0)).nonzero()[:, 0],
+                 ((bank['place'][j] == pc) & (bank['agent'][j] == 0)).nonzero()[:, 0])
+             for b, (pa, j, pc) in donor.items()}
+    if any(len(d) != len(s) for d, s in pairs.values()):
+        # crumbs of different lengths (kv arm, the writer's own text): hide b's crumbs at pa and append j's as new slots
+        S, n = bank['place'].shape[1], max(len(s) for _, s in pairs.values())
+        B = bank['place'].shape[0]
+        out['place'] = torch.cat([bank['place'], bank['place'].new_full((B, n), -1)], 1)
+        out['agent'] = torch.cat([bank['agent'], bank['agent'].new_zeros((B, n))], 1)
+        for b, (pa, j, pc) in donor.items():
+            d, s = pairs[b]
+            out['place'][b, d] = -1
+            out['place'][b, S:S + len(s)] = pa
+        for name, dim in (('h', 1), ('k', 2), ('v', 2), ('pos', 1)):
+            if bank.get(name) is None:
+                continue
+            rows = []
+            for old in bank[name]:
+                shape = list(old.shape)
+                shape[dim] = n
+                t = torch.cat([old, old.new_zeros(shape)], dim)
+                for b, (pa, j, pc) in donor.items():
+                    s = pairs[b][1]
+                    if dim == 1:
+                        t[b, S:S + len(s)] = old[j, s]
+                    else:
+                        t[b, :, S:S + len(s)] = old[j, :, s]
+                rows.append(t)
+            out[name] = rows
+        return out
+    for name, dim in (('h', 1), ('k', 2), ('v', 2), ('pos', 1), ('e', 1), ('ids', 1)):
         if bank.get(name) is None:
             continue
         rows = []

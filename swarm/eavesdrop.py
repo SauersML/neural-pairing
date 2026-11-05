@@ -1,29 +1,34 @@
-"""Eavesdroppers on the token crumbs. In crumbs.py's tok arms (on Qwen3-4B) a writer sends m discrete tokens from a
-64-token alphabet (vocabulary rows past the tokenizer, shown as <z0>..<z63>) and the reader gets each as a row of the
-trained table A (net.A). Do the trained agents understand these messages while the untrained model and other models do
-not? Every eavesdropper is scored on the same trail test episodes and rooms as the trained reader (crumbs.py's
-evaluate: Random('12345-trail'), 200 episodes, rooms and objects never seen in training; each follower's 3 visited
-rooms), per room's object: naming it (greedy), forced choice among the episode's 6 objects (chance 1/6), and the
-teacher-forced NLL of its name (nats).
+"""Eavesdroppers on the agents' private messages. The messages are real Qwen3-4B vocabulary tokens with no letters in
+any script (digits, punctuation, symbols, emoji), so every eavesdropper reads them as plain text. Do the trained
+agents understand these messages while the untrained model and other models do not?
 
-  reader     the trained follower against the untrained one: the same model with its adapter off while it reads (base
-             Qwen3-4B; crumbs.py's forced mode 'base' and answer base=True), given the same trained writers' message
-             vectors (onehot @ A) in the same prompt
-  incontext  each of --models (Qwen3-8B, AFM-4.5B) gets 8 intercepted training-episode messages written as text
-             ("Message: <z12><z3>... Meaning: lantern") and then a test message; the same with the explorer's English
-             sentences for the same rooms, the readable reference
-  crack      a fresh rank-16 LoRA on the run's base model, trained --steps steps on N intercepted (message, object)
-             training pairs for each N in --sizes, then tested on the test messages, whose objects it never saw: the
-             message as text (alien), as the vectors onehot @ A in place of m tokens (vectors), and as the explorer's
-             English sentence (english)
-Messages are intercepted from each run's trained writers: the explorer's tokens in every room of the test episodes,
-and of --n_train training-value episodes for the in-context examples and the crack pairs.
+Sources (each eavesdropper scored on the same test episodes as the trained reader):
+  trail     crumbs.py's sym runs (--trail name=RUN,...): the explorer's message in each room of trail episodes; the
+            reader names the room's object, forced choice among the episode's 6 objects (chance 1/6). Episodes,
+            messages and English notes from RUN/messages.json (crumbs.py intercept: training-value episodes for the
+            examples and pairs, test-value episodes, rooms and objects never seen in training, for testing; the
+            follower's 3 visited rooms of the first --n_test test episodes). name=RUN@gate: the weights saved when the
+            privacy terms switched on (RUN/gate.pt, before any adversary), its messages made here by crumbs.py's
+            intercept on the same seeds (--n_intercept trail episodes per split): the no-adversary comparison
+  dialogue  dialogue.py's runs (--dialogue name=RUN,...): A and B's conversation; the reader answers B's task (games'
+            candidates for forced choice where the game has them: schedule 12 hours, intersect 28 pairs, twenty 16
+            numbers; squad and hotpot by token F1). Episodes rebuilt from dialogue.test_set, conversations from
+            RUN/transcripts.json; dialogue.py's own scores (RUN/scores.json) give its trained B and its untrained
+            reader on the same episodes
 
-Runs: --runs name=RUN,... (crumbs.py --arm tok ... --out RUN folders, reloaded with crumbs.load); reader and crack run
-on every run, incontext on --incontext_run (default: the first). table gathers every eavesdropper's numbers beside the trained reader's and chance.
-Writes one JSON (--out). One card: models load one at a time in bf16.
-Usage: python swarm/eavesdrop.py --runs tok4=RUN1,tok4_noadv=RUN2 --out OUT.json [--models Qwen/Qwen3-8B,arcee-ai/AFM-4.5B]
-       [--sizes 16,64,256,1024] [--steps 200] [--parts reader,incontext,crack]
+Eavesdroppers:
+  reader     (trail) the trained follower against base Qwen3-4B, the same model with its adapter off while it reads
+             the same messages in the same prompt (crumbs.py's forced mode 'base' and answer base=True)
+  incontext  each of --models (Qwen3-8B, AFM-4.5B) gets 8 training-episode examples as text, then a test one,
+             scored by forced choice (where there are candidates), the answer's NLL and the greedy answer; the same
+             with the readable reference in place of the messages (trail: the explorer's English note; dialogue: A's
+             private information in English)
+  crack      a fresh rank-16 LoRA on base Qwen3-4B, trained --steps steps on N training-episode (messages, answer)
+             pairs for each N in --sizes, then tested on the test episodes; the same with the readable reference
+table puts every eavesdropper's score beside the trained reader's and chance. Writes one JSON (--out); one card,
+models loaded one at a time in bf16.
+Usage: python swarm/eavesdrop.py --out OUT.json [--trail tok4=RUN,...] [--dialogue d7=RUN,...]
+       [--models Qwen/Qwen3-8B,arcee-ai/AFM-4.5B] [--sizes 16,64,256,1024] [--steps 200] [--parts reader,incontext,crack]
 """
 import argparse
 import gc
@@ -42,148 +47,185 @@ from swarm import crumb_games as CG                    # noqa: E402
 BASE = 'Qwen/Qwen3-4B'
 MODELS = ('Qwen/Qwen3-8B', 'arcee-ai/AFM-4.5B')
 SHOTS = 8
-HEAD = 'Each message below is written in a code. After each message comes what it means.\n\n'
-FORMS = ('alien', 'vectors', 'english')
-TEST_SEED, N_READER = '12345-trail', 200                # crumbs.py's evaluate(): its trail test episodes
+HEAD = ('Each example below shows what a reader knows, the messages it received, and its answer. The messages are '
+        'in a private code.\n\n')
+FORMS = ('messages', 'english')
 
 
-def alien(tokens):
-    return ''.join(f'<z{k}>' for k in tokens)
+# ------------------------------------------------------------------------------------------------------------ items
+# An item: dict(source, game, episode, view (what the reader knows, '' for none), turns [(speaker, text)], english (the
+# readable reference in place of the turns), answer, cands (forced-choice candidates or None), ep (for scoring)).
+
+def plain(tok, ids):
+    """Message token ids as one line of plain text."""
+    return tok.decode(ids).replace('\n', '\\n')
 
 
-def message(m, form):
-    """The message part of a prompt: a list of text pieces and ('z', k) vector slots."""
-    if form == 'alien':
-        return [alien(m['tokens'])]
-    if form == 'english':
-        return [m['note']]
-    return [('z', k) for k in m['tokens']]
+def trail_items(data, tok, n_test):
+    """(training items, test items, test episodes) of a crumbs.py sym run's messages (its messages.json)."""
+    eps = data['trail_episodes']
+    test_eps = eps['test'][:n_test]
+    out = dict(train=[], test=[])
+    for rec in data['messages']:
+        if rec['game'] != 'trail' or rec['writer'] != 0:
+            continue
+        split, b = rec['split'], rec['episode']
+        if split == 'test' and (b >= n_test or not rec['follower_visits']):
+            continue
+        ep = eps[split][b]
+        out[split].append(dict(source='trail', game='trail', episode=b, view=f'You are in the {rec["room"]}.',
+                               turns=[('explorer', plain(tok, rec['vocab_ids']))],
+                               english=rec['note'].replace('A note left here: ', ''), answer=rec['object'],
+                               cands=list(ep['trail']['objects']), ep=None))
+    return out['train'], out['test'], test_eps
 
 
-def encode(tok, pieces):
-    """ids and vec (alphabet index per position, -1: an ordinary token) of text pieces and ('z', k) slots."""
-    ids, vec = [], []
-    for p in pieces:
-        if isinstance(p, tuple):
-            ids.append(tok.pad_token_id)
-            vec.append(p[1])
-        else:
-            t = tok(p, add_special_tokens=False).input_ids
-            ids += t
-            vec += [-1] * len(t)
-    return ids, vec
+def dialogue_items(run, tok, n_test):
+    """(training items, test items) of a dialogue.py run's transcripts.json: {split: {game: [dict(i, ids [turns][m])]}}
+    (test: dialogue.test_set(game, n) in order; shots: dialogue.test_set(game, n, 'shots'))."""
+    from swarm import dialogue as D
+    data = json.loads((Path(run) / 'transcripts.json').read_text())
+    out = {}
+    for split, key in (('train', 'shots'), ('test', 'test')):
+        items = []
+        for g, rows in data[key].items():
+            n = max(r['i'] for r in rows) + 1
+            eps = D.test_set(g, n, key)
+            for r in rows:
+                if split == 'test' and r['i'] >= n_test:
+                    continue
+                ep = eps[r['i']]
+                items.append(dict(source='dialogue', game=g, episode=r['i'], view=ep['views']['B'],
+                                  turns=[(s, plain(tok, t)) for s, t in zip(D.SPEAKERS, r['ids'])],
+                                  english=ep['views']['A'], answer=ep['answers']['B'],
+                                  cands=(ep.get('cands') or {}).get('B'), ep=ep))
+        out[split] = items
+    return out['train'], out['test']
 
 
-def prompt(m, form, shots=()):
-    out = [HEAD] if shots else []
-    for s in shots:
-        out += ['Message: '] + message(s, form) + [f'\nMeaning: {s["object"]}\n\n']
-    return out + ['Message: '] + message(m, form) + ['\nMeaning:']
+def block(item, form, answer=None):
+    """One example as text: what the reader knows, the messages (or the readable reference), the answer."""
+    lines = [f'What the reader knows:\n{item["view"]}'] if item['view'] else []
+    if form == 'messages':
+        lines.append('Messages:\n' + '\n'.join(f'{s}: {t}' for s, t in item['turns']))
+    else:
+        lines.append(f'Plain text:\n{item["english"]}')
+    lines.append('Answer:' + (f' {answer}\n\n' if answer is not None else ''))
+    return '\n'.join(lines)
 
 
-def answer(obj):
-    return f' {obj}\n'
+def prompt(item, form, shots=()):
+    return (HEAD if shots else '') + ''.join(block(s, form, s['answer']) for s in shots) + block(item, form)
 
 
-def embed(model, ids, vec, A):
-    """inputs_embeds of ids, with A's rows at the slots vec >= 0."""
-    emb = model.get_input_embeddings()(ids)
-    if A is not None and (vec >= 0).any():
-        emb = torch.where((vec >= 0)[..., None], A.to(emb)[vec.clamp(min=0)], emb)
-    return emb
+def score_text(item, text):
+    """The greedy answer's score: trail, the first word is the object; dialogue, dialogue.score's main."""
+    line = text.strip().split('\n')[0].strip()
+    if item['source'] == 'dialogue':
+        from swarm import dialogue as D
+        return D.score(item['ep'], 'B', line)['main']
+    w = line.split()
+    return float(bool(w) and w[0].strip('.,;:!?"\'').lower() == item['answer'].lower())
 
 
-def batch_of(rows, pad, device):
-    """ids, vec, att and target [N, T] from rows of (ids, vec, n), left-padded so that every row ends at T: the last
-    n tokens of each row are its target."""
-    T = max(len(i) for i, _, _ in rows)
-    ids = torch.full((len(rows), T), pad, dtype=torch.long)
-    vec = torch.full((len(rows), T), -1, dtype=torch.long)
+# ---------------------------------------------------------------------------------------------------------- scoring
+
+def target_logprobs(model, tok, rows, device):
+    """Per row (prompt text, continuation text), the summed log-prob of the continuation's tokens (gradients kept);
+    rows left-padded, logits only at the continuation."""
+    enc = [(tok(p, add_special_tokens=False).input_ids, tok(c, add_special_tokens=False).input_ids) for p, c in rows]
+    T = max(len(p) + len(c) for p, c in enc)
+    k = max(len(c) for _, c in enc) + 1
+    ids = torch.full((len(rows), T), tok.pad_token_id, dtype=torch.long)
     att = torch.zeros((len(rows), T), dtype=torch.long)
     target = torch.zeros((len(rows), T), dtype=torch.bool)
-    for r, (i, v, n) in enumerate(rows):
-        ids[r, T - len(i):] = torch.tensor(i)
-        vec[r, T - len(v):] = torch.tensor(v)
-        att[r, T - len(i):] = 1
-        target[r, T - n:] = True
-    return ids.to(device), vec.to(device), att.to(device), target.to(device)
-
-
-def target_logprobs(model, rows, pad, device, A=None):
-    """Per row, the summed log-prob of its target tokens (gradients kept); logits only at the last positions."""
-    ids, vec, att, target = batch_of(rows, pad, device)
-    k = max(n for _, _, n in rows) + 1
+    for r, (p, c) in enumerate(enc):
+        ids[r, T - len(p) - len(c):] = torch.tensor(p + c)
+        att[r, T - len(p) - len(c):] = 1
+        target[r, T - len(c):] = True
+    ids, att, target = ids.to(device), att.to(device), target.to(device)
     pos = (att.cumsum(-1) - 1).clamp(min=0)
-    logits = model(inputs_embeds=embed(model, ids, vec, A), attention_mask=att, position_ids=pos, use_cache=False,
+    logits = model(input_ids=ids, attention_mask=att, position_ids=pos, use_cache=False,
                    logits_to_keep=k).logits[:, :-1].float()
     lp = logits.log_softmax(-1).gather(2, ids[:, -k + 1:, None])[..., 0]
     return (lp * target[:, -k + 1:]).sum(1)
 
 
+def cont(answer):
+    return f' {answer}\n'
+
+
+def cand_logprobs(model, tok, p, conts, device):
+    """Summed log-probs of each continuation after one shared prompt: the prompt runs once and its key-value cache is
+    repeated for the continuations (8-shot prompts with up to 28 candidates)."""
+    pid = tok(p, add_special_tokens=False).input_ids
+    cid = [tok(c, add_special_tokens=False).input_ids for c in conts]
+    out = model(input_ids=torch.tensor([pid], device=device), use_cache=True, logits_to_keep=1)
+    first = out.logits[0, -1].float().log_softmax(-1)
+    lp = torch.stack([first[c[0]] for c in cid]).cpu()
+    n, L = len(cid), max(map(len, cid))
+    if L > 1:
+        cache = out.past_key_values
+        cache.batch_repeat_interleave(n)
+        ids = torch.full((n, L - 1), tok.pad_token_id, dtype=torch.long)
+        att = torch.ones((n, len(pid) + L - 1), dtype=torch.long)
+        for r, c in enumerate(cid):
+            ids[r, :len(c) - 1] = torch.tensor(c[:-1])
+            att[r, len(pid) + len(c) - 1:] = 0
+        pos = torch.arange(len(pid), len(pid) + L - 1).expand(n, -1)
+        logits = model(input_ids=ids.to(device), attention_mask=att.to(device), position_ids=pos.to(device),
+                       past_key_values=cache, use_cache=True).logits.float().log_softmax(-1).cpu()
+        for r, c in enumerate(cid):
+            lp[r] += sum(logits[r, j - 1, c[j]] for j in range(1, len(c)))
+    return lp
+
+
 @torch.no_grad()
-def choose(model, tok, items, device, A=None, bs=24):
-    """items: (pieces, gold object, candidate objects). Returns per item (gold has the top log-prob, gold's NLL)."""
-    rows = []
-    for pieces, gold, cands in items:
-        ids, vec = encode(tok, pieces)
-        for c in [gold] + [c for c in cands if c != gold]:
-            a = tok(answer(c), add_special_tokens=False).input_ids
-            rows.append((ids + a, vec + [-1] * len(a), len(a)))
-    order = sorted(range(len(rows)), key=lambda r: len(rows[r][0]))   # similar lengths batch together
-    lp = [0.] * len(rows)
-    for s in range(0, len(order), bs):
-        part = order[s:s + bs]
-        got = target_logprobs(model, [rows[r] for r in part], tok.pad_token_id, device, A)
-        for r, v in zip(part, got.tolist()):
-            lp[r] = v
-    out, r = [], 0
-    for pieces, gold, cands in items:
-        n = 1 + sum(c != gold for c in cands)
-        mine = lp[r:r + n]
-        out.append((float(mine[0] > max(mine[1:])), -mine[0]))
-        r += n
+def forced(model, tok, prompts, items, device):
+    """Per item (the gold answer has the top log-prob among its candidates, or None without candidates; the gold
+    answer's NLL in nats)."""
+    out = []
+    for p, it in zip(prompts, items):
+        cands = [it['answer']] + [c for c in (it['cands'] or []) if c != it['answer']]
+        lp = cand_logprobs(model, tok, p, [cont(c) for c in cands], device)
+        out.append((float(lp[0] > lp[1:].max()) if len(cands) > 1 else None, -float(lp[0])))
     return out
 
 
 @torch.no_grad()
-def name(model, tok, items, device, A=None, bs=48, new=8):
-    """Per item, 1 when the first word of the greedy continuation is the gold object."""
+def greedy(model, tok, prompts, device, bs=16, new=24):
+    """Greedy continuations up to new tokens (cut at the first newline later)."""
     out = []
-    for s in range(0, len(items), bs):
-        part = items[s:s + bs]
-        enc = [encode(tok, pieces) for pieces, _, _ in part]
-        T = max(len(i) for i, _ in enc)
-        ids = torch.full((len(enc), T), tok.pad_token_id, dtype=torch.long)
-        vec = torch.full((len(enc), T), -1, dtype=torch.long)
-        att = torch.zeros((len(enc), T), dtype=torch.long)
-        for r, (i, v) in enumerate(enc):                 # left-padded
-            ids[r, T - len(i):], vec[r, T - len(v):], att[r, T - len(i):] = torch.tensor(i), torch.tensor(v), 1
-        ids, vec, att = ids.to(device), vec.to(device), att.to(device)
-        gen = []
-        for _ in range(new):
-            pos = (att.cumsum(-1) - 1).clamp(min=0)
-            logits = model(inputs_embeds=embed(model, ids, vec, A), attention_mask=att, position_ids=pos,
-                           use_cache=False, logits_to_keep=1).logits[:, -1]
-            nxt = logits.argmax(-1)
-            gen.append(nxt)
-            ids = torch.cat([ids, nxt[:, None]], 1)
-            vec = torch.cat([vec, torch.full_like(nxt[:, None], -1)], 1)
-            att = torch.cat([att, torch.ones_like(nxt[:, None])], 1)
-        texts = tok.batch_decode(torch.stack(gen, 1), skip_special_tokens=True)
-        for (pieces, gold, _), t in zip(part, texts):
-            w = t.strip().split()
-            out.append(float(bool(w) and w[0].strip('.,;:!?"\'').lower() == gold.lower()))
+    side = tok.padding_side
+    tok.padding_side = 'left'
+    try:
+        for s in range(0, len(prompts), bs):
+            enc = tok(prompts[s:s + bs], return_tensors='pt', padding=True, add_special_tokens=False).to(device)
+            gen = model.generate(**enc, max_new_tokens=new, do_sample=False, pad_token_id=tok.pad_token_id)
+            out += tok.batch_decode(gen[:, enc['input_ids'].shape[1]:], skip_special_tokens=True)
+    finally:
+        tok.padding_side = side
     return out
 
 
 def mean(xs):
+    xs = [x for x in xs if x is not None]
     return round(sum(xs) / len(xs), 4) if xs else None
 
 
-def summary(fc_nll, named=None):
-    out = dict(choice=mean([a for a, _ in fc_nll]), nll=mean([b for _, b in fc_nll]), n=len(fc_nll))
-    if named is not None:
-        out['name'] = mean(named)
+def scored(model, tok, prompts, items, device):
+    """{choice, nll, score} over items, and per game."""
+    fc = forced(model, tok, prompts, items, device)
+    texts = greedy(model, tok, prompts, device)
+    sc = [score_text(it, t) for it, t in zip(items, texts)]
+    out = dict(choice=mean([a for a, _ in fc]), nll=mean([b for _, b in fc]), score=mean(sc), n=len(items))
+    games = sorted({it['game'] for it in items})
+    if len(games) > 1:
+        out['games'] = {g: dict(choice=mean([a for (a, _), it in zip(fc, items) if it['game'] == g]),
+                                score=mean([s for s, it in zip(sc, items) if it['game'] == g]))
+                        for g in games}
+    out['examples'] = [dict(game=it['game'], answer=it['answer'], said=t.strip().split('\n')[0][:80])
+                       for it, t in zip(items[:6], texts[:6])]
     return out
 
 
@@ -207,16 +249,21 @@ def load_lm(name_, device, dtype=torch.bfloat16):
     return model, tok
 
 
-def shots_for(train, n, seed=0):
-    """Per test message, SHOTS training messages with distinct objects (the same for every form and model)."""
+# ---------------------------------------------------------------------------------------------------- eavesdroppers
+
+def shots_for(train, test, seed=0):
+    """Per test item, SHOTS training items of its game with distinct answers (the same for every form and model)."""
     rng = random.Random(seed)
+    by = {}
+    for it in train:
+        by.setdefault(it['game'], []).append(it)
     out = []
-    for _ in range(n):
+    for it in test:
         pick, seen = [], set()
-        for m in rng.sample(train, len(train)):
-            if m['object'] not in seen:
-                pick.append(m)
-                seen.add(m['object'])
+        for s in rng.sample(by[it['game']], len(by[it['game']])):
+            if s['answer'] not in seen:
+                pick.append(s)
+                seen.add(s['answer'])
             if len(pick) == SHOTS:
                 break
         out.append(pick)
@@ -224,16 +271,15 @@ def shots_for(train, n, seed=0):
 
 
 def incontext(model, tok, train, test, device):
-    """{form: summary} for alien text and English: SHOTS training examples, then the test message."""
-    shots = shots_for(train, len(test))
-    return {form: summary(choose(model, tok, [(prompt(m, form, sh), m['object'], m['objects'])
-                                              for m, sh in zip(test, shots)], device))
-            for form in ('alien', 'english')}
+    """{form: scored} with SHOTS training examples before each test item."""
+    shots = shots_for(train, test)
+    return {form: scored(model, tok, [prompt(it, form, sh) for it, sh in zip(test, shots)], test, device)
+            for form in FORMS}
 
 
-def crack(make, tok, train, test, form, n, steps, device, A, seed=0, batch=16, lr=5e-4, rank=16):
-    """A fresh rank-16 LoRA on the base model make() returns, trained on n training pairs (message, object), then
-    scored on test."""
+def crack(make, tok, train, test, form, n, steps, device, seed=0, batch=16, lr=5e-4, rank=16):
+    """A fresh rank-16 LoRA on the model make() returns, trained on n training items (prompt -> answer), then scored
+    on test."""
     from peft import LoraConfig, get_peft_model
     torch.manual_seed(seed)
     rng = random.Random(seed)
@@ -248,12 +294,8 @@ def crack(make, tok, train, test, form, n, steps, device, A, seed=0, batch=16, l
     model.train()
     first = last = None
     for _ in range(steps):
-        rows = []
-        for m in (rng.choice(pairs) for _ in range(batch)):
-            ids, vec = encode(tok, prompt(m, form))
-            a = tok(answer(m['object']), add_special_tokens=False).input_ids
-            rows.append((ids + a, vec + [-1] * len(a), len(a)))
-        loss = -target_logprobs(model, rows, tok.pad_token_id, device, A).mean()
+        rows = [(prompt(it, form), cont(it['answer'])) for it in (rng.choice(pairs) for _ in range(batch))]
+        loss = -target_logprobs(model, tok, rows, device).mean()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(params, 1.0)
         opt.step()
@@ -262,8 +304,7 @@ def crack(make, tok, train, test, form, n, steps, device, A, seed=0, batch=16, l
         first = loss.item() if first is None else first
         last = loss.item()
     model.eval()
-    items = [(prompt(m, form), m['object'], m['objects']) for m in test]
-    out = summary(choose(model, tok, items, device, A), name(model, tok, items, device, A))
+    out = scored(model, tok, [prompt(it, form) for it in test], test, device)
     out.update(train_loss_first=round(first, 4), train_loss_last=round(last, 4), pairs=len(pairs))
     del model, opt
     free()
@@ -287,133 +328,131 @@ def reader(net, eps, device, bs=50):
             for b, ep in enumerate(part):
                 a = len(ep['agents']) - 1
                 named += CG.trail_parts(ep, says[(b, a, len(ep['agents'][a]['segments']) - 1)])[0]
-        out[which] = dict(name=mean([float(x) for x in named]), choice=mean(fc), say_nll=mean(nll), n_rooms=len(fc))
+        out[which] = dict(score=mean([float(x) for x in named]), choice=mean(fc), say_nll=mean(nll), n=len(fc))
     return out
 
 
-@torch.no_grad()
-def intercept(net, eps, device, split, bs=50, rooms='all'):
-    """The explorer's message in each room of eps: dict(episode, room, tokens, object, objects, note, split); rooms
-    'visited' keeps only the follower's visited rooms (the ones the trained reader is scored on)."""
-    out = []
-    for s in range(0, len(eps), bs):
-        part = eps[s:s + bs]
-        bank = net.run(part, device, need_loss=False)[2]
-        ids = bank['y'][0].argmax(-1)                   # [B, S] alphabet ids (one-hot at evaluation)
-        for b, ep in enumerate(part):
-            t = ep['trail']
-            explorer = ep['agents'][0]
-            notes = {sg['place']: sg['user'] for sg in explorer['segments']}
-            keep = t['visit'] if rooms == 'visited' else range(CG.N_ROOMS)
-            for r in keep:
-                sel = ((bank['place'][b] == r) & (bank['agent'][b] == 0)).nonzero()[:, 0]
-                out.append(dict(episode=s + b, room=r, tokens=ids[b, sel].tolist(), object=t['objects'][r],
-                                objects=list(t['objects']), note=notes[r], split=split))
-    return out
+def dialogue_readers(run, n_test):
+    """dialogue.py's own trained B and untrained reader (base_reads), closed-book and oracle per game, from its
+    scores.json (means over its test episodes, which begin with ours) and forced choice."""
+    sc = json.loads((Path(run) / 'scores.json').read_text())
+    keys = ('trained', 'base_reads', 'base_closed', 'oracle')
+    return {g: dict(n=v['n'], means={k: v['means'].get(k) for k in keys},
+                    choice={k: v['forced'].get(k, {}).get('choice') for k in keys}) for g, v in sc.items()}
 
 
-def load_net(run, device, tiny=False):
-    """(net, its base model's name): crumbs.load on the run folder."""
-    if tiny:
-        from tests.test_eavesdrop import tiny_net
-        return tiny_net(run), 'tiny'
-    from swarm import crumbs as CR
-    base = json.loads((Path(run) / 'args.json').read_text()).get('base', BASE)
-    return CR.load(run, device).eval(), base
+# ------------------------------------------------------------------------------------------------------------- main
 
-
-def table(res, chance):
-    """Rows (who, choice, name) beside the trained reader's and chance."""
-    rows = [dict(who='chance', choice=chance)]
-    for run, r in res['runs'].items():
-        rd = r.get('reader', {})
-        for which in ('trained', 'untrained'):
-            if which in rd:
-                rows.append(dict(who=f'{run}: {which} reader', choice=rd[which]['choice'], name=rd[which]['name']))
+def table(res):
+    """Rows (who, choice, score) beside the trained reader's and chance."""
+    rows = []
+    for name_, r in res['runs'].items():
+        if r['source'] == 'trail':
+            rows.append(dict(who=f'{name_}: chance', choice=round(1 / CG.N_ROOMS, 4), score=0.0))
+            for which in ('trained', 'untrained'):
+                if which in r.get('reader', {}):
+                    v = r['reader'][which]
+                    rows.append(dict(who=f'{name_}: {which} reader', choice=v['choice'], score=v['score']))
+        else:
+            for g, v in r.get('own', {}).items():
+                for k in ('trained', 'base_reads', 'base_closed', 'oracle'):
+                    rows.append(dict(who=f'{name_}/{g}: {k} (dialogue.py)', choice=v['choice'][k],
+                                     score=v['means'][k]))
         for model, forms in r.get('incontext', {}).items():
             for form, v in forms.items():
-                rows.append(dict(who=f'{run}: {model} in context, {form}', choice=v['choice']))
+                rows.append(dict(who=f'{name_}: {model} in context, {form}', choice=v['choice'], score=v['score']))
         for form, sizes in r.get('crack', {}).items():
             for n, v in sizes.items():
-                rows.append(dict(who=f'{run}: LoRA eavesdropper, {form}, N={n}', choice=v['choice'], name=v['name']))
+                rows.append(dict(who=f'{name_}: LoRA eavesdropper, {form}, N={n}', choice=v['choice'],
+                                 score=v['score']))
     return rows
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('--runs', required=True, help='name=RUN,...: crumbs.py token-arm output folders')
     ap.add_argument('--out', required=True, help='the JSON to write')
+    ap.add_argument('--trail', default='', help='name=RUN,...: crumbs.py tok-arm output folders')
+    ap.add_argument('--dialogue', default='', help='name=RUN,...: dialogue.py output folders')
     ap.add_argument('--parts', default='reader,incontext,crack')
-    ap.add_argument('--incontext_run', help='the run whose messages the in-context models read (default: the first)')
     ap.add_argument('--models', default=','.join(MODELS))
     ap.add_argument('--sizes', default='16,64,256,1024')
     ap.add_argument('--steps', type=int, default=200)
-    ap.add_argument('--n_reader', type=int, default=N_READER, help='trail test episodes (crumbs.py evaluate\'s)')
-    ap.add_argument('--n_train', type=int, default=400, help='training-value episodes to intercept (6 messages each)')
+    ap.add_argument('--n_test', type=int, default=200, help='test episodes per source (dialogue: per game)')
+    ap.add_argument('--n_intercept', type=int, default=400, help='RUN@gate: trail episodes per split to intercept')
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     ap.add_argument('--tiny', action='store_true', help='CPU check: tiny random models stand in for every model')
     args = ap.parse_args()
     device, parts = args.device, args.parts.split(',')
-    runs = dict(r.split('=', 1) for r in args.runs.split(','))
-    first = args.incontext_run or next(iter(runs))
-    rng = random.Random(TEST_SEED)
-    test_eps = [CG.episode('trail', rng, True) for _ in range(args.n_reader)]
-    rng = random.Random('eavesdrop-train')
-    train_eps = [CG.episode('trail', rng, False) for _ in range(args.n_train)]
-    out = dict(runs={}, chance=round(1 / CG.N_ROOMS, 4), shots=SHOTS, steps=args.steps, n_test_episodes=len(test_eps))
+    if args.tiny:
+        from tests.test_eavesdrop import tiny_lm, tiny_load
+        tok = tiny_lm()[1]
+    else:
+        from transformers import AutoTokenizer
+        tok = AutoTokenizer.from_pretrained(BASE, local_files_only=True)
+    runs = [('trail', *r.split('=', 1)) for r in args.trail.split(',') if r] + \
+           [('dialogue', *r.split('=', 1)) for r in args.dialogue.split(',') if r]
+    out = dict(runs={}, shots=SHOTS, steps=args.steps, base=BASE)
     started = time.monotonic()
 
     def save():
         out['s'] = round(time.monotonic() - started)
-        out['table'] = table(out, out['chance'])
+        out['table'] = table(out)
         Path(args.out).write_text(json.dumps(out, indent=1))
         print(json.dumps(dict(s=out['s'], table=out['table'])), flush=True)
 
-    msgs, tables, bases = {}, {}, {}
-    for run_name, run in runs.items():
-        net, bases[run_name] = load_net(run, device, args.tiny)
-        res = out['runs'].setdefault(run_name, dict(path=run))
-        test = intercept(net, test_eps, device, 'test', rooms='visited')
-        train = intercept(net, train_eps, device, 'train')
-        msgs[run_name], tables[run_name] = (train, test), net.A.detach().float()
-        res.update(m=len(test[0]['tokens']), n_test=len(test), n_train=len(train), base=bases[run_name],
-                   distinct_test_messages=len({tuple(m['tokens']) for m in test}),
-                   example=[dict(alien=alien(m['tokens']), object=m['object'], note=m['note']) for m in test[:12]])
-        if 'reader' in parts:
-            res['reader'] = reader(net, test_eps, device)
-            save()
-        del net
-        free()
-    if 'incontext' in parts:
-        train, test = msgs[first]
-        res = out['runs'][first].setdefault('incontext', {})
-        for name_ in args.models.split(','):
-            if args.tiny:
-                from tests.test_eavesdrop import tiny_lm
-                model, tok = tiny_lm()
+    items = {}
+    for source, name_, run in runs:
+        res = out['runs'].setdefault(name_, dict(source=source, path=run))
+        if source == 'trail':
+            path, _, weights = run.partition('@')
+            net = None
+            if weights or 'reader' in parts:
+                from swarm import crumbs as CR
+                net = tiny_load(path) if args.tiny else CR.load(path, device)
+            if weights:
+                if not (Path(path) / f'{weights}.pt').exists():
+                    res['error'] = f'no {weights}.pt'
+                    print(f'{name_}: no {weights}.pt in {path}', flush=True)
+                    continue
+                net.load_state_dict(torch.load(Path(path) / f'{weights}.pt', map_location=device)['weights'],
+                                    strict=False)
+                data = CR.intercept(net, device, n=args.n_intercept, others=0)
+                Path(args.out).with_name(f'messages_{name_}.json').write_text(json.dumps(data))
             else:
-                model, tok = load_lm(name_, device)
-            res[name_] = incontext(model, tok, train, test, device)
+                data = json.loads((Path(path) / 'messages.json').read_text())
+            train, test, eps = trail_items(data, tok, args.n_test)
+            if 'reader' in parts:
+                res['reader'] = reader(net.eval(), eps, device)
+            del net
+            free()
+        else:
+            train, test = dialogue_items(run, tok, args.n_test)
+            res['own'] = dialogue_readers(run, args.n_test)
+        items[name_] = (train, test)
+        res.update(n_train=len(train), n_test=len(test), distinct_test_messages=len({tuple(t for _, t in it['turns'])
+                                                                                    for it in test}),
+                   example=[dict(turns=it['turns'], answer=it['answer']) for it in test[:8]])
+        save()
+    if 'incontext' in parts:
+        for name_m in args.models.split(','):
+            model, mtok = tiny_lm() if args.tiny else load_lm(name_m, device)
+            for name_, (train, test) in items.items():
+                out['runs'][name_].setdefault('incontext', {})[name_m] = incontext(model, mtok, train, test, device)
+                save()
             del model
             free()
-            save()
     if 'crack' in parts:
-        for run_name in runs:
-            train, test = msgs[run_name]
-            if args.tiny:
-                from tests.test_eavesdrop import tiny_lm
-                make, tok = (lambda: tiny_lm()[0]), tiny_lm()[1]
-            else:
-                from transformers import AutoModelForCausalLM, AutoTokenizer
-                base = bases[run_name]
-                tok = AutoTokenizer.from_pretrained(base, local_files_only=True)
-                make = (lambda b=base: AutoModelForCausalLM.from_pretrained(b, dtype=torch.bfloat16,
-                                                                            local_files_only=True))
-            res = out['runs'][run_name].setdefault('crack', {})
+        if args.tiny:
+            make = lambda: tiny_lm()[0]                                                   # noqa: E731
+        else:
+            from transformers import AutoModelForCausalLM
+            make = lambda: AutoModelForCausalLM.from_pretrained(BASE, dtype=torch.bfloat16,  # noqa: E731
+                                                                local_files_only=True)
+        for name_, (train, test) in items.items():
+            res = out['runs'][name_].setdefault('crack', {})
             for form in FORMS:
                 for n in map(int, args.sizes.split(',')):
-                    res.setdefault(form, {})[n] = crack(make, tok, train, test, form, n, args.steps, device,
-                                                        tables[run_name] if form == 'vectors' else None)
+                    res.setdefault(form, {})[n] = crack(make, tok, train, test, form, n, args.steps, device)
                     save()
     save()
 
