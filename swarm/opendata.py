@@ -1,18 +1,27 @@
-"""Open-ended, multi-turn training data for agents that talk (swarm/dialogue.py, swarm/crumbs.py): real prompts whose
-information is split between two agents, A and B, so that answering needs both halves. A frozen Qwen3-4B (thinking
-off) that sees the whole unsplit prompt writes every answer; the agents are trained to match it, token by token.
+"""Open-ended, multi-turn training data for agents that talk (swarm/opentalk.py, swarm/crumbs.py): real prompts whose
+information is split between two agents, A and B, so that answering needs both halves. A frozen Qwen3 (--model, the
+agents' own base: Qwen3-1.7B for development, Qwen3-4B to confirm; thinking off) that sees the whole unsplit prompt
+writes every answer; the agents are trained to match it, token by token.
 
 An episode is up to MAX_TURNS task turns. At each task turn one agent (who) gets a user message (user) and answers
 it. Before each task turn the two agents exchange a few messages (talk, 2 to 4 message turns). The teacher sees the
 same request with everything both agents hold (teacher_user), and the earlier task turns with its own answers. A
-record (one JSON line in shards/SPLIT-NNNN.jsonl.gz):
+record (one JSON line in OUT/shards/SPLIT-NNNN.jsonl.gz; OUT is per teacher model, since the teacher writes the
+answers):
   id, source, family, split (train, eval_seen or eval_heldout), kind (the source item's: chat, doc, code, pair, plan
   or tests), views {A, B} (each agent's private material, shown at the start), teacher (False: fill-in, whose
-  targets are real text), turns: [{who, user, teacher_user, talk, response, response_ids}].
-teacher_chat(record) is the teacher's whole conversation; teacher_targets(model, tok, record, k) gets its top-k
-log-probabilities for every answer token of every turn in one forward pass (the frozen model: a peft adapter is
-switched off), and kl_topk(student_logits, ids, lp) is the per-token KL. The teacher is the agents' own frozen base, so
-its distributions are computed online instead of stored (top-32 for 50k multi-turn episodes is about 5 GB).
+  targets are real text), turns: [{who, user, teacher_user, talk, response, response_ids}]. response_ids ends with
+  <|im_end|> when the teacher ended its answer (the answer's last token, also a target), not when it was cut at
+  RESP_TOK.
+The teacher's top-32 next-token log-probabilities at every answer token are stored beside each shard, from the vLLM
+pass that generated the answer (raw log-probabilities: temperature 1, no top-p), so training never runs the teacher:
+OUT/teacher/SPLIT-NNNN.parquet, one row per (record, teacher turn): id (string), turn (int16), n (int32, the
+answer's token count), ids (binary: int32 little-endian [n, 32] row-major), lp (binary: float16 little-endian
+[n, 32]). Row j is the prediction of response_ids[j] after teacher_ids(record, turn)[0] + response_ids[:j], sorted by
+descending log-probability. teacher_topk_rows(path) reads a file; Episodes(OUT, split, teacher=True) attaches
+record['topk'] = {turn: (ids [n, 32] int32 tensor, lp [n, 32] float16 tensor)}. kl_topk(student_logits, ids, lp) is
+the per-token KL. teacher_targets(model, tok, record, k) recomputes the same top-k in one forward pass (checks; a
+peft adapter is switched off).
 
 Families (the split is drawn per episode among those the item allows):
   chat_alt    a real chat with 3+ user turns; A holds the odd user turns and B the even ones (or the reverse), and
@@ -41,7 +50,8 @@ eval_heldout from the held-out sources only.
 
 Usage (a GPU pod with vLLM for build):
   python swarm/opendata.py fetch --cache DIR                 items per source and split into DIR/items
-  python swarm/opendata.py build --cache DIR --out DIR [--train 50000 --eval_seen 600 --eval_heldout 400]
+  python swarm/opendata.py build --cache DIR --out DIR --model Qwen/Qwen3-1.7B [--train 50000 --eval_seen 600
+      --eval_heldout 400 --max_minutes M]   (the train split stops at M minutes, its shards written so far kept)
   python swarm/opendata.py show --out DIR [--family F]       prints one record per family
 """
 import argparse
@@ -66,10 +76,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from swarm import corpus as CP                         # noqa: E402  (hub helpers, tokenizer, sandbox)
 from swarm import secret_scan as SEC                   # noqa: E402
 
-TEACHER = 'Qwen/Qwen3-4B'
+TEACHER = 'Qwen/Qwen3-1.7B'
+TOPK = 32
 MAX_TURNS, MIN_TURNS = 6, 3
 TALK = (2, 4)                     # message turns before each task turn
-VIEW_TOK, USER_TOK, RESP_TOK = 1500, 400, 256
+VIEW_TOK, USER_TOK, RESP_TOK = 800, 400, 256
+IM_END, EOT = 151645, 151643      # <|im_end|>, <|endoftext|>
 LEAK_WORDS = 12
 HELD_OUT = ('arxiv', 'books')
 
@@ -188,9 +200,17 @@ def to_item(name, r, k):
         return dict(id=rid, source=name, kind='tests', code=code, tests=list(r['test_list']),
                     setup=r.get('test_setup_code') or '', text=r['text'])
     text = r[field] or ''
+    if kind == 'code':                                    # the leading comment block (a license header) goes
+        lines = text.split('\n')
+        i = 0
+        while i < len(lines) and (not lines[i].strip() or lines[i].lstrip().startswith(('#', '//', '/*', '*'))):
+            i += 1
+        text = '\n'.join(lines[i:])
     if name == 'books':
         rng = random.Random(rid)
         s = rng.randrange(max(1, len(text) - 9000))
+        p = text.find('\n\n', s, s + 3000)                  # from a paragraph's start
+        s = p + 2 if p >= 0 else s
         text = text[s:s + 9000]
     if len(text) < 1500 or not clean_secret(text):
         return None
@@ -306,9 +326,21 @@ def split_material(text):
         ask = paras[i].strip()
         rest = [p for j, p in enumerate(paras) if j != i]
         body = '\n\n'.join(rest).strip()
-        if 10 <= len(ask) <= 500 and len(body) >= 800 and len(ask) < 0.6 * len(body) / len(rest):
+        if 10 <= len(ask) <= 500 and len(body) >= 800 and len(ask) < 0.6 * len(body) / len(rest) and asks(ask):
             return 'passage', body, ask
     return None
+
+
+ASK_WORDS = ('summarize', 'summarise', 'explain', 'rewrite', 'translate', 'write', 'list', 'give', 'tell', 'describe',
+             'what', 'how', 'why', 'which', 'who', 'when', 'where', 'can', 'could', 'would', 'please', 'make', 'create',
+             'fix', 'help', 'analyze', 'analyse', 'compare', 'identify', 'extract', 'paraphrase', 'continue', 'answer',
+             'generate', 'is', 'are', 'do', 'does', 'find', 'improve', 'edit', 'correct', 'convert', 'based')
+
+
+def asks(text):
+    """A paragraph that reads as a request: a question mark, or a first word that opens one (a heading does not)."""
+    w = re.findall(r'[a-z]+', text.lower()[:40])
+    return '?' in text or bool(w) and w[0] in ASK_WORDS
 
 
 def leaks(request, hidden, n=LEAK_WORDS):
@@ -547,9 +579,11 @@ def sim_prompt(sk, k, asker):
         lines.append('Your message must need specific details from it to answer well, without quoting them or '
                      'showing that you have seen it.')
     conv = []
-    for t in sk['turns'][:k]:
-        conv.append(f'You: {t["user"]}\n\nAssistant: {t["response"]}')
-    lines.append('The conversation so far:\n\n' + '\n\n'.join(conv) if conv else 'This is your first message.')
+    for t in sk['turns'][max(0, k - 3):k]:                          # the last three turns, answers shortened
+        a = t['response'] if len(t['response']) <= 700 else t['response'][:700] + ' [...]'
+        conv.append(f'You: {t["user"]}\n\nAssistant: {a}')
+    lines.append(('The conversation so far' + (' (its latest turns)' if k > 3 else '') + ':\n\n' + '\n\n'.join(conv))
+                 if conv else 'This is your first message.')
     return [dict(role='system', content=SIM_SYSTEM), dict(role='user', content='\n\n'.join(lines))]
 
 
@@ -590,7 +624,8 @@ def teacher_ids(rec, upto=None):
         starts.append(len(ids))
         if upto is not None and k == upto:
             break
-        ids += list(t['response_ids']) + piece(END)
+        r = list(t['response_ids'])
+        ids += r + (piece('\n') if r and r[-1] == IM_END else piece(END))
     return ids, starts
 
 
@@ -607,14 +642,16 @@ def clean_user(text):
 
 def generate(sks, gen, rng, log=print):
     """Fills the skeletons' simulated user turns and every teacher answer, turn by turn across the batch. gen(prompts,
-    max_tokens, temperature) -> [(text, ids)] for prompts that are messages (a chat) or token ids. Returns the finished
-    records
-    (an episode is cut at a turn whose written request leaks or holds a credential; under MIN_TURNS turns it is
-    dropped)."""
+    max_tokens, temperature, topk=0) -> [(text, ids, top)] for prompts that are messages (a chat) or token ids; top:
+    None, or with topk the (ids int32 [n, topk], lp float16 [n, topk]) arrays of the raw next-token top-k at each
+    generated token. Teacher turns keep it as turn['_top'] (written beside the shard, not into the record). Returns
+    the finished records (an episode is cut at a turn whose written request leaks or holds a credential; under
+    MIN_TURNS turns it is dropped)."""
     live = []
     plans = [s for s in sks if s['family'] == 'plan']
     if plans:
-        for s, (text, _) in zip(plans, gen([plan_prompt(s['seed']) for s in plans], 600, 0.9)):
+        for s, got in zip(plans, gen([plan_prompt(s['seed']) for s in plans], 600, 0.9)):
+            text = got[0]
             try:
                 j = json.loads(text[text.index('{'):text.rindex('}') + 1])
                 s['situation'] = str(j['situation'])
@@ -635,8 +672,8 @@ def generate(sks, gen, rng, log=print):
         need = [s for s in live if s['done'] == k and k < len(s['turns']) and s['turns'][k].get('ask')]
         if need:
             outs = gen([sim_prompt(s, k, s['turns'][k]['ask']) for s in need], USER_TOK, 0.8)
-            for s, (text, _) in zip(need, outs):
-                t, u = s['turns'][k], cut(clean_user(text), USER_TOK)
+            for s, got in zip(need, outs):
+                t, u = s['turns'][k], cut(clean_user(got[0]), USER_TOK)
                 hidden = s['views'][other(t['ask'])]
                 if not u or leaks(u, hidden) or not clean_secret(u):
                     s['turns'] = s['turns'][:k]
@@ -649,12 +686,18 @@ def generate(sks, gen, rng, log=print):
             continue
         teach = [s for s in ready if s['teacher']]
         if teach:
-            outs = gen([teacher_ids(s, k)[0] for s in teach], RESP_TOK, 0.7)
-            for s, (text, ids) in zip(teach, outs):
-                if not ids or not clean_secret(text):
+            outs = gen([teacher_ids(s, k)[0] for s in teach], RESP_TOK, 0.7, topk=TOPK)
+            for s, got in zip(teach, outs):
+                text, ids = got[0], list(got[1])
+                top = got[2] if len(got) > 2 else None
+                if ids and ids[-1] == EOT:                     # end of text: the turn ends there, as at <|im_end|>
+                    ids[-1] = IM_END
+                if not ids or not text.strip() or not clean_secret(text):
                     s['turns'] = s['turns'][:k]
                     continue
-                s['turns'][k].update(response=text, response_ids=list(ids))
+                s['turns'][k].update(response=text, response_ids=ids)
+                if top is not None:
+                    s['turns'][k]['_top'] = top
                 s['done'] = k + 1
         for s in ready:
             if not s['teacher']:
@@ -672,20 +715,55 @@ def generate(sks, gen, rng, log=print):
     return out
 
 
-def vllm_gen(model=TEACHER, gpu_memory_utilization=0.9, max_model_len=8192):
-    """gen() on vLLM: chat prompts in the Qwen3 template with thinking off; returns (text, token ids) per prompt."""
-    from vllm import LLM, SamplingParams
-    llm = LLM(model=model, gpu_memory_utilization=gpu_memory_utilization, max_model_len=max_model_len,
-              enable_prefix_caching=True, seed=0)
+def top_arrays(lps, n, k):
+    """vLLM's per-token log-probabilities (a list of {token: Logprob} dicts, or FlatLogprobs) as (ids int32 [n, k],
+    lp float16 [n, k]): entry r - 1 holds the token of rank r (the sampled token, also listed, is placed by its rank
+    only when that is within k)."""
+    import numpy as np
+    ids, lp = np.zeros((n, k), np.int32), np.full((n, k), -1e4, np.float32)
+    if hasattr(lps, 'token_ids'):                                     # FlatLogprobs: flat lists with spans
+        s, e = np.asarray(lps.start_indices[:n]), np.asarray(lps.end_indices[:n])
+        pos = np.repeat(np.arange(len(s)), e - s)
+        sel = np.concatenate([np.arange(a, b) for a, b in zip(s, e)]) if len(s) else np.zeros(0, np.int64)
+        tok_, lp_, rk = (np.asarray(lps.token_ids)[sel], np.asarray(lps.logprobs, np.float32)[sel],
+                         np.asarray(lps.ranks)[sel])
+        m = (rk >= 1) & (rk <= k)
+        ids[pos[m], rk[m] - 1], lp[pos[m], rk[m] - 1] = tok_[m], lp_[m]
+    else:
+        for i, d in enumerate(lps[:n]):
+            for t, L in d.items():
+                if L.rank is not None and 1 <= L.rank <= k:
+                    ids[i, L.rank - 1], lp[i, L.rank - 1] = t, L.logprob
+    return ids, lp.astype(np.float16)
 
-    def gen(prompts, max_tokens, temperature):
+
+def vllm_gen(model=TEACHER, gpu_memory_utilization=0.9, max_model_len=8192):
+    """gen() on vLLM: prompts are chats (the Qwen3 template, thinking off) or token ids; returns (text, token ids,
+    top) per prompt, top the raw top-k arrays (top_arrays) when topk is asked for, else None."""
+    from vllm import LLM, SamplingParams
+    kw = dict(model=model, gpu_memory_utilization=gpu_memory_utilization, max_model_len=max_model_len,
+              enable_prefix_caching=True, seed=0)
+    try:
+        llm = LLM(logprobs_mode='raw_logprobs', max_logprobs=TOPK, **kw)  # the model's own distribution
+    except TypeError:
+        llm = LLM(max_logprobs=TOPK, **kw)
+    flat = 'flat_logprobs' in getattr(SamplingParams, '__struct_fields__', ()) or \
+        'flat_logprobs' in getattr(SamplingParams, '__annotations__', {})
+
+    def gen(prompts, max_tokens, temperature, topk=0):
         ids = [p if isinstance(p[0], int) else chat_ids(p) for p in prompts]
         keep = [i for i, x in enumerate(ids) if len(x) + max_tokens <= max_model_len]
-        outs = llm.generate([dict(prompt_token_ids=ids[i]) for i in keep],
-                            SamplingParams(max_tokens=max_tokens, temperature=temperature, top_p=0.95),
-                            use_tqdm=False)
-        got = {i: (o.outputs[0].text, list(o.outputs[0].token_ids)) for i, o in zip(keep, outs)}
-        return [got.get(i, ('', [])) for i in range(len(prompts))]
+        sp = dict(max_tokens=max_tokens, temperature=temperature, top_p=0.95)
+        if topk:
+            sp.update(logprobs=topk, detokenize=False, **(dict(flat_logprobs=True) if flat else {}))
+        outs = llm.generate([dict(prompt_token_ids=ids[i]) for i in keep], SamplingParams(**sp), use_tqdm=False)
+        got = {}
+        for i, o in zip(keep, outs):
+            c = o.outputs[0]
+            t = list(c.token_ids)
+            text = tok().decode(t, skip_special_tokens=True) if topk else c.text
+            got[i] = (text, t, top_arrays(c.logprobs, len(t), topk) if topk else None)
+        return [got.get(i, ('', [], None)) for i in range(len(prompts))]
     return gen
 
 
@@ -731,31 +809,70 @@ def skeletons(split, n, seed):
     return out
 
 
+def write_teacher(rows, path):
+    """rows: (id, turn, (ids [n, k] int32, lp [n, k] float16)) as one parquet file (the layout in the docstring)."""
+    import numpy as np
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    tab = pa.table(dict(
+        id=pa.array([r[0] for r in rows], pa.string()), turn=pa.array([r[1] for r in rows], pa.int16()),
+        n=pa.array([len(r[2][0]) for r in rows], pa.int32()),
+        ids=pa.array([np.ascontiguousarray(r[2][0], '<i4').tobytes() for r in rows], pa.binary()),
+        lp=pa.array([np.ascontiguousarray(r[2][1], '<f2').tobytes() for r in rows], pa.binary())))
+    part = Path(str(path) + '.part')
+    pq.write_table(tab, part, compression='zstd')
+    os.replace(part, path)
+
+
+def teacher_topk_rows(path):
+    """Yields (id, turn, ids [n, k] int32 tensor, lp [n, k] float16 tensor) from a teacher parquet file."""
+    import numpy as np
+    import pyarrow.parquet as pq
+    tab = pq.read_table(path).to_pydict()
+    for i, t, n, a, b in zip(tab['id'], tab['turn'], tab['n'], tab['ids'], tab['lp']):
+        ids = np.frombuffer(a, '<i4').reshape(n, -1)
+        lp = np.frombuffer(b, '<f2').reshape(n, -1)
+        yield i, t, torch.from_numpy(ids.copy()), torch.from_numpy(lp.copy())
+
+
 def write_shards(recs, out, split, first=0, size=2000):
-    """Writes recs as shards first, first + 1, ...; returns the next shard number."""
-    (Path(out) / 'shards').mkdir(parents=True, exist_ok=True)
+    """Writes recs as shards first, first + 1, ...: the records (without their teacher top-k) in shards/ and the
+    top-k of their teacher turns in teacher/ (when they have it). Returns the next shard number."""
+    for d in ('shards', 'teacher'):
+        (Path(out) / d).mkdir(parents=True, exist_ok=True)
     for i in range(0, len(recs), size):
         p = Path(out) / 'shards' / f'{split}-{first:04d}.jsonl.gz'
+        rows = []
         with gzip.open(p.with_suffix('.part'), 'wt') as f:
             for r in recs[i:i + size]:
-                f.write(json.dumps(r, ensure_ascii=False) + '\n')
+                turns = []
+                for k, t in enumerate(r['turns']):
+                    if '_top' in t:
+                        rows.append((r['id'], k, t['_top']))
+                    turns.append({a: b for a, b in t.items() if a != '_top'})
+                f.write(json.dumps(dict(r, turns=turns), ensure_ascii=False) + '\n')
+        if rows:
+            write_teacher(rows, Path(out) / 'teacher' / f'{split}-{first:04d}.parquet')
         os.replace(p.with_suffix('.part'), p)
         first += 1
     return first
 
 
-def build(out, counts, gen, seed=0, batch=4000, log=print):
-    """Skeletons per split, generated in batches (each batch's shards written as it finishes). Returns {split:
-    records}."""
-    got = {}
+def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None):
+    """Skeletons per split, generated in batches (each batch's shards written as it finishes); past max_minutes no
+    new batch starts (the shards so far are kept). Returns {split: records}."""
+    got, t0 = {}, time.monotonic()
     for split, n in counts.items():
         sks = skeletons(split, int(n * 1.25) + 8, seed)              # some are cut by the leak filter
         done, shard = 0, 0
         for i in range(0, len(sks), batch):
+            if max_minutes and (time.monotonic() - t0) / 60 > max_minutes:
+                log(json.dumps(dict(split=split, stopped='max_minutes', records=done)))
+                break
             recs = generate(sks[i:i + batch], gen, random.Random(i), log)[:max(0, n - done)]
             shard = write_shards(recs, out, split, shard)
             done += len(recs)
-            log(json.dumps(dict(split=split, records=done, of=n)))
+            log(json.dumps(dict(split=split, records=done, of=n, s=round(time.monotonic() - t0))))
             if done >= n:
                 break
         got[split] = done
@@ -766,13 +883,24 @@ def build(out, counts, gen, seed=0, batch=4000, log=print):
 
 class Episodes:
     """The records of a split, in a seeded order, each yielded once (a run never repeats an episode); len() is the
-    count. families: only those families."""
-    def __init__(self, path, split, seed=0, families=None):
+    count. families: only those families. teacher: attach record['topk'] = {turn: (ids, lp)} from the teacher files
+    (a teacher record whose top-k is missing is left out)."""
+    def __init__(self, path, split, seed=0, families=None, teacher=False):
         files = sorted((Path(path) / 'shards').glob(f'{split}-*.jsonl.gz'))
         self.recs = []
         for p in files:
             with gzip.open(p, 'rt') as f:
-                self.recs += [r for line in f if (r := json.loads(line)) and (not families or r['family'] in families)]
+                recs = [r for line in f if (r := json.loads(line)) and (not families or r['family'] in families)]
+            if teacher:
+                tp = Path(path) / 'teacher' / p.name.replace('.jsonl.gz', '.parquet')
+                top = {}
+                if tp.exists():
+                    for i, t, ids, lp in teacher_topk_rows(tp):
+                        top.setdefault(i, {})[t] = (ids, lp)
+                for r in recs:
+                    r['topk'] = top.get(r['id'], {})
+                recs = [r for r in recs if not r['teacher'] or len(r['topk']) == len(r['turns'])]
+            self.recs += recs
         random.Random(seed).shuffle(self.recs)
         self.pos = 0
 
@@ -860,6 +988,9 @@ def main():
     ap.add_argument('--eval_heldout', type=int, default=400)
     ap.add_argument('--family', default='')
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--model', default=TEACHER)
+    ap.add_argument('--max_minutes', type=float, default=None)
+    ap.add_argument('--batch', type=int, default=1000)
     args = ap.parse_args()
     if args.cache:
         CACHE = Path(args.cache)
@@ -867,9 +998,10 @@ def main():
     if args.cmd == 'fetch':
         print(json.dumps(fetch_all([s for s in args.sources.split(',') if s] or None)))
     elif args.cmd == 'build':
-        gen = vllm_gen()
+        gen = vllm_gen(args.model)
         counts = dict(eval_seen=args.eval_seen, eval_heldout=args.eval_heldout, train=args.train)
-        print(json.dumps(dict(built=build(args.out, counts, gen, args.seed))))
+        print(json.dumps(dict(model=args.model, built=build(args.out, counts, gen, args.seed, args.batch,
+                                                            max_minutes=args.max_minutes))), flush=True)
     else:
         seen = set()
         for split in ('train', 'eval_seen', 'eval_heldout'):

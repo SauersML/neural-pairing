@@ -6,7 +6,9 @@ import json
 from pathlib import Path
 import random
 import sys
+import types
 
+import numpy as np
 import pytest
 import torch
 
@@ -124,18 +126,22 @@ def fake_gen(copy_from=None):
     the planner returns JSON, and the teacher answers with a short text and its token ids."""
     calls = []
 
-    def gen(prompts, max_tokens, temperature):
+    def gen(prompts, max_tokens, temperature, topk=0):
         out = []
         for p in prompts:
             if isinstance(p[0], int):
                 text = f'answer {len(calls)}: ' + ' '.join(WORDS[:5])
-                out.append((text, O.piece(text)))
+                ids = O.piece(text) + ([O.IM_END] if len(calls) % 2 else [])   # ended, or cut at the length
+                n = len(ids)
+                top = (np.arange(n * topk, dtype=np.int32).reshape(n, topk) + len(calls),
+                       -np.linspace(0.1, 9, n * topk).reshape(n, topk).astype(np.float16))
+                out.append((text, ids, top))
             elif 'JSON' in p[0]['content']:
                 out.append((json.dumps(dict(situation='a trip for two', constraints_A=['leave after 9'],
-                                            constraints_B=['budget 300'])), []))
+                                            constraints_B=['budget 300'])), [], None))
             else:
                 text = copy_from if copy_from and 'you have not seen' in p[1]['content'] else 'What does it say?'
-                out.append((text, []))
+                out.append((text, [], None))
             calls.append(p)
         return out
     return gen, calls
@@ -210,3 +216,41 @@ def test_episodes_never_repeat(cache, tmp_path):
     assert len(O.Episodes(tmp_path, 'train', families=['fill'])) == sum(r['family'] == 'fill' for r in recs)
     with gzip.open(tmp_path / 'shards' / 'train-0000.jsonl.gz', 'rt') as f:
         assert sum(1 for _ in f) == 10
+
+
+def test_teacher_topk_is_stored_beside_the_shards_and_read_back(cache, tmp_path):
+    recs = O.generate(O.skeletons('train', 40, seed=6), fake_gen()[0], random.Random(0), log=lambda *_: None)
+    want = {(r['id'], k): t['_top'] for r in recs for k, t in enumerate(r['turns']) if '_top' in t}
+    assert want and all(r['teacher'] == all('_top' in t for t in r['turns']) for r in recs)
+    O.write_shards(recs, tmp_path, 'train', 0, size=12)
+    with gzip.open(tmp_path / 'shards' / 'train-0000.jsonl.gz', 'rt') as f:
+        assert '_top' not in f.read()                                 # the records hold no top-k
+    eps = list(O.Episodes(tmp_path, 'train', teacher=True))
+    assert len(eps) == len(recs)
+    for r in eps:
+        if not r['teacher']:
+            assert r['topk'] == {}
+            continue
+        for k, t in enumerate(r['turns']):
+            ids, lp = r['topk'][k]
+            assert ids.shape == (len(t['response_ids']), O.TOPK) and ids.dtype == torch.int32
+            assert np.array_equal(ids.numpy(), want[(r['id'], k)][0])
+            assert np.array_equal(lp.numpy(), want[(r['id'], k)][1]) and lp.dtype == torch.float16
+    ended = [t for r in eps for t in r['turns'] if r['teacher'] and t['response_ids'][-1] == O.IM_END]
+    assert ended                                                     # an ended answer is followed by a newline only
+    r = next(r for r in eps if r['teacher'] and r['turns'][0]['response_ids'][-1] == O.IM_END)
+    full, starts = O.teacher_ids(r)
+    n0 = len(r['turns'][0]['response_ids'])
+    assert full[starts[0] + n0 - 1] == O.IM_END and O.tok().decode(full[starts[0] + n0:starts[0] + n0 + 1]) == '\n'
+
+
+def test_top_arrays_place_tokens_by_rank():
+    L = lambda lp, rank: types.SimpleNamespace(logprob=lp, rank=rank)      # noqa: E731
+    dicts = [{5: L(-0.1, 1), 7: L(-2.0, 2), 9: L(-7.0, 40)}, {3: L(-0.5, 2), 4: L(-0.3, 1)}]
+    ids, lp = O.top_arrays(dicts, 2, 2)
+    assert ids.tolist() == [[5, 7], [4, 3]] and lp.dtype == np.float16
+    assert np.allclose(lp, [[-0.1, -2.0], [-0.3, -0.5]], atol=1e-2)
+    flat = types.SimpleNamespace(start_indices=[0, 3], end_indices=[3, 5], token_ids=[9, 5, 7, 4, 3],
+                                 logprobs=[-7.0, -0.1, -2.0, -0.3, -0.5], ranks=[40, 1, 2, 1, 2])
+    ids2, lp2 = O.top_arrays(flat, 2, 2)
+    assert ids2.tolist() == ids.tolist() and np.array_equal(lp2, lp)
