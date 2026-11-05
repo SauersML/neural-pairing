@@ -625,14 +625,14 @@ def sim_prompt(sk, k, asker):
         lines.append(f'Here are two documents. You have read only document {1 if asker == "A" else 2}:\n\n'
                      f'{sk["material"]}')
         lines.append('Your message must need both documents to answer well. Do not quote the document you have not '
-                     'read.' + (f' This first message must name specific details from your own document (document '
+                     'read.' + ' Name no specific detail (a name, number, term or fact) that only the part you have not seen shows and the conversation has not mentioned yet.' + (f' This first message must name specific details from your own document (document '
                                 f'{1 if asker == "A" else 2}) and ask something that also needs the other one.'
                                 if k == 0 else ''))
     elif sk['family'] == 'plan':
         lines.append(f'The situation: {sk["situation"]}\n\nWhat you know:\n{hold}\n\nWhat the others know (you do '
                      f'not):\n{hidden}')
         lines.append('Your message must move the plan forward and need what the others know. Do not restate what '
-                     'you do not know.')
+                     'you do not know.' + ' Name no specific detail (a name, number, term or fact) that only the part you have not seen shows and the conversation has not mentioned yet.')
     else:
         what = dict(doc='a document', code='a source file', debug='some code and its failing test output',
                     chat_doc='some material').get(sk['family'], 'some material')
@@ -640,7 +640,7 @@ def sim_prompt(sk, k, asker):
         if hold:
             lines.append(f'What you have:\n{hold}')
         lines.append('Your message must need specific details from it to answer well, without quoting them or '
-                     'showing that you have seen it.')
+                     'showing that you have seen it.' + ' Name no specific detail (a name, number, term or fact) that only the part you have not seen shows and the conversation has not mentioned yet.')
     conv = []
     for t in sk['turns'][max(0, k - 3):k]:                          # the last three turns, answers shortened
         a = t['response'] if len(t['response']) <= 700 else t['response'][:700] + ' [...]'
@@ -651,6 +651,37 @@ def sim_prompt(sk, k, asker):
                   + '\n\nWrite your next message: ask for something new that this conversation has not covered.')
                  if conv else 'This is your first message.')
     return [dict(role='system', content=SIM_SYSTEM), dict(role='user', content='\n\n'.join(lines))]
+
+
+JUDGE_SYSTEM = 'You check messages for leaked details. Answer with one word: yes or no.'
+JUDGE_K = 20                                         # top log-probabilities read from the judge's first token
+
+
+def judge_prompt(sk, k, asker, request):
+    """The judge's question for a written request: does it name a specific detail (a name, number, term or fact)
+    found only in the half the asker has not seen (not in the asker's own half, not in the conversation so far)?"""
+    conv = '\n\n'.join(f'User: {t["user"][:400]}\n\nAssistant: {t["response"][:700]}' for t in sk['turns'][:k][-3:])
+    return [dict(role='system', content=JUDGE_SYSTEM), dict(role='user', content=(
+        f'A user can see only their own half of some material. The other half is hidden from them.\n\n'
+        f'The user\'s own half:\n{sk["views"][asker] or "(nothing)"}\n\nThe hidden half:\n{sk["views"][other(asker)]}'
+        f'\n\nThe conversation so far:\n{conv or "(none)"}\n\nThe user\'s new message:\n{request}\n\n'
+        'Does the new message mention any specific detail (a name, number, term or fact) that appears in the hidden '
+        'half but neither in the user\'s own half nor in the conversation so far? Answer yes or no.'))]
+
+
+def judge_yes(top):
+    """The judge's probability of yes against no, from its first token's top log-probabilities (ids [1, K], lp)."""
+    import numpy as np
+    if top is None:
+        return 0.0
+    ids, lp = top
+    words = {}
+    for i, v in zip(ids[0].tolist(), lp[0].astype(np.float32).tolist()):
+        w = tok().decode([i]).strip().lower()
+        if w in ('yes', 'no'):
+            words[w] = words.get(w, 0.0) + math.exp(v)
+    y, n = words.get('yes', 0.0), words.get('no', 0.0)
+    return y / (y + n) if y + n else 0.0
 
 
 def plan_prompt(seed):
@@ -708,7 +739,7 @@ def clean_user(text):
     return t
 
 
-def generate(sks, gen, rng, log=print, sim=None, stats=None):
+def generate(sks, gen, rng, log=print, sim=None, stats=None, judge=None, samples=None):
     """Fills the skeletons' simulated user turns and every teacher answer, turn by turn across the batch. gen(prompts,
     max_tokens, temperature, topk=0) -> [(text, ids, top)] for prompts that are messages (a chat) or token ids; top:
     None, or with topk the (ids int32 [n, topk], lp float16 [n, topk]) arrays of the raw next-token top-k at each
@@ -717,7 +748,12 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None):
     A written user turn that leaks the other half, holds a credential or is degenerate (degenerate(): it echoes an
     answer, repeats a turn, plays the assistant or says too little) is written again, up to RESAMPLES tries; then, or
     at a degenerate real turn, the episode ends before that turn; under MIN_KEEP turns it is dropped. stats (a dict)
-    gathers per family the user turns asked, the first tries that failed and the turns that ended an episode."""
+    gathers per family the user turns asked, the first tries that failed and the turns that ended an episode.
+    judge (a gen; the simulator when one is given) reads each written request that passed those checks beside both
+    halves and the conversation and says whether it names a detail only the hidden half holds (judge_prompt; yes when
+    p(yes) > p(no)): a yes is written again too, within the same RESAMPLES tries. samples (a list) gathers judged
+    requests with their verdicts, for checks by hand."""
+    judge = judge if judge is not None else sim
     sim = sim or gen
     stats = {} if stats is None else stats
     live = []
@@ -742,7 +778,8 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None):
     for s in live:
         s['done'] = 0
     def count(s, key):
-        st = stats.setdefault(s['family'], dict(asked=0, first_failed=0, ended=0, real_ended=0))
+        st = stats.setdefault(s['family'], dict(asked=0, first_failed=0, ended=0, real_ended=0, judged=0,
+                                                 judge_yes=0))
         st[key] += 1
 
     for k in range(MAX_TURNS):
@@ -760,7 +797,7 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None):
             if not need:
                 break
             outs = sim([sim_prompt(s, k, s['turns'][k]['ask']) for s in need], USER_TOK, 0.8)
-            again = []
+            again, cand = [], []
             for s, got in zip(need, outs):
                 t, u = s['turns'][k], cut(clean_user(got[0]), USER_TOK)
                 hidden = s['views'][other(t['ask'])]
@@ -770,6 +807,28 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None):
                         count(s, 'first_failed')
                     again.append(s)
                     continue
+                cand.append((s, u))
+            if judge is not None and cand:
+                verdicts = judge([judge_prompt(s, k, s['turns'][k]['ask'], u) for s, u in cand], 1, 0.0,
+                                 topk=JUDGE_K)
+                kept = []
+                for (s, u), got in zip(cand, verdicts):
+                    py = judge_yes(got[2] if len(got) > 2 else None)
+                    count(s, 'judged')
+                    if samples is not None and len(samples) < 200:
+                        samples.append(dict(id=s['id'], family=s['family'], turn=k, request=u, p_yes=round(py, 3),
+                                            hidden=s['views'][other(s['turns'][k]['ask'])][:1500],
+                                            own=s['views'][s['turns'][k]['ask']][:600]))
+                    if py > 0.5:
+                        count(s, 'judge_yes')
+                        if attempt == 0:
+                            count(s, 'first_failed')
+                        again.append(s)
+                    else:
+                        kept.append((s, u))
+                cand = kept
+            for s, u in cand:
+                t = s['turns'][k]
                 t['user'] = u
                 t['teacher_user'] = (s['material'] + '\n\n' + u) if k == 0 and s['material'] else u
                 del t['ask']
@@ -840,8 +899,8 @@ def vllm_gen(model=TEACHER, gpu_memory_utilization=0.9, max_model_len=8192, topk
     from vllm import LLM, SamplingParams
     kw = dict(model=model, gpu_memory_utilization=gpu_memory_utilization, max_model_len=max_model_len,
               enable_prefix_caching=True, seed=0)
-    if not topk:                                                      # the simulated user: text only
-        llm = LLM(**kw)
+    if not topk:                                                      # the simulated user (and judge)
+        llm = LLM(max_logprobs=JUDGE_K, **kw)
     else:
         try:
             llm = LLM(logprobs_mode='raw_logprobs', max_logprobs=TOPK, **kw)  # the model's own distribution
@@ -975,13 +1034,19 @@ def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None, sim
             if max_minutes and (time.monotonic() - t0) / 60 > max_minutes:
                 log(json.dumps(dict(split=split, stopped='max_minutes', records=done)))
                 break
-            stats = {}
-            recs = generate(sks[i:i + batch], gen, random.Random(off + i), log, sim=sim, stats=stats)
+            stats, samples = {}, []
+            recs = generate(sks[i:i + batch], gen, random.Random(off + i), log, sim=sim, stats=stats, samples=samples)
+            if samples:                                  # judged requests beside the shards, for checks by hand
+                (Path(out) / 'judge').mkdir(parents=True, exist_ok=True)
+                with open(Path(out) / 'judge' / f'{split}-{tag}{shard:04d}.jsonl', 'w') as f:
+                    for x in samples:
+                        f.write(json.dumps(x, ensure_ascii=False) + '\n')
             recs = recs[:max(0, n - done)]
             shard = write_shards(recs, out, split, shard, tag=tag)
             done += len(recs)
             rates = {f: dict(asked=v['asked'], first_failed=round(v['first_failed'] / max(1, v['asked']), 3),
-                             ended=v['ended'], real_ended=v['real_ended']) for f, v in sorted(stats.items())}
+                             ended=v['ended'], real_ended=v['real_ended'], judged=v['judged'],
+                             judge_yes=round(v['judge_yes'] / max(1, v['judged']), 3)) for f, v in sorted(stats.items())}
             log(json.dumps(dict(split=split, records=done, of=n, s=round(time.monotonic() - t0), user_turns=rates)))
             if done >= n:
                 break

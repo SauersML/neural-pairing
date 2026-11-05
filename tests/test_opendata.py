@@ -310,7 +310,7 @@ def test_simulated_turns_are_resampled_then_end_the_episode(cache):
     sim_calls = []
 
     def sim(prompts, max_tokens, temperature, topk=0):
-        sim_calls.append(len(prompts))
+        sim_calls.append(sum(p[0]['content'] != O.JUDGE_SYSTEM for p in prompts))
         return stuck(prompts, max_tokens, temperature, topk)
     fresh = [s for s in O.skeletons('train', 80, seed=7) if s['family'] == 'doc'][:2]   # (generate fills its input)
     O.generate(fresh, stuck, random.Random(0), log=lambda *_: None, sim=sim)
@@ -332,3 +332,37 @@ def test_episodes_cut_degenerate_turns_and_take_new_shards(cache, tmp_path):
     more = list(eps)
     assert {r['id'] for r in more} == {r['id'] for r in recs[20:]} - {r['id'] for r in seen}
     assert len({r['id'] for r in seen + more}) == len(seen) + len(more)
+
+
+def test_the_judge_sends_back_requests_that_name_hidden_details(cache):
+    sks = [s for s in O.skeletons('train', 80, seed=9) if s['family'] == 'doc'][:4]
+    yes, no = O.tok()('Yes', add_special_tokens=False).input_ids[0], O.tok()('No', add_special_tokens=False).input_ids[0]
+    asked = []
+
+    def sim(prompts, max_tokens, temperature, topk=0):
+        out = []
+        for p in prompts:
+            if isinstance(p[0], int):
+                ids = O.piece('an answer to it')
+                n = len(ids)
+                out.append(('an answer to it', ids, (np.zeros((n, topk), np.int32), np.zeros((n, topk), np.float16))))
+            elif p[0]['content'] == O.JUDGE_SYSTEM:                     # yes when the request names "lantern"
+                leak = 'lantern' in p[1]['content'].split("The user's new message:")[1]
+                first = [yes, no] if leak else [no, yes]
+                out.append(('Yes' if leak else 'No', [first[0]],
+                            (np.array([first], np.int32), np.array([[-0.05, -3.0]], np.float16))))
+            else:
+                asked.append(p)
+                n = len(asked)
+                ask = f'Please tell me about the lantern rule number {n} today' if n % 2 else \
+                    f'Which general rules apply here for case number {n} today?'
+                out.append((ask, [], None))
+        return out
+    stats, samples = {}, []
+    recs = O.generate(sks, sim, random.Random(0), log=lambda *_: None, sim=sim, stats=stats, samples=samples)
+    users = [t['user'] for r in recs for t in r['turns']]
+    assert users and not any('lantern' in u for u in users)
+    assert stats['doc']['judged'] >= len(users) and stats['doc']['judge_yes'] > 0
+    assert {x['p_yes'] > 0.5 for x in samples} == {True, False} and all('lantern' in x['request'] for x in samples
+                                                                        if x['p_yes'] > 0.5)
+    assert O.judge_yes(None) == 0.0
