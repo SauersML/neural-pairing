@@ -463,14 +463,16 @@ def test_sym_contrast_and_letter_rule(tok, tmp_path):
     keep, up, down = C.LAM_RULE
     private = False
     for r in recs[2:]:
-        held = r['gap'] >= keep * gap0
-        if not held:
+        held = gap0 > 0 and r['gap'] >= keep * gap0
+        if gap0 <= 0:                                  # no positive reference yet: the weight stays
+            gap0 = r['gap']
+        elif not held:
             lam *= down
-        elif not private or r['letters'] >= C.PRIV_LETTERS:
+        elif not private or r['letters_exact'] >= C.PRIV_LETTERS:
             lam *= up
         assert r['held'] == held and r['lam_next'] == pytest.approx(lam)
         if 'private' in r:
-            assert held and r['letters'] < C.PRIV_LETTERS
+            assert held and r['letters_exact'] < C.PRIV_LETTERS
         private = private or 'private' in r
     assert (tmp_path / 'gate.pt').exists() == any('private' in r for r in recs)
     out = tmp_path / 'cont'
@@ -480,6 +482,13 @@ def test_sym_contrast_and_letter_rule(tok, tmp_path):
     recs = [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
     assert [r['held'] for r in recs] == [False] * 3 and 'stop' in recs[-1] and not (out / 'pre.pt').exists()
     assert [r['lam_next'] for r in recs] == pytest.approx([.25, .125, .0625])
+    out = tmp_path / 'neg'
+    out.mkdir()
+    C.train(net, 'cpu', 4, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=-1e9, cut0=-1e6,
+            lost=2, tau0=.3, beta_full=True, min_steps=100)
+    recs = [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
+    assert len(recs) == 4 and not any(r['held'] or 'private' in r or 'stop' in r for r in recs)
+    assert [r['lam_next'] for r in recs] == pytest.approx([.5] * 4)
     assert net.tau == pytest.approx(.3) and net.beta == C.BETA
     # a fixed reference cut: the gap is cut0 minus the hard dev NLL, whatever the dev's own cut does
     out = tmp_path / 'cut0'

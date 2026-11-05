@@ -1422,7 +1422,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     dev NLL, a fixed reference cut (the first run's at its gap0 dev), so a reader whose own no-note NLL drifts up cannot
     hold the gap while its hard NLL gets worse; the gap against the dev's own cut is logged as gap_now. gap_ref max:
     the reference gap is the largest dev gap so far (for a letter weight from step 0, with no dev before it); dev0:
-    one sym dev before the first step (the untrained notes). The letter share that gates privacy and the weight's
+    one sym dev before the first step (the untrained notes). Until the reference gap is positive (the notes help
+    the reader) no dev holds it, the weight stays, no dev counts as missed and each dev's gap is the next reference.
+    The letter share that gates privacy and the weight's
     rise is letters_exact (the penalty's rule); letters (the first rule) and letters_text are logged beside it."""
     games = games or CG.GAMES
     torch.manual_seed(seed)
@@ -1515,11 +1517,14 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 if cut0 is not None:
                     rec['gap_now'] = round(rec['dev_cut'] - v, 4)
                 keep, (up, down) = LAM_RULE[0], lam_rule
-                held = gap0 is not None and gap >= keep * gap0
+                held = gap0 is not None and gap0 > 0 and gap >= keep * gap0
                 if gap0 is None or step <= letters_from:
                     gap0 = gap
                     if out and step <= letters_from:
                         torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'pre.pt')
+                elif gap0 <= 0:                        # the notes have not helped yet: no gap to hold, this one is
+                    gap0 = gap                         # the next reference, the weight stays and no dev is missed
+                    rec.update(held=False, lam_next=net.lam)
                 else:
                     misses = 0 if held else misses + 1
                     if not held:
