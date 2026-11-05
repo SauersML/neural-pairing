@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from swarm import crumb_games as CG                    # noqa: E402
 from swarm import crumbs as C                           # noqa: E402
 
-ARMS = (('cut', 4), ('resid', 4), ('resid', 1), ('kv', 4), ('kv', 1), ('text', 4), ('tok', 4), ('tok', 2))
+ARMS = (('cut', 4), ('resid', 4), ('resid', 1), ('kv', 4), ('kv', 1), ('text', 4), ('sym', 2))
 
 
 @pytest.fixture(scope='module')
@@ -24,7 +24,7 @@ def tok():
 def tiny(tok, arm, m):
     from transformers import Qwen3Config, Qwen3ForCausalLM
     torch.manual_seed(0)
-    cfg = Qwen3Config(vocab_size=len(tok) + C.ALPHABET, hidden_size=64, intermediate_size=128, num_hidden_layers=4,
+    cfg = Qwen3Config(vocab_size=len(tok) + 64, hidden_size=64, intermediate_size=128, num_hidden_layers=4,
                       num_attention_heads=4, num_key_value_heads=2, head_dim=16, tie_word_embeddings=True,
                       attn_implementation='sdpa')
     return C.build('cpu', arm, m, model=Qwen3ForCausalLM(cfg).to(torch.float32), tok=tok, layers=(1, 2))
@@ -67,20 +67,18 @@ def test_writer_slots_and_text_notes(tok):
 @pytest.mark.parametrize('arm,m', ARMS)
 def test_arm_trains_and_answers(tok, arm, m, tmp_path):
     net = tiny(tok, arm, m)
-    if arm == 'tok':
-        net.adv = 1.
     C.train(net, 'cpu', 1, 2, 0, games=('trail',))
     loss = net.loss(trails(2), 'cpu')
     assert torch.isfinite(loss)
     loss.backward()
-    if arm in C.CRUMB_ARMS:
+    if arm in ('resid', 'kv'):
         assert net.crumb.grad is not None and net.crumb.grad.abs().sum() > 0
     net.zero_grad()
     out, rows = C.evaluate(net, 'cpu', n=4, n_choice=2, n_gen=2, seed=1, games=('trail',), bs=2, keep_rows=2)
     tf, gen = out['trail']['tf'], out['trail']['gen']
     crumbs = arm in C.CRUMB_ARMS
-    assert set(tf) == ({'on', 'off', 'transplant'} if crumbs else {'on'}) | ({'soft', 'base', 'base_off'} if arm == 'tok' else set())
-    assert set(gen) == ({'on', 'off', 'swap', 'room'} if crumbs else {'on'}) | ({'base'} if arm == 'tok' else set())
+    assert set(tf) == ({'on', 'off', 'transplant'} if crumbs else {'on'}) | ({'soft', 'base', 'base_off'} if arm == 'sym' else set())
+    assert set(gen) == ({'on', 'off', 'swap', 'room'} if crumbs else {'on'}) | ({'base'} if arm == 'sym' else set())
     for v in tf.values():
         assert v['nll'] > 0 and v['n'] == 4 and v['n_choice'] == 2 and 0 <= v['choice'] <= 1
     assert out['trail']['episodes']['on']['choice'][2:] == [None, None]
@@ -138,7 +136,7 @@ def test_reader_sees_only_its_places(tok, arm):
         base = logits(bank)
         unseen = [r for r in range(CG.N_ROOMS) if r not in eps[0]['trail']['visit']][0]
         seen = eps[0]['trail']['visit'][0]
-        name = dict(resid='h', kv='k', tok='y')[arm]
+        name = dict(resid='h', kv='k', sym='e')[arm]
 
         def poke(place):
             b = dict(bank)
@@ -146,9 +144,7 @@ def test_reader_sees_only_its_places(tok, arm):
             new = []
             for t in bank[name]:
                 t = t.clone()
-                if name == 'y':
-                    t[0, sl] = t[0, sl].roll(1, -1)
-                elif name == 'h':
+                if name in ('h', 'e'):
                     t[0, sl] += 5.0
                 else:
                     t[0, :, sl] += 5.0
@@ -162,7 +158,7 @@ def test_reader_sees_only_its_places(tok, arm):
         assert not torch.allclose(logits(bank, on=False), base, atol=1e-4)
 
 
-@pytest.mark.parametrize('arm', ('resid', 'kv', 'text', 'tok'))
+@pytest.mark.parametrize('arm', ('resid', 'kv', 'text', 'sym'))
 def test_every_game_runs(tok, arm):
     """Each crumb game trains, reads teacher-forced with its choices, and answers greedily (test values)."""
     net = tiny(tok, arm, 2)
@@ -181,35 +177,148 @@ def test_every_game_runs(tok, arm):
         assert set(got) == want, game
 
 
-def test_tok_messages_and_adversary(tok, tmp_path):
-    """The follower's stream holds m read positions per visited room; messages are one-hot; the adversary term is
-    positive at a random start and its gradient reaches A and the writer's crumb inputs; the base mode reads with
-    the adapter disabled; intercept and load round-trip."""
-    net = tiny(tok, 'tok', 3)
-    ep = trails(1)[0]
-    st = net.stream(ep, 1)
-    assert len(st['reads']) == 3 * CG.N_VISIT
-    assert all(net.tok.decode(st['ids'][p]) == net.tok.pad_token for p, _, _ in st['reads'])
-    net.adv = 1.
-    net.adv_sum, net.adv_n = 0., 0
-    total, count, bank = net.run(trails(4), 'cpu')
-    y = bank['y'][0]
-    assert torch.allclose(y.sum(-1)[bank['place'] >= 0], torch.ones(1))
-    assert net.adv_n == 4 * (CG.N_VISIT + 1)
-    loss = net.loss(trails(4), 'cpu')
-    loss.backward()
-    assert net.A.grad.abs().sum() > 0 and net.crumb.grad.abs().sum() > 0
-    net.zero_grad()
-    with torch.no_grad():                                 # LoRA B starts at zero: give the adapter an effect
+def lora_effect(net):
+    with torch.no_grad():                                 # LoRA B starts at zero: give the adapters an effect
         for n, prm in net.model.named_parameters():
             if 'lora_B' in n:
                 prm.normal_(0, 0.05)
+
+
+def test_letter_table(tok):
+    """Letters: any Unicode L* character, or bytes that are not complete UTF-8; digits, punctuation, symbols and
+    spaces are allowed; special and added tokens and the rows past the tokenizer's are banned."""
+    letter, banned = C.letter_table(tok, len(tok) + 64)
+    one = tok.convert_tokens_to_ids
+    for t in ('cat', 'Ġthe', 'ä¸Ń', 'ä'):            # a word, a spaced word, a CJK character, a lone UTF-8 lead byte
+        assert letter[one(t)], t
+    for t in ('7', '!', 'Ġ', '%', 'Ċ', '...'):
+        assert not letter[one(t)] and not banned[one(t)], t
+    for i in (one('<|im_end|>'), one('<think>'), tok.pad_token_id, len(tok), len(tok) + 63):
+        assert banned[i]
+    import unicodedata
+    for i in range(0, len(tok) - 300, 997):              # the byte map agrees with the tokenizer's own decoding
+        text = tok.decode([i])
+        if '\ufffd' not in text:
+            assert bool(letter[i]) == any(unicodedata.category(c).startswith('L') for c in text), (i, text)
+    assert 0.5 < float(letter[~banned].float().mean()) < 0.99
+
+
+def test_sym_notes_are_greedy_decoding(tok):
+    """A hard note is the greedy decoding (special tokens masked) of the writer's tokens up to its place, the cue
+    turn and the note so far, run as plain token ids; the bank sends those tokens' embedding rows."""
+    net = tiny(tok, 'sym', 3)
+    lora_effect(net)
+    net.eval()
+    eps = trails(2)
+    E = net.model.get_input_embeddings().weight
+    with torch.no_grad():
+        _, _, bank = net.run(eps, 'cpu', need_loss=False)
+        for b, ep in enumerate(eps):
+            st = net.stream(ep, 0)
+            cols = ((bank['agent'][b] == 0) & (bank['place'][b] >= 0)).nonzero()[:, 0]
+            assert len(cols) == 3 * CG.N_ROOMS
+            for k in range(CG.N_ROOMS):
+                pre = st['ids'][:st['slots'][3 * k][0]] + net.cue
+                got = []
+                for _ in range(3):
+                    lg = net.model(input_ids=torch.tensor([pre + got])).logits[0, -1].float()
+                    got.append(int(lg.masked_fill(net.banned, float('-inf')).argmax()))
+                ids = bank['ids'][0][b, cols[3 * k:3 * k + 3]]
+                assert ids.tolist() == got, (b, k)
+                assert torch.equal(bank['e'][0][b, cols[3 * k:3 * k + 3]], E[ids])
+
+
+def test_sym_training_and_privacy(tok):
+    """The writer's stream holds no note tokens and the follower's one line per visited room's note; in training
+    the follower's loss reaches the notes it reads and nothing else; the letter, entropy and privacy terms are
+    collected; the base model and the eavesdropper read with the shared adapter off; the eavesdropper's update
+    leaves the shared adapter's gradients alone; intercept and note_stats decode the hard notes."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    ep = trails(1)[0]
+    fol, wr = net.stream(ep, 1), net.stream(ep, 0)
+    assert len(fol['reads']) == 2 * CG.N_VISIT and tok.decode(fol['ids']).count(C.NOTE) == CG.N_VISIT
+    assert len(wr['slots']) == 2 * CG.N_ROOMS and all(k == -1 for k in wr['kind'])
+    assert wr['ids'] == tiny(tok, 'cut', 2).stream(ep, 0)['ids']
+    net.train()
+    net.tau, net.lam, net.beta = 1., 1., 0.1
+    eps = trails(2)
+    total, count, bank = net.run(eps, 'cpu')
+    g = torch.autograd.grad(total, bank['e'][0])[0].abs().sum(-1)
+    real = bank['place'] >= 0
+    assert not bool(net.banned[bank['ids'][0][real]].any())
+    for b, e_ in enumerate(eps):
+        seen = torch.tensor([p in e_['trail']['visit'] for p in bank['place'][b].tolist()]) & real[b]
+        assert bool((g[b][seen] > 0).all()) and float(g[b][~seen].sum()) == 0
+    net.loss(eps, 'cpu')
+    s = net.sums
+    assert s['n_tok'] == 2 * 2 * CG.N_ROOMS and 0 < float(s['let']) / s['n_tok'] < 1 and float(s['ent']) > 0
+    net.adv, net.eaves_on = 1., True
+    loss = net.loss(eps, 'cpu')
+    assert net.sums['n_adv'] == net.sums['n_eav'] == 2 * (CG.N_VISIT + 1) and len(net.stash) == 1
+    loss.backward()
+    shared = [p for n, p in net.model.named_parameters() if '.default.' in n]
+    eav = net.eaves_params()
+    assert eav and all(p.requires_grad for p in shared) and not any(p.requires_grad for p in eav)
+    assert all(p.grad is None for p in eav)
+    grads = [None if p.grad is None else p.grad.clone() for p in shared]
+    assert sum(float(q.abs().sum()) for q in grads if q is not None) > 0
+    v = net.eaves_step()
+    assert v > 0 and not net.stash and sum(float(p.grad.abs().sum()) for p in eav if p.grad is not None) > 0
+    assert all((q is None and p.grad is None) or torch.equal(q, p.grad) for q, p in zip(grads, shared))
+    assert all(p.requires_grad for p in shared) and not any(p.requires_grad for p in eav)
+    net.zero_grad()
     net.eval()
     on, _ = net.forced(trails(2), 'cpu', 'on')
     base, _ = net.forced(trails(2), 'cpu', 'base')
-    assert on != base
+    soft, _ = net.forced(trails(2), 'cpu', 'soft')
+    assert on != base and on != soft
     got = C.intercept(net, 'cpu', n=3, others=1, bs=3)
     trail = [r for r in got['messages'] if r['game'] == 'trail']
-    assert len(trail) == 2 * 3 * CG.N_ROOMS and all(len(r['tokens']) == 3 for r in trail)
-    assert all(r['vocab_ids'] == [len(tok) + k for k in r['tokens']] for r in trail)
-    (tmp_path / 'args.json').write_text(C.json.dumps(dict(arm='tok', m=3, adv=1.)))
+    assert len(trail) == 2 * 3 * CG.N_ROOMS
+    assert all(len(r['vocab_ids']) == 2 and r['text'] == tok.decode(r['vocab_ids']) for r in trail)
+    stats = C.note_stats(net, 'cpu', trails(3))
+    assert 0 <= stats['letters'] <= 1 and len(stats['examples']) == 2 * CG.N_ROOMS
+
+
+def test_keytrail_is_pointer():
+    """keytrail draws only trail episodes whose key room the follower never enters but can learn of from a later
+    room's crumbs; it is a training variant, not one of the games."""
+    rng = random.Random(3)
+    assert {CG.case(CG.episode('keytrail', rng)) for _ in range(60)} == {'pointer'}
+    assert 'keytrail' not in CG.GAMES
+
+
+def test_corpus_games(tok, tmp_path, monkeypatch):
+    """Corpus tasks as crumb games, on a made-up cache: fill-in puts each of A's parts at its own place and B writes
+    them there; a split-input task uses one place; "corpus" expands to every cached task at corpus.mix_of()."""
+    from swarm import corpus as CP
+    monkeypatch.setattr(CP, 'CACHE', tmp_path)
+    monkeypatch.setattr(CP, '_rows', {})
+    words = 'the river bends past an old mill where children fish for trout in summer and skate in winter'.split()
+    doc = ' '.join(f'{words[i % len(words)]}{i}' + ('.' if i % 9 == 8 else '') for i in range(400))   # no repeats
+    for test in (False, True):
+        CP.write_rows('fill_web', test, [dict(text=doc, part=0)] * 3)
+        CP.write_rows('qa_squad', test, [dict(context='The mill was built in 1820 by the river.',
+                                               question='When was the mill built?', answers=['1820'])] * 3)
+    games, weights = C.expand_games('corpus,trail', {'trail': 2.})
+    assert games == ('c_fill_web', 'c_qa_squad', 'trail') and weights['trail'] == 2.
+    assert abs(weights['c_fill_web'] - 0.6 * 2) < 1e-9 and abs(weights['c_qa_squad'] - 0.4 * 2) < 1e-9
+    rng = random.Random(0)
+    fill, qa = CG.episode('c_fill_web', rng), CG.episode('c_qa_squad', rng)
+    writer, reader = fill['agents']
+    assert writer['write'] and not reader['write'] and len(fill['places']) == CP.CHUNKS
+    chunks = [c.strip() for c in fill['corpus']['golds']['chunks']]
+    assert [sg['place'] for sg in writer['segments']] == list(range(CP.CHUNKS))
+    own = range(0, 2 * CP.CHUNKS, 2)
+    assert [sg['say'] for sg in reader['segments'][1:]] == [f'({i + 1}) {chunks[i]}' for i in own]
+    assert all(chunks[i] not in reader['segments'][0]['user'] for i in own)
+    assert qa['places'] == ['the desk'] and qa['agents'][1]['segments'][0]['say'] == '1820'
+    say = reader['segments'][1]['say']
+    assert CG.score(fill, 1, 1, say) == 1. and CG.score(qa, 1, 0, '1820') == 1. and CG.score(qa, 1, 0, '1700') == 0.
+    net = tiny(tok, 'kv', 2)
+    loss = net.loss([fill, qa], 'cpu')
+    assert torch.isfinite(loss)
+    loss.backward()
+    nll, _ = net.forced([fill, qa], 'cpu', 'transplant')
+    assert all(v is not None and v > 0 for v in nll)

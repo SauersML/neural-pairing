@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600" height="2000" viewBox="0 0 2600 2000">
+<rect width="2600" height="2000" fill="#000000"/>
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<text x="70.0" y="141.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">With KV crumbs the reader is far above its own crumbs-cut</text>
+<text x="70.0" y="242.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">level on 5 of 7 games; Relay and HotpotQA stay near it</text>
+<rect x="70.0" y="312.8" width="46.0" height="46.0" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="136.0" y="352.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Qwen3-0.6B, crumbs on</text>
+<rect x="901.0" y="312.8" width="46.0" height="46.0" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="967.0" y="352.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Qwen3-4B, crumbs on</text>
+<line x1="1685.0" y1="335.8" x2="1749.0" y2="335.8" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1771.0" y="352.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">same model, crumbs cut</text>
+<line x1="190.0" y1="1554.0" x2="2530.0" y2="1554.0" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="180.0" y="1572.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">0%</text>
+<line x1="190.0" y1="1039.4" x2="2530.0" y2="1039.4" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="180.0" y="1057.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">50%</text>
+<line x1="190.0" y1="524.8" x2="2530.0" y2="524.8" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="180.0" y="542.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">100%</text>
+<rect x="274.0" y="620.9" width="99.0" height="933.1" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="323.5" y="598.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">91%</text>
+<line x1="264.0" y1="1337.9" x2="383.0" y2="1337.9" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="397.0" y="658.6" width="99.0" height="895.4" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="446.5" y="636.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">87%</text>
+<line x1="387.0" y1="1345.6" x2="506.0" y2="1345.6" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="385.0" y="1620.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Trail</text>
+<text x="385.0" y="1676.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">object in each</text>
+<text x="385.0" y="1728.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">room</text>
+<rect x="604.0" y="524.8" width="99.0" height="1029.2" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="653.5" y="502.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="594.0" y1="1205.9" x2="713.0" y2="1205.9" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="727.0" y="524.8" width="99.0" height="1029.2" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="776.5" y="502.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="717.0" y1="1212.1" x2="836.0" y2="1212.1" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="715.0" y="1620.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Maze</text>
+<text x="715.0" y="1676.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">door taken in</text>
+<text x="715.0" y="1728.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">each room</text>
+<rect x="934.0" y="524.8" width="99.0" height="1029.2" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="983.5" y="502.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="924.0" y1="1512.8" x2="1043.0" y2="1512.8" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="1057.0" y="524.8" width="99.0" height="1029.2" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="1106.5" y="502.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="1047.0" y1="1420.2" x2="1166.0" y2="1420.2" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1045.0" y="1620.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Count</text>
+<text x="1045.0" y="1676.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">total of three</text>
+<text x="1045.0" y="1728.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">counts</text>
+<rect x="1264.0" y="526.2" width="99.0" height="1027.8" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1313.5" y="504.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="1254.0" y1="1223.3" x2="1373.0" y2="1223.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="1387.0" y="524.8" width="99.0" height="1029.2" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="1436.5" y="502.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="1377.0" y1="1232.9" x2="1496.0" y2="1232.9" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1375.0" y="1620.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Division of</text>
+<text x="1375.0" y="1676.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">labour</text>
+<text x="1375.0" y="1732.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">two workers’</text>
+<text x="1375.0" y="1784.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">sums</text>
+<rect x="1594.0" y="524.8" width="99.0" height="1029.2" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1643.5" y="502.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="1584.0" y1="1036.0" x2="1703.0" y2="1036.0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="1717.0" y="524.8" width="99.0" height="1029.2" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="1766.5" y="502.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="1707.0" y1="1039.4" x2="1826.0" y2="1039.4" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1705.0" y="1620.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Traps</text>
+<text x="1705.0" y="1676.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">safe or trap</text>
+<rect x="1924.0" y="1307.0" width="99.0" height="247.0" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1973.5" y="1285.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">24%</text>
+<line x1="1914.0" y1="1313.9" x2="2033.0" y2="1313.9" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="2047.0" y="1337.9" width="99.0" height="216.1" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="2096.5" y="1315.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">21%</text>
+<line x1="2037.0" y1="1358.5" x2="2156.0" y2="1358.5" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="2035.0" y="1620.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Relay</text>
+<text x="2035.0" y="1676.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">key room, two</text>
+<text x="2035.0" y="1728.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">writers in a</text>
+<text x="2035.0" y="1780.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">chain</text>
+<rect x="2254.0" y="1111.4" width="99.0" height="442.6" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="2303.5" y="1089.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">43%</text>
+<line x1="2244.0" y1="1162.9" x2="2363.0" y2="1162.9" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="2377.0" y="1080.6" width="99.0" height="473.4" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="2426.5" y="1058.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">46%</text>
+<line x1="2367.0" y1="1101.2" x2="2486.0" y2="1101.2" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="2365.0" y="1620.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">HotpotQA</text>
+<text x="2365.0" y="1676.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">answer from</text>
+<text x="2365.0" y="1728.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">two pages</text>
+<text x="70.0" y="1880.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">Accuracy: forced choice over the possible answers, 150 (Qwen3-0.6B) and 100 (Qwen3-4B) test episodes per game;</text>
+<text x="70.0" y="1930.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">HotpotQA: greedy answers with token F1 of at least 0.5, 100 test episodes.</text>
+</svg>

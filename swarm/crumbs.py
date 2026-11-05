@@ -19,21 +19,21 @@ Arms (--arm):
             a * SPAN, so crumbs always lie in the reader's past at the same distances in training and evaluation
   text      no crumbs; a reader's segment at place p starts with one line per earlier writer segment at p,
             "A note left here: {its user text} {its say}" (the format's ceiling)
-  tok       token neuralese: each crumb is one of 64 tokens <z0>..<z63> (the base model's unused vocabulary rows,
-            len(tokenizer) on); the writer's final hidden state at a crumb slot times a trainable table A [64, d] (not
-            the tied embedding) gives its logits (the state standardized per message position, its cosine with A's
-            rows times a learned scale starting at WSCALE: the raw final states share one large direction, which made
-            every message the same code under straight-through Gumbel, and unbounded dot products saturated the
-            softmax; A starts orthogonal at the embedding rows' norm). Training sends the soft mixture softmax(logits / tau) @ A (full gradient, no noise), tau annealed
-            TAU, with a per-slot entropy penalty (BETA, ramped); evaluation sends the argmax token (hard), or the soft
-            mixture in mode soft (hard one-hot forward, tau
-            from 1.0 to 0.3 over training; argmax at evaluation); a reader's segment at place p gets every earlier
-            writer's m tokens at p inside its user turn after the text, as inputs onehot @ A, and sees nothing else of
-            the writer. Adversary (--adv lambda): the same base with its adapter disabled reads the same prompt, and
-            for each choice group of the reader's says (crumb_games.choices) the loss adds lambda * relu(log p_base
-            (gold | the C candidates' first differing token) - max(log(1/C), the same with every message masked)):
-            the untrained model may gain nothing from the messages over chance or its own prior, and is never rewarded
-            for being confidently wrong
+  sym       crumbs are real vocabulary tokens: after each segment with a place the writer writes a note of m tokens
+            with its own head, autoregressively, after a cue turn (CUE): each token fed back (and sent) is
+            softmax(logits / tau) @ the embedding matrix in training (full gradient, no noise; tau annealed SYM_TAU)
+            and the argmax token at evaluation (or the soft mixture in mode soft); special tokens never. A note sees
+            the writer's tokens up to its place, not the writer's earlier notes. A reader's segment at place p starts
+            with one line per earlier note at p, "A note left here:" and its m tokens as plain input embeddings.
+            Besides the says, the loss adds lam times the softmax mass on letter tokens (letter_table: a character of
+            Unicode category L*, or bytes that are not complete UTF-8; lam per LETTERS) and BETA (ramped over the
+            first half) times each token's entropy minus the entropy of its batch-mean distribution. Privacy (--adv
+            lambda), ramped in over ADV_RAMP steps once the dev notes are under LETTERS[3] letters: the base model with
+            its adapter disabled, and an eavesdropper (a second LoRA, 'eaves', trained in alternation on the hard notes
+            to answer the reader's choice groups), each read the reader's prompt with the soft notes; per choice group
+            of the reader's says (crumb_games.choices) the loss adds lambda * relu(log p(gold | the C candidates'
+            first differing token) - max(log(1/C), the same with every note masked)) for each: neither may gain from
+            the notes over chance or its own prior, and neither is rewarded for being confidently wrong
 Evaluation at test values, per game: says with crumbs on and with every crumb masked off; on trail also swap (the
 follower's tokens in one visited room read the crumbs of a room it did not visit) and transplant (one visited room's
 crumbs are replaced by a room's crumbs from another episode). Writes OUT/log.jsonl, OUT/scores.json, OUT/answers.json.
@@ -60,15 +60,14 @@ from swarm.link import LAYERS, Bridge, blocks           # noqa: E402
 
 BASE = 'Qwen/Qwen3-0.6B'
 END = '<|im_end|>'
-CRUMB_ARMS = ('resid', 'kv', 'tok')
-ALPHABET = 64                                           # tok arm: message tokens
-TAU = (1.0, 0.1)              # tok arm: softmax temperature of the trained messages, start and end
-WSCALE = 10.                  # tok: writer logits = WSCALE x cosine(standardized state, A row): a random A starts
-                              # near uniform; unbounded dot products saturated the softmax within 75 steps
-A_LR = 0.1                    # tok: A's learning rate as a share of link_lr (A's entries are ~0.02)
-BETA = 0.1                    # tok: per-slot entropy penalty, ramped from 0 over the first half of training
-ADV_RAMP = 300                # tok: steps over which the adversary ramps in once the hard messages work
-WORKING = (1.1, 0.8)          # tok: hard messages work once dev NLL <= 1.1 x soft and <= 0.8 x cut
+CRUMB_ARMS = ('resid', 'kv', 'sym')
+SYM_TAU = (1.0, 0.3)          # sym arm: softmax temperature of the trained notes, start and end
+CUE = 'Leave a short note here for whoever comes next.'   # sym: the writer's user turn before each note
+NOTE = 'A note left here:'    # sym: what a reader's line starts with, before the note's tokens
+LETTERS = (300, 0.1, 100, 0.01)   # sym: letter penalty lam 0 up to step 300, then 0.1, doubled every 100 steps while
+                                  # the dev notes' hard tokens are at least 1% letters
+BETA = 0.1                    # sym: entropy penalty and batch-diversity bonus, ramped from 0 over the first half
+ADV_RAMP = 300                # sym: steps over which the privacy terms ramp in once the notes are letterless
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
 SPAN = 1024                                             # positions per agent (kv arm)
 MODES = ('on', 'off', 'swap', 'transplant')
@@ -107,22 +106,17 @@ class Crumbs(nn.Module):
         self.model, self.tok, self.arm, self.m, self.layers = model, tok, arm, m, tuple(layers)
         self.end = tok.convert_tokens_to_ids(END)
         d = model.config.hidden_size
-        if arm in CRUMB_ARMS:
+        if arm in ('resid', 'kv'):
             std = float(model.get_input_embeddings().weight.float().std())
             self.crumb = nn.Parameter(torch.randn(m, d) * std)
-        if arm == 'tok':
-            spare = model.config.vocab_size - len(tok)
-            if spare < ALPHABET:
-                raise ValueError(f'only {spare} unused vocabulary rows; the alphabet needs {ALPHABET}')
-            self.alien = list(range(len(tok), len(tok) + ALPHABET))     # <z0>..<z63>
-            rows = float(model.get_input_embeddings().weight.float().norm(dim=-1).mean())
-            self.A = nn.Parameter(nn.init.orthogonal_(torch.empty(ALPHABET, d)) * rows)
-            self.wscale = nn.Parameter(torch.tensor(WSCALE))
-            self.register_buffer('wmean', torch.zeros(m, d))      # per message position: each has its own crumb
-            self.register_buffer('wvar', torch.ones(m, d))        # input, so pooled statistics left a fixed code
-            self.tau, self.adv, self.adv_max, self.adv_sum, self.adv_n = TAU[0], 0., 0., 0., 0
-            self.beta, self.ent_sum, self.ent_n, self.soft = 0., 0., 0, False
-            self.codes = [collections.deque(maxlen=256) for _ in range(m)]   # recent training codes per position
+        if arm == 'sym':
+            self.letter, self.banned = letter_table(tok, model.config.vocab_size)
+            self.cue = self._ids(f'<|im_start|>user\n{CUE}{END}\n<|im_start|>assistant\n<think>\n\n</think>\n\n')
+            self.note = self._ids(NOTE)
+            self.tau, self.lam, self.beta, self.adv, self.adv_max = SYM_TAU[0], 0., 0., 0., 0.
+            self.soft, self.eaves_on, self.stash = False, False, []
+            self.codes = [collections.deque(maxlen=256) for _ in range(m)]   # recent training argmax ids per position
+            self.sums = collections.defaultdict(float)
         if arm == 'resid':
             self.readers = nn.ModuleList(Place(d) for _ in self.layers)
             stack = blocks(model)
@@ -160,8 +154,9 @@ class Crumbs(nn.Module):
     def stream(self, ep, a, remap=None):
         """Agent a's tokens: ids, place (the place a token reads, -1: none; remap {place: place it reads instead}),
         target (say tokens), seg (a say token's segment, -1: none), kind (crumb slot j, -1: a token), slots
-        [(position, place)], asks [(segment, position where its say starts, place)] and, tok arm, reads [(position,
-        writer agent, the writer's slot index)]: the message tokens it reads."""
+        [(position, place)] (sym: m per note, at the position its note branches off, with no tokens of its own), asks
+        [(segment, position where its say starts, place)] and, sym arm, reads [(position, writer agent, the writer's
+        slot index)]: the note tokens it reads."""
         agent, remap = ep['agents'][a], remap or {}
         ids = self._ids(f'<|im_start|>system\n{agent["system"]}<|im_end|>\n')
         place, target, seg_of, kind = [-1] * len(ids), [False] * len(ids), [-1] * len(ids), [-1] * len(ids)
@@ -182,8 +177,8 @@ class Crumbs(nn.Module):
                          for b in ep['agents'][:a] if b['write'] for w in b['segments'] if w['place'] == p]
                 user = '\n'.join(notes + [user])
             rp = remap.get(p, p)
-            if self.arm == 'tok' and rp >= 0:
-                add(self._ids(f'<|im_start|>user\n{user}'), rp)
+            if self.arm == 'sym' and rp >= 0:
+                add(self._ids('<|im_start|>user\n'), rp)
                 for w in range(a):
                     writer = ep['agents'][w]
                     k = 0
@@ -191,11 +186,13 @@ class Crumbs(nn.Module):
                         if ws['place'] is None:
                             continue
                         if ws['place'] == rp:
+                            add(self.note, rp)
                             for j in range(self.m):
                                 reads.append((len(ids), w, k * self.m + j))
                                 add([self.tok.pad_token_id], rp)
+                            add(self.nl, rp)
                         k += 1
-                add(self._ids('<|im_end|>\n'), rp)
+                add(self._ids(f'{user}<|im_end|>\n'), rp)
             else:
                 add(self._ids(f'<|im_start|>user\n{user}<|im_end|>\n'), rp)
             if seg['say'] is not None:
@@ -206,7 +203,8 @@ class Crumbs(nn.Module):
             if agent['write'] and p >= 0 and self.arm in CRUMB_ARMS:
                 for j in range(self.m):
                     slots.append((len(ids), p))
-                    add([self.tok.pad_token_id], rp, k=j)
+                    if self.arm != 'sym':
+                        add([self.tok.pad_token_id], rp, k=j)
         if len(ids) > SPAN:
             raise ValueError(f'agent stream of {len(ids)} tokens is longer than SPAN')
         return dict(ids=ids, place=place, target=target, seg=seg_of, kind=kind, slots=slots, asks=asks, reads=reads)
@@ -239,21 +237,21 @@ class Crumbs(nn.Module):
                     agent=torch.zeros((B, 0), dtype=torch.long, device=device))
         if self.arm == 'resid':
             bank['h'] = None
-        elif self.arm == 'tok':
-            bank['y'] = None
+        elif self.arm == 'sym':
+            bank['e'] = bank['ids'] = None
         else:
             bank['k'] = bank['v'] = None
         return bank
 
     def _read_tokens(self, rows, x, emb, att, bank, on):
-        """tok arm: emb with each read position's input onehot @ A of the message token it reads, and att with the
-        read positions masked out where on is False or the bank has no such slot (a transplant donor without it)."""
+        """sym arm: emb with each read position's input the note token's embedding it reads (bank e), and att with
+        the read positions masked out where on is False or the bank has no such slot (a transplant donor without it)."""
         rpos, ra, ri = x['rpos'], x['ragent'], x['ridx']
         N, T = att.shape
         R, S = rpos.shape[1], bank['place'].shape[1]
         valid = rpos >= 0
         ok = torch.zeros_like(valid)
-        if S and on and bank.get('y') is not None:
+        if S and on and bank.get('e') is not None:
             first = {}
             for c, w in enumerate(bank['agent'][0].tolist()):
                 first.setdefault(w, c)
@@ -263,8 +261,7 @@ class Crumbs(nn.Module):
             start = look.to(rpos.device)[ra.clamp(min=0)]
             col = (start + ri).clamp(0, S - 1)
             ok = valid & (start >= 0) & (start + ri < S) & (bank['place'][rows].gather(1, col) >= 0)
-            y = bank['y'][0][rows].gather(1, col[..., None].expand(-1, -1, ALPHABET))
-            msg = (y.to(self.A.dtype) @ self.A).to(emb.dtype)
+            msg = bank['e'][0][rows].gather(1, col[..., None].expand(-1, -1, emb.shape[-1])).to(emb.dtype)
             slot = torch.full((N, T + 1), -1, dtype=torch.long, device=att.device)
             slot.scatter_(1, torch.where(ok, rpos, T), torch.arange(R, device=att.device).expand(N, R).contiguous())
             slot = slot[:, :T]
@@ -278,15 +275,16 @@ class Crumbs(nn.Module):
     def _forward(self, rows, x, a, bank, keep, capture, on=True):
         """One forward of agent a's tokens x (from _pad) for batch rows rows (a LongTensor). Returns the logits at keep
         (an int or index tensor) and, if capture, the states every crumb could be taken from: resid, per link layer
-        [N, T, d]; kv, per layer (k, v) [N, heads, S + T, head dim] (S: the bank's slots)."""
+        [N, T, d]; kv, per layer (k, v) [N, heads, S + T, head dim] (S: the bank's slots); sym, per layer (k, v)
+        [N, heads, T, head dim], the writer's past its notes branch off."""
         ids, att = x['ids'], x['att']
         emb = self.model.get_input_embeddings()(ids)
-        if self.arm in CRUMB_ARMS:
+        if self.arm in ('resid', 'kv'):
             emb = torch.where((x['kind'] >= 0)[..., None], self.crumb.to(emb.dtype)[x['kind'].clamp(min=0)], emb)
-        if self.arm == 'tok' and x.get('rpos') is not None and x['rpos'].shape[1]:
+        if self.arm == 'sym' and x.get('rpos') is not None and x['rpos'].shape[1]:
             emb, att = self._read_tokens(rows, x, emb, att, bank, on)
         pos = (att.cumsum(-1) - 1).clamp(min=0) + (a * SPAN if self.arm == 'kv' else 0)
-        S = bank['place'].shape[1] if self.arm in CRUMB_ARMS else 0
+        S = bank['place'].shape[1] if self.arm in ('resid', 'kv') else 0
         allow = None
         if S:
             bp, ba = bank['place'][rows], bank['agent'][rows]
@@ -306,15 +304,19 @@ class Crumbs(nn.Module):
         if self.arm == 'resid':
             self.ctx = dict(src=[h[rows] for h in bank['h']] if S else None, allow=allow, got={} if capture else None)
         try:
-            logits = self.model(inputs_embeds=emb, attention_mask=att, position_ids=pos, use_cache=False,
-                                logits_to_keep=keep).logits
-            got = [self.ctx['got'][i] for i in range(len(self.layers))] if capture and self.ctx else None
+            out = self.model(inputs_embeds=emb, attention_mask=att, position_ids=pos,
+                             use_cache=capture and self.arm == 'sym', logits_to_keep=keep)
+            logits = out.logits
+            if self.arm == 'sym':
+                got = [(k, v) for k, v, *_ in out.past_key_values] if capture else None
+            else:
+                got = [self.ctx['got'][i] for i in range(len(self.layers))] if capture and self.ctx else None
         finally:
             self.ctx = None
         return logits, got
 
-    def _append(self, bank, rows, streams, got, a):
-        """bank with agent a's crumbs (rows' slots, taken from got) appended."""
+    def _append(self, bank, rows, streams, got, a, x=None):
+        """bank with agent a's crumbs (rows' slots, taken from got; sym: the notes written after x) appended."""
         B, device = bank['place'].shape[0], bank['place'].device
         S0 = bank['place'].shape[1]
         n = max(len(st['slots']) for st in streams)
@@ -333,45 +335,121 @@ class Crumbs(nn.Module):
         if self.arm == 'resid':
             new = [put(h.gather(1, idx[..., None].expand(-1, -1, h.shape[-1]))) for h in got]
             out['h'] = new if bank['h'] is None else [torch.cat([o, x], 1) for o, x in zip(bank['h'], new)]
-        elif self.arm == 'tok':
-            hs = got.gather(1, idx[..., None].expand(-1, -1, got.shape[-1])).float()
-            real = torch.arange(n, device=device)[None] < torch.tensor([len(st['slots']) for st in streams],
-                                                                       device=device)[:, None]
-            train = torch.is_grad_enabled() and self.training
-            pos = torch.arange(n, device=device) % self.m
-            if train:
-                mu, var = self.wmean.clone(), self.wvar.clone()
-                for r in range(self.m):
-                    sel = real & (pos == r)[None]
-                    if int(sel.sum()) > 1:
-                        mu[r], var[r] = hs[sel].mean(0), hs[sel].var(0, unbiased=False)
-                        with torch.no_grad():
-                            self.wmean[r].lerp_(mu[r].detach(), 0.01)
-                            self.wvar[r].lerp_(var[r].detach(), 0.01)
-            else:
-                mu, var = self.wmean, self.wvar
-            z = (hs - mu[pos][None]) / (var[pos][None] + 1e-5).sqrt()
-            logits = self.wscale * F.normalize(z, dim=-1) @ F.normalize(self.A.float(), dim=-1).T
-            if train or self.soft:
-                y = (logits / self.tau).softmax(-1)
-                if train:
-                    ent = -(y * y.clamp_min(1e-9).log()).sum(-1)[real]
-                    self.ent_sum, self.ent_n = self.ent_sum + ent.sum(), self.ent_n + ent.numel()
-                    code = y.argmax(-1)
-                    for r in range(self.m):
-                        self.codes[r].extend(code[real & (pos == r)[None]].tolist())
-            else:
-                y = F.one_hot(logits.argmax(-1), ALPHABET).float()
-            out['y'] = [put(y)] if bank['y'] is None else [torch.cat([bank['y'][0], put(y)], 1)]
+        elif self.arm == 'sym':
+            e, ids = self._notes(x, got, streams)
+            out['e'] = [put(e)] if bank['e'] is None else [torch.cat([bank['e'][0], put(e)], 1)]
+            out['ids'] = [put(ids)] if bank['ids'] is None else [torch.cat([bank['ids'][0], put(ids)], 1)]
         else:
             ks, vs = [], []
             for k, v in got:
                 g = (S0 + idx)[:, None, :, None].expand(-1, k.shape[1], -1, k.shape[-1])
-                ks.append(put(k.gather(2, g)))
-                vs.append(put(v.gather(2, g)))
+                ks.append(k.gather(2, g))
+                vs.append(v.gather(2, g))
+            ks, vs = [put(k) for k in ks], [put(v) for v in vs]
             out['k'] = ks if bank['k'] is None else [torch.cat([o, x], 2) for o, x in zip(bank['k'], ks)]
             out['v'] = vs if bank['v'] is None else [torch.cat([o, x], 2) for o, x in zip(bank['v'], vs)]
         return out
+
+    def _notes(self, x, got, streams):
+        """sym arm: every note of the writer streams x (from _pad; got: their per-layer (k, v), the past each note
+        branches off), m passes, each over every note at once: the note's tokens see the writer's tokens before its
+        place, then the cue turn (CUE) and the note's tokens so far (inputs_embeds, 4D mask), and the last one's
+        final state through the model's own head gives the next token's logits (special tokens masked). The token
+        fed back and sent is softmax(logits / tau) @ the embedding matrix in training (and mode soft), else the argmax
+        token's row. Returns the note embeddings [N, n, d] and argmax ids [N, n] in slot order (note k, token j at
+        k * m + j)."""
+        from transformers import DynamicCache
+        device, att = x['ids'].device, x['att'].bool()
+        N, T = att.shape
+        m = self.m
+        K = [len(st['slots']) // m for st in streams]
+        Kn = max(K)
+        pe = torch.tensor([[st['slots'][k * m][0] for k in range(c)] + [0] * (Kn - c) for st, c in zip(streams, K)],
+                          device=device)
+        valid = torch.arange(Kn, device=device)[None] < torch.tensor(K, device=device)[:, None]
+        start = torch.cat([torch.zeros_like(pe[:, :1]), att.long().cumsum(-1)], 1).gather(1, pe)  # tokens before
+        E = self.model.get_input_embeddings().weight
+        cue = E[torch.tensor(self.cue, device=device)]
+        train = torch.is_grad_enabled() and self.training
+        banned = self.banned.to(device)
+        embs, ids = [], []
+        for j in range(m):
+            L = len(self.cue) + j
+            new = cue[None, None].expand(N, Kn, -1, -1)
+            if embs:
+                new = torch.cat([new, torch.stack(embs, 2)], 2)
+            new = new.reshape(N, Kn * L, -1)
+            pos = (start[:, :, None] + torch.arange(L, device=device)).reshape(N, Kn * L)
+            past = (torch.arange(T, device=device)[None, None] < pe[:, :, None]) & att[:, None] & valid[..., None]
+            past = past[:, :, None].expand(-1, -1, L, -1).reshape(N, Kn * L, T)
+            blk, off = torch.arange(Kn * L, device=device) // L, torch.arange(Kn * L, device=device) % L
+            own = (blk[:, None] == blk[None]) & (off[:, None] >= off[None])
+            mask = torch.cat([past, own[None].expand(N, -1, -1)], -1)[:, None]
+            cache = DynamicCache(ddp_cache_data=[(k, v) for k, v in got])
+            self.grab = True
+            try:
+                self.model(inputs_embeds=new, attention_mask=mask, position_ids=pos, past_key_values=cache,
+                           use_cache=True, logits_to_keep=1)
+                h = self.last.view(N, Kn, L, -1)[:, :, -1]
+            finally:
+                self.grab, self.last = False, None
+            logits = self.model.get_output_embeddings()(h).float().masked_fill(banned, float('-inf'))
+            hard = logits.argmax(-1)
+            if train or self.soft:
+                p = (logits / self.tau).softmax(-1)
+                e = p.to(E.dtype) @ E
+                if train:
+                    self._track(p, hard, valid, j)
+            else:
+                e = E[hard]
+            embs.append(e.to(cue.dtype))
+            ids.append(hard)
+        return torch.stack(embs, 2).reshape(N, Kn * m, -1), torch.stack(ids, 2).reshape(N, Kn * m)
+
+    def _track(self, p, hard, valid, j):
+        """Training, note token j: the sums of the letter mass, the entropy and the batch-mean distribution's entropy
+        (loss terms), the argmax ids' letters, and the argmax ids per position."""
+        pv = p[valid]
+        if not len(pv):
+            return
+        letter = self.letter.to(p.device)
+        mean = pv.mean(0)
+        s = self.sums
+        s['let'] = s['let'] + pv[:, letter].sum()
+        s['ent'] = s['ent'] + -(pv * pv.clamp_min(1e-12).log()).sum()
+        s['div'] = s['div'] + -(mean * mean.clamp_min(1e-12).log()).sum()
+        s['hard_let'] += float(letter[hard[valid]].sum())
+        s['n_tok'] += len(pv)
+        s['n_div'] += 1
+        self.codes[j].extend(hard[valid].tolist())
+
+    def eaves_params(self):
+        return [p for n, p in self.model.named_parameters() if '.eaves.' in n]
+
+    @contextlib.contextmanager
+    def _eaves(self, train=False):
+        """The eavesdropper adapter in place of the shared one; its weights frozen unless train (backward inside)."""
+        self.model.set_adapter('eaves')
+        if not train:
+            for q in self.eaves_params():
+                q.requires_grad_(False)
+        try:
+            yield
+        finally:
+            self.model.set_adapter('default')
+
+    def eaves_step(self, scale=1.):
+        """The eavesdropper's update on the stashed reader prompts (the hard notes): backward of scale times the mean
+        -log p(gold) among each choice group's candidates. Empties the stash and returns the loss."""
+        items, self.stash = self.stash, []
+        total, n = 0., 0
+        with self._eaves(train=True):
+            for rows_t, x, a, bank, targets in items:
+                lp, _ = self._gold_logp(rows_t, x, a, bank, targets, True)
+                total, n = total - lp.sum(), n + len(lp)
+            if n:
+                (scale * total / n).backward()
+        return float(total) / max(1, n)
 
     def run(self, eps, device, read=None, need_loss=True):
         """Every agent's true tokens, in time order. Returns the says' summed cross-entropy, their token count and
@@ -391,7 +469,7 @@ class Crumbs(nn.Module):
             writes = self.arm in CRUMB_ARMS and any(st['slots'] for st in streams)
             sel = x['target'][:, 1:].nonzero() if need_loss else None     # (row, position) predicting a say token
             rows_t = torch.tensor(rows, device=device)
-            self.grab = (sel is not None and len(sel) > 0) or (writes and self.arm == 'tok')
+            self.grab = sel is not None and len(sel) > 0
             try:
                 _, got = self._forward(rows_t, x, a, bank, 1, writes)
                 h = self.last
@@ -401,21 +479,26 @@ class Crumbs(nn.Module):
                 logits = self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float()
                 total = total + F.cross_entropy(logits, x['ids'][sel[:, 0], sel[:, 1] + 1], reduction='sum')
                 count += len(sel)
-                if self.arm == 'tok' and self.adv and torch.is_grad_enabled():
+                if self.arm == 'sym' and self.adv and torch.is_grad_enabled():
                     self._adversary(rows_t, x, a, bank, [(eps[b], st) for b, st in zip(rows, streams)])
             if writes:
-                bank = self._append(bank, rows_t, streams, h if self.arm == 'tok' else got, a)
+                bank = self._append(bank, rows_t, streams, got, a, x)
         return total, count, bank
 
     def loss(self, eps, device):
-        if self.arm == 'tok':
-            self.adv_sum, self.adv_n, self.ent_sum, self.ent_n = 0., 0, 0., 0
+        """The says' mean cross-entropy; sym also lam * letter mass + beta * (entropy - batch-mean entropy) per note
+        token and adv * the two privacy terms' mean per choice group (sums: the terms, kept for the log)."""
+        if self.arm == 'sym':
+            self.sums = collections.defaultdict(float)
         total, count, _ = self.run(eps, device)
         out = total / max(1, count)
-        if self.arm == 'tok' and self.adv_n:
-            out = out + self.adv * self.adv_sum / self.adv_n
-        if self.arm == 'tok' and self.ent_n and self.beta:
-            out = out + self.beta * self.ent_sum / self.ent_n
+        if self.arm == 'sym':
+            s = self.sums
+            if s['n_tok']:
+                out = out + self.lam * s['let'] / s['n_tok'] + self.beta * (s['ent'] / s['n_tok'] - s['div'] / s['n_div'])
+            for k in ('adv', 'eav'):
+                if s[f'n_{k}']:
+                    out = out + self.adv * s[k] / s[f'n_{k}']
         return out
 
     def adv_targets(self, ep, a, st):
@@ -432,40 +515,44 @@ class Crumbs(nn.Module):
                 out.append((cut + first - 1, gold[first], [c[first] for c, d in zip(alts, div) if d == first]))
         return out
 
-    def _adversary(self, rows_t, x, a, bank, items):
-        """Adds to adv_sum, adv_n: the base model with its adapter disabled reads the same prompts (the same message
-        inputs, so its gradient reaches the writers and A); per choice group relu(log p(gold) - max(log(1/C), log
-        p(gold) with the messages masked)) over the C candidates' first differing token: only what the base gains from
-        the messages beyond chance and its own prior counts."""
-        targets = [(i, t) for i, (ep, st) in enumerate(items) if st['reads'] for t in self.adv_targets(ep, a, st)]
-        if not targets:
-            return
-        def read(on):
-            self.grab = True
-            try:
-                with self.model.disable_adapter():
-                    self._forward(rows_t, x, a, bank, 1, False, on)
-                return self.last
-            finally:
-                self.grab, self.last = False, None
-
-        hb = read(True)
-        with torch.no_grad():
-            h0 = read(False)
-        dev = hb.device
+    def _gold_logp(self, rows_t, x, a, bank, targets, on):
+        """log p(gold) among each target's candidates (adv_targets: their first differing token) as the model with its
+        current adapters reads x, and the candidates' count."""
+        self.grab = True
+        try:
+            self._forward(rows_t, x, a, bank, 1, False, on)
+            h = self.last
+        finally:
+            self.grab, self.last = False, None
+        dev = h.device
         at = (torch.tensor([i for i, _ in targets], device=dev), torch.tensor([t[0] for _, t in targets], device=dev))
         C = max(1 + len(t[2]) for _, t in targets)
         cand = torch.tensor([[t[1]] + t[2] + [-1] * (C - 1 - len(t[2])) for _, t in targets], device=dev)
         W = self.model.get_output_embeddings().weight[cand.clamp(min=0)].float()
+        lg = torch.einsum('gd,gcd->gc', h[at].float(), W).masked_fill(cand < 0, float('-inf'))
+        return lg.log_softmax(-1)[:, 0], (cand >= 0).sum(-1).float()
 
-        def logp(h):
-            lg = torch.einsum('gd,gcd->gc', h[at].float(), W).masked_fill(cand < 0, float('-inf'))
-            return lg.log_softmax(-1)[:, 0]
-
-        n = (cand >= 0).sum(-1).float()
-        floor = torch.maximum(logp(h0), -n.log())
-        self.adv_sum = self.adv_sum + F.relu(logp(hb) - floor).sum()
-        self.adv_n += len(targets)
+    def _adversary(self, rows_t, x, a, bank, items):
+        """sym privacy terms: the base model with its adapter disabled (adv) and, once eaves_on, the eavesdropper adapter
+        (eav, its weights frozen here) read the reader's prompts with the same soft notes, so their gradient reaches
+        the writers; per choice group relu(log p(gold) - max(log(1/C), log p(gold) with the notes masked)) over the C
+        candidates' first differing token: only what a reader gains from the notes beyond chance and its own prior
+        counts. Once eaves_on, the prompts with the hard notes go to the stash for the eavesdropper's own update."""
+        targets = [(i, t) for i, (ep, st) in enumerate(items) if st['reads'] for t in self.adv_targets(ep, a, st)]
+        if not targets:
+            return
+        readers = [('adv', self.model.disable_adapter)] + ([('eav', self._eaves)] if self.eaves_on else [])
+        for key, ctx in readers:
+            with ctx():
+                lp, n = self._gold_logp(rows_t, x, a, bank, targets, True)
+                with torch.no_grad():
+                    lp0, _ = self._gold_logp(rows_t, x, a, bank, targets, False)
+            self.sums[key] = self.sums[key] + F.relu(lp - torch.maximum(lp0, -n.log())).sum()
+            self.sums[f'n_{key}'] += len(targets)
+        if self.eaves_on:
+            E = self.model.get_input_embeddings().weight
+            hard = dict(bank, e=[E[bank['ids'][0]].detach()])
+            self.stash.append((rows_t, dict(x), a, hard, targets))
 
     @torch.no_grad()
     def answer(self, eps, device, on=True, read=None, donor=None, shift=False, base=False, bank=None):
@@ -526,9 +613,10 @@ class Crumbs(nn.Module):
         """Every say read teacher-forced with the true earlier turns: per episode the mean NLL (nats per say: its
         tokens and <|im_end|>) and the fraction of its choice groups (crumb_games.choices) whose gold say has the
         highest log-prob (None: no group, or choose False; detail: per episode the list of its groups' results, in
-        order). mode: on, off (every crumb masked), transplant (each episode reads the next episode's crumbs), base
-        (tok arm: the trained writers' messages read by the base model with its adapter disabled) or base_off (the base
-        model with every message masked: its own prior); bank: these crumbs instead of the writers' own."""
+        order). mode: on, off (every crumb masked), transplant (each episode reads the next episode's crumbs), soft
+        (sym arm: the soft notes at the current tau), base (sym: the trained writers' notes read by the base model
+        with its adapter disabled) or base_off (the base model with every note masked: its own prior); bank: these
+        crumbs instead of the writers' own."""
         if bank is None:
             self.soft = mode == 'soft'
             try:
@@ -629,7 +717,7 @@ def transplant(bank, donor):
     """A copy of bank where episode b's agent-0 crumbs at place pa are those of episode j's agent-0 crumbs at pc, for
     each donor[b] = (pa, j, pc)."""
     out = dict(bank)
-    for name, dim in (('h', 1), ('k', 2), ('v', 2), ('y', 1)):
+    for name, dim in (('h', 1), ('k', 2), ('v', 2), ('e', 1), ('ids', 1)):
         if bank.get(name) is None:
             continue
         rows = []
@@ -667,7 +755,7 @@ def generated(net, device, eps, game, bs=50, keep_rows=40):
     episodes' says per mode."""
     n, crumbs = len(eps), net.arm in CRUMB_ARMS
     modes = ['on'] + (['off'] if crumbs else []) + (['swap', 'room'] if crumbs and game == 'trail' else []) + \
-        (['base'] if net.arm == 'tok' else [])
+        (['base'] if net.arm == 'sym' else [])
     scores, rows = {}, []
     for mode in modes:
         prng = random.Random(f'{game}-{mode}')
@@ -716,6 +804,22 @@ def generated(net, device, eps, game, bs=50, keep_rows=40):
     return scores, rows
 
 
+def expand_games(spec, weights):
+    """The games of a comma list and their training weights: "corpus" becomes every corpus task whose rows are cached
+    (c_TASK), weighted by corpus.mix_of() times their number (so 1 on average beside the other games' default 1)."""
+    games, weights = [], dict(weights)
+    for g in spec.split(','):
+        if g == 'corpus':
+            from swarm import corpus as CP
+            mix = CP.mix_of()
+            for t in sorted(mix):
+                games.append(f'c_{t}')
+                weights.setdefault(f'c_{t}', mix[t] * len(mix))
+        elif g:
+            games.append(g)
+    return tuple(games), weights
+
+
 def evaluate(net, device, n=300, n_choice=150, n_gen=100, seed=12345, games=None, bs=50, keep_rows=40):
     """Per game, on the same n fixed-seed test episodes for every arm: per mode (on; for the crumb arms also off and
     transplant, the within-model controls) each episode's mean say NLL and, on the first n_choice episodes, its
@@ -727,7 +831,7 @@ def evaluate(net, device, n=300, n_choice=150, n_gen=100, seed=12345, games=None
         rng = random.Random(f'{seed}-{game}')
         eps = [CG.episode(game, rng, True) for _ in range(n)]
         modes = ['on'] + (['off', 'transplant'] if net.arm in CRUMB_ARMS else []) + \
-            (['soft', 'base', 'base_off'] if net.arm == 'tok' else [])
+            (['soft', 'base', 'base_off'] if net.arm == 'sym' else [])
         tf, per = {}, {}
         for mode in modes:
             nll, choice = [], []
@@ -775,8 +879,8 @@ def probe(net, device, n_fit=480, n_test=300, bs=48, every=3):
         for s0 in range(0, n, bs):
             eps = [CG.episode('trail', rng, test) for _ in range(min(bs, n - s0))]
             _, _, bank = net.run(eps, device, need_loss=False)
-            if 'y' in bank:
-                layers = {'tokens': bank['y'][0]}
+            if 'e' in bank:
+                layers = {'tokens': bank['e'][0]}
             elif 'h' in bank:
                 layers = {net.layers[i]: h for i, h in enumerate(bank['h'])}
             else:
@@ -861,15 +965,16 @@ def evaluate_oldgrowth(net, device, sizes=None, n=None, n_gen=100, bs=25, log=No
 
 
 def intercept(net, device, n=2000, others=200, bs=50):
-    """tok arm: every writer's messages (argmax tokens) on n training-value and n test-value trail episodes and on
-    others of each other game, with what the writer saw: dict(alphabet, m, messages=[dict(split, game, episode,
-    writer, segment, place, room, tokens (alphabet indices), vocab_ids, note (the text arm's English note for the same
-    segment) and, on trail, object, key_here, key_room, key_before (the writer passed the key's room earlier), rank
-    (the writer's k-th room), follower_visits)], trail_episodes={split: [episode]}). Episodes of game g, split s:
-    random.Random(f'intercept-{g}-{s}'), crumb_games.episode(g, rng, s == 'test') in turn."""
+    """sym arm: every writer's hard notes on n training-value and n test-value trail episodes and on others of each
+    other game, with what the writer saw: dict(m, messages=[dict(split, game, episode, writer, segment, place, room,
+    vocab_ids (the note's m Qwen token ids), text (their decoded text), letters (how many are letter tokens), note
+    (the text arm's English note for the same segment) and, on trail, object, key_here, key_room, key_before (the
+    writer passed the key's room earlier), rank (the writer's k-th room), follower_visits)], trail_episodes={split:
+    [episode]}). Episodes of game g, split s: random.Random(f'intercept-{g}-{s}'), crumb_games.episode(g, rng, s ==
+    'test') in turn."""
     net.eval()
-    out = dict(alphabet=dict(vocab_ids=net.alien, names=[f'<z{k}>' for k in range(ALPHABET)]), m=net.m, messages=[],
-               trail_episodes={})
+    out = dict(m=net.m, messages=[], trail_episodes={})
+    letter = net.letter.tolist()
     for split in ('train', 'test'):
         for game in CG.GAMES:
             count = n if game == 'trail' else others
@@ -881,9 +986,9 @@ def intercept(net, device, n=2000, others=200, bs=50):
                 chunk = eps[s0:s0 + bs]
                 with torch.no_grad():
                     _, _, bank = net.run(chunk, device, need_loss=False)
-                if bank.get('y') is None:
+                if bank.get('ids') is None:
                     continue
-                toks, place, agent = bank['y'][0].argmax(-1).tolist(), bank['place'].tolist(), bank['agent'].tolist()
+                toks, place, agent = bank['ids'][0].tolist(), bank['place'].tolist(), bank['agent'].tolist()
                 for b, ep in enumerate(chunk):
                     for a, ag in enumerate(ep['agents']):
                         if not ag['write']:
@@ -897,7 +1002,8 @@ def intercept(net, device, n=2000, others=200, bs=50):
                             k += 1
                             r = sg['place']
                             rec = dict(split=split, game=game, episode=s0 + b, writer=a, segment=sg_i, place=r,
-                                       room=ep['places'][r], tokens=ids, vocab_ids=[net.alien[i] for i in ids],
+                                       room=ep['places'][r], vocab_ids=ids, text=net.tok.decode(ids),
+                                       letters=sum(letter[i] for i in ids),
                                        note=f'A note left here: {sg["user"]}' + ('' if sg['say'] is None
                                                                                 else f' {sg["say"]}'))
                             if game == 'trail':
@@ -911,15 +1017,75 @@ def intercept(net, device, n=2000, others=200, bs=50):
     return out
 
 
+@torch.no_grad()
+def note_stats(net, device, eps, show=2, bs=50):
+    """sym arm: the hard notes on eps: the share of their tokens that are letters, and the first show trail episodes'
+    explorer notes as 'object: text'."""
+    net.eval()
+    n_tok, n_let, examples, shown = 0, 0, [], 0
+    letter = net.letter.to(device)
+    for s0 in range(0, len(eps), bs):
+        chunk = eps[s0:s0 + bs]
+        _, _, bank = net.run(chunk, device, need_loss=False)
+        if bank.get('ids') is None:
+            continue
+        ids, real = bank['ids'][0], bank['place'] >= 0
+        n_tok, n_let = n_tok + int(real.sum()), n_let + int(letter[ids][real].sum())
+        for b, ep in enumerate(chunk):
+            if 'trail' not in ep or shown >= show:
+                continue
+            shown += 1
+            cols = ((bank['place'][b] >= 0) & (bank['agent'][b] == 0)).nonzero()[:, 0].tolist()
+            for k, r in enumerate(ep['trail']['order']):
+                note = net.tok.decode(ids[b, cols[k * net.m:(k + 1) * net.m]].tolist())
+                examples.append(f'{ep["trail"]["objects"][r]}: {note}')
+    net.train()
+    return dict(letters=n_let / max(1, n_tok), examples=examples)
+
+
+def letter_table(tok, V, _cache={}):
+    """[V] bool tensors (letter, banned). A token is a letter if its text has a character of Unicode category L*, or
+    its bytes are not complete UTF-8 (byte-level BPE: tokens are strings over the GPT-2 byte alphabet); banned: the
+    special and added tokens and the rows past the tokenizer's."""
+    key = (tok.name_or_path, V)
+    if key not in _cache:
+        import unicodedata
+        bs = list(range(ord('!'), ord('~') + 1)) + list(range(ord('\xa1'), ord('\xac') + 1)) + \
+            list(range(ord('\xae'), ord('\xff') + 1))
+        cs, extra = bs[:], 0
+        for b in range(256):
+            if b not in bs:
+                bs.append(b)
+                cs.append(256 + extra)
+                extra += 1
+        byte = {chr(c): b for b, c in zip(bs, cs)}
+        letter, banned = torch.zeros(V, dtype=torch.bool), torch.zeros(V, dtype=torch.bool)
+        banned[len(tok):] = True
+        for i in list(tok.added_tokens_decoder) + list(tok.all_special_ids):
+            if i < V:
+                banned[i] = True
+        for i, t in enumerate(tok.convert_ids_to_tokens(list(range(min(V, len(tok)))))):
+            if banned[i]:
+                continue
+            try:
+                text = bytes(byte[c] for c in t).decode('utf-8')
+            except (KeyError, UnicodeDecodeError):
+                letter[i] = True
+                continue
+            letter[i] = any(unicodedata.category(c).startswith('L') for c in text)
+        _cache[key] = (letter, banned)
+    return _cache[key]
+
+
 def load(out, device):
     """The trained net of a run folder (its args.json and trained.pt)."""
     out = Path(out)
     args = json.loads((out / 'args.json').read_text())
     net = build(device, args['arm'], args['m'], base=args.get('base', BASE))
     net.load_state_dict(torch.load(out / 'trained.pt', map_location=device)['weights'], strict=False)
-    if args['arm'] == 'tok':
+    if args['arm'] == 'sym':
         net.adv = net.adv_max = args.get('adv', 0.)
-        net.tau = TAU[1]
+        net.tau = SYM_TAU[1]
     return net
 
 
@@ -929,20 +1095,28 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
     tok = tok or AutoTokenizer.from_pretrained(base, local_files_only=True)
     model = model or AutoModelForCausalLM.from_pretrained(base, dtype=torch.bfloat16, local_files_only=True,
                                                           attn_implementation='sdpa')
-    model = get_peft_model(model.to(device), LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=0.0, target_modules=[
-        'q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']))
+    def config():
+        return LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=0.0, target_modules=[
+            'q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
+    model = get_peft_model(model.to(device), config())
+    if arm == 'sym':                                     # the eavesdropper (privacy term), trained in alternation
+        model.add_adapter('eaves', config())
+        model.set_adapter('default')
     return Crumbs(model, tok, arm, m, layers).to(device)
 
 
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
           min_steps=600, micro=None, weights=None, curriculum=None):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
-    step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8 fixed training-value episodes per game; training stops once that
-    has not improved by 1% for patience steps (after min_steps). curriculum [(until_step, G_max)]: oldgrowth episodes
-    draw G from 1 to G_max up to until_step (afterwards the game's own 1 to 4). tok: each dev evaluation also takes
-    the soft messages and the cut; once the hard messages work (WORKING) the adversary ramps in over ADV_RAMP steps,
-    and training runs at least ADV_RAMP + 300 steps past that. The dev NLL that stops training is the hard one.
-    Returns the steps run and the NLL record."""
+    step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
+    fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
+    (after min_steps). curriculum [(until_step, G_max)]: oldgrowth episodes draw G from 1 to G_max up to until_step
+    (afterwards the game's own 1 to 4). sym: tau annealed SYM_TAU, beta ramped to BETA over the first half, lam per
+    LETTERS; each dev evaluation also takes the soft notes, the cut, the transplant, and the hard notes' letter share
+    with example notes; once that share is under LETTERS[3] (OUT/gate.pt: the weights then) the privacy terms ramp in
+    over ADV_RAMP steps, the eavesdropper trains on every step after each backward pass (its own AdamW at lr), and
+    training runs at least ADV_RAMP + 300 steps past it. The dev NLL that stops training is the hard one. Returns
+    the steps run and the NLL record."""
     games = games or CG.GAMES
     torch.manual_seed(seed)
     rng = random.Random(seed)
@@ -951,36 +1125,51 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     if net.arm == 'resid':
         cal = random.Random(99)
         net.calibrate([CG.episode(cal.choice(games), cal) for _ in range(8)], device)
+    sym = net.arm == 'sym'
     lora = [p for p in net.model.parameters() if p.requires_grad]
     link = net.link_params()
-    alpha = [p for p in link if net.arm == 'tok' and p is net.A]
-    rest = [p for p in link if not any(p is q for q in alpha)]
-    opt = torch.optim.AdamW([dict(params=lora, lr=lr)] + ([dict(params=rest, lr=link_lr)] if rest else []) +
-                            ([dict(params=alpha, lr=link_lr * A_LR)] if alpha else []),
+    opt = torch.optim.AdamW([dict(params=lora, lr=lr)] + ([dict(params=link, lr=link_lr)] if link else []),
                             weight_decay=0.0)
+    opt_e = torch.optim.AdamW(net.eaves_params(), lr=lr, weight_decay=0.0) if sym else None
     warm = min(50, steps)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1) / warm) * 0.5 *
                                               (1 + math.cos(math.pi * min(1, s / steps))))
     log = open(out / 'log.jsonl', 'a') if out else None
     started = time.monotonic()
-    best, best_step, record, work = float('inf'), 0, [], None
+    best, best_step, record, work, letters = float('inf'), 0, [], None, None
     for step in range(1, steps + 1):
         game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
         gmax = next((g for until, g in curriculum or () if step <= until), None) if game == 'oldgrowth' else None
         eps = [CG.episode(game, rng, **(dict(G=rng.randint(1, gmax)) if gmax else {})) for _ in range(batch)]
-        if net.arm == 'tok':
-            net.adv = net.adv_max * min(1., max(0., (step - work) / ADV_RAMP)) if work else 0.
+        if sym:
+            t0, t1 = SYM_TAU
+            net.tau = t0 * (t1 / t0) ** (step / steps)
             net.beta = BETA * min(1., step / max(1, steps / 2))
+            first, lam0, every_l, under = LETTERS
+            if step == first + 1:
+                net.lam = lam0
+            elif step > first + 1 and (step - first - 1) % every_l == 0 and (letters is None or letters >= under):
+                net.lam *= 2
+            net.adv = net.adv_max * min(1., (step - work) / ADV_RAMP) if work else 0.
+            net.eaves_on = bool(work and net.adv_max)
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
-        loss = 0.
+        loss, stat, eloss = 0., collections.Counter(), []
         for part in parts:
             part_loss = net.loss(part, device) / len(parts)
             part_loss.backward()
             loss += part_loss.detach()
+            if sym:
+                stat.update({k: float(v.detach()) if torch.is_tensor(v) else float(v) for k, v in net.sums.items()})
+                if net.stash:
+                    eloss.append(net.eaves_step(1 / len(parts)))
         torch.nn.utils.clip_grad_norm_(lora + link, 1.0)
         opt.step()
         sched.step()
         opt.zero_grad(set_to_none=True)
+        if eloss:
+            torch.nn.utils.clip_grad_norm_(net.eaves_params(), 1.0)
+            opt_e.step()
+            opt_e.zero_grad(set_to_none=True)
         rec = None
         if step % 25 == 0 or step == steps:
             rec = dict(step=step, game=game, loss=round(loss.item(), 4), s=round(time.monotonic() - started))
@@ -988,28 +1177,37 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 rec['gib'] = round(torch.cuda.max_memory_allocated() / 2 ** 30, 1)
             if net.arm == 'resid':
                 rec['write'] = [round(torch.tanh(r.alpha).item(), 3) for r in net.readers]
-        if net.arm == 'tok':
-            net.tau = TAU[0] * (TAU[1] / TAU[0]) ** (step / steps)
-            if rec:
-                rec['tau'] = round(net.tau, 3)
-                rec['beta'] = round(net.beta, 3)
-                rec['codes'] = [len(set(q)) for q in net.codes]
-                rec['ent'] = round(float(torch.as_tensor(net.ent_sum).detach()) / max(1, net.ent_n), 3)
-                if net.adv_n:
+            if sym:
+                n = max(1, stat['n_tok'])
+                rec.update(tau=round(net.tau, 3), beta=round(net.beta, 3), lam=net.lam,
+                           let=round(stat['let'] / n, 4), hard_let=round(stat['hard_let'] / n, 4),
+                           ent=round(stat['ent'] / n, 3), div=round(stat['div'] / max(1, stat['n_div']), 3),
+                           codes=[len(set(q)) for q in net.codes])
+                for k in ('adv', 'eav'):
+                    if stat[f'n_{k}']:
+                        rec[k] = round(stat[k] / stat[f'n_{k}'], 4)
+                if stat['n_adv']:
                     rec['adv_w'] = round(net.adv, 3)
-                    rec['adv'] = round(float(torch.as_tensor(net.adv_sum).detach()) / net.adv_n, 4)
+                if eloss:
+                    rec['eaves_loss'] = round(sum(eloss) / len(eloss), 4)
         if every and step % every == 0:
             v = dev_nll(net, device, dev)
             record.append((step, v))
             rec = dict(rec or dict(step=step), dev_nll=round(v, 4))
-            if net.arm == 'tok':
-                soft, cut = dev_nll(net, device, dev, mode='soft'), dev_nll(net, device, dev, mode='off')
-                rec.update(dev_soft=round(soft, 4), dev_cut=round(cut, 4))
-                if work is None and v <= WORKING[0] * soft and v <= WORKING[1] * cut:
-                    work = rec['working'] = step
+            if sym:
+                rec.update(dev_soft=round(dev_nll(net, device, dev, mode='soft'), 4),
+                           dev_cut=round(dev_nll(net, device, dev, mode='off'), 4),
+                           dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4))
+                ns = note_stats(net, device, dev)
+                letters = ns['letters']
+                rec.update(letters=round(letters, 4), examples=ns['examples'])
+                if work is None and letters < LETTERS[3]:
+                    work = rec['private'] = step
+                    if out:
+                        torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'gate.pt')
             if v < best * 0.99:
                 best, best_step = v, step
-            hold = net.arm == 'tok' and net.adv_max and work and step < work + ADV_RAMP + 300
+            hold = sym and net.adv_max and work and step < work + ADV_RAMP + 300
             if step >= min_steps and step - best_step >= patience and not hold:
                 rec['stop'] = f'flat since step {best_step}'
         if rec:
@@ -1020,6 +1218,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             if 'stop' in rec:
                 return step, record
     return steps, record
+
+
+def kept(net):
+    """The weights a run saves: every LoRA (the eavesdropper's too) and the crumb modules."""
+    return {k: v for k, v in net.state_dict().items() if 'lora_' in k or not k.startswith('model.')}
 
 
 def report(root, boots=2000):
@@ -1068,10 +1271,10 @@ def report(root, boots=2000):
 def main():
     global CHUNK
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('--arm', choices=('cut', 'resid', 'kv', 'text', 'tok'))
+    ap.add_argument('--arm', choices=('cut', 'resid', 'kv', 'text', 'sym'))
     ap.add_argument('--base', default=BASE, help='the base model (Hugging Face id)')
-    ap.add_argument('--adv', type=float, default=0., help='tok arm: the adversary term\'s weight lambda')
-    ap.add_argument('--n_intercept', type=int, default=2000, help='tok arm: trail episodes per split in messages.json')
+    ap.add_argument('--adv', type=float, default=0., help='sym arm: the privacy terms\' weight lambda')
+    ap.add_argument('--n_intercept', type=int, default=2000, help='sym arm: trail episodes per split in messages.json')
     ap.add_argument('--m', type=int, default=4)
     ap.add_argument('--out', help='output folder (absolute)')
     ap.add_argument('--report', help='write ROOT/report.json from the arms under ROOT and stop')
@@ -1080,13 +1283,17 @@ def main():
     ap.add_argument('--micro', type=int, help='episodes per backward pass (default: the whole batch)')
     ap.add_argument('--min_steps', type=int, default=600, help='no early stop before this step')
     ap.add_argument('--weight', default='', help='game=w,...: how often a game is drawn (default 1 each)')
-    ap.add_argument('--link_lr', type=float, default=1e-3, help='learning rate of the crumb, bridge and alphabet')
+    ap.add_argument('--link_lr', type=float, default=1e-3, help='learning rate of the crumb inputs and bridge')
     ap.add_argument('--curriculum', default='', help='until:G_max,...: oldgrowth walkers up to G_max until a step')
     ap.add_argument('--init', help='a run folder whose trained.pt LoRA (and crumbs, tiled to m) to start from')
     ap.add_argument('--alpha0', type=float, default=0., help='resid arm: the readers\' starting write size tanh(alpha)')
     ap.add_argument('--n_test', type=int, default=300)
     ap.add_argument('--chunk', type=int, default=CHUNK, help='streams per teacher-forced forward at evaluation')
-    ap.add_argument('--games', default=','.join(CG.GAMES))
+    ap.add_argument('--games', default=','.join(CG.GAMES),
+                    help='training games; "corpus" stands for every cached corpus task (c_TASK) at corpus.mix_of()')
+    ap.add_argument('--eval_games', default='',
+                    help='games to evaluate (default: the training games); "corpus" as above')
+    ap.add_argument('--n_gen', type=int, default=100, help='greedy-answered test episodes per game')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--resume', action='store_true', help='load OUT/trained.pt and only evaluate')
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
@@ -1099,13 +1306,14 @@ def main():
     if not out.is_absolute():
         raise SystemExit('--out must be absolute')
     out.mkdir(parents=True, exist_ok=True)
-    games = tuple(args.games.split(','))
+    weights = {g: float(w) for g, w in (kv.split('=') for kv in args.weight.split(',') if kv)}
+    games, weights = expand_games(args.games, weights)
+    eval_games = expand_games(args.eval_games, {})[0] if args.eval_games else games
     net = build(args.device, args.arm, args.m, base=args.base)
-    if args.arm == 'tok':
+    if args.arm == 'sym':
         net.adv = net.adv_max = args.adv
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]
     (out / 'args.json').write_text(json.dumps(vars(args), indent=1))
-    weights = {g: float(w) for g, w in (kv.split('=') for kv in args.weight.split(',') if kv)}
     if args.init and not args.resume:
         w = torch.load(Path(args.init) / 'trained.pt', map_location='cpu')['weights']
         own = net.state_dict()
@@ -1130,21 +1338,16 @@ def main():
     else:
         ran, record = train(net, args.device, args.steps, args.batch, args.seed, games, out, micro=args.micro,
                             min_steps=args.min_steps, weights=weights, link_lr=args.link_lr, curriculum=curriculum)
-        torch.save(dict(steps_run=ran, dev_nll=record, weights={k: v for k, v in net.state_dict().items()
-                                                                if 'lora_' in k or not k.startswith('model.')}),
-                   out / 'trained.pt')
-    if args.arm == 'tok':
-        torch.save(net.A.detach().float().cpu(), out / 'A.pt')
-        net.model.save_pretrained(out / 'adapter')
+        torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
+    if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))
-    test, rows = evaluate(net, args.device, args.n_test, n_choice=args.n_test // 2, games=games)
+    test, rows = evaluate(net, args.device, args.n_test, n_choice=args.n_test // 2, n_gen=args.n_gen, games=eval_games)
     scores = dict(arm=args.arm, m=args.m, base=args.base, adv=args.adv, steps=args.steps, steps_run=ran, batch=args.batch, micro=args.micro,
                   weight=weights, alpha0=args.alpha0, link_lr=args.link_lr, curriculum=curriculum, init=args.init,
-                  games=games,
-                  dev_nll=record, test=test)
-    if args.arm in CRUMB_ARMS and 'trail' in games:
+                  games=games, eval_games=eval_games, dev_nll=record, test=test)
+    if args.arm in CRUMB_ARMS and 'trail' in eval_games:
         scores['probe'] = probe(net, args.device)
-    if 'oldgrowth' in games:
+    if 'oldgrowth' in eval_games:
         scores['oldgrowth'] = evaluate_oldgrowth(net, args.device, log=lambda r: print(json.dumps(r), flush=True))
     (out / 'scores.json').write_text(json.dumps(scores, indent=1))
     (out / 'answers.json').write_text(json.dumps(rows))

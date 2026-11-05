@@ -13,6 +13,8 @@ Values are split into training and test pools like games.pools: test episodes us
 
   trail   an explorer walks through 6 rooms (each holds an object, one also a brass key) and writes; a follower visits 3
           of them and names each room's object, then the room that holds the key
+  keytrail  trail drawn only where the follower never enters the key's room but enters a room the explorer
+          entered after it (the key's room can reach it only through a later room's crumbs)
   relay   a chain of trail-makers: scout A walks rooms 1-2 (one holds the key) then 3-4; scout B walks rooms 3-4 then
           5-6 and writes too; the seeker walks rooms 5-6 and names the key's room, a room it never saw, which only B's
           crumbs can carry on from A's
@@ -33,6 +35,12 @@ Values are split into training and test pools like games.pools: test episodes us
           rooms, see a room's object with probability 0.5, read every earlier crumb there and write their own; the
           asker visits 4 rooms, sees only their names and names their objects (oldgrowth_parts: per room whether the
           answer is right, whether any walker saw the object, the ceiling, and how many walkers visited)
+
+Corpus tasks (swarm/corpus.py) as crumb games, game c_TASK for every corpus task (CORPUS_GAMES): agent A writes, agent
+B reads. Fill-in (family 1): A reads its three parts of a document, each at its own place, and leaves crumbs there; B
+holds the other three parts with gaps where A's go, then at each of A's places writes A's part (a trail of real text;
+score chrF). Split-input tasks (family 2): A reads its view at one place, B reads its own view there and answers (the
+corpus task's metric). These are training data; the hand-made games above are then evaluations.
 """
 from collections import Counter
 import itertools
@@ -71,6 +79,16 @@ def trail(rng, test=False):
                     + [dict(place=None, user=ASK, say=say, values=[objects[r] for r in visit] + [rooms[key]])])
     return dict(game='trail', places=rooms, agents=[explorer, follower],
                 trail=dict(objects=objects, key=key, order=order, visit=visit))
+
+
+def keytrail(rng, test=False):
+    """trail drawn until the follower never visits the key's room but visits a room the explorer entered after it
+    (case pointer): the key's room can reach the follower only through what the explorer put into a later room's
+    crumbs."""
+    while True:
+        ep = trail(rng, test)
+        if case(ep) == 'pointer':
+            return ep
 
 
 def case(ep):
@@ -371,19 +389,69 @@ def oldgrowth_eval(G, n=300, seed=31):
     return [oldgrowth(rng, True, G) for _ in range(n)]
 
 
-EPISODES = dict(trail=trail, relay=relay, maze=maze, count=count, work=work, trap=trap, hotpot=hotpot,
-                oldgrowth=oldgrowth)
-SCORERS = dict(trail=score_trail, relay=score_first(ROOMS), maze=score_first(COLOURS), count=score_number,
-               work=score_number, trap=score_first(('safe', 'trap')), hotpot=score_hotpot, oldgrowth=score_oldgrowth)
-GAMES = tuple(EPISODES)
+EPISODES = dict(trail=trail, keytrail=keytrail, relay=relay, maze=maze, count=count, work=work, trap=trap,
+                hotpot=hotpot, oldgrowth=oldgrowth)
+SCORERS = dict(trail=score_trail, keytrail=score_trail, relay=score_first(ROOMS), maze=score_first(COLOURS),
+               count=score_number, work=score_number, trap=score_first(('safe', 'trap')), hotpot=score_hotpot,
+               oldgrowth=score_oldgrowth)
+GAMES = tuple(g for g in EPISODES if g != 'keytrail')     # keytrail: a training variant of trail
+
+
+CORPUS_WRITER = ('You are agent A. You work on a task with agent B, who comes after you. You read your material and '
+                 'leave marks for B.')
+CORPUS_READER = 'You are agent B. Agent A came before you and left marks for you.'
+
+
+def corpus_tasks():
+    from swarm import corpus as CP
+    return tuple(CP.TASKS)
+
+
+def corpus_episode(task, rng, test=False):
+    """Corpus task task's episode (corpus.episode) as a crumb game: agent A writes, agent B reads."""
+    from swarm import corpus as CP
+    ep = CP.episode(task, rng, test)
+    if ep['family'] == 1:
+        chunks = [c.strip() for c in ep['golds']['chunks']]
+        kind = CP.KIND[task]
+        own = list(range(0, len(chunks), 2))
+        head = (f'Task: you hold the odd-numbered parts of {kind}. Agent B, who comes after you, holds the '
+                f'even-numbered parts and must write out yours.\n\n')
+        writer = dict(name='agent A', system=CORPUS_WRITER, write=True,
+                      segments=[seg(j, (head if j == 0 else '') + f'({i + 1}) {chunks[i]}') for j, i in enumerate(own)])
+        lines = [f'({i + 1}) [A\'s part]' if i in own else f'({i + 1}) {chunks[i]}' for i in range(len(chunks))]
+        reader = dict(name='agent B', system=CORPUS_READER, write=False,
+                      segments=[seg(None, f'Task: you and agent A hold alternating parts of {kind}. A held the '
+                                      f'odd-numbered parts and left marks where it read each. Write out each of A\'s '
+                                      f'parts where A read it.\n\n' + '\n'.join(lines))] +
+                      [seg(j, f'You are where A read part {i + 1}.', f'({i + 1}) {chunks[i]}', [chunks[i]])
+                       for j, i in enumerate(own)])
+        places = [f'part {i + 1}' for i in own]
+    else:
+        writer = dict(name='agent A', system=CORPUS_WRITER, write=True, segments=[seg(0, ep['views']['A'])])
+        reader = dict(name='agent B', system=CORPUS_READER, write=False,
+                      segments=[seg(0, ep['views']['B'], ep['answers']['B'], list(ep['golds']))])
+        places = ['the desk']
+    return dict(game=f'c_{task}', places=places, agents=[writer, reader], corpus=ep)
+
+
+def score_corpus(ep, a, s, text):
+    from swarm import corpus as CP
+    if ep['corpus']['family'] == 1:
+        return CP.chrf(text.strip(), ep['agents'][a]['segments'][s]['say'])
+    return CP.score(ep['corpus'], 'B', text)['main']
 
 
 def episode(game, rng, test=False, **kw):
-    """One episode of game; keywords go to the game (oldgrowth: G, the number of walkers)."""
+    """One episode of game; keywords go to the game (oldgrowth: G, the number of walkers). c_TASK: corpus task TASK."""
+    if game.startswith('c_'):
+        return corpus_episode(game[2:], rng, test)
     return EPISODES[game](rng, test, **kw)
 
 
 def score(ep, a, s, text):
+    if ep['game'].startswith('c_'):
+        return score_corpus(ep, a, s, text)
     return SCORERS[ep['game']](ep, a, s, text)
 
 
@@ -491,8 +559,8 @@ def choices_oldgrowth(ep, a, s):
     return groups
 
 
-CHOICES = dict(trail=choices_trail, relay=choices_relay, maze=choices_maze, count=choices_count, work=choices_work,
-               trap=choices_trap, oldgrowth=choices_oldgrowth)
+CHOICES = dict(trail=choices_trail, keytrail=choices_trail, relay=choices_relay, maze=choices_maze,
+               count=choices_count, work=choices_work, trap=choices_trap, oldgrowth=choices_oldgrowth)
 
 
 def choices(ep, a, s):

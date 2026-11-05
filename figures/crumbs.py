@@ -126,10 +126,10 @@ def accuracy(d, arms=ARMS, name='crumbs_accuracy', model='Qwen3-0.6B'):
 
 # ---------------------------------------------------------------- one trail episode
 
-def pick(d):
-    """The crumb arm with the most objects named, and its first kept episode whose crumbs-on answer is fully right
-    and whose crumbs-cut answer is not (a pointer episode if there is one)."""
-    crumb = [n for n in ('resid1', 'resid4', 'kv1', 'kv4') if n in d['arms']]
+def pick(d, arms=('resid1', 'resid4', 'kv1', 'kv4')):
+    """The crumb arm (of arms) with the most objects named, and its first kept episode whose crumbs-on answer is fully
+    right and whose crumbs-cut answer is not (a pointer episode if there is one)."""
+    crumb = [n for n in arms if n in d['arms']]
     arm = max(crumb, key=lambda n: d['arms'][n]['test']['trail']['gen']['on']['objects'])
     rows = d['rows'][arm]
     on = [r for r in rows if r['mode'] == 'on']
@@ -162,8 +162,8 @@ def answer_lines(ep, text):
     return out
 
 
-def trail_figure(d):
-    arm, ep, text_on, text_off = pick(d)
+def trail_figure(d, arms=('resid1', 'resid4', 'kv1', 'kv4'), name='crumbs_trail', model=None):
+    arm, ep, text_on, text_off = pick(d, arms)
     label = dict(ARMS)[arm]
     m = 4 if arm.endswith('4') else 1
     t, rooms = ep['trail'], ep['places']
@@ -208,7 +208,7 @@ def trail_figure(d):
 
     # its answers, crumbs on and the same model with its crumbs cut
     y = fy + 180 + 150
-    s.text(M, y, f'The follower’s answer ({label})', BODY, 700, TEXT)
+    s.text(M, y, f'The follower’s answer ({model + ", " if model else ""}{label})', BODY, 700, TEXT)
     y += 60
     bx = M + face + 50
     bw = (W - M - bx - 60) / 2
@@ -222,13 +222,13 @@ def trail_figure(d):
         for j, chunks in enumerate(lines):
             s.rich(x + pad, y + pad + 50 + 30 + 46 + j * lead, chunks, 54)
     robot(s, 'ember', M, y + 10, face, facing=1)
-    finish(s, 'crumbs_trail', y + bh + M)
+    finish(s, name, y + bh + M)
     return dict(arm=arm, case=CG.case(ep), on=text_on, off=text_off)
 
 
 # ---------------------------------------------------------------- oldgrowth
 
-def oldgrowth(d):
+def oldgrowth(d, name='crumbs_oldgrowth'):
     og = d.get('oldgrowth') or {}
     if not og:
         return None
@@ -263,7 +263,7 @@ def oldgrowth(d):
                 s.circle(x, y_, 12, c)
         x, y_ = xv(sizes[-1]), yv(v['sizes'][top_g]['on']['gen'])
         s.text(x - 20, y_ + 70, f'{names.get(n, n)}, crumbs on', 46, 700, c, 'end')
-    finish(s, 'crumbs_oldgrowth', H)
+    finish(s, name, H)
     return {n: {g: dict(on=v['sizes'][str(g)]['on']['gen'], off=v['sizes'][str(g)]['off']['gen'],
                         ceiling=v['sizes'][str(g)]['ceiling']) for g in sizes} for n, v in og.items()}
 
