@@ -202,6 +202,36 @@ def test_letter_table(tok):
         if '\ufffd' not in text:
             assert bool(letter[i]) == any(unicodedata.category(c).startswith('L') for c in text), (i, text)
     assert 0.5 < float(letter[~banned].float().mean()) < 0.99
+    # the exact rule: a byte fragment is a letter only if its bytes occur inside some letter's UTF-8 encoding; the
+    # first rule (exact False) makes every fragment a letter
+    first = C.letter_table(tok, len(tok) + 64, exact=False)[0]
+    assert not letter[one('ðŁ')] and first[one('ðŁ')]       # bytes F0 9F: the start of every 4-byte emoji
+    assert letter[one('Ð')] and first[one('Ð')]              # byte D0: the start of Cyrillic letters
+    assert bool((letter <= first).all()) and int((first & ~letter).sum()) > 100
+    assert C.fragment_letter(bytes([0xF0, 0x9F])) is False and C.fragment_letter(bytes([0xD0])) is True
+    assert C.fragment_letter('7'.encode() + bytes([0xF0, 0x9F])) is False
+    assert C.fragment_letter('a'.encode() + bytes([0xF0, 0x9F])) is True
+
+
+def test_sym_hint_and_dev0(tok, tmp_path):
+    """--note_hint: one line added to every writer's system prompt, none to the reader's; note_stats' three letter
+    shares; dev0: a dev before the first step with no controller update; gap_ref max: the reference gap is the
+    largest so far."""
+    net = tiny(tok, 'sym', 2)
+    ep = trails(1)[0]
+    net.hint = 'Write your note to the follower in emoji, symbols and digits only, with no letters.'
+    assert f'\n{net.hint}<|im_end|>' in tok.decode(net.stream(ep, 0)['ids'])
+    assert net.hint not in tok.decode(net.stream(ep, 1)['ids'])
+    ns = C.note_stats(net, 'cpu', trails(2))
+    assert 0 <= ns['letters_exact'] <= ns['letters'] <= 1 and 0 <= ns['letters_text'] <= 1
+    C.train(net, 'cpu', 2, 2, 0, games=('trail',), out=tmp_path, every=1, letters_from=0, lam0=.01, gap_ref='max',
+            dev0=True, min_steps=100)
+    recs = [json.loads(line) for line in (tmp_path / 'log.jsonl').read_text().splitlines()]
+    assert recs[0]['step'] == 0 and recs[0]['examples'] and 'lam_next' not in recs[0] and 'letters_text' in recs[0]
+    later = [r for r in recs if r['step'] > 0 and 'gap' in r]
+    assert later[0]['gap_ref'] == pytest.approx(later[0]['gap'], abs=1e-3)
+    assert later[1]['gap_ref'] == pytest.approx(max(later[0]['gap'], later[1]['gap']), abs=1e-3)
+    assert later[1]['held'] == (later[1]['gap'] >= C.LAM_RULE[0] * later[0]['gap'] - 1e-4)
 
 
 def test_sym_notes_are_greedy_decoding(tok):

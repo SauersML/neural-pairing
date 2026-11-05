@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600" height="3072" viewBox="0 0 2600 3072">
+<rect width="2600" height="3072" fill="#000000"/>
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<text x="70.0" y="141.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Open-ended training data: real chats, documents and code</text>
+<text x="70.0" y="242.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">split between agents A and B; a frozen Qwen3-1.7B that</text>
+<text x="70.0" y="343.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">sees both halves writes the answers to match</text>
+<rect x="70.0" y="405.6" width="1210.0" height="905.6" rx="26" fill="#141418" stroke="none" stroke-width="2" />
+<text x="104.0" y="483.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">A real chat (WildChat, Portuguese) with the user</text>
+<text x="104.0" y="537.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">turns dealt between A and B</text>
+<text x="104.0" y="605.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="start" xml:space="preserve">user to A, turn 1</text>
+<text x="104.0" y="656.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">“E procurar o que quer que seja ‘néctar doce’” what does it</text>
+<text x="104.0" y="705.5" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">mean by that? Explain please and make it a detailed breakdown</text>
+<text x="104.0" y="778.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">teacher’s answer to A</text>
+<text x="104.0" y="829.5" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">The phrase “E procurar o que quer que seja ‘néctar doce’” is a</text>
+<text x="104.0" y="878.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Portuguese expression that translates to “And seek what ever is …</text>
+<text x="104.0" y="950.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#FF8A3D" text-anchor="start" xml:space="preserve">user to B, turn 2</text>
+<text x="104.0" y="1002.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">&quot;O que quer que seja&quot; explain please, split it into fragments</text>
+<text x="104.0" y="1074.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">teacher’s answer to B, the target for B</text>
+<text x="104.0" y="1126.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Certainly! Let&#x27;s break down the phrase &quot;O que quer que seja&quot;</text>
+<text x="104.0" y="1174.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">(which is part of the full phrase: &quot;E procurar o que quer que …</text>
+<rect x="1320.0" y="405.6" width="1210.0" height="905.6" rx="26" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1354.0" y="483.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">Debugging: A holds the code, B the failing tests</text>
+<text x="1354.0" y="551.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="start" xml:space="preserve">A sees</text>
+<text x="1354.0" y="602.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">def max_occurrences(nums): max_val = 0 result = nums[0] for i</text>
+<text x="1354.0" y="651.5" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">in nums: occu = nums.count(i) if occu &gt;= max_val: max_val =</text>
+<text x="1354.0" y="700.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">occu result = i return result</text>
+<text x="1354.0" y="772.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#FF8A3D" text-anchor="start" xml:space="preserve">B sees</text>
+<text x="1354.0" y="824.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">ok: assert max_occurrences([1,2,3,1,2,3,12,4,2]) == 2 FAILED:</text>
+<text x="1354.0" y="872.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">assert max_occurrences([1,2,6,7,0,1,0,1,0]) == 1,0 Traceback …</text>
+<text x="1354.0" y="945.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#FF8A3D" text-anchor="start" xml:space="preserve">user to B</text>
+<text x="1354.0" y="996.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">I need to figure out why the test is failing. The code seems to</text>
+<text x="1354.0" y="1045.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">be finding the number with the highest occurrence, but the test …</text>
+<text x="1354.0" y="1118.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">teacher’s answer, the target for B</text>
+<text x="1354.0" y="1169.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">You&#x27;re encountering an AssertionError where the expected</text>
+<text x="1354.0" y="1217.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">output is `1,0` but the function returns `2`. Let&#x27;s break down</text>
+<text x="1354.0" y="1266.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">what&#x27;s happening in your code and why it&#x27;s failing. …</text>
+<rect x="70.0" y="1351.2" width="1210.0" height="857.0" rx="26" fill="#141418" stroke="none" stroke-width="2" />
+<text x="104.0" y="1429.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">A holds a Russian article; B asks about it in English</text>
+<text x="104.0" y="1497.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="start" xml:space="preserve">A sees</text>
+<text x="104.0" y="1548.5" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">«Сухой закон» 20-30 годов в фотографиях (19 фото) 16</text>
+<text x="104.0" y="1597.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">января 1920 года в США был установлен «Сухой закон».</text>
+<text x="104.0" y="1645.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Для этого пришлось внести изменения даже в Конституцию …</text>
+<text x="104.0" y="1718.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#FF8A3D" text-anchor="start" xml:space="preserve">user to B</text>
+<text x="104.0" y="1769.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">I need to understand the context of the &quot;Dry Law&quot; and its</text>
+<text x="104.0" y="1818.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">impact on American society, particularly the rise of the mafia …</text>
+<text x="104.0" y="1891.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">teacher’s answer, the target for B</text>
+<text x="104.0" y="1942.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">The &quot;Dry Law&quot; of 1920, also known as the &quot;Prohibition Act&quot;,</text>
+<text x="104.0" y="1990.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">was a landmark moment in American history, marking the first</text>
+<text x="104.0" y="2039.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">time the U.S. government had outright banned the production, …</text>
+<rect x="1320.0" y="1351.2" width="1210.0" height="857.0" rx="26" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1354.0" y="1429.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">Fill-in: each asks for one of the partner’s text chunks</text>
+<text x="1354.0" y="1497.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="start" xml:space="preserve">A sees</text>
+<text x="1354.0" y="1548.5" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">[1] works on a very simple concept of format conversion. In</text>
+<text x="1354.0" y="1597.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">other words you just have to fill in the value of Arabic numeral</text>
+<text x="1354.0" y="1645.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">and it will show the same value in Roman numeral. You can …</text>
+<text x="1354.0" y="1718.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#FF8A3D" text-anchor="start" xml:space="preserve">B sees</text>
+<text x="1354.0" y="1769.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">[1] ... [2] - Roman Numerals 1-1000 - Roman Numerals 1-2 [3] ...</text>
+<text x="1354.0" y="1818.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">[4] simply find the significant difference between the Arabic …</text>
+<text x="1354.0" y="1891.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#FF8A3D" text-anchor="start" xml:space="preserve">user to B</text>
+<text x="1354.0" y="1942.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">[1]</text>
+<text x="1354.0" y="2014.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">target for B: the real text of A’s chunk [1]</text>
+<text x="1354.0" y="2066.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">works on a very simple concept of format conversion. In other</text>
+<text x="1354.0" y="2114.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">words you just have to fill in the value of Arabic numeral and it</text>
+<text x="1354.0" y="2163.5" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">will show the same value in Roman numeral. You can convert …</text>
+<text x="70.0" y="2324.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Episodes per family, 600 test episodes</text>
+<text x="590.0" y="2396.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">real chat, turns split</text>
+<rect x="620.0" y="2364.2" width="520.0" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1158.0" y="2398.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">148</text>
+<text x="590.0" y="2456.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">document vs requests</text>
+<rect x="620.0" y="2424.2" width="386.5" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1024.5" y="2458.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">110</text>
+<text x="590.0" y="2516.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">fill-in of chunks</text>
+<rect x="620.0" y="2484.2" width="368.9" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1006.9" y="2518.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">105</text>
+<text x="590.0" y="2576.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">two documents</text>
+<rect x="620.0" y="2544.2" width="224.9" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="862.9" y="2578.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">64</text>
+<text x="590.0" y="2636.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">pasted material vs requests</text>
+<rect x="620.0" y="2604.2" width="186.2" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="824.2" y="2638.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">53</text>
+<text x="590.0" y="2696.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">code vs requests</text>
+<rect x="620.0" y="2664.2" width="186.2" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="824.2" y="2698.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">53</text>
+<text x="590.0" y="2756.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">plan, constraints split</text>
+<rect x="620.0" y="2724.2" width="168.6" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="806.6" y="2758.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">48</text>
+<text x="590.0" y="2816.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">code vs failing tests</text>
+<rect x="620.0" y="2784.2" width="66.8" height="40.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="704.8" y="2818.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">19</text>
+<text x="1320.0" y="2324.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">User turns copying an earlier answer or request</text>
+<text x="1840.0" y="2396.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">two documents</text>
+<rect x="1870.0" y="2364.2" width="333.4" height="40.0" rx="6" fill="#FFD23F" stroke="none" stroke-width="2" />
+<text x="2221.4" y="2398.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">64%</text>
+<text x="1840.0" y="2456.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">code vs failing tests</text>
+<rect x="1870.0" y="2424.2" width="247.9" height="40.0" rx="6" fill="#FFD23F" stroke="none" stroke-width="2" />
+<text x="2135.9" y="2458.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">48%</text>
+<text x="1840.0" y="2516.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">document vs requests</text>
+<rect x="1870.0" y="2484.2" width="244.0" height="40.0" rx="6" fill="#FFD23F" stroke="none" stroke-width="2" />
+<text x="2132.0" y="2518.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">47%</text>
+<text x="1840.0" y="2576.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">plan, constraints split</text>
+<rect x="1870.0" y="2544.2" width="233.3" height="40.0" rx="6" fill="#FFD23F" stroke="none" stroke-width="2" />
+<text x="2121.3" y="2578.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">45%</text>
+<text x="1840.0" y="2636.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">code vs requests</text>
+<rect x="1870.0" y="2604.2" width="192.9" height="40.0" rx="6" fill="#FFD23F" stroke="none" stroke-width="2" />
+<text x="2080.9" y="2638.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">37%</text>
+<text x="1840.0" y="2696.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">pasted material vs requests</text>
+<rect x="1870.0" y="2664.2" width="174.0" height="40.0" rx="6" fill="#FFD23F" stroke="none" stroke-width="2" />
+<text x="2062.0" y="2698.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">33%</text>
+<text x="1840.0" y="2756.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">real chat, turns split</text>
+<rect x="1870.0" y="2724.2" width="10.2" height="40.0" rx="6" fill="#FFD23F" stroke="none" stroke-width="2" />
+<text x="1898.2" y="2758.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2%</text>
+<text x="70.0" y="2898.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">Fill-in turns are fixed requests (“[2]”) and are left out of the right chart. User turns are real in chats; elsewhere the frozen</text>
+<text x="70.0" y="2950.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">Qwen3-1.7B writes them while playing a person who holds one half.</text>
+</svg>

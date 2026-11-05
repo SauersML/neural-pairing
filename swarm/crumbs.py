@@ -126,6 +126,8 @@ class Crumbs(nn.Module):
         self.source, self.rerope, self.remember = 'slots', False, False
         if arm == 'sym':
             self.letter, self.banned = letter_table(tok, model.config.vocab_size)
+            self.letter_first = letter_table(tok, model.config.vocab_size, exact=False)[0]   # the letters metric's
+            self.hint = ''                     # a line added to every writer's system prompt (--note_hint)
             self.cue = self._ids(f'<|im_start|>user\n{CUE}{END}\n<|im_start|>assistant\n<think>\n\n</think>\n\n')
             self.note = self._ids(NOTE)
             self.tau, self.lam, self.beta, self.adv, self.adv_max = SYM_TAU[0], 0., 0., 0., 0.
@@ -177,7 +179,8 @@ class Crumbs(nn.Module):
         <|im_end|> when the teacher ended there): then tk holds, per token, its row in the stream's tk_ids and tk_lp
         (-1: none, cross-entropy)."""
         agent, remap = ep['agents'][a], remap or {}
-        ids = self._ids(f'<|im_start|>system\n{agent["system"]}<|im_end|>\n')
+        system = agent['system'] + (f'\n{self.hint}' if self.arm == 'sym' and agent['write'] and self.hint else '')
+        ids = self._ids(f'<|im_start|>system\n{system}<|im_end|>\n')
         place, target, seg_of, kind = [-1] * len(ids), [False] * len(ids), [-1] * len(ids), [-1] * len(ids)
         slots, asks, reads, tk, tk_ids, tk_lp = [], [], [], [-1] * len(ids), [], []
 
@@ -1029,6 +1032,16 @@ def evaluate(net, device, n=300, n_choice=150, n_gen=100, seed=12345, games=None
 
 
 @torch.no_grad()
+def sym_dev(net, device, dev):
+    """sym arm: a dev's NLLs with the soft notes, cut and transplanted, and note_stats' letter shares and examples."""
+    out = dict(dev_soft=round(dev_nll(net, device, dev, mode='soft'), 4),
+               dev_cut=round(dev_nll(net, device, dev, mode='off'), 4),
+               dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4))
+    ns = note_stats(net, device, dev)
+    out.update({k: round(ns[k], 4) for k in ('letters', 'letters_exact', 'letters_text')}, examples=ns['examples'])
+    return out
+
+
 def dev_nll(net, device, eps, bs=50, mode='on'):
     """Mean say NLL over eps (crumbs on, or forced's mode)."""
     net.eval()
@@ -1197,18 +1210,25 @@ def intercept(net, device, n=2000, others=200, bs=50):
 
 @torch.no_grad()
 def note_stats(net, device, eps, show=2, bs=50):
-    """sym arm: the hard notes on eps: the share of their tokens that are letters, and the first show trail episodes'
-    explorer notes as 'object: text'."""
+    """sym arm: the hard notes on eps: letters, the share of their tokens that are letters by the first rule (every
+    token that is not complete UTF-8 a letter); letters_exact, by the penalty's rule (letter_table); letters_text,
+    the share of the decoded notes' characters other than spaces that are of category L*; and the first show trail
+    episodes' explorer notes as 'object: text'."""
+    import unicodedata
     net.eval()
-    n_tok, n_let, examples, shown = 0, 0, [], 0
-    letter = net.letter.to(device)
+    n_tok, n_let, n_exact, n_chr, n_ltr, examples, shown = 0, 0, 0, 0, 0, [], 0
+    first, exact = net.letter_first.to(device), net.letter.to(device)
     for s0 in range(0, len(eps), bs):
         chunk = eps[s0:s0 + bs]
         _, _, bank = net.run(chunk, device, need_loss=False)
         if bank.get('ids') is None:
             continue
         ids, real = bank['ids'][0], bank['place'] >= 0
-        n_tok, n_let = n_tok + int(real.sum()), n_let + int(letter[ids][real].sum())
+        n_tok, n_let = n_tok + int(real.sum()), n_let + int(first[ids][real].sum())
+        n_exact += int(exact[ids][real].sum())
+        for b in range(len(chunk)):
+            got = [c for c in net.tok.decode(ids[b][real[b]].tolist()) if not c.isspace()]
+            n_chr, n_ltr = n_chr + len(got), n_ltr + sum(unicodedata.category(c).startswith('L') for c in got)
         for b, ep in enumerate(chunk):
             if 'trail' not in ep or shown >= show:
                 continue
@@ -1218,14 +1238,57 @@ def note_stats(net, device, eps, show=2, bs=50):
                 note = net.tok.decode(ids[b, cols[k * net.m:(k + 1) * net.m]].tolist())
                 examples.append(f'{ep["trail"]["objects"][r]}: {note}')
     net.train()
-    return dict(letters=n_let / max(1, n_tok), examples=examples)
+    return dict(letters=n_let / max(1, n_tok), letters_exact=n_exact / max(1, n_tok), letters_text=n_ltr / max(1, n_chr),
+                examples=examples)
 
 
-def letter_table(tok, V, _cache={}):
-    """[V] bool tensors (letter, banned). A token is a letter if its text has a character of Unicode category L*, or
-    its bytes are not complete UTF-8 (byte-level BPE: tokens are strings over the GPT-2 byte alphabet); banned: the
-    special and added tokens and the rows past the tokenizer's."""
-    key = (tok.name_or_path, V)
+def letter_bytes(_cache=[]):
+    """Every byte string that occurs inside the UTF-8 encoding of a character of Unicode category L* (each proper
+    substring of each letter's encoding), over all code points; computed once."""
+    if not _cache:
+        import unicodedata
+        got = set()
+        for cp in range(0x110000):
+            if 0xD800 <= cp <= 0xDFFF or not unicodedata.category(chr(cp)).startswith('L'):
+                continue
+            b = chr(cp).encode()
+            got.update(b[i:j] for i in range(len(b)) for j in range(i + 1, len(b) + 1) if (i, j) != (0, len(b)))
+        _cache.append(frozenset(got))
+    return _cache[0]
+
+
+def fragment_letter(b):
+    """For a byte-level BPE token whose bytes b are not complete UTF-8: True if it can be part of a letter. Its bytes
+    split into a head of continuation bytes, a complete middle and a tail (an unfinished sequence); it is a letter if
+    the middle has an L* character, or the head or the tail occurs inside some letter's UTF-8 encoding."""
+    import unicodedata
+    k = 0
+    while k < len(b) and (b[k] & 0xC0) == 0x80:
+        k += 1
+    head, rest = b[:k], b[k:]
+    m = len(rest)
+    for q in range(len(rest) - 1, -1, -1):
+        c = rest[q]
+        if (c & 0xC0) != 0x80:
+            need = 1 if c < 0x80 else 2 if c >> 5 == 6 else 3 if c >> 4 == 14 else 4
+            if len(rest) - q < need:
+                m = q
+            break
+    mid, tail = rest[:m], rest[m:]
+    try:
+        text = mid.decode('utf-8')
+    except UnicodeDecodeError:
+        return True
+    sub = letter_bytes()
+    return any(unicodedata.category(c).startswith('L') for c in text) or head in sub or tail in sub
+
+
+def letter_table(tok, V, exact=True, _cache={}):
+    """[V] bool tensors (letter, banned). A token is a letter if its text has a character of Unicode category L*; a
+    token whose bytes are not complete UTF-8 (byte-level BPE: tokens are strings over the GPT-2 byte alphabet) is a
+    letter if it can be part of one (fragment_letter; exact False: every such token, the first rule, kept for the
+    letters metric); banned: the special and added tokens and the rows past the tokenizer's."""
+    key = (tok.name_or_path, V, exact)
     if key not in _cache:
         import unicodedata
         bs = list(range(ord('!'), ord('~') + 1)) + list(range(ord('\xa1'), ord('\xac') + 1)) + \
@@ -1246,9 +1309,14 @@ def letter_table(tok, V, _cache={}):
             if banned[i]:
                 continue
             try:
-                text = bytes(byte[c] for c in t).decode('utf-8')
-            except (KeyError, UnicodeDecodeError):
+                raw = bytes(byte[c] for c in t)
+            except KeyError:
                 letter[i] = True
+                continue
+            try:
+                text = raw.decode('utf-8')
+            except UnicodeDecodeError:
+                letter[i] = fragment_letter(raw) if exact else True
                 continue
             letter[i] = any(unicodedata.category(c).startswith('L') for c in text)
         _cache[key] = (letter, banned)
@@ -1264,6 +1332,7 @@ def load(out, device):
     if args['arm'] == 'sym':
         net.adv = net.adv_max = args.get('adv', 0.)
         net.tau = SYM_TAU[1]
+        net.hint = args.get('note_hint', '')
     return net
 
 
@@ -1315,7 +1384,7 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
-          dev_fn=None, cut0=None):
+          dev_fn=None, cut0=None, gap_ref='first', dev0=False):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1335,7 +1404,10 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     the steps run and the NLL record. dev: these dev episodes instead of 8 per game; dev_fn(net, dev) -> (the dev
     value, more numbers to log) instead of the mean say NLL. cut0 (sym continuation): the gap is cut0 minus the hard
     dev NLL, a fixed reference cut (the first run's at its gap0 dev), so a reader whose own no-note NLL drifts up cannot
-    hold the gap while its hard NLL gets worse; the gap against the dev's own cut is logged as gap_now."""
+    hold the gap while its hard NLL gets worse; the gap against the dev's own cut is logged as gap_now. gap_ref max:
+    the reference gap is the largest dev gap so far (for a letter weight from step 0, with no dev before it); dev0:
+    one sym dev before the first step (the untrained notes). The letter share that gates privacy and the weight's
+    rise is letters_exact (the penalty's rule); letters (the first rule) and letters_text are logged beside it."""
     games = games or CG.GAMES
     torch.manual_seed(seed)
     rng = random.Random(seed)
@@ -1354,6 +1426,13 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1) / warm) * 0.5 *
                                               (1 + math.cos(math.pi * min(1, s / steps))))
     log = open(out / 'log.jsonl', 'a') if out else None
+    if sym and dev0:                                   # the notes before any training
+        rec = dict(step=0, dev_nll=round(dev_nll(net, device, dev), 4), **sym_dev(net, device, dev))
+        rec['gap'] = round(rec['dev_cut'] - rec['dev_nll'], 4)
+        print(json.dumps(rec), flush=True)
+        if log:
+            log.write(json.dumps(rec) + '\n')
+            log.flush()
     started = time.monotonic()
     best, best_step, record, work, letters, misses = float('inf'), 0, [], None, None, 0
     for step in range(1, steps + 1):
@@ -1413,13 +1492,10 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             record.append((step, v))
             rec = dict(rec or dict(step=step), dev_nll=round(v, 4), **more)
             if sym:
-                rec.update(dev_soft=round(dev_nll(net, device, dev, mode='soft'), 4),
-                           dev_cut=round(dev_nll(net, device, dev, mode='off'), 4),
-                           dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4))
-                ns = note_stats(net, device, dev)
-                letters = ns['letters']
+                rec.update(sym_dev(net, device, dev))
+                letters = rec['letters_exact']
                 gap = (rec['dev_cut'] if cut0 is None else cut0) - v
-                rec.update(letters=round(letters, 4), gap=round(gap, 4), examples=ns['examples'])
+                rec['gap'] = round(gap, 4)
                 if cut0 is not None:
                     rec['gap_now'] = round(rec['dev_cut'] - v, 4)
                 keep, (up, down) = LAM_RULE[0], lam_rule
@@ -1435,6 +1511,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                     elif work is None or letters >= PRIV_LETTERS:
                         net.lam *= up
                     rec.update(held=held, lam_next=net.lam)
+                if gap_ref == 'max':
+                    gap0 = max(gap0, gap)
+                    rec['gap_ref'] = round(gap0, 4)
                 if work is None and held and step > letters_from and letters < PRIV_LETTERS:
                     work = rec['private'] = step
                     if out:
@@ -1520,6 +1599,10 @@ def main():
     ap.add_argument('--gap0', type=float, help='sym arm: the reference gap (default: the last dev before the penalty)')
     ap.add_argument('--lr', type=float, default=2e-4, help='LoRA learning rate (peak; warmup then cosine)')
     ap.add_argument('--cut0', type=float, help='sym arm: a fixed reference cut NLL for the gap (see train)')
+    ap.add_argument('--gap_ref', default='first', choices=('first', 'max'),
+                    help='sym arm: the reference gap: the last dev before the penalty, or the largest so far')
+    ap.add_argument('--dev0', action='store_true', help='sym arm: a dev before training (the untrained notes)')
+    ap.add_argument('--note_hint', default='', help='sym arm: a line added to every writer\'s system prompt')
     ap.add_argument('--lam_rule', default=','.join(map(str, LAM_RULE[1:])),
                     help='sym arm: up,down: the letter weight\'s factor after a dev with the gap held, and without')
     ap.add_argument('--lost', type=int, default=0, help='sym arm: stop after this many devs in a row without the gap')
@@ -1564,6 +1647,7 @@ def main():
     if args.arm == 'sym':
         net.adv = net.adv_max = args.adv
         net.contrast = args.contrast
+        net.hint = args.note_hint
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]
     (out / 'args.json').write_text(json.dumps(vars(args), indent=1))
     if args.init and not args.resume:
@@ -1593,7 +1677,7 @@ def main():
                             every=args.every, letters_from=args.letters_from, lam0=args.lam0, gap0=args.gap0,
                             lam_rule=tuple(float(x) for x in args.lam_rule.split(',')), lost=args.lost,
                             private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full, lr=args.lr,
-                            cut0=args.cut0)
+                            cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))
