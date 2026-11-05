@@ -13,6 +13,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from swarm import opendata as O                         # noqa: E402
 from swarm import opentalk as OT                        # noqa: E402
+from swarm import letters as LT                         # noqa: E402
 
 WORDS = 'river stone lamp orbit candle maple violet harbor engine signal copper meadow lantern quartz'.split()
 
@@ -141,7 +142,8 @@ def test_greedy_messages_are_the_writer_pass_fixed_point():
             with torch.no_grad():
                 h = net.forward([b['ids']])[0]
             for pos, g in b['own']:
-                z = net.hard_logits(h[pos - 1:pos - 1 + net.m]).argmax(-1).tolist()
+                rows = net.rows(net.masks.walk(b['ids'][pos:pos + net.m])[1])   # the letters after the pending bytes
+                z = net.hard_logits(h[pos - 1:pos - 1 + net.m], rows=rows).argmax(-1).tolist()
                 assert z == b['ids'][pos:pos + net.m]
     # one episode alone decodes the same messages as in the batch (padding and other rows change nothing)
     assert net.decode([eps[1]])[0] == msgs[1]
@@ -221,9 +223,29 @@ def test_letter_sets_leave_emoji_open():
         ids = tk(text, add_special_tokens=False).input_ids
         if len(ids) == 1:
             assert bool(letter[ids[0]]) == want, text
-    assert OT.fragment_is_letter(bytes([0xF0, 0x9F]), OT.letter_fragments()) is False
-    assert OT.fragment_is_letter(bytes([0xE4]), OT.letter_fragments()) is True
+    assert LT.scan(bytes([0xF0, 0x9F])) == (False, bytes([0xF0, 0x9F]))
+    assert LT.scan(bytes([0xE4])) == (True, bytes([0xE4]))
     assert OT.token_label(tk, tid('ðŁ')) == 'xf09f'
+
+
+def test_letters_depend_on_the_pending_bytes():
+    tk = O.tok()
+    lm = LT.LetterMasks(tk, len(tk))
+    brick = tk('🧱', add_special_tokens=False).input_ids                # F0 9F A7 + B1 in Qwen3's vocabulary
+    assert len(brick) == 2 and lm.bytes[brick[1]] == bytes([0xB1])
+    flags, pend = lm.walk(brick)
+    assert flags == [False, False] and pend == [b'', bytes([0xF0, 0x9F, 0xA7])]
+    assert lm.mask(b'')[brick[1]]                                       # B1 with nothing pending: a letter
+    assert lm.mask(bytes([0xC3]))[brick[1]]                             # C3 B1 is the letter n with tilde
+    enye = tk('ñ', add_special_tokens=False).input_ids
+    assert all(lm.walk(enye)[0][-1:])                                   # the letter, in one token or two
+    assert lm.walk(tk(' 42 !', add_special_tokens=False).input_ids)[0] == [False] * len(tk(' 42 !').input_ids)
+    net = net_of()
+    net.bias = 5.0
+    z0 = net.hard_logits(torch.zeros(1, 64), rows=net.rows([b'']))
+    z1 = net.hard_logits(torch.zeros(1, 64), rows=net.rows([bytes([0xF0, 0x9F, 0xA7])]))
+    assert z1[0, brick[1]] - z0[0, brick[1]] == 5.0                     # the bias comes off B1 after the lead
+    assert net.letters_of([brick, enye]) == [False, False] + lm.walk(enye)[0]
 
 
 def test_end_to_end_on_shards(tmp_path, monkeypatch):

@@ -10,9 +10,12 @@ Qwen3 chat template, thinking off):
   system: the two-agent rules            user: its private material (opendata's view)
   per task turn: user: the request (or that the partner has one), then the messages "\\nA: ..." "\\nB: ..."
                  assistant (who only): the answer, teacher-forced
-Message tokens: any vocabulary token but special and control ones. A letter is a token whose text has a character of
-Unicode category L*, or whose bytes are not complete UTF-8 and can be part of a letter's encoding (the first half of
-an emoji cannot, so emoji stay open). When the letter controller starts, both system prompts gain SYMBOLS ("write your
+Message tokens: any vocabulary token but special and control ones. Whether a token is a letter depends on the bytes
+pending before it in its message (swarm/letters.py): it is one when those bytes and its own complete a character of
+Unicode category L*, cannot be read as UTF-8, or leave an unfinished character that could still become a letter. So
+both halves of an emoji such as U+1F9F1 (F0 9F A7, then B1) are open, while B1 after C3 is the letter n with tilde.
+The decode bias, the soft letter mass and the letters metric all use the mask of each position's pending bytes (in
+the writer pass, those of the decoded tokens before it). When the letter controller starts, both system prompts gain SYMBOLS ("write your
 messages ... in emoji, symbols and digits only"), which moves the prior onto the symbol vocabulary as letters start
 to cost.
 
@@ -59,6 +62,7 @@ from torch.utils.checkpoint import checkpoint
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from swarm import opendata as O                        # noqa: E402
+from swarm import letters as LT                        # noqa: E402
 
 BASE = 'Qwen/Qwen3-1.7B'
 ASSIST = '<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
@@ -69,7 +73,6 @@ SYSTEM = ('You are agent {x}. You and agent {y} are two assistants who serve one
 SYMBOLS = 'From now on, write your messages to your partner in emoji, symbols and digits only, with no letters.'
 CHUNK = 512                                            # positions per checkpointed vocabulary chunk
 _letters = {}
-_fragments = []
 
 
 def other(x):
@@ -83,87 +86,16 @@ def mean(xs):
 
 # --------------------------------------------------------------------------------------------------------- letters
 
-def byte_chars():
-    """Byte-level BPE's map from each byte to the character that stands for it in the vocabulary (GPT-2's)."""
-    bs = list(range(ord('!'), ord('~') + 1)) + list(range(ord('\xa1'), ord('\xac') + 1)) + \
-        list(range(ord('\xae'), ord('\xff') + 1))
-    cs, n = bs[:], 0
-    for b in range(256):
-        if b not in bs:
-            bs.append(b)
-            cs.append(256 + n)
-            n += 1
-    return dict(zip(bs, map(chr, cs)))
-
-
-def letter_fragments():
-    """Every byte string that occurs inside the UTF-8 encoding of a letter (a character of category L*) without being
-    the whole encoding, over all code points."""
-    if not _fragments:
-        subs = set()
-        for cp in range(0x110000):
-            if 0xD800 <= cp <= 0xDFFF or not unicodedata.category(chr(cp)).startswith('L'):
-                continue
-            b = chr(cp).encode()
-            subs.update(b[i:j] for i in range(len(b)) for j in range(i + 1, len(b) + 1) if j - i < len(b))
-        _fragments.append(subs)
-    return _fragments[0]
-
-
-def fragment_is_letter(b, subs):
-    """Whether bytes b that are not complete UTF-8 can be part of a letter: their leading continuation bytes (the end
-    of a character the previous token began) or their unfinished last character (which the next token ends) occur
-    inside some letter's encoding, or their complete middle holds a letter, or the middle is not UTF-8 at all. The
-    prefix F0 9F of every 4-byte emoji, for one, is no letter's part."""
-    k = 0
-    while k < len(b) and (b[k] & 0xC0) == 0x80:
-        k += 1
-    head, rest, m = b[:k], b[k:], len(b) - k
-    for q in range(len(rest) - 1, -1, -1):
-        c = rest[q]
-        if (c & 0xC0) != 0x80:
-            need = 1 if c < 0x80 else 2 if c >> 5 == 6 else 3 if c >> 4 == 14 else 4
-            if len(rest) - q < need:
-                m = q
-            break
-    mid, tail = rest[:m], rest[m:]
-    try:
-        text = mid.decode('utf-8')
-    except UnicodeDecodeError:
-        return True
-    return any(unicodedata.category(c).startswith('L') for c in text) or head in subs or tail in subs
+byte_chars, letter_fragments = LT.byte_chars, LT.letter_fragments
 
 
 def letter_sets(tok, V):
-    """(allowed, letter): bool masks over V vocabulary rows. Not allowed: special and added tokens, rows past the
-    tokenizer, tokens with a control character other than tab, newline or carriage return. Letter: a character of
-    category L*, or bytes that are not complete UTF-8 and can be part of a letter (fragment_is_letter)."""
+    """(allowed, letter): bool masks over V vocabulary rows, letter with nothing pending (swarm/letters.py)."""
     key = (getattr(tok, 'name_or_path', ''), len(tok), V)
-    if key in _letters:
-        return _letters[key]
-    dec = {c: b for b, c in byte_chars().items()}
-    subs = letter_fragments()
-    special = set(tok.all_special_ids) | set(getattr(tok, 'added_tokens_decoder', {}))
-    allowed, letter = torch.zeros(V, dtype=torch.bool), torch.zeros(V, dtype=torch.bool)
-    for s, tid in tok.get_vocab().items():
-        if tid >= V or tid in special:
-            continue
-        try:
-            b = bytes(dec[c] for c in s)
-        except KeyError:
-            allowed[tid] = letter[tid] = True
-            continue
-        try:
-            text = b.decode('utf-8')
-        except UnicodeDecodeError:
-            allowed[tid], letter[tid] = True, fragment_is_letter(b, subs)
-            continue
-        if not text or any(unicodedata.category(c) == 'Cc' and c not in '\t\n\r' for c in text):
-            continue
-        allowed[tid] = True
-        letter[tid] = any(unicodedata.category(c).startswith('L') for c in text)
-    _letters[key] = (allowed, letter)
-    return allowed, letter
+    if key not in _letters:
+        lm = LT.LetterMasks(tok, V)
+        _letters[key] = (lm.allowed, lm.mask(b''))
+    return _letters[key]
 
 
 def token_label(tok, i):
@@ -215,9 +147,10 @@ class Talk:
     def __init__(self, model, tok, m=32):
         self.model, self.tok, self.m = model, tok, m
         V = self.lm.lm_head.weight.shape[0]
-        allowed, letter = letter_sets(tok, V)
-        self.allowed, self.letter = allowed.to(self.device), letter.to(self.device)
+        self.masks = LT.LetterMasks(tok, V, self.device)      # letters by the bytes pending before a token
+        self.allowed, self.letter = self.masks.allowed, self.masks.mask(b'')
         self.letter_f = self.letter.float()
+        self._table, self._row = None, {}                  # float letter masks [K, V] per pending prefix
         self.bias, self.tau = 0.0, 1.0
         self.symbols = False                           # SYMBOLS joins both system prompts (the controller sets it)
         self.pad = tok.convert_tokens_to_ids('<|endoftext|>')
@@ -325,9 +258,26 @@ class Talk:
 
     # ------------------------------------------------------------------------------------------------ messages
 
-    def hard_logits(self, h, lm=None):
+    def rows(self, pends):
+        """Row indices into table() for pending prefixes (each prefix's mask is added once)."""
+        new = [P for P in dict.fromkeys(pends) if P not in self._row]
+        for P in new:
+            self._row[P] = len(self._row)
+        if new or self._table is None:
+            self._table = torch.stack([self.masks.mask(P).float() for P in self._row])
+        return torch.tensor([self._row[P] for P in pends], device=self.device)
+
+    def letters_of(self, msgs):
+        """Letter flags of message tokens, each message read from its start (pending bytes carried within it)."""
+        return [f for ids in msgs for f in self.masks.walk(ids)[0]]
+
+    def hard_logits(self, h, lm=None, rows=None):
+        """Logits over the allowed vocabulary, the letter bias taken off the letters after each row's pending bytes
+        (rows: indices into the table; none: nothing pending)."""
         z = (lm or self.lm).lm_head(h).float().masked_fill(~self.allowed, float('-inf'))
-        return z - self.bias * self.letter_f if self.bias else z
+        if not self.bias:
+            return z
+        return z - self.bias * (self._table[rows] if rows is not None else self.letter_f)
 
     @torch.no_grad()
     def decode(self, eps):
@@ -356,9 +306,10 @@ class Talk:
                 pending = [[] for _ in range(2 * N)]
                 ei = list(spk)
                 sr = torch.tensor([row[(spk[i], i)] for i in ei], device=self.device)
-                toks = []
+                toks, utf = [], [b''] * len(ei)             # each message starts on a character boundary
                 for t in range(self.m):
-                    nxt = self.hard_logits(h[sr], D).argmax(-1).tolist()
+                    nxt = self.hard_logits(h[sr], D, self.rows(utf)).argmax(-1).tolist()
+                    utf = [self.masks.pending(P, v) for P, v in zip(utf, nxt)]
                     toks.append(nxt)
                     if t < self.m - 1:
                         tails = [[] for _ in range(2 * N)]
@@ -379,10 +330,10 @@ class Talk:
 
     # ---------------------------------------------------------------------------------------------------- passes
 
-    def _soft(self, h):
-        z = self.hard_logits(h)
+    def _soft(self, h, rows):
+        z = self.hard_logits(h, rows=rows)
         p = (z / self.tau).softmax(-1)
-        return p.to(self.E.dtype) @ self.E, p @ self.letter_f, z.argmax(-1)
+        return p.to(self.E.dtype) @ self.E, (p * self._table[rows]).sum(-1), z.argmax(-1)
 
     def chunked(self, fn, h, *rest):
         """fn over h (and rest) in CHUNK-row pieces, each under activation checkpointing when grad is on: the
@@ -437,7 +388,8 @@ class Talk:
                 G.append((i, g))
                 toks += b['ids'][pos:pos + self.m]
         hs = h[torch.tensor(R, device=self.device), torch.tensor(P, device=self.device)]
-        vec, mass, arg = self.chunked(self._soft, hs)
+        pends = [q for g in range(0, len(toks), self.m) for q in self.masks.walk(toks[g:g + self.m])[1]]
+        vec, mass, arg = self.chunked(self._soft, hs, self.rows(pends))
         fixed = float((arg == torch.tensor(toks, device=self.device)).float().mean())
         soft = [dict() for _ in eps]
         for q, (i, g) in enumerate(G):
@@ -516,7 +468,7 @@ class Talk:
         on = tot / cnt.clamp(min=1)
         loss = on.mean() + lam * mass
         parts = dict(kl=float(on.detach().mean()), letters_soft=float(mass.detach()), fixed=fixed,
-                     letters=float(self.letter[toks.to(self.device)].float().mean()),
+                     letters=mean(self.letters_of(toks.view(-1, self.m).tolist())),
                      distinct=len(torch.unique(toks)))
         if contrast and len(eps) > 1:
             perm = list(range(1, len(eps))) + [0]
@@ -657,7 +609,7 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
         d['closed_by_turn'] = [round(O.closed_share(by[k][1][0] / max(1, by[k][1][1]), by[k][0][0] / max(1, by[k][0][1])),
                                      3) for k in sorted(by)]
         flat = torch.tensor([t for m_ in toks for t in m_])
-        d['letters'] = round(float(net.letter.cpu()[flat].float().mean()), 4) if len(flat) else None
+        d['letters'] = round(mean(net.letters_of(toks)), 4) if len(flat) else None
         d['distinct'] = int(len(torch.unique(flat)))
         d['n'] = len(xs)
         d['examples'] = ex
@@ -665,7 +617,7 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
     net.model.train(was)
     flat = torch.tensor([t for m_ in all_toks for t in m_])
     fam = [v for v in res.values() if 'gap' in v]
-    res['_all'] = dict(letters=round(float(net.letter.cpu()[flat].float().mean()), 4), distinct=int(len(torch.unique(flat))),
+    res['_all'] = dict(letters=round(mean(net.letters_of(all_toks)), 4), distinct=int(len(torch.unique(flat))),
                        gap=round(mean(v['gap'] for v in fam), 4), closed=round(mean(v['closed'] for v in res.values()
                                                                                     if 'closed' in v), 4))
     if len(flat):                                      # the 20 most used message tokens, with their share
