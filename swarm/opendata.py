@@ -753,6 +753,7 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None):
                     count(s, 'real_ended')
                     s['turns'] = s['turns'][:k]
         need = [s for s in live if s['done'] == k and k < len(s['turns']) and s['turns'][k].get('ask')]
+        asked = len(need)
         for s in need:
             count(s, 'asked')
         for attempt in range(RESAMPLES):
@@ -798,7 +799,7 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None):
             if not s['teacher']:
                 s['turns'][k]['response_ids'] = tok()(s['turns'][k]['response'], add_special_tokens=False).input_ids
                 s['done'] = k + 1
-        log(json.dumps(dict(turn=k, asked=len(need), answered=len(ready))))
+        log(json.dumps(dict(turn=k, asked=asked, ended=len(need), answered=len(ready))))
     out = []
     for s in live:
         s['turns'] = s['turns'][:s['done']]
