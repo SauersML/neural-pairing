@@ -26,9 +26,14 @@ Arms (--arm):
             the writer's tokens up to its place, not the writer's earlier notes. A reader's segment at place p starts
             with one line per earlier note at p, "A note left here:" and its m tokens as plain input embeddings.
             Besides the says, the loss adds lam times the softmax mass on letter tokens (letter_table: a character of
-            Unicode category L*, or bytes that are not complete UTF-8; lam per LETTERS) and BETA (ramped over the
-            first half) times each token's entropy minus the entropy of its batch-mean distribution. Privacy (--adv
-            lambda), ramped in over ADV_RAMP steps once the dev notes are under LETTERS[3] letters: the base model with
+            Unicode category L*, or bytes that are not complete UTF-8), BETA (ramped over the first half) times each
+            token's entropy minus the entropy of its batch-mean distribution, and --contrast times a contrastive
+            term: each reader's says read again with the next episode's notes, softplus of its says' summed NLL with
+            its own notes minus that with the other's (-log the share of p(says | own) + p(says | other) its own notes
+            take). lam is 0 up to --letters_from, then 0.01, and after each dev times 1.5 while the dev notes' gap
+            (cut minus hard NLL) holds 0.8 of its last value before the penalty, else times 0.5 (LETTERS, LAM_RULE).
+            Privacy (--adv lambda), ramped in over ADV_RAMP steps once the dev notes are under PRIV_LETTERS letters
+            with the gap held: the base model with
             its adapter disabled, and an eavesdropper (a second LoRA, 'eaves', trained in alternation on the hard notes
             to answer the reader's choice groups), each read the reader's prompt with the soft notes; per choice group
             of the reader's says (crumb_games.choices) the loss adds lambda * relu(log p(gold | the C candidates'
@@ -64,8 +69,11 @@ CRUMB_ARMS = ('resid', 'kv', 'sym')
 SYM_TAU = (1.0, 0.3)          # sym arm: softmax temperature of the trained notes, start and end
 CUE = 'Leave a short note here for whoever comes next.'   # sym: the writer's user turn before each note
 NOTE = 'A note left here:'    # sym: what a reader's line starts with, before the note's tokens
-LETTERS = (300, 0.1, 100, 0.01)   # sym: letter penalty lam 0 up to step 300, then 0.1, doubled every 100 steps while
-                                  # the dev notes' hard tokens are at least 1% letters
+LETTERS = (300, 0.01)         # sym: letter penalty lam 0 up to step 300 (--letters_from), then 0.01, and after each
+LAM_RULE = (0.8, 1.5, 0.5)    # dev times 1.5 while the dev gap (cut minus hard NLL) holds 0.8 of its last value
+                              # before the penalty, else times 0.5
+PRIV_LETTERS = 0.05           # sym: privacy starts once the dev notes are under 5% letters with the gap held
+CONTRAST = 1.0                # sym: the contrastive term's weight (own notes against the next episode's)
 BETA = 0.1                    # sym: entropy penalty and batch-diversity bonus, ramped from 0 over the first half
 ADV_RAMP = 300                # sym: steps over which the privacy terms ramp in once the notes are letterless
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
@@ -119,6 +127,7 @@ class Crumbs(nn.Module):
             self.cue = self._ids(f'<|im_start|>user\n{CUE}{END}\n<|im_start|>assistant\n<think>\n\n</think>\n\n')
             self.note = self._ids(NOTE)
             self.tau, self.lam, self.beta, self.adv, self.adv_max = SYM_TAU[0], 0., 0., 0., 0.
+            self.contrast = 0.
             self.soft, self.eaves_on, self.stash = False, False, []
             self.codes = [collections.deque(maxlen=256) for _ in range(m)]   # recent training argmax ids per position
             self.sums = collections.defaultdict(float)
@@ -519,17 +528,21 @@ class Crumbs(nn.Module):
                 self.grab, self.last = False, None
             if sel is not None and len(sel):
                 logits = self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float()
-                total = total + F.cross_entropy(logits, x['ids'][sel[:, 0], sel[:, 1] + 1], reduction='sum')
+                ce = F.cross_entropy(logits, x['ids'][sel[:, 0], sel[:, 1] + 1], reduction='none')
+                total = total + ce.sum()
                 count += len(sel)
                 if self.arm == 'sym' and self.adv and torch.is_grad_enabled():
                     self._adversary(rows_t, x, a, bank, [(eps[b], st) for b, st in zip(rows, streams)])
+                if self.arm == 'sym' and self.contrast and torch.is_grad_enabled() and len(eps) > 1:
+                    self._contrast(rows_t, x, a, bank, sel, ce)
             if writes:
                 bank = self._append(bank, rows_t, streams, got, a, x)
         return total, count, bank
 
     def loss(self, eps, device):
         """The says' mean cross-entropy; sym also lam * letter mass + beta * (entropy - batch-mean entropy) per note
-        token and adv * the two privacy terms' mean per choice group (sums: the terms, kept for the log)."""
+        token, contrast * the contrastive term per reader row and adv * the two privacy terms' mean per choice group
+        (sums: the terms, kept for the log)."""
         if self.arm == 'sym':
             self.sums = collections.defaultdict(float)
         total, count, _ = self.run(eps, device)
@@ -541,7 +554,31 @@ class Crumbs(nn.Module):
             for k in ('adv', 'eav'):
                 if s[f'n_{k}']:
                     out = out + self.adv * s[k] / s[f'n_{k}']
+            if s['n_con']:
+                out = out + self.contrast * s['con'] / s['n_con']
         return out
+
+    def _contrast(self, rows_t, x, a, bank, sel, own):
+        """sym, training: the contrastive term of the rows that have notes to read. Their says read again with the
+        next episode's notes (shifted); per row softplus(own - other), each its says' summed NLL (own: per say token,
+        the pass with its own notes): -log the share of p(says | own) + p(says | other) its own notes take."""
+        has = (bank['place'][rows_t] >= 0).any(-1)
+        if not bool(has.any()):
+            return
+        self.grab = True
+        try:
+            self._forward(rows_t, x, a, shifted(bank), 1, False)
+            h = self.last
+        finally:
+            self.grab, self.last = False, None
+        gold = x['ids'][sel[:, 0], sel[:, 1] + 1]
+        other = F.cross_entropy(self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float(), gold,
+                                reduction='none')
+        d = torch.zeros(len(rows_t), device=own.device).index_add(0, sel[:, 0], other - own)
+        keep = has & (torch.zeros_like(d).index_add(0, sel[:, 0], torch.ones_like(own)) > 0)
+        self.sums['con'] = self.sums['con'] + F.softplus(-d[keep]).sum()
+        self.sums['con_gap'] += float(d[keep].detach().sum())
+        self.sums['n_con'] += int(keep.sum())
 
     def adv_targets(self, ep, a, st):
         """Per choice group of agent a's says (crumb_games.choices): (the position whose next token is the first where
@@ -1178,14 +1215,17 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 
 
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
-          min_steps=600, micro=None, weights=None, curriculum=None):
+          min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0]):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
     (after min_steps). curriculum [(until_step, G_max)]: oldgrowth episodes draw G from 1 to G_max up to until_step
-    (afterwards the game's own 1 to 4). sym: tau annealed SYM_TAU, beta ramped to BETA over the first half, lam per
-    LETTERS; each dev evaluation also takes the soft notes, the cut, the transplant, and the hard notes' letter share
-    with example notes; once that share is under LETTERS[3] (OUT/gate.pt: the weights then) the privacy terms ramp in
+    (afterwards the game's own 1 to 4). sym: tau annealed SYM_TAU, beta ramped to BETA over the first half; each dev
+    evaluation also takes the soft notes, the cut, the transplant, and the hard notes' letter share with example
+    notes; lam 0 up to letters_from (OUT/pre.pt: the weights at its last dev), then LETTERS[1], and after each dev
+    times LAM_RULE[1] while the gap (cut minus hard dev NLL) is at least LAM_RULE[0] of its value at the last dev
+    before the penalty, else times LAM_RULE[2]; once the letter share is under PRIV_LETTERS with the gap held
+    (OUT/gate.pt: the weights then) the privacy terms ramp in
     over ADV_RAMP steps, the eavesdropper trains on every step after each backward pass (its own AdamW at lr), and
     training runs at least ADV_RAMP + 300 steps past it. The dev NLL that stops training is the hard one. Returns
     the steps run and the NLL record."""
@@ -1208,7 +1248,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                                               (1 + math.cos(math.pi * min(1, s / steps))))
     log = open(out / 'log.jsonl', 'a') if out else None
     started = time.monotonic()
-    best, best_step, record, work, letters = float('inf'), 0, [], None, None
+    best, best_step, record, work, letters, gap0 = float('inf'), 0, [], None, None, None
     for step in range(1, steps + 1):
         game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
         gmax = next((g for until, g in curriculum or () if step <= until), None) if game == 'oldgrowth' else None
@@ -1217,11 +1257,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             t0, t1 = SYM_TAU
             net.tau = t0 * (t1 / t0) ** (step / steps)
             net.beta = BETA * min(1., step / max(1, steps / 2))
-            first, lam0, every_l, under = LETTERS
-            if step == first + 1:
-                net.lam = lam0
-            elif step > first + 1 and (step - first - 1) % every_l == 0 and (letters is None or letters >= under):
-                net.lam *= 2
+            if step == letters_from + 1:
+                net.lam = LETTERS[1]
             net.adv = net.adv_max * min(1., (step - work) / ADV_RAMP) if work else 0.
             net.eaves_on = bool(work and net.adv_max)
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
@@ -1255,9 +1292,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                            let=round(stat['let'] / n, 4), hard_let=round(stat['hard_let'] / n, 4),
                            ent=round(stat['ent'] / n, 3), div=round(stat['div'] / max(1, stat['n_div']), 3),
                            codes=[len(set(q)) for q in net.codes])
-                for k in ('adv', 'eav'):
+                for k in ('adv', 'eav', 'con'):
                     if stat[f'n_{k}']:
                         rec[k] = round(stat[k] / stat[f'n_{k}'], 4)
+                if stat['n_con']:
+                    rec['con_gap'] = round(stat['con_gap'] / stat['n_con'], 4)
                 if stat['n_adv']:
                     rec['adv_w'] = round(net.adv, 3)
                 if eloss:
@@ -1272,8 +1311,18 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                            dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4))
                 ns = note_stats(net, device, dev)
                 letters = ns['letters']
-                rec.update(letters=round(letters, 4), examples=ns['examples'])
-                if work is None and letters < LETTERS[3]:
+                gap = rec['dev_cut'] - v
+                rec.update(letters=round(letters, 4), gap=round(gap, 4), examples=ns['examples'])
+                keep, up, down = LAM_RULE
+                held = gap0 is not None and gap >= keep * gap0
+                if gap0 is None or step <= letters_from:
+                    gap0 = gap
+                    if out and step <= letters_from:
+                        torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'pre.pt')
+                else:
+                    net.lam *= up if held else down
+                    rec.update(held=held, lam_next=net.lam)
+                if work is None and held and step > letters_from and letters < PRIV_LETTERS:
                     work = rec['private'] = step
                     if out:
                         torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'gate.pt')
@@ -1347,6 +1396,9 @@ def main():
     ap.add_argument('--base', default=BASE, help='the base model (Hugging Face id)')
     ap.add_argument('--adv', type=float, default=0., help='sym arm: the privacy terms\' weight lambda')
     ap.add_argument('--n_intercept', type=int, default=2000, help='sym arm: trail episodes per split in messages.json')
+    ap.add_argument('--contrast', type=float, default=CONTRAST, help='sym arm: the contrastive term\'s weight')
+    ap.add_argument('--letters_from', type=int, default=LETTERS[0], help='sym arm: the step the letter penalty starts')
+    ap.add_argument('--every', type=int, default=100, help='steps between dev evaluations')
     ap.add_argument('--m', type=int, default=4)
     ap.add_argument('--out', help='output folder (absolute)')
     ap.add_argument('--report', help='write ROOT/report.json from the arms under ROOT and stop')
@@ -1384,6 +1436,7 @@ def main():
     net = build(args.device, args.arm, args.m, base=args.base)
     if args.arm == 'sym':
         net.adv = net.adv_max = args.adv
+        net.contrast = args.contrast
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]
     (out / 'args.json').write_text(json.dumps(vars(args), indent=1))
     if args.init and not args.resume:
@@ -1409,7 +1462,8 @@ def main():
         ran, record = saved['steps_run'], saved['dev_nll']
     else:
         ran, record = train(net, args.device, args.steps, args.batch, args.seed, games, out, micro=args.micro,
-                            min_steps=args.min_steps, weights=weights, link_lr=args.link_lr, curriculum=curriculum)
+                            min_steps=args.min_steps, weights=weights, link_lr=args.link_lr, curriculum=curriculum,
+                            every=args.every, letters_from=args.letters_from)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))

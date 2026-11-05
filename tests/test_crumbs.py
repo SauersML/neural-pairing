@@ -1,8 +1,9 @@
 """swarm/crumbs.py on a tiny random Qwen3 (the real Qwen3-0.6B tokenizer) on the CPU: the token stream follows the chat
 template, each arm trains one step and answers greedily, the follower's loss reaches the crumb inputs, and a reader's
 token reads only the crumbs left at its own place by earlier agents."""
-import random
+import json
 from pathlib import Path
+import random
 import sys
 
 import pytest
@@ -360,3 +361,40 @@ def test_kv_text_crumbs(tok):
             assert all(v is not None and v > 0 for v in nll)
         texts = net.answer(eps, 'cpu', donor=donor)
         assert len(texts) == len(eps)
+
+
+def test_sym_contrast_and_letter_rule(tok, tmp_path):
+    """The contrastive term: one per follower row with notes, its gradient reaching both episodes' notes (its own and
+    the next episode's, which it reads instead), none with --contrast 0; the letter weight: 0 up to letters_from,
+    then LETTERS[1], times LAM_RULE[1] after each dev whose gap holds LAM_RULE[0] of the last pre-penalty one, else
+    times LAM_RULE[2]; privacy only from a dev with the gap held and under PRIV_LETTERS letters."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.train()
+    net.tau, net.lam, net.beta = 1., 0., 0.
+    eps = trails(2)
+    net.sums = C.collections.defaultdict(float)
+    net.run(eps, 'cpu')
+    assert net.sums['n_con'] == 0
+    net.contrast = 1.
+    net.sums = C.collections.defaultdict(float)
+    _, _, bank = net.run(eps, 'cpu')
+    s = net.sums
+    assert s['n_con'] == 2 and float(s['con']) > 0
+    g = torch.autograd.grad(s['con'], bank['e'][0])[0].abs().sum(-1)
+    assert all(float(g[b].sum()) > 0 for b in range(2))
+    assert torch.isfinite(net.loss(eps, 'cpu'))
+    net.contrast = 1.
+    C.train(net, 'cpu', 6, 2, 0, games=('trail',), out=tmp_path, every=1, letters_from=2, min_steps=100)
+    recs = [json.loads(line) for line in (tmp_path / 'log.jsonl').read_text().splitlines()]
+    assert (tmp_path / 'pre.pt').exists() and all('lam_next' not in r for r in recs if r['step'] <= 2)
+    gap0 = next(r['gap'] for r in recs if r['step'] == 2)
+    lam = C.LETTERS[1]
+    keep, up, down = C.LAM_RULE
+    for r in recs[2:]:
+        held = r['gap'] >= keep * gap0
+        lam *= up if held else down
+        assert r['held'] == held and r['lam_next'] == pytest.approx(lam)
+        if 'private' in r:
+            assert held and r['letters'] < C.PRIV_LETTERS
+    assert (tmp_path / 'gate.pt').exists() == any('private' in r for r in recs)
