@@ -1427,6 +1427,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     The letter share that gates privacy and the weight's
     rise is letters_exact (the penalty's rule); letters (the first rule) and letters_text are logged beside it."""
     games = games or CG.GAMES
+    if net.arm == 'sym' and net.contrast and (micro or batch) < 2:
+        raise ValueError('the contrastive term reads the next episode\'s notes: it needs 2 or more episodes per backward '
+                         'pass (--micro)')
     torch.manual_seed(seed)
     rng = random.Random(seed)
     dev_rng = random.Random(777)
