@@ -1,6 +1,7 @@
 """swarm/crumbs.py on a tiny random Qwen3 (the real Qwen3-0.6B tokenizer) on the CPU: the token stream follows the chat
 template, each arm trains one step and answers greedily, the follower's loss reaches the crumb inputs, and a reader's
 token reads only the crumbs left at its own place by earlier agents."""
+import collections
 import json
 from pathlib import Path
 import random
@@ -213,6 +214,45 @@ def test_letter_table(tok):
     assert C.fragment_letter('a'.encode() + bytes([0xF0, 0x9F])) is True
 
 
+def test_letters_by_context(tok):
+    """The sym arm's letters depend on the bytes pending before a token: the emoji U+1F9F1 is the lead fragment
+    F0 9F A7 and the lone continuation byte B1, letter-free together, while B1 after C3 ends U+00F1, a letter; the
+    penalty takes each note's pending bytes from its argmax tokens so far, and letters_exact reads each note from its
+    start the same way."""
+    net = tiny(tok, 'sym', 4)
+    one = tok.convert_tokens_to_ids
+    lead, b1, c3 = one('ðŁ§'), one('±'), one('Ã')
+    assert net.masks.walk([lead, b1])[0] == [False, False]
+    assert net.masks.walk([c3, b1])[0] == [True, True]
+    assert net.masks.walk([b1])[0] == [True]                    # nothing pending: a lone continuation byte is a letter
+    assert tok.decode([lead, b1]) == '\U0001f9f1' and tok.decode([c3, b1]) == '\u00f1'
+    assert net.masks.pending(b'', lead) == bytes([0xF0, 0x9F, 0xA7]) and net.masks.pending(bytes([0xF0, 0x9F, 0xA7]), b1) == b''
+    assert bool(net.letter[b1]) and not bool(net.masks.mask(bytes([0xF0, 0x9F, 0xA7]))[b1])
+    # the penalty: the letter mass after each note's own pending bytes
+    V = net.letter.shape[0]
+    p = torch.zeros(1, 2, V)
+    # note 0 after F0 9F A7: B1 is free, a second lead breaks the open emoji (a letter); note 1 after C3: B1 ends
+    # U+00F1 and 7 breaks it, both letters
+    p[0, 0, b1], p[0, 0, lead] = .75, .25
+    p[0, 1, b1], p[0, 1, one('7')] = .5, .5
+    hard = torch.tensor([[b1, b1]])
+    net.sums = collections.defaultdict(float)
+    net.codes = collections.defaultdict(list)
+    net._track(p, hard, torch.ones(1, 2, dtype=torch.bool), 1, [[bytes([0xF0, 0x9F, 0xA7]), bytes([0xC3])]])
+    assert abs(float(net.sums['let']) - 1.25) < 1e-6 and net.sums['hard_let'] == 1 and net.sums['n_tok'] == 2
+    # letters_exact: each m-token note read from its start
+    eps = trails(2)
+    ns = C.note_stats(net, 'cpu', eps)
+    _, _, bank = net.run(eps, 'cpu', need_loss=False)
+    ids, real = bank['ids'][0], bank['place'] >= 0
+    want, n = 0, 0
+    for b in range(len(eps)):
+        got = ids[b][real[b]].tolist()
+        assert len(got) % net.m == 0
+        want, n = want + sum(sum(net.masks.walk(got[g:g + net.m])[0]) for g in range(0, len(got), net.m)), n + len(got)
+    assert abs(ns['letters_exact'] - want / n) < 1e-9
+
+
 def test_sym_hint_and_dev0(tok, tmp_path):
     """--note_hint: one line added to every writer's system prompt, none to the reader's; note_stats' three letter
     shares; dev0: a dev before the first step with no controller update; gap_ref max: the reference gap is the
@@ -223,7 +263,7 @@ def test_sym_hint_and_dev0(tok, tmp_path):
     assert f'\n{net.hint}<|im_end|>' in tok.decode(net.stream(ep, 0)['ids'])
     assert net.hint not in tok.decode(net.stream(ep, 1)['ids'])
     ns = C.note_stats(net, 'cpu', trails(2))
-    assert 0 <= ns['letters_exact'] <= ns['letters'] <= 1 and 0 <= ns['letters_text'] <= 1
+    assert 0 <= ns['letters_exact'] <= 1 and 0 <= ns['letters'] <= 1 and 0 <= ns['letters_text'] <= 1
     C.train(net, 'cpu', 2, 2, 0, games=('trail',), out=tmp_path, every=1, letters_from=0, lam0=.01, gap_ref='max',
             dev0=True, min_steps=100)
     recs = [json.loads(line) for line in (tmp_path / 'log.jsonl').read_text().splitlines()]

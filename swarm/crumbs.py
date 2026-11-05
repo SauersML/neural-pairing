@@ -27,8 +27,11 @@ Arms (--arm):
             and the argmax token at evaluation (or the soft mixture in mode soft); special tokens never. A note sees
             the writer's tokens up to its place, not the writer's earlier notes. A reader's segment at place p starts
             with one line per earlier note at p, "A note left here:" and its m tokens as plain input embeddings.
-            Besides the says, the loss adds lam times the softmax mass on letter tokens (letter_table: a character of
-            Unicode category L*, or bytes that are not complete UTF-8), BETA (ramped over the first half) times each
+            Besides the says, the loss adds lam times the softmax mass on letter tokens (swarm/letters.py, by the
+            bytes pending before the token: the unfinished character the note's argmax tokens so far end in; a token is
+            a letter if it completes a character of category L* there, breaks or cannot continue what is pending, or
+            leaves unfinished bytes that occur inside some letter's UTF-8 encoding; so the lone continuation byte B1
+            ends the emoji U+1F9F1 after F0 9F A7 and is no letter there, but ends U+00F1 after C3), BETA (ramped over the first half) times each
             token's entropy minus the entropy of its batch-mean distribution, and --contrast times a contrastive
             term: each reader's says read again with the next episode's notes, softplus of its says' summed NLL with
             its own notes minus that with the other's (-log the share of p(says | own) + p(says | other) its own notes
@@ -64,6 +67,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from swarm import crumb_games as CG                    # noqa: E402
 from swarm import games as G                           # noqa: E402
 from swarm.link import LAYERS, Bridge, blocks           # noqa: E402
+from swarm import letters as LT                        # noqa: E402
 
 BASE = 'Qwen/Qwen3-0.6B'
 END = '<|im_end|>'
@@ -125,7 +129,10 @@ class Crumbs(nn.Module):
         # crumbs of every place it has been at (else only the place it is at)
         self.source, self.rerope, self.remember = 'slots', False, False
         if arm == 'sym':
-            self.letter, self.banned = letter_table(tok, model.config.vocab_size)
+            self.banned = letter_table(tok, model.config.vocab_size)[1]
+            self.masks = LT.LetterMasks(tok, model.config.vocab_size)   # letters by the bytes pending before a token
+            self.letter = self.masks.mask(b'')                           # with nothing pending
+            self.on_device = {}                                          # (pending, device): its mask there
             self.letter_first = letter_table(tok, model.config.vocab_size, exact=False)[0]   # the letters metric's
             self.hint = ''                     # a line added to every writer's system prompt (--note_hint)
             self.cue = self._ids(f'<|im_start|>user\n{CUE}{END}\n<|im_start|>assistant\n<think>\n\n</think>\n\n')
@@ -445,6 +452,7 @@ class Crumbs(nn.Module):
         train = torch.is_grad_enabled() and self.training
         banned = self.banned.to(device)
         embs, ids = [], []
+        pend = [[b''] * Kn for _ in range(N)]                  # training: each note's pending bytes (argmax tokens)
         for j in range(m):
             L = len(self.cue) + j
             new = cue[None, None].expand(N, Kn, -1, -1)
@@ -471,26 +479,33 @@ class Crumbs(nn.Module):
                 p = (logits / self.tau).softmax(-1)
                 e = p.to(E.dtype) @ E
                 if train:
-                    self._track(p, hard, valid, j)
+                    self._track(p, hard, valid, j, pend)
+                    pend = [[self.masks.pending(P, t) for P, t in zip(row, h)] for row, h in zip(pend, hard.tolist())]
             else:
                 e = E[hard]
             embs.append(e.to(cue.dtype))
             ids.append(hard)
         return torch.stack(embs, 2).reshape(N, Kn * m, -1), torch.stack(ids, 2).reshape(N, Kn * m)
 
-    def _track(self, p, hard, valid, j):
-        """Training, note token j: the sums of the letter mass, the entropy and the batch-mean distribution's entropy
-        (loss terms), the argmax ids' letters, and the argmax ids per position."""
+    def _track(self, p, hard, valid, j, pend):
+        """Training, note token j: the sums of the letter mass (each note's letters after its pending bytes pend
+        [N][Kn]), the entropy and the batch-mean distribution's entropy (loss terms), the argmax ids' letters, and the
+        argmax ids per position."""
         pv = p[valid]
         if not len(pv):
             return
-        letter = self.letter.to(p.device)
         mean = pv.mean(0)
         s = self.sums
-        s['let'] = s['let'] + pv[:, letter].sum()
+        for P in sorted({P for row in pend for P in row}):
+            sel = valid & torch.tensor([[q == P for q in row] for row in pend], device=p.device)
+            if sel.any():
+                if (P, p.device) not in self.on_device:
+                    self.on_device[P, p.device] = self.masks.mask(P).to(p.device)
+                letter = self.on_device[P, p.device]
+                s['let'] = s['let'] + p[sel][:, letter].sum()
+                s['hard_let'] += float(letter[hard[sel]].sum())
         s['ent'] = s['ent'] + -(pv * pv.clamp_min(1e-12).log()).sum()
         s['div'] = s['div'] + -(mean * mean.clamp_min(1e-12).log()).sum()
-        s['hard_let'] += float(letter[hard[valid]].sum())
         s['n_tok'] += len(pv)
         s['n_div'] += 1
         self.codes[j].extend(hard[valid].tolist())
@@ -1165,7 +1180,6 @@ def intercept(net, device, n=2000, others=200, bs=50):
     'test') in turn."""
     net.eval()
     out = dict(m=net.m, messages=[], trail_episodes={})
-    letter = net.letter.tolist()
     for split in ('train', 'test'):
         for game in CG.GAMES:
             count = n if game == 'trail' else others
@@ -1194,7 +1208,7 @@ def intercept(net, device, n=2000, others=200, bs=50):
                             r = sg['place']
                             rec = dict(split=split, game=game, episode=s0 + b, writer=a, segment=sg_i, place=r,
                                        room=ep['places'][r], vocab_ids=ids, text=net.tok.decode(ids),
-                                       letters=sum(letter[i] for i in ids),
+                                       letters=sum(net.masks.walk(ids)[0]),
                                        note=f'A note left here: {sg["user"]}' + ('' if sg['say'] is None
                                                                                 else f' {sg["say"]}'))
                             if game == 'trail':
@@ -1211,13 +1225,14 @@ def intercept(net, device, n=2000, others=200, bs=50):
 @torch.no_grad()
 def note_stats(net, device, eps, show=2, bs=50):
     """sym arm: the hard notes on eps: letters, the share of their tokens that are letters by the first rule (every
-    token that is not complete UTF-8 a letter); letters_exact, by the penalty's rule (letter_table); letters_text,
+    token that is not complete UTF-8 a letter); letters_exact, by the penalty's rule (swarm/letters.py, each note
+    read from its start with the bytes pending before each token); letters_text,
     the share of the decoded notes' characters other than spaces that are of category L*; and the first show trail
     episodes' explorer notes as 'object: text'."""
     import unicodedata
     net.eval()
     n_tok, n_let, n_exact, n_chr, n_ltr, examples, shown = 0, 0, 0, 0, 0, [], 0
-    first, exact = net.letter_first.to(device), net.letter.to(device)
+    first = net.letter_first.to(device)
     for s0 in range(0, len(eps), bs):
         chunk = eps[s0:s0 + bs]
         _, _, bank = net.run(chunk, device, need_loss=False)
@@ -1225,8 +1240,9 @@ def note_stats(net, device, eps, show=2, bs=50):
             continue
         ids, real = bank['ids'][0], bank['place'] >= 0
         n_tok, n_let = n_tok + int(real.sum()), n_let + int(first[ids][real].sum())
-        n_exact += int(exact[ids][real].sum())
         for b in range(len(chunk)):
+            got = ids[b][real[b]].tolist()
+            n_exact += sum(sum(net.masks.walk(got[g:g + net.m])[0]) for g in range(0, len(got), net.m))
             got = [c for c in net.tok.decode(ids[b][real[b]].tolist()) if not c.isspace()]
             n_chr, n_ltr = n_chr + len(got), n_ltr + sum(unicodedata.category(c).startswith('L') for c in got)
         for b, ep in enumerate(chunk):
