@@ -72,7 +72,8 @@ def episode(rng, i, family='doc', turns=3, teacher=True):
     ts = []
     for k in range(turns):
         resp = O.piece(words(rng.randint(3, 9))) + ([O.IM_END] if k % 2 == 0 else [])
-        ts.append(dict(who=who[k], user=words(6) + '?', teacher_user=words(6), talk=rng.randint(2, 3),
+        ask = words(6) + f' q{i}x{k}a q{i}x{k}b q{i}x{k}c please?'                # a real request (not degenerate)
+        ts.append(dict(who=who[k], user=ask, teacher_user=words(6), talk=rng.randint(2, 3),
                        response=O.tok().decode(resp), response_ids=resp))
     ep = dict(id=f'e{family}{i}', family=family, source='x', split='train', teacher=teacher,
               views=dict(A=words(30), B=words(5) if family != 'doc' else ''), turns=ts)
@@ -203,6 +204,26 @@ def test_evaluate_reports_every_family():
         assert {'on', 'swap', 'none', 'base_on', 'base_none', 'closed', 'gap', 'letters', 'distinct'} <= set(d)
         assert len(d['closed_by_turn']) == 3 and len(d['examples']) == 3
     assert res['_all']['letters'] is not None
+    top = res['_all']['top']
+    assert 0 < len(top) <= 20 and all(isinstance(t, str) and 0 < c <= 1 for t, c in top)
+    assert [c for _, c in top] == sorted((c for _, c in top), reverse=True)
+
+
+def test_letter_sets_leave_emoji_open():
+    tk = O.tok()
+    allowed, letter = OT.letter_sets(tk, len(tk))
+    tid = tk.convert_tokens_to_ids
+    for t in ('ðŁ', 'ï¸'):                       # F0 9F, the start of every 4-byte emoji; EF B8 (variation selectors)
+        assert tid(t) is not None and allowed[tid(t)] and not letter[tid(t)], t
+    for t in ('ä¸', 'Ã'):                         # the start of CJK ideographs; of Latin-1 letters such as e acute
+        assert allowed[tid(t)] and letter[tid(t)], t
+    for text, want in (('the', True), ('123', False), ('!', False), (' 😀', False), ('é', True)):
+        ids = tk(text, add_special_tokens=False).input_ids
+        if len(ids) == 1:
+            assert bool(letter[ids[0]]) == want, text
+    assert OT.fragment_is_letter(bytes([0xF0, 0x9F]), OT.letter_fragments()) is False
+    assert OT.fragment_is_letter(bytes([0xE4]), OT.letter_fragments()) is True
+    assert OT.token_label(tk, tid('ðŁ')) == 'xf09f'
 
 
 def test_end_to_end_on_shards(tmp_path, monkeypatch):
@@ -232,6 +253,9 @@ def test_end_to_end_on_shards(tmp_path, monkeypatch):
     devs = [r for r in rows if 'dev' in r and isinstance(r['dev'], dict)]
     assert [r['step'] for r in devs] == [0, 10, 20]
     assert any(r.get('ctrl') for r in rows)
+    assert all(r['symbols_line'] for r in rows if r.get('ctrl'))      # SYMBOLS joins the prompts at the start
+    assert json.loads((ckpt / 'talk.json').read_text())['symbols'] is True
+    assert all(len(r['dev']['_all']['top']) <= 20 for r in devs)
     s20 = next(r for r in rows if r.get('step') == 20 and 'tok_s_grad' in r)
     assert s20['tok_s_grad'] > 0 and s20['tok_s_decode'] > 0 and s20['h_per_1000_steps'] > 0
     scores = json.loads((out / 'scores.json').read_text())

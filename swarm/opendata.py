@@ -36,9 +36,14 @@ Families (the split is drawn per episode among those the item allows):
   plan        a planning problem the frozen model invents from a seed topic, its constraints split between A and B
   fill        corpus fill-in: a document window cut into chunks of 8 to 192 tokens (log-uniform), dealt
               alternately; each turn asks for one of the partner's chunks (targets: the real text)
-User turns are real wherever the source has them (chats); elsewhere the frozen model writes them, playing a person who
-holds only the asker's half (it sees the whole material and the conversation so far, and is told not to quote the
-other half). A written request sharing a 12-word run with the other agent's material is dropped (leak filter).
+User turns are real wherever the source has them (chats); elsewhere a simulator writes them (--sim_model: Qwen3-8B,
+thinking off, stronger than the teacher; --model when unset), playing a person who holds only the asker's half (it sees
+the whole material and the conversation so far, and is told to ask for something new each turn, never to restate the
+assistant and not to quote the other half). A written request sharing a 12-word run with the other agent's material
+leaks; one that is degenerate (degenerate(): it shares a 12-word run with an earlier answer, repeats an earlier user
+turn, starts with "Assistant" or has under 6 distinct words) is no request. Either is written again, up to RESAMPLES
+tries, and then the episode ends before that turn; a degenerate real turn ends it too. Episodes() cuts every record at
+its first degenerate user turn when it loads a shard, so shards written before the filter train the same way.
 
 Sources: wildchat (allenai/WildChat-1M, non-toxic), lmsys (lmsys/lmsys-chat-1m, gated: used when the account has
 access), ultrachat (HuggingFaceH4/ultrachat_200k), fineweb_edu, wikipedia, fineweb2 (de, fr, es, ja, zh, ru),
@@ -50,13 +55,13 @@ eval_heldout from the held-out sources only.
 
 Usage (a GPU pod with vLLM for build):
   python swarm/opendata.py fetch --cache DIR                 items per source and split into DIR/items
-  python swarm/opendata.py build --cache DIR --out DIR --model Qwen/Qwen3-1.7B [--train 50000 --eval_seen 600
-      --eval_heldout 400 --max_minutes M]   (the train split stops at M minutes, its shards written so far kept)
+  python swarm/opendata.py build --cache DIR --out DIR --model Qwen/Qwen3-1.7B [--sim_model Qwen/Qwen3-8B --train 50000
+      --eval_seen 600 --eval_heldout 400 --max_minutes M --skip S --tag T]   (the build stops at M minutes, its shards
+      written so far kept; a second generator skips the first S train skeletons and names its shards SPLIT-TNNNN)
   python swarm/opendata.py show --out DIR [--family F]       prints one record per family
 """
 import argparse
 import ast
-import concurrent.futures as cf
 import gzip
 import hashlib
 import json
@@ -259,20 +264,40 @@ def fetch(name):
 
 
 def fetch_all(names=None, workers=12):
-    """Fills the item cache in parallel threads; a source that fails (lmsys without access) is reported and skipped."""
+    """Fills the item cache, one subprocess per source (the filters are CPU-bound: threads shared one core, 11-05; a
+    subprocess's crash at exit, which the hub's threads cause, costs nothing); a source that fails (lmsys without
+    access) is reported and skipped."""
     names = names or list(SOURCES)
     todo = [n for n in names if not (item_path(n, 'train').exists() and item_path(n, 'test').exists())]
-    report, t0 = {}, time.monotonic()
-    with cf.ThreadPoolExecutor(max(1, min(workers, len(todo)))) as ex:
-        futs = {ex.submit(fetch, n): n for n in todo}
-        for f in cf.as_completed(futs):
-            n = futs[f]
-            try:
-                report[n] = f.result()
-            except Exception as e:
-                report[n] = repr(e)[:300]
+    report, t0, procs = {}, time.monotonic(), {}
+    workers = max(1, min(workers, os.cpu_count() or 1))
+    while todo or procs:
+        while todo and len(procs) < workers:
+            n = todo.pop(0)
+            log = CACHE / 'fetch_logs' / f'{n}.log'
+            log.parent.mkdir(parents=True, exist_ok=True)
+            with open(log, 'w') as f:                                 # a file, not a pipe: no full-buffer stall
+                procs[n] = (subprocess.Popen([sys.executable, str(Path(__file__).resolve()), 'fetch_one', '--cache',
+                                              str(CACHE), '--sources', n], stdout=f, stderr=subprocess.STDOUT), log)
+        for n, (p, log) in list(procs.items()):
+            if p.poll() is None:
+                continue
+            lines = [x for x in log.read_text(errors='replace').splitlines() if x.startswith('{"source"')]
+            report[n] = json.loads(lines[-1])['got'] if lines else f'exit {p.returncode}, no result'
+            del procs[n]
             print(json.dumps(dict(source=n, got=report[n], s=round(time.monotonic() - t0))), flush=True)
+        time.sleep(1)
     return report
+
+
+def fetch_one(name):
+    """One source's fetch in its own process (fetch_all's worker): prints its result and leaves at once."""
+    try:
+        got = fetch(name)
+    except Exception as e:
+        got = repr(e)[:300]
+    print(json.dumps(dict(source=name, got=got)), flush=True)
+    os._exit(0)
 
 
 # ------------------------------------------------------------------------------------------------------ materials
@@ -349,6 +374,37 @@ def leaks(request, hidden, n=LEAK_WORDS):
     grams = {' '.join(w[i:i + n]) for i in range(len(w) - n + 1)}
     r = re.findall(r'\w+', request.lower())
     return any(' '.join(r[i:i + n]) in grams for i in range(len(r) - n + 1))
+
+
+def degenerate(user, prior_users=(), prior_responses=(), fill=False):
+    """Why a user turn is no real request ('' when it is one): it shares a run of LEAK_WORDS words with an earlier
+    answer (it pastes or paraphrases the assistant: 'echo'), repeats an earlier user turn (exactly or nearly: the Dice
+    overlap of the two word sets 0.8 or more, 'repeat'), starts with "Assistant" ('assistant'), or has fewer than 6
+    distinct words ('short'; fill-in requests such as "[3]" are exempt from the last two)."""
+    w = set(re.findall(r'\w+', user.lower()))
+    if not fill:
+        if re.match(r'\W*assistant\b', user, re.I):
+            return 'assistant'
+        if len(w) < 6:
+            return 'short'
+    if any(leaks(user, r) for r in prior_responses):
+        return 'echo'
+    for q in prior_users:
+        q = set(re.findall(r'\w+', q.lower()))
+        if w and q and 2 * len(w & q) / (len(w) + len(q)) >= 0.8:
+            return 'repeat'
+    return ''
+
+
+def first_degenerate(rec):
+    """(k, why): the first task turn whose user turn is degenerate (degenerate()), or (len(turns), '')."""
+    fill = rec['family'] == 'fill'
+    for k, t in enumerate(rec['turns']):
+        why = degenerate(t['user'], [u['user'] for u in rec['turns'][:k]],
+                         [u['response'] for u in rec['turns'][:k]], fill)
+        if why:
+            return k, why
+    return len(rec['turns']), ''
 
 
 # ------------------------------------------------------------------------------------------------------ mutations
@@ -550,8 +606,13 @@ def skeleton(family, item, rng, partner=None):
 
 # ------------------------------------------------------------------------------------------------------ generation
 
-SIM_SYSTEM = ('You are role-playing a person who is talking with an AI assistant. Write only the person\'s next '
-              'message to the assistant, in their own voice, and nothing else.')
+SIM_SYSTEM = ('You are role-playing a person who is talking with an AI assistant. You hold only your own half of the '
+              'information. Write only the person\'s next message to the assistant, in their own voice, and nothing '
+              'else. Each message asks for something new that needs specifics not yet discussed. Never restate, '
+              'summarize or quote the assistant\'s replies, never write as the assistant, and never repeat an earlier '
+              'message.')
+RESAMPLES = 3                     # tries per simulated user turn before the episode ends there
+MIN_KEEP = 1                      # an episode keeps at least this many task turns
 PLAN_SYSTEM = 'You write realistic planning problems. Reply with JSON only.'
 
 
@@ -564,7 +625,9 @@ def sim_prompt(sk, k, asker):
         lines.append(f'Here are two documents. You have read only document {1 if asker == "A" else 2}:\n\n'
                      f'{sk["material"]}')
         lines.append('Your message must need both documents to answer well. Do not quote the document you have not '
-                     'read.')
+                     'read.' + (f' This first message must name specific details from your own document (document '
+                                f'{1 if asker == "A" else 2}) and ask something that also needs the other one.'
+                                if k == 0 else ''))
     elif sk['family'] == 'plan':
         lines.append(f'The situation: {sk["situation"]}\n\nWhat you know:\n{hold}\n\nWhat the others know (you do '
                      f'not):\n{hidden}')
@@ -582,7 +645,10 @@ def sim_prompt(sk, k, asker):
     for t in sk['turns'][max(0, k - 3):k]:                          # the last three turns, answers shortened
         a = t['response'] if len(t['response']) <= 700 else t['response'][:700] + ' [...]'
         conv.append(f'You: {t["user"]}\n\nAssistant: {a}')
-    lines.append(('The conversation so far' + (' (its latest turns)' if k > 3 else '') + ':\n\n' + '\n\n'.join(conv))
+    if k > 3:
+        conv.insert(0, 'Your earlier messages: ' + ' | '.join(t['user'][:200] for t in sk['turns'][:k - 3]))
+    lines.append(('The conversation so far' + (' (its latest turns)' if k > 3 else '') + ':\n\n' + '\n\n'.join(conv)
+                  + '\n\nWrite your next message: ask for something new that this conversation has not covered.')
                  if conv else 'This is your first message.')
     return [dict(role='system', content=SIM_SYSTEM), dict(role='user', content='\n\n'.join(lines))]
 
@@ -630,8 +696,10 @@ def teacher_ids(rec, upto=None):
 
 
 def chat_ids(msgs, generation=True):
-    """Token ids of a chat in the Qwen3 template, thinking off."""
-    return tok().apply_chat_template(msgs, tokenize=True, add_generation_prompt=generation, enable_thinking=False)
+    """Token ids of a chat in the Qwen3 template, thinking off (rendered as text, then tokenized: transformers 5
+    returns a dict from tokenize=True)."""
+    text = tok().apply_chat_template(msgs, tokenize=False, add_generation_prompt=generation, enable_thinking=False)
+    return tok()(text, add_special_tokens=False).input_ids
 
 
 def clean_user(text):
@@ -640,17 +708,22 @@ def clean_user(text):
     return t
 
 
-def generate(sks, gen, rng, log=print):
+def generate(sks, gen, rng, log=print, sim=None, stats=None):
     """Fills the skeletons' simulated user turns and every teacher answer, turn by turn across the batch. gen(prompts,
     max_tokens, temperature, topk=0) -> [(text, ids, top)] for prompts that are messages (a chat) or token ids; top:
     None, or with topk the (ids int32 [n, topk], lp float16 [n, topk]) arrays of the raw next-token top-k at each
     generated token. Teacher turns keep it as turn['_top'] (written beside the shard, not into the record). Returns
-    the finished records (an episode is cut at a turn whose written request leaks or holds a credential; under
-    MIN_TURNS turns it is dropped)."""
+    the finished records. sim (default gen) writes the user turns and the plans: a stronger model than the teacher.
+    A written user turn that leaks the other half, holds a credential or is degenerate (degenerate(): it echoes an
+    answer, repeats a turn, plays the assistant or says too little) is written again, up to RESAMPLES tries; then, or
+    at a degenerate real turn, the episode ends before that turn; under MIN_KEEP turns it is dropped. stats (a dict)
+    gathers per family the user turns asked, the first tries that failed and the turns that ended an episode."""
+    sim = sim or gen
+    stats = {} if stats is None else stats
     live = []
     plans = [s for s in sks if s['family'] == 'plan']
     if plans:
-        for s, got in zip(plans, gen([plan_prompt(s['seed']) for s in plans], 600, 0.9)):
+        for s, got in zip(plans, sim([plan_prompt(s['seed']) for s in plans], 600, 0.9)):
             text = got[0]
             try:
                 j = json.loads(text[text.index('{'):text.rindex('}') + 1])
@@ -668,19 +741,41 @@ def generate(sks, gen, rng, log=print):
     live += [s for s in sks if s['family'] != 'plan']
     for s in live:
         s['done'] = 0
+    def count(s, key):
+        st = stats.setdefault(s['family'], dict(asked=0, first_failed=0, ended=0, real_ended=0))
+        st[key] += 1
+
     for k in range(MAX_TURNS):
+        for s in live:                                   # a real user turn that is degenerate ends the episode there
+            if s['done'] == k and k < len(s['turns']) and 'user' in s['turns'][k]:
+                if degenerate(s['turns'][k]['user'], [t['user'] for t in s['turns'][:k]],
+                              [t['response'] for t in s['turns'][:k]], s['family'] == 'fill'):
+                    count(s, 'real_ended')
+                    s['turns'] = s['turns'][:k]
         need = [s for s in live if s['done'] == k and k < len(s['turns']) and s['turns'][k].get('ask')]
-        if need:
-            outs = gen([sim_prompt(s, k, s['turns'][k]['ask']) for s in need], USER_TOK, 0.8)
+        for s in need:
+            count(s, 'asked')
+        for attempt in range(RESAMPLES):
+            if not need:
+                break
+            outs = sim([sim_prompt(s, k, s['turns'][k]['ask']) for s in need], USER_TOK, 0.8)
+            again = []
             for s, got in zip(need, outs):
                 t, u = s['turns'][k], cut(clean_user(got[0]), USER_TOK)
                 hidden = s['views'][other(t['ask'])]
-                if not u or leaks(u, hidden) or not clean_secret(u):
-                    s['turns'] = s['turns'][:k]
+                if not u or leaks(u, hidden) or not clean_secret(u) or degenerate(
+                        u, [x['user'] for x in s['turns'][:k]], [x['response'] for x in s['turns'][:k]]):
+                    if attempt == 0:
+                        count(s, 'first_failed')
+                    again.append(s)
                     continue
                 t['user'] = u
                 t['teacher_user'] = (s['material'] + '\n\n' + u) if k == 0 and s['material'] else u
                 del t['ask']
+            need = again
+        for s in need:                                   # RESAMPLES tries failed: the episode ends before turn k
+            count(s, 'ended')
+            s['turns'] = s['turns'][:k]
         ready = [s for s in live if s['done'] == k and k < len(s['turns'])]
         if not ready:
             continue
@@ -707,7 +802,7 @@ def generate(sks, gen, rng, log=print):
     out = []
     for s in live:
         s['turns'] = s['turns'][:s['done']]
-        if len(s['turns']) >= MIN_TURNS:
+        if len(s['turns']) >= MIN_KEEP:
             rec = {k: v for k, v in s.items() if k not in ('done', 'seed')}
             for t in rec['turns']:
                 t.pop('ask', None)
@@ -726,9 +821,10 @@ def top_arrays(lps, n, k):
         pos = np.repeat(np.arange(len(s)), e - s)
         sel = np.concatenate([np.arange(a, b) for a, b in zip(s, e)]) if len(s) else np.zeros(0, np.int64)
         tok_, lp_, rk = (np.asarray(lps.token_ids)[sel], np.asarray(lps.logprobs, np.float32)[sel],
-                         np.asarray(lps.ranks)[sel])
+                         np.array(lps.ranks, dtype=np.float64)[sel])          # a None rank reads as nan
         m = (rk >= 1) & (rk <= k)
-        ids[pos[m], rk[m] - 1], lp[pos[m], rk[m] - 1] = tok_[m], lp_[m]
+        r = rk[m].astype(np.int64) - 1
+        ids[pos[m], r], lp[pos[m], r] = tok_[m], lp_[m]
     else:
         for i, d in enumerate(lps[:n]):
             for t, L in d.items():
@@ -737,16 +833,19 @@ def top_arrays(lps, n, k):
     return ids, lp.astype(np.float16)
 
 
-def vllm_gen(model=TEACHER, gpu_memory_utilization=0.9, max_model_len=8192):
+def vllm_gen(model=TEACHER, gpu_memory_utilization=0.9, max_model_len=8192, topk=True):
     """gen() on vLLM: prompts are chats (the Qwen3 template, thinking off) or token ids; returns (text, token ids,
     top) per prompt, top the raw top-k arrays (top_arrays) when topk is asked for, else None."""
     from vllm import LLM, SamplingParams
     kw = dict(model=model, gpu_memory_utilization=gpu_memory_utilization, max_model_len=max_model_len,
               enable_prefix_caching=True, seed=0)
-    try:
-        llm = LLM(logprobs_mode='raw_logprobs', max_logprobs=TOPK, **kw)  # the model's own distribution
-    except TypeError:
-        llm = LLM(max_logprobs=TOPK, **kw)
+    if not topk:                                                      # the simulated user: text only
+        llm = LLM(**kw)
+    else:
+        try:
+            llm = LLM(logprobs_mode='raw_logprobs', max_logprobs=TOPK, **kw)  # the model's own distribution
+        except TypeError:
+            llm = LLM(max_logprobs=TOPK, **kw)
     flat = 'flat_logprobs' in getattr(SamplingParams, '__struct_fields__', ()) or \
         'flat_logprobs' in getattr(SamplingParams, '__annotations__', {})
 
@@ -835,13 +934,13 @@ def teacher_topk_rows(path):
         yield i, t, torch.from_numpy(ids.copy()), torch.from_numpy(lp.copy())
 
 
-def write_shards(recs, out, split, first=0, size=2000):
+def write_shards(recs, out, split, first=0, size=2000, tag=''):
     """Writes recs as shards first, first + 1, ...: the records (without their teacher top-k) in shards/ and the
     top-k of their teacher turns in teacher/ (when they have it). Returns the next shard number."""
     for d in ('shards', 'teacher'):
         (Path(out) / d).mkdir(parents=True, exist_ok=True)
     for i in range(0, len(recs), size):
-        p = Path(out) / 'shards' / f'{split}-{first:04d}.jsonl.gz'
+        p = Path(out) / 'shards' / f'{split}-{tag}{first:04d}.jsonl.gz'
         rows = []
         with gzip.open(p.with_suffix('.part'), 'wt') as f:
             for r in recs[i:i + size]:
@@ -852,27 +951,37 @@ def write_shards(recs, out, split, first=0, size=2000):
                     turns.append({a: b for a, b in t.items() if a != '_top'})
                 f.write(json.dumps(dict(r, turns=turns), ensure_ascii=False) + '\n')
         if rows:
-            write_teacher(rows, Path(out) / 'teacher' / f'{split}-{first:04d}.parquet')
+            write_teacher(rows, Path(out) / 'teacher' / f'{split}-{tag}{first:04d}.parquet')
         os.replace(p.with_suffix('.part'), p)
         first += 1
     return first
 
 
-def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None):
-    """Skeletons per split, generated in batches (each batch's shards written as it finishes); past max_minutes no
-    new batch starts (the shards so far are kept). Returns {split: records}."""
+def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None, sim=None, skip=0, tag=''):
+    """Skeletons per split, generated in batches (each batch's shards written as it finishes, named SPLIT-TAGNNNN);
+    past max_minutes no new batch starts (the shards so far are kept). skip: the train split starts at that skeleton
+    (a second generator takes skeletons the first never reaches; record ids are the skeletons', so a run that reads
+    both never sees one twice). Each batch logs per family the share of simulated user turns whose first try was
+    degenerate or leaked (first_failed) and the share of user turns that ended an episode. Returns {split: records}."""
     got, t0 = {}, time.monotonic()
     for split, n in counts.items():
-        sks = skeletons(split, int(n * 1.25) + 8, seed)              # some are cut by the leak filter
+        if n <= 0:
+            continue
+        off = skip if split == 'train' else 0
+        sks = skeletons(split, off + int(n * 1.6) + 8, seed)[off:]   # some end early or leak
         done, shard = 0, 0
         for i in range(0, len(sks), batch):
             if max_minutes and (time.monotonic() - t0) / 60 > max_minutes:
                 log(json.dumps(dict(split=split, stopped='max_minutes', records=done)))
                 break
-            recs = generate(sks[i:i + batch], gen, random.Random(i), log)[:max(0, n - done)]
-            shard = write_shards(recs, out, split, shard)
+            stats = {}
+            recs = generate(sks[i:i + batch], gen, random.Random(off + i), log, sim=sim, stats=stats)
+            recs = recs[:max(0, n - done)]
+            shard = write_shards(recs, out, split, shard, tag=tag)
             done += len(recs)
-            log(json.dumps(dict(split=split, records=done, of=n, s=round(time.monotonic() - t0))))
+            rates = {f: dict(asked=v['asked'], first_failed=round(v['first_failed'] / max(1, v['asked']), 3),
+                             ended=v['ended'], real_ended=v['real_ended']) for f, v in sorted(stats.items())}
+            log(json.dumps(dict(split=split, records=done, of=n, s=round(time.monotonic() - t0), user_turns=rates)))
             if done >= n:
                 break
         got[split] = done
@@ -885,24 +994,49 @@ class Episodes:
     """The records of a split, in a seeded order, each yielded once (a run never repeats an episode); len() is the
     count. families: only those families. teacher: attach record['topk'] = {turn: (ids, lp)} from the teacher files
     (a teacher record whose top-k is missing is left out)."""
-    def __init__(self, path, split, seed=0, families=None, teacher=False):
-        files = sorted((Path(path) / 'shards').glob(f'{split}-*.jsonl.gz'))
-        self.recs = []
-        for p in files:
-            with gzip.open(p, 'rt') as f:
-                recs = [r for line in f if (r := json.loads(line)) and (not families or r['family'] in families)]
-            if teacher:
-                tp = Path(path) / 'teacher' / p.name.replace('.jsonl.gz', '.parquet')
-                top = {}
-                if tp.exists():
-                    for i, t, ids, lp in teacher_topk_rows(tp):
-                        top.setdefault(i, {})[t] = (ids, lp)
-                for r in recs:
-                    r['topk'] = top.get(r['id'], {})
-                recs = [r for r in recs if not r['teacher'] or len(r['topk']) == len(r['turns'])]
-            self.recs += recs
-        random.Random(seed).shuffle(self.recs)
-        self.pos = 0
+    def __init__(self, path, split, seed=0, families=None, teacher=False, wait_minutes=0):
+        self.path, self.split, self.families, self.teacher = Path(path), split, families, teacher
+        self.wait_minutes, self.seed, self.files, self.ids, self.cuts = wait_minutes, seed, set(), set(), {}
+        self.recs, self.pos = [], 0
+        self.refresh()
+
+    def load(self, p):
+        """One shard's records, each cut at its first degenerate user turn (first_degenerate; counts in self.cuts),
+        those left with no turns dropped, with their top-k when teacher."""
+        with gzip.open(p, 'rt') as f:
+            recs = [r for line in f if (r := json.loads(line)) and (not self.families or r['family'] in self.families)]
+        for r in recs:
+            k, why = first_degenerate(r)
+            if why:
+                self.cuts[why] = self.cuts.get(why, 0) + 1
+            r['turns'] = r['turns'][:k]
+        recs = [r for r in recs if r['turns']]
+        if self.teacher:
+            tp = self.path / 'teacher' / p.name.replace('.jsonl.gz', '.parquet')
+            top = {}
+            if tp.exists():
+                for i, t, ids, lp in teacher_topk_rows(tp):
+                    top.setdefault(i, {})[t] = (ids, lp)
+            for r in recs:
+                r['topk'] = top.get(r['id'], {})
+            recs = [r for r in recs if not r['teacher'] or all(k in r['topk'] for k in range(len(r['turns'])))]
+        return recs
+
+    def refresh(self):
+        """Loads the shards not read yet (another generator's, copied in while a run trains), each record id once;
+        the new records go after the ones not yet yielded, in a seeded order. Returns how many came."""
+        new = []
+        for p in sorted((self.path / 'shards').glob(f'{self.split}-*.jsonl.gz')):
+            if p.name in self.files:
+                continue
+            self.files.add(p.name)
+            for r in self.load(p):
+                if r['id'] not in self.ids:
+                    self.ids.add(r['id'])
+                    new.append(r)
+        random.Random(f'{self.seed}-{len(self.files)}').shuffle(new)
+        self.recs += new
+        return len(new)
 
     def __len__(self):
         return len(self.recs)
@@ -912,7 +1046,11 @@ class Episodes:
 
     def __next__(self):
         if self.pos >= len(self.recs):
-            raise StopIteration
+            t0 = time.monotonic()
+            while not self.refresh():                                  # wait_minutes for new shards, then stop
+                if time.monotonic() - t0 >= 60 * self.wait_minutes:
+                    raise StopIteration
+                time.sleep(30)
         self.pos += 1
         return self.recs[self.pos - 1]
 
@@ -979,7 +1117,7 @@ def closed_share(kl_none, kl_on):
 def main():
     global CACHE
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=('fetch', 'build', 'show'))
+    ap.add_argument('cmd', choices=('fetch', 'fetch_one', 'build', 'show'))
     ap.add_argument('--cache', default=None)
     ap.add_argument('--out', default='opendata_out')
     ap.add_argument('--sources', default='')
@@ -991,17 +1129,30 @@ def main():
     ap.add_argument('--model', default=TEACHER)
     ap.add_argument('--max_minutes', type=float, default=None)
     ap.add_argument('--batch', type=int, default=1000)
+    ap.add_argument('--sim_model', default='', help='the simulated user (default: --model)')
+    ap.add_argument('--sim_mem', type=float, default=0.55, help="the simulator's share of GPU memory")
+    ap.add_argument('--teacher_mem', type=float, default=0.33, help="the teacher's share beside a simulator")
+    ap.add_argument('--skip', type=int, default=0, help='train skeletons to skip (a second generator)')
+    ap.add_argument('--tag', default='', help='shard name tag: SPLIT-TAGNNNN')
     args = ap.parse_args()
     if args.cache:
         CACHE = Path(args.cache)
         os.environ.setdefault('CORPUS_CACHE', str(CACHE / 'corpus'))
     if args.cmd == 'fetch':
         print(json.dumps(fetch_all([s for s in args.sources.split(',') if s] or None)))
+    elif args.cmd == 'fetch_one':
+        fetch_one(args.sources)
     elif args.cmd == 'build':
-        gen = vllm_gen(args.model)
+        sim = None
+        if args.sim_model and args.sim_model != args.model:
+            sim = vllm_gen(args.sim_model, gpu_memory_utilization=args.sim_mem, topk=False)
+            gen = vllm_gen(args.model, gpu_memory_utilization=args.teacher_mem)
+        else:
+            gen = vllm_gen(args.model)
         counts = dict(eval_seen=args.eval_seen, eval_heldout=args.eval_heldout, train=args.train)
-        print(json.dumps(dict(model=args.model, built=build(args.out, counts, gen, args.seed, args.batch,
-                                                            max_minutes=args.max_minutes))), flush=True)
+        print(json.dumps(dict(model=args.model, sim=args.sim_model or args.model, built=build(
+            args.out, counts, gen, args.seed, args.batch, max_minutes=args.max_minutes, sim=sim, skip=args.skip,
+            tag=args.tag))), flush=True)
     else:
         seen = set()
         for split in ('train', 'eval_seen', 'eval_heldout'):

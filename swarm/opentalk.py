@@ -11,7 +11,10 @@ Qwen3 chat template, thinking off):
   per task turn: user: the request (or that the partner has one), then the messages "\\nA: ..." "\\nB: ..."
                  assistant (who only): the answer, teacher-forced
 Message tokens: any vocabulary token but special and control ones. A letter is a token whose text has a character of
-Unicode category L* or whose bytes are not complete UTF-8.
+Unicode category L*, or whose bytes are not complete UTF-8 and can be part of a letter's encoding (the first half of
+an emoji cannot, so emoji stay open). When the letter controller starts, both system prompts gain SYMBOLS ("write your
+messages ... in emoji, symbols and digits only"), which moves the prior onto the symbol vocabulary as letters start
+to cost.
 
 One training step, per micro-batch:
   decode   the messages greedily with the key-value cache and no gradient, the letter bias (bias) taken off every
@@ -32,7 +35,8 @@ messages must not help a reader that was not trained with them.
 Dev (every --dev_every steps; --dev_n episodes per family, carved from the training records and never trained on),
 hard messages only, per family: KL per answer token with the messages (on), with the received messages of another
 dev episode of the family (swap) and with no conversation at all (none); the share the messages close,
-(none - on) / none, overall and by task-turn index; letters, distinct tokens and 3 example messages. The controller's
+(none - on) / none, overall and by task-turn index; letters, distinct tokens, 3 example messages and the 20 most used
+message tokens. The controller's
 gap is the mean over families of swap - on. The final evaluation runs the same on eval_seen and eval_heldout (unseen
 sources) and adds the untrained model as a reader (base_on, base_none: its gain from reading the messages).
 
@@ -62,8 +66,10 @@ SYSTEM = ('You are agent {x}. You and agent {y} are two assistants who serve one
           'private material that the other cannot see, and each request from the user comes to one of you. Before '
           'each answer you and agent {y} exchange short messages: write to agent {y} what it needs to know. When a '
           'request comes to you, answer the user directly.')
+SYMBOLS = 'From now on, write your messages to your partner in emoji, symbols and digits only, with no letters.'
 CHUNK = 512                                            # positions per checkpointed vocabulary chunk
 _letters = {}
+_fragments = []
 
 
 def other(x):
@@ -90,23 +96,67 @@ def byte_chars():
     return dict(zip(bs, map(chr, cs)))
 
 
+def letter_fragments():
+    """Every byte string that occurs inside the UTF-8 encoding of a letter (a character of category L*) without being
+    the whole encoding, over all code points."""
+    if not _fragments:
+        subs = set()
+        for cp in range(0x110000):
+            if 0xD800 <= cp <= 0xDFFF or not unicodedata.category(chr(cp)).startswith('L'):
+                continue
+            b = chr(cp).encode()
+            subs.update(b[i:j] for i in range(len(b)) for j in range(i + 1, len(b) + 1) if j - i < len(b))
+        _fragments.append(subs)
+    return _fragments[0]
+
+
+def fragment_is_letter(b, subs):
+    """Whether bytes b that are not complete UTF-8 can be part of a letter: their leading continuation bytes (the end
+    of a character the previous token began) or their unfinished last character (which the next token ends) occur
+    inside some letter's encoding, or their complete middle holds a letter, or the middle is not UTF-8 at all. The
+    prefix F0 9F of every 4-byte emoji, for one, is no letter's part."""
+    k = 0
+    while k < len(b) and (b[k] & 0xC0) == 0x80:
+        k += 1
+    head, rest, m = b[:k], b[k:], len(b) - k
+    for q in range(len(rest) - 1, -1, -1):
+        c = rest[q]
+        if (c & 0xC0) != 0x80:
+            need = 1 if c < 0x80 else 2 if c >> 5 == 6 else 3 if c >> 4 == 14 else 4
+            if len(rest) - q < need:
+                m = q
+            break
+    mid, tail = rest[:m], rest[m:]
+    try:
+        text = mid.decode('utf-8')
+    except UnicodeDecodeError:
+        return True
+    return any(unicodedata.category(c).startswith('L') for c in text) or head in subs or tail in subs
+
+
 def letter_sets(tok, V):
     """(allowed, letter): bool masks over V vocabulary rows. Not allowed: special and added tokens, rows past the
     tokenizer, tokens with a control character other than tab, newline or carriage return. Letter: a character of
-    category L*, or bytes that are not complete UTF-8."""
+    category L*, or bytes that are not complete UTF-8 and can be part of a letter (fragment_is_letter)."""
     key = (getattr(tok, 'name_or_path', ''), len(tok), V)
     if key in _letters:
         return _letters[key]
     dec = {c: b for b, c in byte_chars().items()}
+    subs = letter_fragments()
     special = set(tok.all_special_ids) | set(getattr(tok, 'added_tokens_decoder', {}))
     allowed, letter = torch.zeros(V, dtype=torch.bool), torch.zeros(V, dtype=torch.bool)
     for s, tid in tok.get_vocab().items():
         if tid >= V or tid in special:
             continue
         try:
-            text = bytes(dec[c] for c in s).decode('utf-8')
-        except (KeyError, UnicodeDecodeError):
+            b = bytes(dec[c] for c in s)
+        except KeyError:
             allowed[tid] = letter[tid] = True
+            continue
+        try:
+            text = b.decode('utf-8')
+        except UnicodeDecodeError:
+            allowed[tid], letter[tid] = True, fragment_is_letter(b, subs)
             continue
         if not text or any(unicodedata.category(c) == 'Cc' and c not in '\t\n\r' for c in text):
             continue
@@ -114,6 +164,16 @@ def letter_sets(tok, V):
         letter[tid] = any(unicodedata.category(c).startswith('L') for c in text)
     _letters[key] = (allowed, letter)
     return allowed, letter
+
+
+def token_label(tok, i):
+    """A vocabulary token as text, or as its bytes in hex when they are not complete UTF-8 (an emoji's first half)."""
+    dec = {c: b for b, c in byte_chars().items()}
+    s = tok.convert_ids_to_tokens(int(i)) or ''
+    try:
+        return bytes(dec[c] for c in s).decode('utf-8')
+    except (KeyError, UnicodeDecodeError):
+        return 'x' + bytes(dec.get(c, 63) for c in s).hex()
 
 
 # ------------------------------------------------------------------------------------------------------- the model
@@ -159,6 +219,7 @@ class Talk:
         self.allowed, self.letter = allowed.to(self.device), letter.to(self.device)
         self.letter_f = self.letter.float()
         self.bias, self.tau = 0.0, 1.0
+        self.symbols = False                           # SYMBOLS joins both system prompts (the controller sets it)
         self.pad = tok.convert_tokens_to_ids('<|endoftext|>')
         self._ids = {}
         self.stats = dict(decode_tokens=0, grad_tokens=0)
@@ -207,7 +268,8 @@ class Talk:
     def prefix(self, ep, x):
         view = ep['views'][x]
         mat = f'Your private material:\n{view}' if view else 'You hold no private material.'
-        return self.ids(f'<|im_start|>system\n{SYSTEM.format(x=x, y=other(x))}<|im_end|>\n') + \
+        rules = SYSTEM.format(x=x, y=other(x)) + (' ' + SYMBOLS if self.symbols else '')
+        return self.ids(f'<|im_start|>system\n{rules}<|im_end|>\n') + \
             self.ids(f'<|im_start|>user\n{mat}<|im_end|>\n', cache=False)
 
     def request(self, ep, k, x, talk=True):
@@ -516,7 +578,8 @@ def save(net, ckpt, extra=None):
     ckpt = Path(ckpt)
     ckpt.mkdir(parents=True, exist_ok=True)
     net.model.save_pretrained(str(ckpt / 'adapter'))
-    (ckpt / 'talk.json').write_text(json.dumps(dict(m=net.m, bias=net.bias, tau=net.tau, **(extra or {}))))
+    (ckpt / 'talk.json').write_text(json.dumps(dict(m=net.m, bias=net.bias, tau=net.tau, symbols=net.symbols,
+                                                    **(extra or {}))))
 
 
 # ------------------------------------------------------------------------------------------------------ evaluation
@@ -605,6 +668,10 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
     res['_all'] = dict(letters=round(float(net.letter.cpu()[flat].float().mean()), 4), distinct=int(len(torch.unique(flat))),
                        gap=round(mean(v['gap'] for v in fam), 4), closed=round(mean(v['closed'] for v in res.values()
                                                                                     if 'closed' in v), 4))
+    if len(flat):                                      # the 20 most used message tokens, with their share
+        u, c = torch.unique(flat, return_counts=True)
+        top = c.argsort(descending=True)[:20]
+        res['_all']['top'] = [[token_label(net.tok, u[j]), round(float(c[j]) / len(flat), 4)] for j in top.tolist()]
     return res
 
 
@@ -677,7 +744,7 @@ def ctrl_ready(gap, gap0, args):
 def train(net, args, log):
     rng = random.Random(args.seed)
     torch.manual_seed(args.seed)
-    data = O.Episodes(args.data, 'train', seed=args.seed, teacher=True)
+    data = O.Episodes(args.data, 'train', seed=args.seed, teacher=True, wait_minutes=args.wait_data)
     dev, seen, rest = [], {}, []
     for ep in data.recs:
         f = ep['family']
@@ -691,7 +758,8 @@ def train(net, args, log):
     opt = torch.optim.AdamW(lora, lr=args.lr, weight_decay=0.0)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1) / 50))
     log(dict(train=len(rest), dev=len(dev), dev_families=seen, allowed=int(net.allowed.sum()),
-             letters=int(net.letter.sum()), trainable=sum(p.numel() for p in lora)))
+             letters=int(net.letter.sum()), letter_free=int((net.allowed & ~net.letter).sum()),
+             trainable=sum(p.numel() for p in lora), cut_at_degenerate=data.cuts))
     feed = batches(data, net, args, rng)
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
@@ -713,11 +781,12 @@ def train(net, args, log):
                 else:
                     if ref is None:
                         ref, lam, ok = gap, args.lam0, True
+                        net.symbols = bool(args.symbols_line)            # the prior moves onto the symbols
                     else:
                         lam, ok = letter_ctrl(lam, gap, ref, args)
                     net.bias = args.bias_k * lam
                     log(dict(step=step, ctrl=True, gap=gap, ref=ref, held=ok, lam=round(lam, 5),
-                             bias=round(net.bias, 4), letters=letters))
+                             bias=round(net.bias, 4), letters=letters, symbols_line=net.symbols))
             if priv is None and args.lam_p and ref is not None and letters < args.priv_letters and ok:
                 priv, base_gap = step, gap
                 log(dict(step=step, privacy_starts=True, letters=letters, gap=gap))
@@ -818,6 +887,9 @@ def main():
     ap.add_argument('--max_minutes', type=float, default=600)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--parts', default='train,eval')
+    ap.add_argument('--symbols_line', type=int, default=1, help='add SYMBOLS to the system prompts at the controller start')
+    ap.add_argument('--wait_data', type=float, default=0, help='minutes to wait for new train shards when out of them')
+    ap.add_argument('--eval_data', default='', help='the final evaluation\'s data folder (default --data)')
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -840,9 +912,11 @@ def main():
         if meta.exists():
             j = json.loads(meta.read_text())
             net.bias, net.tau = j.get('bias', net.bias), j.get('tau', net.tau)
+            net.symbols = j.get('symbols', net.symbols)
         scores = dict(state=state)
         for split in ('eval_seen', 'eval_heldout'):
-            eps = [e for r in O.Episodes(args.data, split, seed=1, teacher=True) if (e := fit(r, net, args.max_len))]
+            eps = [e for r in O.Episodes(args.eval_data or args.data, split, seed=1, teacher=True)
+                   if (e := fit(r, net, args.max_len))]
             if args.eval_n:
                 eps = eps[:args.eval_n]
             scores[split] = evaluate(net, eps, bs=args.dev_bs, base=True)

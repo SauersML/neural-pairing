@@ -33,14 +33,15 @@ def cache(tmp_path, monkeypatch):
     monkeypatch.setattr(O, 'CACHE', tmp_path)
     rng = random.Random(0)
     def chat(k, i):
-        users = [prose(rng, 25) + f' turn {j}?' for j in range(k)]
+        users = [prose(rng, 25) + ' ' + ' '.join(f'c{i}t{j}w{q}' for q in range(12)) + f' turn {j}?'
+                 for j in range(k)]
         turns = []
         for u in users:
             turns += [dict(role='user', content=u), dict(role='assistant', content=prose(rng, 20))]
         return dict(id=f'c{i}', source='wildchat', kind='chat', turns=turns)
     def pasted(i):
         code = 'def f(x):\n' + '\n'.join(f'    x = x + {j}  # {prose(rng, 4)}' for j in range(12)) + '\n    return x'
-        u = f'Why does this fail?\n```python\n{code}\n```'
+        u = f'Why does this function fail on the second test case?\n```python\n{code}\n```'
         return dict(id=f'p{i}', source='stackexchange', kind='chat', turns=[dict(role='user', content=u)])
     fake = dict(
         wildchat=[chat(4, i) for i in range(30)], stackexchange=[pasted(i) for i in range(20)],
@@ -139,8 +140,9 @@ def fake_gen(copy_from=None):
             elif 'JSON' in p[0]['content']:
                 out.append((json.dumps(dict(situation='a trip for two', constraints_A=['leave after 9'],
                                             constraints_B=['budget 300'])), [], None))
-            else:
-                text = copy_from if copy_from and 'you have not seen' in p[1]['content'] else 'What does it say?'
+            else:                                         # a new question each call (not degenerate)
+                ask = ' '.join(random.Random(len(calls)).sample(WORDS, 8)) + '?'
+                text = copy_from if copy_from and 'you have not seen' in p[1]['content'] else ask
                 out.append((text, [], None))
             calls.append(p)
         return out
@@ -152,7 +154,7 @@ def test_generate_fills_every_turn(cache):
     recs = O.generate(sks, fake_gen()[0], random.Random(0), log=lambda *_: None)
     assert len(recs) >= 40
     for r in recs:
-        assert O.MIN_TURNS <= len(r['turns'])
+        assert O.MIN_KEEP <= len(r['turns'])
         for k, t in enumerate(r['turns']):
             assert t['user'] and t['response'] and t['response_ids'] and 'ask' not in t
             if r['teacher']:
@@ -250,7 +252,83 @@ def test_top_arrays_place_tokens_by_rank():
     ids, lp = O.top_arrays(dicts, 2, 2)
     assert ids.tolist() == [[5, 7], [4, 3]] and lp.dtype == np.float16
     assert np.allclose(lp, [[-0.1, -2.0], [-0.3, -0.5]], atol=1e-2)
-    flat = types.SimpleNamespace(start_indices=[0, 3], end_indices=[3, 5], token_ids=[9, 5, 7, 4, 3],
-                                 logprobs=[-7.0, -0.1, -2.0, -0.3, -0.5], ranks=[40, 1, 2, 1, 2])
+    flat = types.SimpleNamespace(start_indices=[0, 4], end_indices=[4, 6], token_ids=[9, 5, 7, 8, 4, 3],
+                                 logprobs=[-7.0, -0.1, -2.0, -9.0, -0.3, -0.5], ranks=[40, 1, 2, None, 1, 2])
     ids2, lp2 = O.top_arrays(flat, 2, 2)
     assert ids2.tolist() == ids.tolist() and np.array_equal(lp2, lp)
+
+
+def test_chat_ids_are_token_ids():
+    ids = O.chat_ids([dict(role='user', content='hello there')])
+    assert isinstance(ids, list) and all(isinstance(i, int) for i in ids)
+    assert O.tok().decode(ids).endswith('<|im_start|>assistant\n<think>\n\n</think>\n\n')
+
+
+def test_fetch_all_reports_each_worker(tmp_path, monkeypatch):
+    monkeypatch.setattr(O, 'CACHE', tmp_path)
+    got = O.fetch_all(['no_such_source'])
+    assert 'KeyError' in got['no_such_source']
+
+
+def test_degenerate_turns():
+    ans = ['The river stone lamp orbit candle maple violet harbor engine signal copper meadow lantern quartz falcon.']
+    ok = 'Which of the harbor rules applies to boats that arrive after dark?'
+    assert O.degenerate(ok, ['How long does the lamp burn in winter storms?'], ans) == ''
+    assert O.degenerate('So you said: river stone lamp orbit candle maple violet harbor engine signal copper meadow, '
+                        'right?', [], ans) == 'echo'
+    assert O.degenerate(ok, [ok], ans) == 'repeat'
+    assert O.degenerate(ok.replace('dark', 'sunset'), [ok], ans) == 'repeat'           # a near repeat
+    assert O.degenerate("Assistant: You're absolutely correct about the harbor and its many rules", [], []) == \
+        'assistant'
+    assert O.degenerate('Thanks, that helps a lot.', [], []) == 'short'
+    assert O.degenerate('[3]', ['[1]', '[2]'], ['some text'], fill=True) == ''
+    rec = dict(family='doc', turns=[dict(user=ok, response=ans[0]), dict(user='Why is the harbor closed at night now?',
+                                                                       response='x'), dict(user=ok, response='y')])
+    assert O.first_degenerate(rec) == (2, 'repeat')
+
+
+def test_simulated_turns_are_resampled_then_end_the_episode(cache):
+    sks = [s for s in O.skeletons('train', 80, seed=7) if s['family'] == 'doc'][:6]
+    calls = []
+
+    def stuck(prompts, max_tokens, temperature, topk=0):           # the simulator repeats itself after turn 0
+        out = []
+        for p in prompts:
+            if isinstance(p[0], int):
+                ids = O.piece('an answer to it')
+                n = len(ids)
+                out.append(('an answer to it', ids, (np.zeros((n, topk), np.int32), np.zeros((n, topk), np.float16))))
+            else:
+                calls.append(p)
+                out.append(('Which parts of the harbor rules cover boats after dark?', [], None))
+        return out
+    stats = {}
+    recs = O.generate(sks, stuck, random.Random(0), log=lambda *_: None, stats=stats)
+    assert recs and all(len(r['turns']) == 1 for r in recs)              # turn 1 repeats turn 0: ends there
+    assert stats['doc']['ended'] == len(sks) and stats['doc']['first_failed'] == len(sks)
+    assert len(calls) == len(sks) * (1 + O.RESAMPLES)                     # turn 0 once, turn 1 RESAMPLES times
+    sim_calls = []
+
+    def sim(prompts, max_tokens, temperature, topk=0):
+        sim_calls.append(len(prompts))
+        return stuck(prompts, max_tokens, temperature, topk)
+    fresh = [s for s in O.skeletons('train', 80, seed=7) if s['family'] == 'doc'][:2]   # (generate fills its input)
+    O.generate(fresh, stuck, random.Random(0), log=lambda *_: None, sim=sim)
+    assert sum(sim_calls) == 2 * (1 + O.RESAMPLES)                        # user turns go to sim, not the teacher
+
+
+def test_episodes_cut_degenerate_turns_and_take_new_shards(cache, tmp_path):
+    recs = O.generate(O.skeletons('train', 40, seed=8), fake_gen()[0], random.Random(0), log=lambda *_: None)
+    r0 = next(r for r in recs if r['teacher'] and r['family'] != 'fill' and len(r['turns']) >= 3)
+    r0['turns'][2]['user'] = r0['turns'][0]['user']                       # a repeat at turn 2
+    O.write_shards(recs[:20], tmp_path, 'train', 0)
+    eps = O.Episodes(tmp_path, 'train', teacher=True)
+    got = {r['id']: r for r in eps.recs}
+    assert len(got[r0['id']]['turns']) == 2 and eps.cuts.get('repeat', 0) >= 1
+    assert set(got[r0['id']]['topk']) >= {0, 1}
+    n0 = len(eps)
+    seen = [next(eps) for _ in range(n0)]
+    O.write_shards(recs[15:], tmp_path, 'train', 0, tag='g2-')            # 5 records again, under new names
+    more = list(eps)
+    assert {r['id'] for r in more} == {r['id'] for r in recs[20:]} - {r['id'] for r in seen}
+    assert len({r['id'] for r in seen + more}) == len(seen) + len(more)
