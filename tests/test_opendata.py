@@ -310,7 +310,7 @@ def test_simulated_turns_are_resampled_then_end_the_episode(cache):
     sim_calls = []
 
     def sim(prompts, max_tokens, temperature, topk=0):
-        sim_calls.append(sum(p[0]['content'] != O.JUDGE_SYSTEM for p in prompts))
+        sim_calls.append(sum(not isinstance(p[0], int) for p in prompts))
         return stuck(prompts, max_tokens, temperature, topk)
     fresh = [s for s in O.skeletons('train', 80, seed=7) if s['family'] == 'doc'][:2]   # (generate fills its input)
     O.generate(fresh, stuck, random.Random(0), log=lambda *_: None, sim=sim)
@@ -337,21 +337,25 @@ def test_episodes_cut_degenerate_turns_and_take_new_shards(cache, tmp_path):
 def test_the_judge_sends_back_requests_that_name_hidden_details(cache):
     sks = [s for s in O.skeletons('train', 80, seed=9) if s['family'] == 'doc'][:4]
     yes, no = O.tok()('Yes', add_special_tokens=False).input_ids[0], O.tok()('No', add_special_tokens=False).input_ids[0]
-    asked = []
+    asked, sim_prompt_of = [], {}
 
     def sim(prompts, max_tokens, temperature, topk=0):
         out = []
         for p in prompts:
-            if isinstance(p[0], int):
-                ids = O.piece('an answer to it')
-                n = len(ids)
-                out.append(('an answer to it', ids, (np.zeros((n, topk), np.int32), np.zeros((n, topk), np.float16))))
-            elif p[0]['content'] == O.JUDGE_SYSTEM:                     # yes when the request names "lantern"
-                leak = 'lantern' in p[1]['content'].split("The user's new message:")[1]
+            text = O.tok().decode(p) if isinstance(p[0], int) else ''
+            if O.JUDGE_Q in text:                                          # yes when the request names "lantern"
+                sim_ids = O.chat_ids(sim_prompt_of[text.split('<|im_start|>assistant')[0]])
+                assert p[:len(sim_ids)] == sim_ids                          # the simulator's prompt, token for token
+                leak = 'lantern' in text.split('</think>')[-2].split(O.JUDGE_Q)[0]
                 first = [yes, no] if leak else [no, yes]
                 out.append(('Yes' if leak else 'No', [first[0]],
                             (np.array([first], np.int32), np.array([[-0.05, -3.0]], np.float16))))
+            elif isinstance(p[0], int):
+                ids = O.piece('an answer to it')
+                n = len(ids)
+                out.append(('an answer to it', ids, (np.zeros((n, topk), np.int32), np.zeros((n, topk), np.float16))))
             else:
+                sim_prompt_of[O.tok().decode(O.chat_ids(p)).split('<|im_start|>assistant')[0]] = p
                 asked.append(p)
                 n = len(asked)
                 ask = f'Please tell me about the lantern rule number {n} today' if n % 2 else \
@@ -366,3 +370,14 @@ def test_the_judge_sends_back_requests_that_name_hidden_details(cache):
     assert {x['p_yes'] > 0.5 for x in samples} == {True, False} and all('lantern' in x['request'] for x in samples
                                                                         if x['p_yes'] > 0.5)
     assert O.judge_yes(None) == 0.0
+
+
+def test_build_runs_cohorts_through_all_their_turns(cache, tmp_path):
+    sizes = []
+
+    def gen(prompts, max_tokens, temperature, topk=0):
+        sizes.append(len(prompts))
+        return fake_gen()[0](prompts, max_tokens, temperature, topk)
+    got = O.build(tmp_path, dict(train=30), gen, batch=40, log=lambda *_: None, cohort=7)
+    assert got['train'] > 0 and max(sizes) <= 7
+    assert len(list(O.Episodes(tmp_path, 'train'))) == got['train']

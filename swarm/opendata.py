@@ -653,20 +653,18 @@ def sim_prompt(sk, k, asker):
     return [dict(role='system', content=SIM_SYSTEM), dict(role='user', content='\n\n'.join(lines))]
 
 
-JUDGE_SYSTEM = 'You check messages for leaked details. Answer with one word: yes or no.'
+JUDGE_Q = ('Stop role-playing now and check your last message. Does it mention any specific detail (a name, number, '
+           'term or fact) that appears in the part you have not seen, but neither in what you have nor in the '
+           'conversation so far? Answer with one word: yes or no.')
 JUDGE_K = 20                                         # top log-probabilities read from the judge's first token
 
 
-def judge_prompt(sk, k, asker, request):
-    """The judge's question for a written request: does it name a specific detail (a name, number, term or fact)
-    found only in the half the asker has not seen (not in the asker's own half, not in the conversation so far)?"""
-    conv = '\n\n'.join(f'User: {t["user"][:400]}\n\nAssistant: {t["response"][:700]}' for t in sk['turns'][:k][-3:])
-    return [dict(role='system', content=JUDGE_SYSTEM), dict(role='user', content=(
-        f'A user can see only their own half of some material. The other half is hidden from them.\n\n'
-        f'The user\'s own half:\n{sk["views"][asker] or "(nothing)"}\n\nThe hidden half:\n{sk["views"][other(asker)]}'
-        f'\n\nThe conversation so far:\n{conv or "(none)"}\n\nThe user\'s new message:\n{request}\n\n'
-        'Does the new message mention any specific detail (a name, number, term or fact) that appears in the hidden '
-        'half but neither in the user\'s own half nor in the conversation so far? Answer yes or no.'))]
+def judge_ids(sk, k, asker, request):
+    """The judge's prompt as token ids: the simulator's own prompt for this turn (sim_prompt, token for token, so a
+    prefix cache serves it), the request as the simulator's answer, then JUDGE_Q as a new user turn. It asks whether
+    the request names a specific detail found only in the half the asker has not seen (not in the asker's own half,
+    not in the conversation so far)."""
+    return chat_ids(sim_prompt(sk, k, asker)) + piece(request) + piece(END + USER_HEAD + JUDGE_Q + END + ASSIST_HEAD)
 
 
 def judge_yes(top):
@@ -809,7 +807,7 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None, judge=None, samples
                     continue
                 cand.append((s, u))
             if judge is not None and cand:
-                verdicts = judge([judge_prompt(s, k, s['turns'][k]['ask'], u) for s, u in cand], 1, 0.0,
+                verdicts = judge([judge_ids(s, k, s['turns'][k]['ask'], u) for s, u in cand], 1, 0.0,
                                  topk=JUDGE_K)
                 kept = []
                 for (s, u), got in zip(cand, verdicts):
@@ -1017,12 +1015,15 @@ def write_shards(recs, out, split, first=0, size=2000, tag=''):
     return first
 
 
-def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None, sim=None, skip=0, tag=''):
+def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None, sim=None, skip=0, tag='', cohort=20):
     """Skeletons per split, generated in batches (each batch's shards written as it finishes, named SPLIT-TAGNNNN);
     past max_minutes no new batch starts (the shards so far are kept). skip: the train split starts at that skeleton
     (a second generator takes skeletons the first never reaches; record ids are the skeletons', so a run that reads
     both never sees one twice). Each batch logs per family the share of simulated user turns whose first try was
-    degenerate or leaked (first_failed) and the share of user turns that ended an episode. Returns {split: records}."""
+    degenerate or leaked (first_failed) and the share of user turns that ended an episode. A batch goes through
+    generate() in cohorts of `cohort` episodes, each through all its turns before the next starts: a cohort's prompts
+    fit the models' key-value caches, so with prefix caching each turn pays only for its new tokens (the material,
+    the earlier turns and, for the judge, the simulator's whole prompt are cached). Returns {split: records}."""
     got, t0 = {}, time.monotonic()
     for split, n in counts.items():
         if n <= 0:
@@ -1034,8 +1035,11 @@ def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None, sim
             if max_minutes and (time.monotonic() - t0) / 60 > max_minutes:
                 log(json.dumps(dict(split=split, stopped='max_minutes', records=done)))
                 break
-            stats, samples = {}, []
-            recs = generate(sks[i:i + batch], gen, random.Random(off + i), log, sim=sim, stats=stats, samples=samples)
+            stats, samples, recs, t1 = {}, [], [], time.monotonic()
+            part = sks[i:i + batch]
+            for c in range(0, len(part), cohort):
+                recs += generate(part[c:c + cohort], gen, random.Random(off + i + c), lambda *_: None, sim=sim,
+                                 stats=stats, samples=samples)
             if samples:                                  # judged requests beside the shards, for checks by hand
                 (Path(out) / 'judge').mkdir(parents=True, exist_ok=True)
                 with open(Path(out) / 'judge' / f'{split}-{tag}{shard:04d}.jsonl', 'w') as f:
@@ -1047,7 +1051,8 @@ def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None, sim
             rates = {f: dict(asked=v['asked'], first_failed=round(v['first_failed'] / max(1, v['asked']), 3),
                              ended=v['ended'], real_ended=v['real_ended'], judged=v['judged'],
                              judge_yes=round(v['judge_yes'] / max(1, v['judged']), 3)) for f, v in sorted(stats.items())}
-            log(json.dumps(dict(split=split, records=done, of=n, s=round(time.monotonic() - t0), user_turns=rates)))
+            log(json.dumps(dict(split=split, records=done, of=n, s=round(time.monotonic() - t0),
+                                per_min=round(len(recs) / max(1e-9, (time.monotonic() - t1) / 60), 1), user_turns=rates)))
             if done >= n:
                 break
         got[split] = done
@@ -1200,6 +1205,7 @@ def main():
     ap.add_argument('--teacher_mem', type=float, default=0.33, help="the teacher's share beside a simulator")
     ap.add_argument('--skip', type=int, default=0, help='train skeletons to skip (a second generator)')
     ap.add_argument('--tag', default='', help='shard name tag: SPLIT-TAGNNNN')
+    ap.add_argument('--cohort', type=int, default=20, help='episodes generated together through all their turns')
     args = ap.parse_args()
     if args.cache:
         CACHE = Path(args.cache)
@@ -1218,7 +1224,7 @@ def main():
         counts = dict(eval_seen=args.eval_seen, eval_heldout=args.eval_heldout, train=args.train)
         print(json.dumps(dict(model=args.model, sim=args.sim_model or args.model, built=build(
             args.out, counts, gen, args.seed, args.batch, max_minutes=args.max_minutes, sim=sim, skip=args.skip,
-            tag=args.tag))), flush=True)
+            tag=args.tag, cohort=args.cohort))), flush=True)
     else:
         seen = set()
         for split in ('train', 'eval_seen', 'eval_heldout'):
