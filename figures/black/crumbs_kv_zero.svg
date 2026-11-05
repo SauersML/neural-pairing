@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600" height="1950" viewBox="0 0 2600 1950">
+<rect width="2600" height="1950" fill="#000000"/>
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<text x="70.0" y="141.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">No training: with KV crumbs of the writer’s own sentence</text>
+<text x="70.0" y="242.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">the answer picks right 77% (0.6B) and 87% (4B) of the time,</text>
+<text x="70.0" y="343.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">against 14% and 17% with crumbs cut</text>
+<rect x="70.0" y="413.6" width="46.0" height="46.0" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="136.0" y="453.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Qwen3-0.6B, crumbs on</text>
+<rect x="901.0" y="413.6" width="46.0" height="46.0" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="967.0" y="453.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Qwen3-4B, crumbs on</text>
+<line x1="1685.0" y1="436.6" x2="1749.0" y2="436.6" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1771.0" y="453.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">crumbs cut</text>
+<line x1="190.0" y1="1412.0" x2="2530.0" y2="1412.0" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="180.0" y="1430.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">0%</text>
+<line x1="190.0" y1="1018.8" x2="2530.0" y2="1018.8" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="180.0" y="1036.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">50%</text>
+<line x1="190.0" y1="625.6" x2="2530.0" y2="625.6" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="180.0" y="643.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">100%</text>
+<line x1="2064.0" y1="585.6" x2="2064.0" y2="1452.0" stroke="#3A3A42" stroke-width="4" stroke-linecap="round"/>
+<rect x="300.4" y="809.4" width="138.6" height="602.6" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="369.7" y="787.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">77%</text>
+<line x1="290.4" y1="1298.0" x2="449.0" y2="1298.0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="463.0" y="725.9" width="138.6" height="686.1" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="532.3" y="703.9" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">87%</text>
+<line x1="453.0" y1="1280.3" x2="611.6" y2="1280.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="451.0" y="1476.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">The writer’s room</text>
+<text x="451.0" y="1530.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">sentence</text>
+<text x="451.0" y="1584.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">answer can attend</text>
+<rect x="762.4" y="994.2" width="138.6" height="417.8" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="831.7" y="972.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">53%</text>
+<line x1="752.4" y1="1299.0" x2="911.0" y2="1299.0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="925.0" y="1007.0" width="138.6" height="405.0" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="994.3" y="985.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">52%</text>
+<line x1="915.0" y1="1276.3" x2="1073.6" y2="1276.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="913.0" y="1476.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Its last 4 tokens</text>
+<text x="913.0" y="1530.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">answer can attend</text>
+<rect x="1224.4" y="1297.0" width="138.6" height="115.0" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1293.7" y="1275.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">15%</text>
+<line x1="1214.4" y1="1297.0" x2="1373.0" y2="1297.0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="1387.0" y="1239.0" width="138.6" height="173.0" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="1456.3" y="1217.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">22%</text>
+<line x1="1377.0" y1="1281.3" x2="1535.6" y2="1281.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1375.0" y="1476.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Its last token</text>
+<text x="1375.0" y="1530.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">answer can attend</text>
+<rect x="1686.4" y="1314.7" width="138.6" height="97.3" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1755.7" y="1292.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">12%</text>
+<line x1="1676.4" y1="1299.0" x2="1835.0" y2="1299.0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="1849.0" y="1283.2" width="138.6" height="128.8" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="1918.3" y="1261.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">16%</text>
+<line x1="1839.0" y1="1276.3" x2="1997.6" y2="1276.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1837.0" y="1476.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">4 untrained slot</text>
+<text x="1837.0" y="1530.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">tokens</text>
+<text x="1837.0" y="1584.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">answer can attend</text>
+<rect x="2148.4" y="1307.8" width="138.6" height="104.2" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="2217.7" y="1285.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">13%</text>
+<line x1="2138.4" y1="1298.0" x2="2297.0" y2="1298.0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="2311.0" y="1274.4" width="138.6" height="137.6" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="2380.3" y="1252.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">18%</text>
+<line x1="2301.0" y1="1280.3" x2="2459.6" y2="1280.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="2299.0" y="1476.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">The room</text>
+<text x="2299.0" y="1530.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">sentence</text>
+<text x="2299.0" y="1584.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">only room tokens can</text>
+<text x="2299.0" y="1634.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">attend</text>
+<text x="70.0" y="1724.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">Untrained models, no adapter: the crumbs are the writer’s own keys and values in every layer at its own positions. Answer</text>
+<text x="70.0" y="1776.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">can attend: every follower token, the answer’s included, attends to the crumbs of each room visited so far; otherwise only</text>
+<text x="70.0" y="1828.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">the follower’s tokens in a room attend to that room’s crumbs. Forced choice on trail: each visited room’s object against the</text>
+<text x="70.0" y="1880.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">episode’s 5 other objects and the key’s room against the 5 other rooms, 200 test episodes per bar.</text>
+</svg>

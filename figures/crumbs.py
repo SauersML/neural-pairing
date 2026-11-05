@@ -6,12 +6,10 @@ later agent reads only the crumbs at its own place (swarm/crumbs.py).
              cut (results/crumbs.json)
   trail      one trail test episode: the explorer's rooms in its order with the crumbs it left, the rooms the follower
              enters, and the follower's answer with crumbs on and with the same model's crumbs cut
-  oldgrowth  oldgrowth (G walkers, each reading every earlier crumb at a place and writing its own): the asker's share
-             of rooms answered right against G, crumbs on and cut, and the share some walker saw (the ceiling)
 
 python figures/crumbs.py --snapshot RUN_DIR writes results/crumbs.json from a run folder (its results/*/scores.json,
 answers.json and report.json, and oldgrowth/*/scores.json); python figures/crumbs.py draws from results/crumbs.json
-into figures/black/crumbs_{accuracy,trail,oldgrowth}.{svg,png,pdf}.
+into figures/black/crumbs_{accuracy,trail}.{svg,png,pdf} (the old-growth figure is figures/crumbs_kv.py's).
 """
 import argparse
 import json
@@ -228,45 +226,6 @@ def trail_figure(d, arms=('resid1', 'resid4', 'kv1', 'kv4'), name='crumbs_trail'
 
 # ---------------------------------------------------------------- oldgrowth
 
-def oldgrowth(d, name='crumbs_oldgrowth'):
-    og = d.get('oldgrowth') or {}
-    if not og:
-        return None
-    W, H = 2600, 1900
-    s = canvas(W)
-    any_ = next(iter(og.values()))['sizes']
-    sizes = sorted(int(g) for g in any_)
-    best = max(og, key=lambda n: og[n]['sizes'][str(max(sizes))]['on']['gen'])
-    top_g = str(max(sizes))
-    y = title(s, f'After {max(sizes)} walkers, the asker names {pct(og[best]["sizes"][top_g]["on"]["gen"])} of rooms; '
-              f'{pct(any_[top_g]["ceiling"])} were seen by some walker', W)
-    left, right, base, top = M + 150, W - M - 40, H - M - 170, y + 80
-    xv = lambda g: left + sizes.index(g) / (len(sizes) - 1) * (right - left)   # noqa: E731
-    yv = lambda v: base - v * (base - top)                                      # noqa: E731
-    for v in (0, .5, 1):
-        s.line(left - 20, yv(v), right, yv(v), '#2A2A30', 3)
-        s.text(left - 36, yv(v) + 18, pct(v), 44, 400, DIM, 'end')
-    for g in sizes:
-        s.text(xv(g), base + 70, str(g), 52, 700, TEXT, 'middle')
-    s.text((left + right) / 2, base + 150, 'walkers before the asker (training: 1 to 4)', BODY, 400, TEXT, 'middle')
-    ceil = [(xv(g), yv(any_[str(g)]['ceiling'])) for g in sizes]
-    s.path('M' + ' L'.join(f'{x:.1f},{y_:.1f}' for x, y_ in ceil), TEXT, 5, extra='stroke-dasharray="16 12"')
-    s.text(ceil[-1][0] - 10, ceil[-1][1] - 30, 'seen by some walker', 46, 700, TEXT, 'end')
-    colors = dict(resid4=LINK, kv4=DIM, kv4_curriculum=GOLD)
-    names = dict(resid4='Residual', kv4='KV', kv4_curriculum='KV, walker curriculum')
-    for n, v in og.items():
-        c = colors.get(n, QUILL)
-        for mode, dash in (('on', ''), ('off', 'stroke-dasharray="6 14"')):
-            pts = [(xv(g), yv(v['sizes'][str(g)][mode]['gen'])) for g in sizes]
-            s.path('M' + ' L'.join(f'{x:.1f},{y_:.1f}' for x, y_ in pts), c, 7, extra=dash)
-            for x, y_ in pts:
-                s.circle(x, y_, 12, c)
-        x, y_ = xv(sizes[-1]), yv(v['sizes'][top_g]['on']['gen'])
-        s.text(x - 20, y_ + 70, f'{names.get(n, n)}, crumbs on', 46, 700, c, 'end')
-    finish(s, name, H)
-    return {n: {g: dict(on=v['sizes'][str(g)]['on']['gen'], off=v['sizes'][str(g)]['off']['gen'],
-                        ceiling=v['sizes'][str(g)]['ceiling']) for g in sizes} for n, v in og.items()}
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -282,7 +241,6 @@ def main():
     print(json.dumps(dict(accuracy=accuracy(d)), indent=1))
     if any(n in d['arms'] for n in ('resid1', 'resid4', 'kv1', 'kv4')):
         print(json.dumps(dict(trail=trail_figure(d)), indent=1))
-    print(json.dumps(dict(oldgrowth=oldgrowth(d)), indent=1))
     if SNAPSHOT_4B.exists():
         d4 = json.loads(SNAPSHOT_4B.read_text())
         print(json.dumps(dict(accuracy_4b=accuracy(d4, ARMS_4B, 'crumbs_accuracy_4b', 'Qwen3-4B')), indent=1))

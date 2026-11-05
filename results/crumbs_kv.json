@@ -50991,5 +50991,649 @@
    }
   }
  },
- "oldgrowth": {}
+ "oldgrowth": {
+  "kv4_og_init": {
+   "steps_run": 1500,
+   "base": "Qwen/Qwen3-0.6B",
+   "init": "/workspace/runs/magic-crumbs6/mpd-data/scratch/np/crumbs/og/init/kv4",
+   "curriculum": [
+    [
+     500,
+     1
+    ],
+    [
+     1000,
+     2
+    ]
+   ],
+   "games": [
+    "trail",
+    "oldgrowth"
+   ],
+   "sizes": {
+    "1": {
+     "ceiling": 0.18416666666666667,
+     "on": {
+      "nll": 32.964964555862686,
+      "choice": 0.3175,
+      "choice_seen": 1.0,
+      "choice_unseen": 0.1634320735444331,
+      "gen": 0.18,
+      "gen_seen": 1.0
+     },
+     "off": {
+      "nll": 40.324104224198415,
+      "choice": 0.17,
+      "choice_seen": 0.17647058823529413,
+      "choice_unseen": 0.16853932584269662,
+      "gen": 0.0,
+      "gen_seen": 0.0
+     },
+     "gib": 6.9
+    },
+    "2": {
+     "ceiling": 0.355,
+     "on": {
+      "nll": 26.298819929552987,
+      "choice": 0.4658333333333333,
+      "choice_seen": 1.0,
+      "choice_unseen": 0.17183462532299743,
+      "gen": 0.315,
+      "gen_seen": 0.9264705882352942
+     },
+     "off": {
+      "nll": 40.40863182923789,
+      "choice": 0.175,
+      "choice_seen": 0.16666666666666666,
+      "choice_unseen": 0.17958656330749354,
+      "gen": 0.0,
+      "gen_seen": 0.0
+     },
+     "gib": 6.9
+    },
+    "4": {
+     "ceiling": 0.5508333333333333,
+     "on": {
+      "nll": 18.337717359558702,
+      "choice": 0.6216666666666667,
+      "choice_seen": 1.0,
+      "choice_unseen": 0.15769944341372913,
+      "gen": 0.5525,
+      "gen_seen": 0.9778761061946902
+     },
+     "off": {
+      "nll": 40.55535398998687,
+      "choice": 0.1475,
+      "choice_seen": 0.14069591527987896,
+      "choice_unseen": 0.15584415584415584,
+      "gen": 0.0,
+      "gen_seen": 0.0
+     },
+     "gib": 6.9
+    },
+    "8": {
+     "ceiling": 0.8025,
+     "on": {
+      "nll": 8.890608981336594,
+      "choice": 0.8325,
+      "choice_seen": 0.995846313603323,
+      "choice_unseen": 0.16877637130801687,
+      "gen": 0.7275,
+      "gen_seen": 0.9326923076923077
+     },
+     "off": {
+      "nll": 40.311193354460165,
+      "choice": 0.16833333333333333,
+      "choice_seen": 0.16199376947040497,
+      "choice_unseen": 0.1940928270042194,
+      "gen": 0.0,
+      "gen_seen": 0.0
+     },
+     "gib": 6.9
+    },
+    "16": {
+     "ceiling": 0.9758333333333333,
+     "on": {
+      "nll": 2.06531790025515,
+      "choice": 0.9716666666666667,
+      "choice_seen": 0.9931682322801024,
+      "choice_unseen": 0.10344827586206896,
+      "gen": 0.9025,
+      "gen_seen": 0.9280205655526992
+     },
+     "off": {
+      "nll": 40.232789750794886,
+      "choice": 0.16166666666666665,
+      "choice_seen": 0.1596925704526046,
+      "choice_unseen": 0.2413793103448276,
+      "gen": 0.0,
+      "gen_seen": 0.0
+     },
+     "gib": 6.9
+    },
+    "32": {
+     "ceiling": 0.9975,
+     "on": {
+      "nll": 2.5439896797059602,
+      "choice": 0.985,
+      "choice_seen": 0.9866332497911445,
+      "choice_unseen": 0.3333333333333333,
+      "gen": 0.9025,
+      "gen_seen": 0.907035175879397
+     },
+     "off": {
+      "nll": 40.711988682535434,
+      "choice": 0.14166666666666666,
+      "choice_seen": 0.14118629908103592,
+      "choice_unseen": 0.3333333333333333,
+      "gen": 0.0,
+      "gen_seen": 0.0
+     },
+     "gib": 6.9
+    }
+   }
+  }
+ },
+ "zero": {
+  "Qwen3-0.6B": {
+   "a_text": {
+    "tf": {
+     "on": {
+      "nll": 91.41981206288158,
+      "choice": 0.1325,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.35230189728905,
+      "choice": 0.145,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 89.56288346972777,
+      "choice": 0.1475,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "a_text_rerope": {
+    "tf": {
+     "on": {
+      "nll": 113.97940280026077,
+      "choice": 0.10875,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.35230189728905,
+      "choice": 0.145,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 98.6051953886565,
+      "choice": 0.12625,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0016666666666666668,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.015,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "a_text_remember": {
+    "tf": {
+     "on": {
+      "nll": 59.22042941145478,
+      "choice": 0.76625,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.35230189728905,
+      "choice": 0.145,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 88.39844986951202,
+      "choice": 0.145,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "room_follows": 0.315,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.22,
+     "swap_keeps_own": 0.0,
+     "named_on": 0.6066666666666667,
+     "named_off": 0.0033333333333333335
+    },
+    "n_gen": 200
+   },
+   "a_text_rerope_remember": {
+    "tf": {
+     "on": {
+      "nll": 62.5263324993704,
+      "choice": 0.82,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.35230189728905,
+      "choice": 0.145,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 98.05572885358853,
+      "choice": 0.12125,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.44333333333333336,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.305,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.315,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "b_last4_remember": {
+    "tf": {
+     "on": {
+      "nll": 69.92203323841352,
+      "choice": 0.53125,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.3442879881349,
+      "choice": 0.14375,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 87.15856382840153,
+      "choice": 0.14625,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.36666666666666664,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.285,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.345,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "c_last1_remember": {
+    "tf": {
+     "on": {
+      "nll": 88.18280874223625,
+      "choice": 0.14625,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.24076395972241,
+      "choice": 0.14625,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 88.2711967677825,
+      "choice": 0.14375,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0033333333333333335,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "d_slots_remember": {
+    "tf": {
+     "on": {
+      "nll": 130.66586701486412,
+      "choice": 0.12375,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.3442879881349,
+      "choice": 0.14375,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 129.51504076479569,
+      "choice": 0.11125,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "b_last4": {
+    "tf": {
+     "on": {
+      "nll": 88.52239444569457,
+      "choice": 0.14875,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.3442879881349,
+      "choice": 0.14375,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 88.41192358532813,
+      "choice": 0.15125,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0033333333333333335,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "c_last1": {
+    "tf": {
+     "on": {
+      "nll": 88.38063538438038,
+      "choice": 0.13875,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.24076395972241,
+      "choice": 0.14625,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 88.3332076386238,
+      "choice": 0.155,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0033333333333333335,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.005,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   },
+   "d_slots_untrained": {
+    "tf": {
+     "on": {
+      "nll": 102.4687880826787,
+      "choice": 0.1225,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 88.3442879881349,
+      "choice": 0.14375,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 101.91318015508223,
+      "choice": 0.1275,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0,
+     "named_off": 0.0033333333333333335,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 200
+   }
+  },
+  "Qwen3-4B": {
+   "a_text_remember": {
+    "tf": {
+     "on": {
+      "nll": 115.36461357843213,
+      "choice": 0.8725,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 160.99081407844142,
+      "choice": 0.1675,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 177.98017852131505,
+      "choice": 0.15125,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "room_follows": 0.36,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.1,
+     "swap_keeps_own": 0.0,
+     "named_on": 0.68,
+     "named_off": 0.0
+    },
+    "n_gen": 50
+   },
+   "a_text_rerope_remember": {
+    "tf": {
+     "on": {
+      "nll": 128.39008744877944,
+      "choice": 0.87875,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 160.99081407844142,
+      "choice": 0.1675,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 198.86428745530836,
+      "choice": 0.13,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.46,
+     "named_off": 0.0,
+     "room_follows": 0.28,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.24,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 50
+   },
+   "b_last4_remember": {
+    "tf": {
+     "on": {
+      "nll": 145.9457761084243,
+      "choice": 0.515,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 160.8740189876795,
+      "choice": 0.1725,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 164.96904827153787,
+      "choice": 0.18,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.26,
+     "named_off": 0.0,
+     "room_follows": 0.2,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.2,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 50
+   },
+   "c_last1_remember": {
+    "tf": {
+     "on": {
+      "nll": 151.57572040608355,
+      "choice": 0.22,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 160.8846487142074,
+      "choice": 0.16625,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 153.61391679438148,
+      "choice": 0.155,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.006666666666666667,
+     "named_off": 0.0,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 50
+   },
+   "d_slots_remember": {
+    "tf": {
+     "on": {
+      "nll": 158.87569594474917,
+      "choice": 0.16375,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 160.8740189876795,
+      "choice": 0.1725,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 158.64830656490963,
+      "choice": 0.15875,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0,
+     "named_off": 0.0,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 50
+   },
+   "a_text": {
+    "tf": {
+     "on": {
+      "nll": 160.28165708106994,
+      "choice": 0.175,
+      "n": 200,
+      "n_choice": 200
+     },
+     "off": {
+      "nll": 160.99081407844142,
+      "choice": 0.1675,
+      "n": 200,
+      "n_choice": 200
+     },
+     "transplant": {
+      "nll": 162.08325347650862,
+      "choice": 0.15875,
+      "n": 200,
+      "n_choice": 200
+     }
+    },
+    "mentions": {
+     "named_on": 0.0,
+     "named_off": 0.0,
+     "room_follows": 0.0,
+     "room_keeps_own": 0.0,
+     "swap_follows": 0.0,
+     "swap_keeps_own": 0.0
+    },
+    "n_gen": 50
+   }
+  }
+ }
 }

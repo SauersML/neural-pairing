@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600" height="2000" viewBox="0 0 2600 2000">
+<rect width="2600" height="2000" fill="#000000"/>
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<text x="70.0" y="141.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Reading the KV crumbs of up to 32 walkers, the asker picks</text>
+<text x="70.0" y="242.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">the right object in 99% to 100% of the rooms that some</text>
+<text x="70.0" y="343.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">walker saw</text>
+<path d="M70,436.59999999999997 L150,436.59999999999997" fill="none" stroke="#2FE3A0" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
+<text x="170.0" y="453.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">crumbs on</text>
+<path d="M490.0,436.59999999999997 L570.0,436.59999999999997" fill="none" stroke="#8E8E96" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 16"/>
+<text x="590.0" y="453.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">same model, crumbs cut</text>
+<path d="M1228.0,436.59999999999997 L1308.0,436.59999999999997" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="22 14"/>
+<text x="1328.0" y="453.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">share of asked rooms some walker saw</text>
+<rect x="170.0" y="595.6" width="652.0" height="928.4" rx="16" fill="#141418" stroke="none" stroke-width="2" />
+<text x="496.0" y="1494.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">trained on 1 to 4 walkers</text>
+<line x1="190.0" y1="1524.0" x2="1670.0" y2="1524.0" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="174.0" y="1540.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">0%</text>
+<line x1="190.0" y1="1064.8" x2="1670.0" y2="1064.8" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="174.0" y="1080.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">50%</text>
+<line x1="190.0" y1="605.6" x2="1670.0" y2="605.6" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="174.0" y="621.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">100%</text>
+<text x="210.0" y="1590.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">1</text>
+<text x="496.0" y="1590.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">2</text>
+<text x="782.0" y="1590.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">4</text>
+<text x="1068.0" y="1590.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">8</text>
+<text x="1354.0" y="1590.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">16</text>
+<text x="1640.0" y="1590.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">32</text>
+<text x="925.0" y="1670.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">walkers before the asker (log scale)</text>
+<path d="M210.0,1354.9 L496.0,1198.0 L782.0,1018.1 L1068.0,787.0 L1354.0,627.8 L1640.0,607.9" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="22 14"/>
+<path d="M210.0,1367.9 L496.0,1363.3 L782.0,1388.5 L1068.0,1369.4 L1354.0,1375.5 L1640.0,1393.9" fill="none" stroke="#8E8E96" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 16"/>
+<circle cx="210.0" cy="1367.9" r="13" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="496.0" cy="1363.3" r="13" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="782.0" cy="1388.5" r="13" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1068.0" cy="1369.4" r="13" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1354.0" cy="1375.5" r="13" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1640.0" cy="1393.9" r="13" fill="#8E8E96" stroke="none" stroke-width="3" />
+<path d="M210.0,1232.4 L496.0,1096.2 L782.0,953.1 L1068.0,759.4 L1354.0,631.6 L1640.0,619.4" fill="none" stroke="#2FE3A0" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="210.0" cy="1232.4" r="13" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<text x="188.0" y="1202.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">32%</text>
+<circle cx="496.0" cy="1096.2" r="13" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<text x="474.0" y="1066.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">47%</text>
+<circle cx="782.0" cy="953.1" r="13" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<text x="760.0" y="923.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">62%</text>
+<circle cx="1068.0" cy="759.4" r="13" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<text x="1046.0" y="729.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">83%</text>
+<circle cx="1354.0" cy="631.6" r="13" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<text x="1332.0" y="601.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">97%</text>
+<circle cx="1640.0" cy="619.4" r="13" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<text x="1618.0" y="589.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">98%</text>
+<text x="1760.0" y="625.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">One test floor, 8 walkers</text>
+<text x="2246.0" y="685.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">rooms</text>
+<text x="1966.0" y="761.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 1</text>
+<circle cx="2022.0" cy="746.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2086.0" cy="746.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2150.0" cy="746.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="746.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2470.0" cy="746.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="746.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2278.0" cy="746.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2214.0" cy="746.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<text x="1966.0" y="823.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 2</text>
+<circle cx="2022.0" cy="808.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2150.0" cy="808.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2214.0" cy="808.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2278.0" cy="808.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="808.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2470.0" cy="808.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="808.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="2086.0" cy="808.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<text x="1966.0" y="885.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 3</text>
+<circle cx="2022.0" cy="870.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2086.0" cy="870.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2150.0" cy="870.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="870.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2470.0" cy="870.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="870.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2214.0" cy="870.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2278.0" cy="870.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<text x="1966.0" y="947.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 4</text>
+<circle cx="2086.0" cy="932.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2150.0" cy="932.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2214.0" cy="932.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="932.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2470.0" cy="932.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="932.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2022.0" cy="932.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2278.0" cy="932.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<text x="1966.0" y="1009.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 5</text>
+<circle cx="2214.0" cy="994.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2278.0" cy="994.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="994.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="994.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2470.0" cy="994.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2150.0" cy="994.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2086.0" cy="994.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="2022.0" cy="994.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<text x="1966.0" y="1071.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 6</text>
+<circle cx="2022.0" cy="1056.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2214.0" cy="1056.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2278.0" cy="1056.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="1056.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="1056.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2086.0" cy="1056.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2150.0" cy="1056.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="2470.0" cy="1056.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<text x="1966.0" y="1133.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 7</text>
+<circle cx="2022.0" cy="1118.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2086.0" cy="1118.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2214.0" cy="1118.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2278.0" cy="1118.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="1118.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="1118.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2470.0" cy="1118.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2150.0" cy="1118.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<text x="1966.0" y="1195.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">walker 8</text>
+<circle cx="2022.0" cy="1180.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2086.0" cy="1180.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2150.0" cy="1180.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2214.0" cy="1180.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2342.0" cy="1180.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2406.0" cy="1180.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2470.0" cy="1180.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<circle cx="2278.0" cy="1180.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<text x="1966.0" y="1257.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">asker</text>
+<circle cx="2022.0" cy="1242.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2086.0" cy="1242.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2150.0" cy="1242.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<circle cx="2278.0" cy="1242.6" r="5" fill="#3A3A42" stroke="none" stroke-width="3" />
+<rect x="2380.0" y="1216.6" width="52.0" height="52.0" rx="10" fill="none" stroke="#2FE3A0" stroke-width="6" />
+<rect x="2444.0" y="1216.6" width="52.0" height="52.0" rx="10" fill="none" stroke="#2FE3A0" stroke-width="6" />
+<rect x="2316.0" y="1216.6" width="52.0" height="52.0" rx="10" fill="none" stroke="#2FE3A0" stroke-width="6" />
+<rect x="2188.0" y="1216.6" width="52.0" height="52.0" rx="10" fill="none" stroke="#2FE3A0" stroke-width="6" />
+<circle cx="1790.0" cy="1313.6" r="21" fill="#FFD23F" stroke="none" stroke-width="3" />
+<text x="1840.0" y="1327.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">left crumbs and saw the object</text>
+<circle cx="1790.0" cy="1375.6" r="18" fill="none" stroke="#8E8E96" stroke-width="6" />
+<text x="1840.0" y="1389.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">left crumbs, saw nothing</text>
+<rect x="1764.0" y="1411.6" width="52.0" height="52.0" rx="10" fill="none" stroke="#2FE3A0" stroke-width="6" />
+<text x="1840.0" y="1451.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">the rooms the asker visits</text>
+<text x="70.0" y="1774.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">Qwen3-0.6B with 4 KV crumbs per visit, trained on trail and old growth with 1 to 4 walkers from the KV run trained on</text>
+<text x="70.0" y="1826.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">seven crumb games. Forced choice: each asked room’s object against the floor’s 7 other objects, 300 test floors per</text>
+<text x="70.0" y="1878.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">number of walkers. Rooms no walker saw can only be guessed; on rooms some walker saw the asker is right in 99% to</text>
+<text x="70.0" y="1930.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">100%.</text>
+</svg>
