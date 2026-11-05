@@ -1315,7 +1315,7 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
-          dev_fn=None):
+          dev_fn=None, cut0=None):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1333,7 +1333,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     over ADV_RAMP steps, the eavesdropper trains on every step after each backward pass (its own AdamW at lr), and
     training runs at least ADV_RAMP + 300 steps past it. The dev NLL that stops training is the hard one. Returns
     the steps run and the NLL record. dev: these dev episodes instead of 8 per game; dev_fn(net, dev) -> (the dev
-    value, more numbers to log) instead of the mean say NLL."""
+    value, more numbers to log) instead of the mean say NLL. cut0 (sym continuation): the gap is cut0 minus the hard
+    dev NLL, a fixed reference cut (the first run's at its gap0 dev), so a reader whose own no-note NLL drifts up cannot
+    hold the gap while its hard NLL gets worse; the gap against the dev's own cut is logged as gap_now."""
     games = games or CG.GAMES
     torch.manual_seed(seed)
     rng = random.Random(seed)
@@ -1416,8 +1418,10 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                            dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4))
                 ns = note_stats(net, device, dev)
                 letters = ns['letters']
-                gap = rec['dev_cut'] - v
+                gap = (rec['dev_cut'] if cut0 is None else cut0) - v
                 rec.update(letters=round(letters, 4), gap=round(gap, 4), examples=ns['examples'])
+                if cut0 is not None:
+                    rec['gap_now'] = round(rec['dev_cut'] - v, 4)
                 keep, (up, down) = LAM_RULE[0], lam_rule
                 held = gap0 is not None and gap >= keep * gap0
                 if gap0 is None or step <= letters_from:
@@ -1514,6 +1518,8 @@ def main():
     ap.add_argument('--every', type=int, default=100, help='steps between dev evaluations')
     ap.add_argument('--lam0', type=float, default=LETTERS[1], help='sym arm: the letter weight it starts at')
     ap.add_argument('--gap0', type=float, help='sym arm: the reference gap (default: the last dev before the penalty)')
+    ap.add_argument('--lr', type=float, default=2e-4, help='LoRA learning rate (peak; warmup then cosine)')
+    ap.add_argument('--cut0', type=float, help='sym arm: a fixed reference cut NLL for the gap (see train)')
     ap.add_argument('--lam_rule', default=','.join(map(str, LAM_RULE[1:])),
                     help='sym arm: up,down: the letter weight\'s factor after a dev with the gap held, and without')
     ap.add_argument('--lost', type=int, default=0, help='sym arm: stop after this many devs in a row without the gap')
@@ -1586,7 +1592,8 @@ def main():
                             min_steps=args.min_steps, weights=weights, link_lr=args.link_lr, curriculum=curriculum,
                             every=args.every, letters_from=args.letters_from, lam0=args.lam0, gap0=args.gap0,
                             lam_rule=tuple(float(x) for x in args.lam_rule.split(',')), lost=args.lost,
-                            private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full)
+                            private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full, lr=args.lr,
+                            cut0=args.cut0)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))

@@ -411,3 +411,13 @@ def test_sym_contrast_and_letter_rule(tok, tmp_path):
     assert [r['held'] for r in recs] == [False] * 3 and 'stop' in recs[-1] and not (out / 'pre.pt').exists()
     assert [r['lam_next'] for r in recs] == pytest.approx([.25, .125, .0625])
     assert net.tau == pytest.approx(.3) and net.beta == C.BETA
+    # a fixed reference cut: the gap is cut0 minus the hard dev NLL, whatever the dev's own cut does
+    out = tmp_path / 'cut0'
+    out.mkdir()
+    C.train(net, 'cpu', 2, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=1., cut0=1e6,
+            lam_rule=(2., .5), tau0=.3, beta_full=True, min_steps=100, lr=1e-5)
+    recs = [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
+    assert all(r['held'] and r['gap'] == pytest.approx(1e6 - r['dev_nll'], abs=1e-3) for r in recs)
+    assert all(r['gap_now'] == pytest.approx(r['dev_cut'] - r['dev_nll'], abs=1e-3) for r in recs)
+    second = 1. if 'private' in recs[0] and recs[1]['letters'] < C.PRIV_LETTERS else 2.
+    assert [r['lam_next'] for r in recs] == pytest.approx([1., second])
