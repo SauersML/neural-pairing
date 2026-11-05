@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600" height="2050" viewBox="0 0 2600 2050">
+<rect width="2600" height="2050" fill="#000000"/>
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<text x="70.0" y="141.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">At step 700, 45% of trail notes contain no letter: digit codes</text>
+<text x="70.0" y="242.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">like “(03:” that each stand for a few objects</text>
+<rect x="70.0" y="312.8" width="46.0" height="46.0" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="136.0" y="352.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">trained follower, notes on</text>
+<rect x="788.0" y="312.8" width="46.0" height="46.0" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="854.0" y="352.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">untrained Qwen3-4B, notes on</text>
+<line x1="1629.0" y1="335.8" x2="1693.0" y2="335.8" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1715.0" y="352.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">same reader, notes cut</text>
+<text x="70.0" y="484.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">forced-choice accuracy on test episodes</text>
+<line x1="180.0" y1="1500.0" x2="1430.0" y2="1500.0" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="168.0" y="1516.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">0%</text>
+<line x1="180.0" y1="1032.4" x2="1430.0" y2="1032.4" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="168.0" y="1048.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">50%</text>
+<line x1="180.0" y1="564.8" x2="1430.0" y2="564.8" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="168.0" y="580.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">100%</text>
+<rect x="236.3" y="1009.0" width="78.7" height="491.0" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="275.6" y="989.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">52%</text>
+<line x1="228.3" y1="1406.5" x2="323.0" y2="1406.5" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="331.0" y="1172.7" width="78.7" height="327.3" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="370.4" y="1152.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">35%</text>
+<line x1="323.0" y1="1364.4" x2="417.7" y2="1364.4" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="323.0" y="1560.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Trail</text>
+<text x="323.0" y="1610.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">object in</text>
+<text x="323.0" y="1656.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">each room</text>
+<rect x="482.3" y="692.3" width="78.7" height="807.7" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="521.6" y="672.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">86%</text>
+<line x1="474.3" y1="1175.8" x2="569.0" y2="1175.8" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="577.0" y="807.7" width="78.7" height="692.3" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="616.4" y="787.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">74%</text>
+<line x1="569.0" y1="1168.3" x2="663.7" y2="1168.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="569.0" y="1560.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Maze</text>
+<text x="569.0" y="1610.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">door taken in</text>
+<text x="569.0" y="1656.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">each room</text>
+<rect x="728.3" y="564.8" width="78.7" height="935.2" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="767.6" y="544.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="720.3" y1="1500.0" x2="815.0" y2="1500.0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="823.0" y="1350.4" width="78.7" height="149.6" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="862.4" y="1330.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">16%</text>
+<line x1="815.0" y1="1443.9" x2="909.7" y2="1443.9" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="815.0" y="1560.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Count</text>
+<text x="815.0" y="1610.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">total of three</text>
+<text x="815.0" y="1656.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">counts</text>
+<rect x="974.3" y="875.3" width="78.7" height="624.7" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1013.6" y="855.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">67%</text>
+<line x1="966.3" y1="1215.7" x2="1061.0" y2="1215.7" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="1069.0" y="860.3" width="78.7" height="639.7" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="1108.4" y="840.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">68%</text>
+<line x1="1061.0" y1="1219.4" x2="1155.7" y2="1219.4" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1061.0" y="1560.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Division of</text>
+<text x="1061.0" y="1610.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">labour</text>
+<text x="1061.0" y="1660.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">two workers’</text>
+<text x="1061.0" y="1706.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">sums</text>
+<rect x="1220.3" y="564.8" width="78.7" height="935.2" rx="8" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="1259.6" y="544.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#2FE3A0" text-anchor="middle" xml:space="preserve">100%</text>
+<line x1="1212.3" y1="990.3" x2="1307.0" y2="990.3" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<rect x="1315.0" y="878.1" width="78.7" height="621.9" rx="8" fill="#A47CFF" stroke="none" stroke-width="2" />
+<text x="1354.4" y="858.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#A47CFF" text-anchor="middle" xml:space="preserve">66%</text>
+<line x1="1307.0" y1="1032.4" x2="1401.7" y2="1032.4" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+<text x="1307.0" y="1560.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">Traps</text>
+<text x="1307.0" y="1610.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">safe or trap</text>
+<text x="1560.0" y="484.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">most frequent letter-free trail notes</text>
+<text x="1560.0" y="542.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">and the test objects each note was written for</text>
+<text x="1560.0" y="634.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(202</tspan></text>
+<text x="1820.0" y="628.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">wheel 48,  sugar 46,  eagle 34,</text>
+<text x="1820.0" y="678.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">coat 12</text>
+<text x="1560.0" y="750.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(03:</tspan></text>
+<text x="1820.0" y="744.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">broom 32,  pencil 24,  orange 15,</text>
+<text x="1820.0" y="794.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">moon 15</text>
+<text x="1560.0" y="866.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(07:</tspan></text>
+<text x="1820.0" y="860.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">camera 27,  shell 12,  saddle 9,</text>
+<text x="1820.0" y="910.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">fountain 8</text>
+<text x="1560.0" y="982.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(100</tspan></text>
+<text x="1820.0" y="976.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">honey 41,  cotton 32</text>
+<text x="1560.0" y="1098.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(03-</tspan></text>
+<text x="1820.0" y="1092.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">moon 29,  pencil 14,  broom 10,</text>
+<text x="1820.0" y="1142.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">marble 3</text>
+<text x="1560.0" y="1214.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(09:</tspan></text>
+<text x="1820.0" y="1208.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">jewel 20,  camera 8,  lamp 8,</text>
+<text x="1820.0" y="1258.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">honey 6</text>
+<text x="1560.0" y="1330.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(12:</tspan></text>
+<text x="1820.0" y="1324.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">teapot 18,  jewel 8,  broom 5,</text>
+<text x="1820.0" y="1374.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">lamp 5</text>
+<text x="1560.0" y="1446.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(1, </tspan></text>
+<text x="1820.0" y="1440.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">apple 29,  cotton 7</text>
+<text x="1560.0" y="1562.8" font-family="Menlo, monospace" font-size="56" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(04:</tspan></text>
+<text x="1820.0" y="1556.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">fountain 8,  camera 5,  pencil 5,</text>
+<text x="1820.0" y="1606.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">cushion 4</text>
+<text x="70.0" y="1876.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">2400 test trail notes, 1084 of them letter-free. Forced choice: the right answer against the episode’s other options, 50 test</text>
+<text x="70.0" y="1928.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">episodes per game. Untrained Qwen3-4B reads the trained explorer’s notes with no adapter. A note’s count after an object: test</text>
+<text x="70.0" y="1980.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">notes written for that object.</text>
+</svg>

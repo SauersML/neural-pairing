@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600" height="2639" viewBox="0 0 2600 2639">
+<rect width="2600" height="2639" fill="#000000"/>
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<text x="70.0" y="141.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Under a rising letter penalty, Qwen3-4B’s breadcrumb</text>
+<text x="70.0" y="242.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">notes fall from 90% to 24% letters, and the follower still</text>
+<text x="70.0" y="343.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">answers better with the notes than without them</text>
+<text x="80.0" y="475.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">percent of note tokens with a letter</text>
+<line x1="210.0" y1="1165.6" x2="1190.0" y2="1165.6" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="186.0" y="1181.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">0%</text>
+<line x1="210.0" y1="845.6" x2="1190.0" y2="845.6" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="186.0" y="861.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">50%</text>
+<line x1="210.0" y1="525.6" x2="1190.0" y2="525.6" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="186.0" y="541.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">100%</text>
+<text x="210.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">0</text>
+<text x="350.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">100</text>
+<text x="490.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">200</text>
+<text x="630.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">300</text>
+<text x="770.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">400</text>
+<text x="910.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">500</text>
+<text x="1050.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">600</text>
+<text x="1190.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">700</text>
+<text x="700.0" y="1295.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">training step</text>
+<rect x="420.0" y="525.6" width="770.0" height="640.0" rx="0" fill="#141418" stroke="none" stroke-width="2" />
+<text x="444.0" y="1135.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">letter penalty on, weight 0.01 → 0.58</text>
+<path d="M280.0,723.4 L350.0,653.4 L420.0,594.0 L490.0,617.2 L560.0,589.0 L630.0,597.3 L700.0,621.2 L770.0,611.7 L840.0,613.4 L910.0,620.1 L980.0,725.6 L1050.0,861.7 L1120.0,993.4 L1190.0,1015.1" fill="none" stroke="#FFD23F" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="280.0" cy="723.4" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="350.0" cy="653.4" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="420.0" cy="594.0" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="490.0" cy="617.2" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="560.0" cy="589.0" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="630.0" cy="597.3" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="700.0" cy="621.2" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="770.0" cy="611.7" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="840.0" cy="613.4" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="910.0" cy="620.1" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="980.0" cy="725.6" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="1050.0" cy="861.7" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="1120.0" cy="993.4" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<circle cx="1190.0" cy="1015.1" r="11" fill="#FFD23F" stroke="none" stroke-width="3" />
+<text x="1216.0" y="1031.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">24%</text>
+<text x="1390.0" y="475.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">follower’s answer loss, nats</text>
+<line x1="1520.0" y1="1165.6" x2="2270.0" y2="1165.6" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="1496.0" y="1181.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">0</text>
+<line x1="1520.0" y1="1006.3" x2="2270.0" y2="1006.3" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="1496.0" y="1022.3" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">2</text>
+<line x1="1520.0" y1="847.0" x2="2270.0" y2="847.0" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="1496.0" y="863.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">4</text>
+<line x1="1520.0" y1="687.7" x2="2270.0" y2="687.7" stroke="#2A2A30" stroke-width="3" stroke-linecap="round"/>
+<text x="1496.0" y="703.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="end" xml:space="preserve">6</text>
+<text x="1520.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">0</text>
+<text x="1627.1" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">100</text>
+<text x="1734.3" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">200</text>
+<text x="1841.4" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">300</text>
+<text x="1948.6" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">400</text>
+<text x="2055.7" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">500</text>
+<text x="2162.9" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">600</text>
+<text x="2270.0" y="1225.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="middle" xml:space="preserve">700</text>
+<text x="1895.0" y="1295.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#FFFFFF" text-anchor="middle" xml:space="preserve">training step</text>
+<path d="M1573.6,655.3 L1627.1,682.7 L1680.7,649.7 L1734.3,663.1 L1787.9,583.8 L1841.4,647.4 L1895.0,665.3 L1948.6,672.9 L2002.1,677.6 L2055.7,682.1 L2109.3,675.6 L2162.9,677.0 L2216.4,677.6 L2270.0,677.7" fill="none" stroke="#8E8E96" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 18"/>
+<circle cx="1573.6" cy="655.3" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1627.1" cy="682.7" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1680.7" cy="649.7" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1734.3" cy="663.1" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1787.9" cy="583.8" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1841.4" cy="647.4" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1895.0" cy="665.3" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="1948.6" cy="672.9" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="2002.1" cy="677.6" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="2055.7" cy="682.1" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="2109.3" cy="675.6" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="2162.9" cy="677.0" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="2216.4" cy="677.6" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<circle cx="2270.0" cy="677.7" r="11" fill="#8E8E96" stroke="none" stroke-width="3" />
+<path d="M1573.6,755.6 L1627.1,955.7 L1680.7,877.4 L1734.3,872.1 L1787.9,952.4 L1841.4,930.2 L1895.0,951.3 L1948.6,946.0 L2002.1,975.3 L2055.7,981.2 L2109.3,986.9 L2162.9,971.8 L2216.4,870.3 L2270.0,867.1" fill="none" stroke="#2FE3A0" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="1573.6" cy="755.6" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="1627.1" cy="955.7" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="1680.7" cy="877.4" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="1734.3" cy="872.1" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="1787.9" cy="952.4" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="1841.4" cy="930.2" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="1895.0" cy="951.3" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="1948.6" cy="946.0" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="2002.1" cy="975.3" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="2055.7" cy="981.2" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="2109.3" cy="986.9" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="2162.9" cy="971.8" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="2216.4" cy="870.3" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<circle cx="2270.0" cy="867.1" r="11" fill="#2FE3A0" stroke="none" stroke-width="3" />
+<text x="2296.0" y="693.7" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#8E8E96" text-anchor="start" xml:space="preserve">notes cut</text>
+<text x="2296.0" y="883.1" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#2FE3A0" text-anchor="start" xml:space="preserve">with notes</text>
+<text x="70.0" y="1395.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="50" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">The explorer’s notes for the same rooms at each check, as decoded</text>
+<text x="70.0" y="1465.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">letters</tspan><tspan fill="#8E8E96" font-weight="400"> in white, </tspan><tspan fill="#FFD23F" font-weight="700">every other character</tspan><tspan fill="#8E8E96" font-weight="400"> in gold</tspan></text>
+<text x="70.0" y="1555.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">object</text>
+<text x="315.0" y="1555.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">brick</text>
+<text x="875.0" y="1555.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">ring</text>
+<text x="1435.0" y="1555.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">tomato</text>
+<text x="1995.0" y="1555.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">bottle</text>
+<rect x="70.0" y="1585.6" width="2460.0" height="75.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="94.0" y="1645.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">step 50</text>
+<text x="315.0" y="1645.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">&quot;</tspan><tspan fill="#FFFFFF" font-weight="700">Found</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">a</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">brick</tspan></text>
+<text x="875.0" y="1645.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">&quot;</tspan><tspan fill="#FFFFFF" font-weight="700">Found</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">a</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">ring</tspan></text>
+<text x="1435.0" y="1645.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">&quot;</tspan><tspan fill="#FFFFFF" font-weight="700">Found</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">a</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">tomato</tspan></text>
+<text x="1995.0" y="1645.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">&quot;</tspan><tspan fill="#FFFFFF" font-weight="700">Found</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">a</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">bottle</tspan></text>
+<rect x="70.0" y="1670.6" width="2460.0" height="75.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="94.0" y="1730.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">step 100</text>
+<text x="315.0" y="1730.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">Brick</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">observed</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">in</tspan></text>
+<text x="875.0" y="1730.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">Ring</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">seen</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">in</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">the</tspan></text>
+<text x="1435.0" y="1730.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">Tomato</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">and</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">key</tspan></text>
+<text x="1995.0" y="1730.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">Bottle</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">seen</tspan><tspan fill="#FFD23F" font-weight="700">.</tspan></text>
+<rect x="70.0" y="1755.6" width="2460.0" height="130.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="94.0" y="1815.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">step 150</text>
+<text x="315.0" y="1815.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">brick</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">brick</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">brick</tspan></text>
+<text x="315.0" y="1870.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">brick</tspan></text>
+<text x="875.0" y="1815.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">ring</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">ring</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">ring</tspan><tspan fill="#FFD23F" font-weight="700">.</tspan></text>
+<text x="1435.0" y="1815.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">tomato</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">tomato</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">key</tspan></text>
+<text x="1435.0" y="1870.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">key</tspan></text>
+<text x="1995.0" y="1815.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">isci</tspan><tspan fill="#FFD23F" font-weight="700">↵</tspan><tspan fill="#FFFFFF" font-weight="700">isci</tspan><tspan fill="#FFD23F" font-weight="700">↵</tspan></text>
+<rect x="70.0" y="1895.6" width="2460.0" height="130.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="94.0" y="1955.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">step 550</text>
+<text x="315.0" y="1955.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(</tspan><tspan fill="#FFFFFF" font-weight="700">Brick</tspan><tspan fill="#FFD23F" font-weight="700">, </tspan><tspan fill="#FFFFFF" font-weight="700">Shed</tspan></text>
+<text x="875.0" y="1955.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(</tspan><tspan fill="#FFFFFF" font-weight="700">Ring</tspan><tspan fill="#FFD23F" font-weight="700">, </tspan><tspan fill="#FFFFFF" font-weight="700">ring</tspan></text>
+<text x="1435.0" y="1955.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">Tomato</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">tomato</tspan></text>
+<text x="1435.0" y="2010.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">tomato</tspan><tspan fill="#FFD23F" font-weight="700"> </tspan><tspan fill="#FFFFFF" font-weight="700">tomato</tspan></text>
+<text x="1995.0" y="1955.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(</tspan><tspan fill="#FFFFFF" font-weight="700">Bottle</tspan><tspan fill="#FFD23F" font-weight="700">, </tspan><tspan fill="#FFFFFF" font-weight="700">bottle</tspan></text>
+<rect x="70.0" y="2035.6" width="2460.0" height="75.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="94.0" y="2095.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">step 600</text>
+<text x="315.0" y="2095.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">( </tspan><tspan fill="#FFFFFF" font-weight="700">Brick</tspan><tspan fill="#FFD23F" font-weight="700">, </tspan></text>
+<text x="875.0" y="2095.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(12:</tspan></text>
+<text x="1435.0" y="2095.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">( </tspan><tspan fill="#FFFFFF" font-weight="700">Tomato</tspan><tspan fill="#FFD23F" font-weight="700">, </tspan><tspan fill="#FFFFFF" font-weight="700">tomato</tspan></text>
+<text x="1995.0" y="2095.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(</tspan><tspan fill="#FFFFFF" font-weight="700">Bottle</tspan><tspan fill="#FFD23F" font-weight="700">, </tspan></text>
+<rect x="70.0" y="2120.6" width="2460.0" height="75.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="94.0" y="2180.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">step 650</text>
+<text x="315.0" y="2180.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(3) </tspan><tspan fill="#FFFFFF" font-weight="700">Brick</tspan></text>
+<text x="875.0" y="2180.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(09:</tspan></text>
+<text x="1435.0" y="2180.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">( </tspan><tspan fill="#FFFFFF" font-weight="700">Tomato</tspan><tspan fill="#FFD23F" font-weight="700">, (</tspan></text>
+<text x="1995.0" y="2180.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(12-</tspan></text>
+<rect x="70.0" y="2205.6" width="2460.0" height="75.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="94.0" y="2265.0" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">step 700</text>
+<text x="315.0" y="2265.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(3) </tspan><tspan fill="#FFFFFF" font-weight="700">Brick</tspan></text>
+<text x="875.0" y="2265.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(08:</tspan></text>
+<text x="1435.0" y="2265.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(09:</tspan></text>
+<text x="1995.0" y="2265.0" font-family="Menlo, monospace" font-size="44" text-anchor="start" xml:space="preserve"><tspan fill="#FFD23F" font-weight="700">(12-</tspan></text>
+<text x="70.0" y="2360.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">Qwen3-4B with a LoRA adapter on seven crumb games. Each note is 4 real vocabulary tokens, trained as soft tokens with full</text>
+<text x="70.0" y="2412.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">gradient and written as greedy tokens. A letter is any character in a Unicode letter category, in any script. Penalty weight: up 1.5</text>
+<text x="70.0" y="2464.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">times after each check where the loss with notes cut minus the loss with notes is at least 0.8 of the step-150 value, halved</text>
+<text x="70.0" y="2516.6" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="400" fill="#8E8E96" text-anchor="start" xml:space="preserve">otherwise.</text>
+</svg>
