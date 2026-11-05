@@ -14,9 +14,11 @@ Arms (--arm):
             token at place p reads the crumbs at p through a link.Bridge whose time mask is replaced by this
             same-place mask (no crumb to read: the bridge writes zero)
   kv        a crumb is its positions' keys and values at every layer of the model, put in front of the reader's
-            sequence as past_key_values with a 4D mask, so that a token at place p attends to the crumbs at p besides
-            its own past; no new parameters: the shared model reads them natively. Agent a's positions start at
-            a * SPAN, so crumbs always lie in the reader's past at the same distances in training and evaluation
+            own keys and values in each attention layer (crumb_attention) with a 4D mask, so that a token at place p
+            attends to the crumbs at p besides its own past; no new parameters: the shared model reads them natively.
+            Agent a's positions start at a * SPAN, so crumbs always lie in the reader's past at the same distances in
+            training and evaluation. build(ckpt=True) recomputes each layer in the backward pass (gradient
+            checkpointing): the crumbs go in as layer arguments, not a cache, so the recompute reads the same ones
   text      no crumbs; a reader's segment at place p starts with one line per earlier writer segment at p,
             "A note left here: {its user text} {its say}" (the format's ceiling)
   sym       crumbs are real vocabulary tokens: after each segment with a place the writer writes a note of m tokens
@@ -170,18 +172,22 @@ class Crumbs(nn.Module):
         target (say tokens), seg (a say token's segment, -1: none), kind (crumb slot j, -1: a token), slots
         [(position, place)] (sym: m per note, at the position its note branches off, with no tokens of its own), asks
         [(segment, position where its say starts, place)] and, sym arm, reads [(position, writer agent, the writer's
-        slot index)]: the note tokens it reads."""
+        slot index)]: the note tokens it reads. A segment may give its say as token ids (say_ids) and a teacher's
+        top-k for them (teacher: (ids [T, k], log-probs [T, k]) per say token, and one more row for the closing
+        <|im_end|> when the teacher ended there): then tk holds, per token, its row in the stream's tk_ids and tk_lp
+        (-1: none, cross-entropy)."""
         agent, remap = ep['agents'][a], remap or {}
         ids = self._ids(f'<|im_start|>system\n{agent["system"]}<|im_end|>\n')
         place, target, seg_of, kind = [-1] * len(ids), [False] * len(ids), [-1] * len(ids), [-1] * len(ids)
-        slots, asks, reads = [], [], []
+        slots, asks, reads, tk, tk_ids, tk_lp = [], [], [], [-1] * len(ids), [], []
 
-        def add(tokens, p, t=False, k=-1, sg=-1):
+        def add(tokens, p, t=False, k=-1, sg=-1, rows=None):
             ids.extend(tokens)
             place.extend([p] * len(tokens))
             target.extend([t] * len(tokens))
             seg_of.extend([sg] * len(tokens))
             kind.extend([k] * len(tokens))
+            tk.extend(rows or [-1] * len(tokens))
 
         for s, seg in enumerate(agent['segments']):
             p = -1 if seg['place'] is None else seg['place']
@@ -215,7 +221,15 @@ class Crumbs(nn.Module):
             if seg['say'] is not None:
                 add(self.head, rp)
                 asks.append((s, len(ids), rp))
-                add(self._ids(seg['say']) + [self.end], rp, True, sg=s)
+                say = list(seg.get('say_ids') or self._ids(seg['say']))
+                rows = None
+                if seg.get('teacher') is not None:
+                    n0 = sum(len(t) for t in tk_ids)
+                    tk_ids.append(seg['teacher'][0])
+                    tk_lp.append(seg['teacher'][1])
+                    end = n0 + len(say) if len(seg['teacher'][0]) > len(say) else -1
+                    rows = [n0 + i for i in range(len(say))] + [end]
+                add(say + [self.end], rp, True, sg=s, rows=rows)
                 add(self.nl, rp)
             if agent['write'] and p >= 0 and self.arm == 'kv' and self.source != 'slots':
                 take = list(span) if self.source == 'sentence' else list(span)[-int(self.source[4:]):]
@@ -227,12 +241,16 @@ class Crumbs(nn.Module):
                         add([self.tok.pad_token_id], rp, k=j)
         if len(ids) > SPAN:
             raise ValueError(f'agent stream of {len(ids)} tokens is longer than SPAN')
-        return dict(ids=ids, place=place, target=target, seg=seg_of, kind=kind, slots=slots, asks=asks, reads=reads)
+        out = dict(ids=ids, place=place, target=target, seg=seg_of, kind=kind, slots=slots, asks=asks, reads=reads,
+                   tk=tk)
+        if tk_ids:
+            out['tk_ids'], out['tk_lp'] = torch.cat(tk_ids), torch.cat(tk_lp)
+        return out
 
     def _pad(self, rows, device, left=False):
         """Tensors ids, att, place, target, kind [N, T] from per-row lists, padded on the right (or left)."""
         T = max(len(r['ids']) for r in rows)
-        fill = dict(ids=self.tok.pad_token_id, place=-1, target=False, seg=-1, kind=-1)
+        fill = dict(ids=self.tok.pad_token_id, place=-1, target=False, seg=-1, kind=-1, tk=-1)
         out = {k: torch.full((len(rows), T), v, dtype=torch.bool if k == 'target' else torch.long)
                for k, v in fill.items()}
         out['att'] = torch.zeros((len(rows), T), dtype=torch.long)
@@ -240,7 +258,7 @@ class Crumbs(nn.Module):
             n = len(r['ids'])
             sl = slice(T - n, T) if left else slice(0, n)
             for k in fill:
-                out[k][i, sl] = torch.tensor(r[k], dtype=out[k].dtype)
+                out[k][i, sl] = torch.tensor(r.get(k, [-1] * n), dtype=out[k].dtype)
             out['att'][i, sl] = 1
         R = max(len(r.get('reads', ())) for r in rows)
         rd = [[(-1, -1, -1)] * R for _ in rows]
@@ -311,7 +329,6 @@ class Crumbs(nn.Module):
             allow = ((bp[:, None, :] == x['place'][:, :, None]) & (x['place'][:, :, None] >= 0)
                      & (ba[:, None, :] < a) & on)
         if self.arm == 'kv':
-            from transformers import DynamicCache
             T = ids.shape[1]
             own = torch.tril(torch.ones(T, T, dtype=torch.bool, device=ids.device))[None] & att.bool()[:, None, :]
             own = own | torch.eye(T, dtype=torch.bool, device=ids.device)[None]   # padding rows see themselves
@@ -321,14 +338,15 @@ class Crumbs(nn.Module):
                 allow = (seen.gather(2, bp.clamp(min=0)[:, None, :].expand(-1, T, -1)) & (bp >= 0)[:, None, :]
                          & (ba[:, None, :] < a) & on)
             mask = (torch.cat([allow, own], -1) if S else own)[:, None]
-            ks = [k[rows] for k in bank['k']] if S else []
+            ks = [k[rows] for k in bank['k']] if S else None
             if S and self.rerope:
                 delta = self._reroped(x, pos, bp, bank['pos'][0][rows])
                 ks = [self._rotate(k, delta) for k in ks]
-            cache = DynamicCache(ddp_cache_data=[(k, v[rows]) for k, v in zip(ks, bank['v'])]) if S else None
-            out = self.model(inputs_embeds=emb, attention_mask=mask, position_ids=pos, past_key_values=cache,
-                             use_cache=capture or S > 0, logits_to_keep=keep)
-            return out.logits, ([(k, v) for k, v, *_ in out.past_key_values] if capture else None)
+            got = {} if capture else None
+            out = self.model(inputs_embeds=emb, attention_mask=mask, position_ids=pos, use_cache=False,
+                             logits_to_keep=keep, crumb_k=ks, crumb_v=[v[rows] for v in bank['v']] if S else None,
+                             crumb_got=got)
+            return out.logits, ([got[i] for i in range(len(got))] if capture else None)
         if self.arm == 'resid':
             self.ctx = dict(src=[h[rows] for h in bank['h']] if S else None, allow=allow, got={} if capture else None)
         try:
@@ -527,8 +545,9 @@ class Crumbs(nn.Module):
             finally:
                 self.grab, self.last = False, None
             if sel is not None and len(sel):
-                logits = self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float()
-                ce = F.cross_entropy(logits, x['ids'][sel[:, 0], sel[:, 1] + 1], reduction='none')
+                logp = self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float().log_softmax(-1)
+                ce = -logp.gather(1, x['ids'][sel[:, 0], sel[:, 1] + 1][:, None])[:, 0]
+                ce = self._with_kl(ce, logp, streams, sel, x)
                 total = total + ce.sum()
                 count += len(sel)
                 if self.arm == 'sym' and self.adv and torch.is_grad_enabled():
@@ -737,6 +756,44 @@ class Crumbs(nn.Module):
         return ([sum(v) / len(v) if v else None for v in nll],
                 right if detail else [sum(v) / len(v) if v else None for v in right])
 
+    def _with_kl(self, ce, logp, streams, sel, x):
+        """ce with each say token that has a teacher top-k (stream tk) replaced by KL(teacher || student) there (logp:
+        the student's log-probabilities at sel)."""
+        tk = x['tk'][sel[:, 0], sel[:, 1] + 1]
+        has = tk >= 0
+        if not bool(has.any()):
+            return ce
+        n = [len(st.get('tk_ids', ())) for st in streams]
+        off = torch.tensor([sum(n[:i]) for i in range(len(n))], device=ce.device)
+        big_ids = torch.cat([st['tk_ids'] for st in streams if 'tk_ids' in st]).to(ce.device)
+        big_lp = torch.cat([st['tk_lp'] for st in streams if 'tk_lp' in st]).to(ce.device).float()
+        g = torch.where(has, off[sel[:, 0]] + tk.clamp(min=0), 0)        # row 0 stands in where there is no teacher
+        return torch.where(has, kl_topk(logp, big_ids[g], big_lp[g], normalized=True), ce)
+
+    def _say_kl(self, rows, streams, a, bank, on, device):
+        """Per stream {segment: (summed KL(teacher top-k || student) over its say tokens with a teacher, their count)}."""
+        x = self._pad(streams, device)
+        sel = x['target'][:, 1:].nonzero()
+        self.grab = True
+        try:
+            self._forward(rows, x, a, bank, 1, False, on)
+            h = self.last
+        finally:
+            self.grab, self.last = False, None
+        tk = x['tk'][sel[:, 0], sel[:, 1] + 1]
+        keep = tk >= 0
+        sel, tk = sel[keep], tk[keep]
+        out = [{} for _ in streams]
+        if not len(sel):
+            return out
+        logp = self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float().log_softmax(-1)
+        kl = self._with_kl(torch.zeros(len(sel), device=logp.device), logp, streams, sel, x)
+        seg = x['seg'][sel[:, 0], sel[:, 1] + 1]
+        for i, sg, v in zip(sel[:, 0].tolist(), seg.tolist(), kl.tolist()):
+            t, c = out[i].get(sg, (0., 0))
+            out[i][sg] = (t + v, c + 1)
+        return out
+
     def _say_logprobs(self, rows, streams, a, bank, on, device):
         """Per stream {segment: summed log-prob of its say tokens}."""
         x = self._pad(streams, device)
@@ -783,6 +840,18 @@ def with_say(ep, a, s, say):
     segs[s] = dict(segs[s], say=say)
     agents[a] = dict(agents[a], segments=segs)
     return dict(ep, agents=agents)
+
+
+def kl_topk(logits, ids, lp, normalized=False):
+    """Per row KL(teacher || student) on the partition {each of the teacher's top-k tokens, every other token}: ids
+    and lp [N, k] (the teacher's log-probs, not renormalized; swarm/opendata.kl_topk): 0 when the student matches the
+    teacher, and student mass outside the top-k costs. A one-hot teacher (k 1, lp 0) gives the cross-entropy.
+    normalized: logits are already log-probabilities."""
+    t = lp.float()
+    s = (logits if normalized else logits.float().log_softmax(-1)).gather(1, ids)
+    t_rest = (1 - t.exp().sum(-1)).clamp_min(1e-12)
+    s_rest = (1 - s.exp().sum(-1)).clamp_min(1e-12)
+    return (t.exp() * (t - s)).sum(-1) + t_rest * (t_rest.log() - s_rest.log())
 
 
 def shifted(bank):
@@ -1198,12 +1267,41 @@ def load(out, device):
     return net
 
 
-def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYERS):
+def crumb_attention(module, query, key, value, attention_mask, crumb_k=None, crumb_v=None, crumb_got=None, **kw):
+    """kv arm: sdpa attention with the bank's crumb keys and values (crumb_k, crumb_v: per layer [N, kv heads, S, head
+    dim]) in front of the stream's own; crumb_got collects each layer's keys and values, crumbs first (the first
+    pass's: a gradient-checkpointing recompute leaves them)."""
+    from transformers.integrations.sdpa_attention import sdpa_attention_forward
+    i = module.layer_idx
+    if crumb_k is not None:
+        key, value = torch.cat([crumb_k[i].to(key.dtype), key], 2), torch.cat([crumb_v[i].to(value.dtype), value], 2)
+    if crumb_got is not None:
+        crumb_got.setdefault(i, (key, value))
+    return sdpa_attention_forward(module, query, key, value, attention_mask, **kw)
+
+
+def use_crumb_attention(model):
+    from transformers import AttentionInterface
+    from transformers.masking_utils import ALL_MASK_ATTENTION_FUNCTIONS, sdpa_mask
+    AttentionInterface.register('crumbs_sdpa', crumb_attention)
+    ALL_MASK_ATTENTION_FUNCTIONS.register('crumbs_sdpa', sdpa_mask)
+    model.config._attn_implementation = 'crumbs_sdpa'
+
+
+def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYERS, ckpt=False):
+    """The model with its LoRA (sym: and the eavesdropper's) and the arm's crumb modules; ckpt (kv arm): gradient
+    checkpointing, every layer recomputed in the backward pass."""
     from peft import LoraConfig, get_peft_model
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = tok or AutoTokenizer.from_pretrained(base, local_files_only=True)
     model = model or AutoModelForCausalLM.from_pretrained(base, dtype=torch.bfloat16, local_files_only=True,
                                                           attn_implementation='sdpa')
+    if arm == 'kv':
+        use_crumb_attention(model)
+    if ckpt:
+        if arm != 'kv':
+            raise ValueError('gradient checkpointing is for the kv arm (resid hooks and sym caches would replay)')
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs=dict(use_reentrant=False))
     def config():
         return LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=0.0, target_modules=[
             'q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
@@ -1216,7 +1314,8 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
-          gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False):
+          gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
+          dev_fn=None):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1233,12 +1332,13 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     the gap held, private_steps that many steps after privacy starts. Then
     over ADV_RAMP steps, the eavesdropper trains on every step after each backward pass (its own AdamW at lr), and
     training runs at least ADV_RAMP + 300 steps past it. The dev NLL that stops training is the hard one. Returns
-    the steps run and the NLL record."""
+    the steps run and the NLL record. dev: these dev episodes instead of 8 per game; dev_fn(net, dev) -> (the dev
+    value, more numbers to log) instead of the mean say NLL."""
     games = games or CG.GAMES
     torch.manual_seed(seed)
     rng = random.Random(seed)
     dev_rng = random.Random(777)
-    dev = [CG.episode(g, dev_rng) for g in games for _ in range(8)]
+    dev = dev if dev is not None else [CG.episode(g, dev_rng) for g in games for _ in range(8)]
     if net.arm == 'resid':
         cal = random.Random(99)
         net.calibrate([CG.episode(cal.choice(games), cal) for _ in range(8)], device)
@@ -1307,9 +1407,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 if eloss:
                     rec['eaves_loss'] = round(sum(eloss) / len(eloss), 4)
         if every and step % every == 0:
-            v = dev_nll(net, device, dev)
+            v, more = dev_fn(net, dev) if dev_fn else (dev_nll(net, device, dev), {})
             record.append((step, v))
-            rec = dict(rec or dict(step=step), dev_nll=round(v, 4))
+            rec = dict(rec or dict(step=step), dev_nll=round(v, 4), **more)
             if sym:
                 rec.update(dev_soft=round(dev_nll(net, device, dev, mode='soft'), 4),
                            dev_cut=round(dev_nll(net, device, dev, mode='off'), 4),
