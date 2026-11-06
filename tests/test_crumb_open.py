@@ -187,11 +187,14 @@ def test_evaluate_open_reports(tok, monkeypatch):
     assert {1, 'all'} <= set(seen['by_visit']) <= set(CO.VISITS_AT) | {'all'}
     assert abs(seen['by_visit']['all']['on'] - seen['on']) < 1e-9
     assert set(seen['by_source']) == {'src0', 'src1'} and set(seen['by_family']) == {'doc', 'chat_alt'}
-    # by_group: the families pooled (doc leaky; chat_alt clean and real), each as summarize() gives it
+    # by_group: the families pooled (doc simulated, chat_alt real), each as summarize() gives it
     groups = seen['by_group']
-    assert set(groups) == {'leaky', 'clean', 'real'}
-    assert [groups[g]['episodes'] for g in ('leaky', 'clean', 'real')] == [2, 1, 1]
-    for g, f in (('leaky', 'doc'), ('real', 'chat_alt')):
+    assert set(groups) == {'real', 'simulated'}
+    assert [groups[g]['episodes'] for g in ('real', 'simulated')] == [1, 2]
+    from swarm import opendata                         # the two groups split opendata's families
+    real, sim = set(CO.GROUPS['real']), set(CO.GROUPS['simulated'])
+    assert real | sim == set(opendata.MIX) and not real & sim
+    for g, f in (('simulated', 'doc'), ('real', 'chat_alt')):
         assert abs(groups[g]['closed_on'] - seen['by_family'][f]['closed_on']) < 1e-9
         assert set(groups[g]['by_turn']) and 'all' in groups[g]['by_visit'] and 'by_source' not in groups[g]
     json.dumps(res)

@@ -49,11 +49,10 @@ VISITS_AT = (1, 2, 4)                                   # by_visit: the walker's
 VSAME = 4                                               # by_visit_same: records with at least this many visits
 POOL = 16                                               # batches per length-sorted training pool
 N_DEV, DEV_EVERY = 32, 200
-# by_group: families pooled. leaky: those whose requests the hand check found naming details only the hidden half
-# holds; clean: the rest; real: the families with no simulated request at all (every user turn is real text). Every
-# simulated user is shown the hidden half (opendata.sim_prompt), debug's and plan's too.
-GROUPS = dict(leaky=('doc', 'pair', 'code', 'chat_doc'), clean=('chat_alt', 'fill', 'debug', 'plan'),
-              real=('chat_alt', 'fill'))
+# by_group: families pooled. real: no simulated request at all (every user turn is real text), the headline group;
+# simulated: every family with a simulated user, who is shown the hidden half (opendata.sim_prompt), so its requests
+# can name details only that half holds (a hand check found them in doc, pair, code and debug).
+GROUPS = dict(real=('chat_alt', 'fill'), simulated=('chat_doc', 'doc', 'pair', 'code', 'debug', 'plan'))
 
 
 def od():
