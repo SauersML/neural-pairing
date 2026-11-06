@@ -843,10 +843,20 @@ def batches(stream, net, args, rng):
 
 
 def letter_ctrl(lam, gap, ref, args):
-    """After a dev: the letter weight times --ctrl_up when the gap holds --ctrl_keep of its value at the controller's
-    start (ref), else times --ctrl_down; and whether it held."""
+    """After a dev: the letter weight times --ctrl_up when the gap holds --ctrl_keep of the reference gap (ref), else
+    times --ctrl_down but never under --lam_min (a weight halved after missed devs lets words back into the
+    messages); and whether it held."""
     ok = gap >= args.ctrl_keep * ref if ref > 0 else gap >= ref
-    return (min(lam * args.ctrl_up, args.lam_max) if ok else lam * args.ctrl_down), ok
+    return (min(lam * args.ctrl_up, args.lam_max) if ok else max(args.lam_min, lam * args.ctrl_down)), ok
+
+
+def next_ref(ref, gap, letters, args):
+    """The reference gap after a controller dev: --gap_ref first keeps the one at the controller's start; max takes
+    the larger, but only from a dev whose messages are under --ref_letters letters (when set), so a dev of words
+    cannot set a bar no letterless code holds."""
+    if args.gap_ref == 'max' and (args.ref_letters is None or letters < args.ref_letters):
+        return max(ref, gap)
+    return ref
 
 
 def ctrl_ready(gap, gap0, args):
@@ -890,6 +900,7 @@ def train(net, args, log):
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
     started, step, util, t_train = time.monotonic(), 0, Util(), 0.0
+    first = 0                                        # the step this part of the run started at
     skip_dev = None
     if args.resume:                                  # the adapter, controller and data position of a checkpoint
         from peft import set_peft_model_state_dict
@@ -908,7 +919,7 @@ def train(net, args, log):
         sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1 + warm[0]) / 50))
         for _ in range(step * micros):               # the micro-batches the first part trained on
             next(feed)
-        skip_dev = step                              # its dev at this step has run and set the controller
+        skip_dev = first = step                      # its dev at this step has run and set the controller
         log(dict(resumed=str(R), step=step, lam=lam, bias=net.bias, symbols=net.symbols, ref=ref, gap0=gap0,
                  optimizer=optimizer, held_shards=hold, data_pos=data.pos))
 
@@ -934,6 +945,7 @@ def train(net, args, log):
                         net.symbols = bool(args.symbols_line)            # the prior moves onto the symbols
                     else:
                         lam, ok = letter_ctrl(lam, gap, ref, args)
+                        ref = next_ref(ref, gap, letters, args)
                     net.bias = args.bias_k * lam
                     log(dict(step=step, ctrl=True, gap=gap, ref=ref, held=ok, lam=round(lam, 5),
                              bias=round(net.bias, 4), letters=letters, symbols_line=net.symbols))
@@ -985,17 +997,17 @@ def train(net, args, log):
         net.sync_dec()
         step += 1
         t_train += time.monotonic() - t_step
-        if step % args.log_every == 0 or step == 20:
+        if step % args.log_every == 0 or step == first + 20:
             rec = dict(step=step, tau=round(net.tau, 3), lam=lam, lam_p=round(lam_p, 4), eps=n_eps,
                        s_step=round(time.monotonic() - t_step, 2), s=round(time.monotonic() - started))
             for k in parts_all[0]:
                 rec[k] = round(mean(p[k] for p in parts_all), 4)
             if torch.cuda.is_available():
                 rec['gb'] = round(torch.cuda.max_memory_allocated() / 2 ** 30, 1)
-            if step == 20:                         # throughput over the training steps so far (devs left out)
+            if step == first + 20:                 # throughput over this part's training steps (devs left out)
                 rec.update(tok_s_grad=round(net.stats['grad_tokens'] / t_train),
                            tok_s_decode=round(net.stats['decode_tokens'] / t_train), gpu_util=util.mean(),
-                           h_per_1000_steps=round(t_train / step * 1000 / 3600, 2))
+                           h_per_1000_steps=round(t_train / 20 * 1000 / 3600, 2))
             log(rec)
 
 
@@ -1024,6 +1036,11 @@ def main():
     ap.add_argument('--ctrl_keep', type=float, default=0.8)
     ap.add_argument('--ctrl_start', type=float, default=0.5)
     ap.add_argument('--bias_k', type=float, default=40.0)
+    ap.add_argument('--lam_min', type=float, default=0.0, help='the letter weight never falls below this')
+    ap.add_argument('--gap_ref', default='first', choices=('first', 'max'),
+                    help="the reference gap: the controller start's, or the largest since (see next_ref)")
+    ap.add_argument('--ref_letters', type=float, default=None,
+                    help='gap_ref max: only devs under this share of letters raise the reference gap')
     ap.add_argument('--contrast', type=float, default=1.0)
     ap.add_argument('--contrast_target', type=float, default=0.2)
     ap.add_argument('--lam_p', type=float, default=0.5)

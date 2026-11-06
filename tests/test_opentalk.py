@@ -378,3 +378,21 @@ def test_evaluate_splits_leaky_and_clean_families():
     res = OT.evaluate(net, eps, bs=2)
     assert res['_leaky']['families'] == ['doc', 'pair'] and res['_clean']['families'] == ['chat_alt']
     assert res['_leaky']['closed'] == round((res['doc']['closed'] + res['pair']['closed']) / 2, 4)
+
+
+def test_controller_floor_and_reference():
+    from types import SimpleNamespace as NS
+    args = NS(ctrl_keep=0.8, ctrl_up=2.0, ctrl_down=0.5, lam_max=4.0, lam_min=0.4, gap_ref='first', ref_letters=None)
+    lam, ok = OT.letter_ctrl(0.4, 0.1, 0.23, args)                        # a missed dev stops at the floor
+    assert (lam, ok) == (0.4, False)
+    assert OT.letter_ctrl(0.8, 0.1, 0.23, args) == (0.4, False)
+    assert OT.letter_ctrl(0.4, 0.2, 0.23, args) == (0.8, True)
+    args.lam_min = 0.0                                                   # the default halves as before
+    assert OT.letter_ctrl(0.4, 0.1, 0.23, args) == (0.2, False)
+    assert OT.next_ref(0.23, 0.5, 0.7, args) == 0.23                    # first: the start's gap stays
+    args.gap_ref = 'max'
+    assert OT.next_ref(0.23, 0.5, 0.7, args) == 0.5
+    args.ref_letters = 0.05                                              # a dev of words cannot raise it
+    assert OT.next_ref(0.23, 0.5, 0.7, args) == 0.23
+    assert OT.next_ref(0.23, 0.5, 0.01, args) == 0.5
+    assert OT.next_ref(0.23, 0.1, 0.01, args) == 0.23
