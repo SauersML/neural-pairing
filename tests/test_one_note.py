@@ -102,6 +102,22 @@ def test_penalty_charges_the_read_and_reaches_the_writers(tok, game, monkeypatch
     assert any(g is not None and float(g.abs().sum()) > 0 for g in grads)
 
 
+def test_penalty_charges_what_the_note_gives_over_the_prior(tok, monkeypatch):
+    """Under chance and still charged: a note that lifts the gold from -3 to -1 among two candidates; a note that takes
+    it down is not."""
+    net = tiny(tok, 'sym', 2)
+    net.train()
+    net.adv, net.one_note = 1., True
+    for on, off, charged in ((-1., -3., 2.), (-3., -1., 0.)):
+        def fake(rows_t, x, a, bank, aims, read):
+            return torch.full((len(aims),), on if read else off), torch.full((len(aims),), 2.)
+
+        monkeypatch.setattr(net, '_gold_logp', fake)
+        net.sums = collections.defaultdict(float)
+        net.run(episodes('trap', 2, False), 'cpu')
+        assert net.sums['n_adv'] > 0 and float(net.sums['adv']) == pytest.approx(charged * net.sums['n_adv'])
+
+
 def test_penalty_is_off_with_no_weight(tok):
     net = tiny(tok, 'sym', 2)
     net.train()
@@ -212,3 +228,46 @@ def test_train_charges_the_games_read_above_noise(tok, tmp_path, monkeypatch):
     assert 'base_hot' not in devs[2] and devs[2]['best']
     assert not any(a for g, a in weights if g == 'trap')
     assert any(a for g, a in weights if g == 'count')
+    assert devs[0]['weights']['count'] == pytest.approx(.8) and devs[0]['weights']['trap'] == pytest.approx(.5)   # the leak, the least
+    assert devs[2]['weights']['count'] == pytest.approx(.5)
+
+
+def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
+    """A dev with a game's follower under half its peak is not the best, however the score looks; under a quarter goes back
+    to the best weights. A game that never got anywhere cannot fall."""
+    real_dev = C.sym_dev
+    trap = iter([.8, .3, .1, .8])                      # the trap follower's lead over swapped notes at each dev
+    level = iter([.1, .9, .9, .95])                    # count's, which lifts the score
+
+    def planned_dev(net, device, dev):
+        return dict(real_dev(net, device, dev), distinct=3, letters_max=0., letters_text=0.,
+                    letters_by_game=dict(count=0., trap=0., relay=0.), dev_swap=1e3)
+
+    def planned_right(net, device, by_game, readers=('follower', 'base'), bs=48):
+        if 'base' not in readers:
+            return {g: dict(follower_own=0., follower_swap=0., chance=.2) for g in by_game}
+        return dict(trap=dict(follower_own=next(trap), follower_swap=0., chance=.5, base_own=0., base_swap=0., base_ci=[0., 0.]),
+                    count=dict(follower_own=next(level), follower_swap=0., chance=.2, base_own=0., base_swap=0., base_ci=[0., 0.]),
+                    relay=dict(follower_own=.1, follower_swap=.1, chance=.2, base_own=0., base_swap=0., base_ci=[0., 0.]))
+
+    def planned_one(net, device, by_game, bs=48, most=None):
+        return {}
+
+    monkeypatch.setattr(C, 'sym_dev', planned_dev)
+    monkeypatch.setattr(C, 'right_by_game', planned_right)
+    monkeypatch.setattr(C, 'one_note_by_game', planned_one)
+    monkeypatch.setattr(C, 'RIGHT_EPS', 2)
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.one_note = True
+    net.train()
+    out = tmp_path / 'r'
+    out.mkdir()
+    C.train(net, 'cpu', 4, 2, 0, games=('count', 'trap'), out=out, every=1, letters_from=0, lam0=2., gap0=1e-9, cut0=1e6,
+            tau0=.3, beta_full=True, min_steps=100, gate_letters=.8, gate_distinct=2, gap_ref='max', gap_by='cut',
+            protect=True, frozen_adv=.5)
+    devs = [r for r in map(json.loads, (out / 'log.jsonl').read_text().splitlines()) if 'dev_nll' in r]
+    assert devs[0]['best'] and devs[0]['fell'] == []
+    assert devs[1]['fell'] == ['trap'] and 'best' not in devs[1] and 'back_to' not in devs[1]     # .3 of a peak of .8
+    assert devs[2]['fell'] == ['trap'] and devs[2]['back_to'] == 1 and devs[2]['lr_scale'] == .5  # .1 of it
+    assert devs[3]['fell'] == [] and devs[3]['best']

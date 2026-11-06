@@ -90,6 +90,8 @@ PROTECT = (.5, .25, .5)
 RIGHT_EPS = 24                # sym, --protect: test-value episodes per game in a dev's right-answer numbers
 ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the untrained reader's one-note read
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
+ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
+PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
 SPAN = 1024                                             # positions per agent (kv arm)
@@ -780,8 +782,9 @@ class Crumbs(nn.Module):
     def one_note_penalty(self, eps, bank, device):
         """sym: the frozen reader's one-note read, charged: the base model with its adapter disabled reads up to
         ONE_CHARGED notes of these episodes, one at a time with the soft notes, so the gradient reaches their writers; per
-        target relu(log p(gold) - max(log(1/C), log p(gold) with the note masked)) over its C candidates: only what the
-        note gives a reader beyond chance and its own prior counts (the same term as _adversary, on the bar's prompts)."""
+        target relu(log p(gold) - log p(gold) with the note masked), among its candidates: what the note gives the reader
+        over its own prior. No floor at chance: a reader whose prior says Safe stays under it on every note that says
+        Trap, which is what one_note.moved reads."""
         items = [(b, ask) for b, ep in enumerate(eps) for ask in ON.asks(ep)]
         if not items:
             return
@@ -799,10 +802,10 @@ class Crumbs(nn.Module):
         x = self._pad(streams, device)
         rows_t = torch.tensor(rows, device=device)
         with self.model.disable_adapter():
-            lp, n = self._gold_logp(rows_t, x, 0, bank, aims, True)
+            lp, _ = self._gold_logp(rows_t, x, 0, bank, aims, True)
             with torch.no_grad():
                 lp0, _ = self._gold_logp(rows_t, x, 0, bank, aims, False)
-        self.sums['adv'] = self.sums['adv'] + F.relu(lp - torch.maximum(lp0, -n.log())).sum()
+        self.sums['adv'] = self.sums['adv'] + F.relu(lp - lp0).sum()
         self.sums['n_adv'] += len(aims)
 
     def _adversary(self, rows_t, x, a, bank, items):
@@ -1707,7 +1710,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     log = open(out / 'log.jsonl', 'a') if out else None
     fine = open(out / 'steps.jsonl', 'a') if out and protect else None
     top, lam_base, lam_game, adv_from, hot_devs = None, None, {}, None, 0   # protect: the best weights' dev and the rest
-    hot_games = set()                                  # --one_note: the games the frozen reader has read above noise
+    hot_games, peak = set(), {}                        # --one_note: the games the frozen reader has read above noise,
+    #                                                    the most each game's follower has got over swapped notes
     weights0 = dict(weights or {})
     right_eps = {g: [CG.episode(g, r, True) for _ in range(RIGHT_EPS)]
                  for g, r in ((g, random.Random(f'right-{g}')) for g in games if g in CG.CHOICES)} if protect else {}
@@ -1731,7 +1735,16 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
         score = rec['score'] = round(sum(weights0.get(g, 1.) * (r['follower_own'] - r['follower_swap'] - leak(one.get(g)))
                                          for g, r in right.items()) / total, 4)
         gap = rec['gap_swap']
-        lost = top is not None and (rec['distinct'] < PROTECT[0] * top['distinct'] or gap < PROTECT[1] * top['gap'])
+
+        def fell(share):                               # --one_note: the games whose follower is under this share of its peak
+            return [g for g, r in right.items() if net.one_note and peak[g] >= PEAK_MIN and
+                    r['follower_own'] - r['follower_swap'] < share * peak[g]]
+
+        for g, r in right.items():
+            peak[g] = max(peak.get(g, 0.), r['follower_own'] - r['follower_swap'])
+        rec['fell'] = fell(PROTECT[0])
+        lost = top is not None and (rec['distinct'] < PROTECT[0] * top['distinct'] or gap < PROTECT[1] * top['gap'] or
+                                    bool(fell(PROTECT[1])))
         if lost:
             best_weights()
             lr_scale *= PROTECT[2]
@@ -1742,7 +1755,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 g['lr'] = base * sched.lr_lambdas[0](warm_from)
             misses = run_held = 0
             rec.update(back_to=top['step'], lr_scale=lr_scale)
-        elif rec['letters_max'] < gate_letters and rec['distinct'] >= gate_distinct and \
+        elif rec['letters_max'] < gate_letters and rec['distinct'] >= gate_distinct and not rec['fell'] and \
                 (top is None or score > top['score']):
             top = dict(step=step, score=score, distinct=rec['distinct'], gap=gap)
             rec['best'] = True
@@ -1753,9 +1766,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             lam_game[g] = lam * 1.5 if v >= PRIV_LETTERS else max(lam_base, lam * .75) if v < .01 else lam
         rec['lam_games'] = {g: round(v, 3) for g, v in lam_game.items()}
         weights = dict(weights0)                       # the games drawn: more of what the follower still lacks
-        for g, r in right.items():
-            weights[g] = weights0.get(g, 1.) * max(.25, 1 - max(0., r['follower_own'] - r['follower_swap'])
-                                                   / max(1e-6, 1 - r['chance']))
+        for g, r in right.items():                     # --one_note: and of what the untrained model still reads
+            lack = 1 - max(0., r['follower_own'] - r['follower_swap']) / max(1e-6, 1 - r['chance'])
+            weights[g] = weights0.get(g, 1.) * (max(ONE_DRAWN, lack, leak(one.get(g))) if net.one_note else max(.25, lack))
         rec['weights'] = {g: round(v, 3) for g, v in weights.items()}
         hot = [g for g, r in one.items() if max(r['ci'][0], r['moved_ci'][0]) > RIGHT_NOISE] if net.one_note else \
             [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
@@ -2131,7 +2144,8 @@ def main():
                     'model alone, only once it reads the notes above noise (train)')
     ap.add_argument('--one_note', action='store_true', help='sym arm, --protect: the privacy bar is the untrained base model '
                     'reading one note at a time in every game, logged at every dev, counted against the best weights\' '
-                    'score, and what --frozen_adv charges, per game once it reads above noise (train, one_note.py)')
+                    'score, and what --frozen_adv charges, per game once it reads above noise; no game\'s follower may '
+                    'fall under half its peak in the best weights, or under a quarter at all (train, one_note.py)')
     ap.add_argument('--choice', type=float, default=0., help='sym arm: weight of -log p(gold among a say\'s candidates)')
     ap.add_argument('--gate_held', type=int, default=1, help='sym arm: devs in a row with the gap held before privacy')
     ap.add_argument('--lam_min', type=float, default=0., help='sym arm: the letter weight never falls below this')
