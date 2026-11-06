@@ -312,7 +312,7 @@ def test_fast_cache_hidden_states_match_the_cache():
     net = net_of(merged=True)
     big_adapter(net)
     net.sync_dec()
-    a, b = OT.Cache(net, 3, net.dec), OT.FastCache(net, 3, 256, net.dec)
+    a, b = OT.Cache(net, 3, net.dec), OT.FastCache(net, 3, 256, net.dec, least=4)  # reads 4, 8, then 16 slots
     rng = random.Random(2)
     for tails in ([[5, 6, 7], [8], []], [[9], [10], [11]], [[], [12, 13], [14]], [[15], [], [16]]):
         tails = [[t + rng.randint(0, 900) for t in row] for row in tails]

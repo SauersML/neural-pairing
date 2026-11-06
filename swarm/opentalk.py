@@ -179,12 +179,15 @@ def run_layers(lm, x, pos, write, mask, ks, vs):
 class FastCache:
     """Cache's interface (flush(tails) -> each row's hidden state at its last new token [R, d]) on a preallocated
     key-value cache with one write position per row (row r's tokens go to slots n_r, n_r + 1, ... with no padding
-    between chunks), so nothing is copied as it grows. Slot T - 1 takes the padding's writes and no real token. A
-    flush of one token per row (every message step) replays a CUDA graph captured once per row count (graph=True,
-    on CUDA): the whole decoder stack as one launch. Build one per row count and reuse it: reset() starts a batch."""
+    between chunks), so nothing is copied as it grows. Slot T - 1 takes the padding's writes and no real token.
+    Attention reads only the first Tu slots, Tu the least of T, T / 2, T / 4, ... (down to least) that holds every
+    row: a short batch does not read the whole cache at every token. A flush of one token per row (every message
+    step) replays a CUDA graph captured once per Tu (graph=True, on CUDA): the whole decoder stack as one launch.
+    Build one per row count and reuse it: reset() starts a batch."""
 
-    def __init__(self, net, R, T, lm=None, graph=True):
+    def __init__(self, net, R, T, lm=None, graph=True, least=64):
         self.net, self.R, self.T, self.lm = net, R, T, lm or net.lm
+        self.sizes = sorted({T >> k for k in range(32) if (T >> k) >= least} | {T})
         c = self.lm.config
         hd = getattr(c, 'head_dim', None) or c.hidden_size // c.num_attention_heads
         dt, dev = self.lm.model.embed_tokens.weight.dtype, net.device
@@ -192,7 +195,7 @@ class FastCache:
         self.vs = [torch.zeros_like(k) for k in self.ks]
         self.ar = torch.arange(T, device=dev)
         self.graph = graph and dev.type == 'cuda'
-        self.g = None
+        self.g = {}                                              # Tu -> (graph, its output)
         self.reset()
 
     def reset(self):
@@ -204,25 +207,28 @@ class FastCache:
         mask = self.ar[None, None, None, :Tu or self.T] <= write[:, None, :, None]
         return run_layers(self.lm, x, pos, write, mask, self.ks, self.vs)
 
-    def _step(self, ids, pos, write):
+    def _step(self, ids, pos, write, Tu):
         if not self.graph:
-            return self._run(ids, pos, write)
-        if self.g is None:                                       # warm up on a side stream, then capture
+            return self._run(ids, pos, write, Tu)
+        if not self.g:
             self.sid, self.spos, self.swr = ids.clone(), pos.clone(), write.clone()
+        if Tu not in self.g:                                     # warm up on a side stream, then capture
             s = torch.cuda.Stream()
             s.wait_stream(torch.cuda.current_stream())
             with torch.cuda.stream(s), torch.no_grad():
                 for _ in range(2):
-                    self._run(self.sid, self.spos, self.swr)
+                    self._run(self.sid, self.spos, self.swr, Tu)
             torch.cuda.current_stream().wait_stream(s)
-            self.g = torch.cuda.CUDAGraph()
-            with torch.cuda.graph(self.g), torch.no_grad():
-                self.sout = self._run(self.sid, self.spos, self.swr)
+            g = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(g), torch.no_grad():
+                out = self._run(self.sid, self.spos, self.swr, Tu)
+            self.g[Tu] = g, out
+        g, out = self.g[Tu]
         self.sid.copy_(ids)
         self.spos.copy_(pos)
         self.swr.copy_(write)
-        self.g.replay()
-        return self.sout
+        g.replay()
+        return out
 
     def flush(self, tails):
         tails = list(tails) + [[] for _ in range(self.R - len(tails))]
@@ -239,8 +245,9 @@ class FastCache:
                 write[r, :len(t)] = pos[r, :len(t)] = torch.arange(self.nl[r], self.nl[r] + len(t))
         dev = self.net.device
         ids, pos, write = ids.to(dev), pos.to(dev), write.to(dev)
-        h = self._step(ids, pos, write) if L == 1 else self._run(ids, pos, write,
-                                                                  max(n + k for n, k in zip(self.nl, lens)))
+        need = max(n + k for n, k in zip(self.nl, lens))
+        h = (self._step(ids, pos, write, next(t for t in self.sizes if t >= need)) if L == 1 else
+             self._run(ids, pos, write, need))
         self.nl = [n + k for n, k in zip(self.nl, lens)]
         self.tokens += sum(lens)
         last = torch.tensor([max(0, k - 1) for k in lens], device=dev)
