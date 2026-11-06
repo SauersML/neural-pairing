@@ -159,13 +159,24 @@ def test_penalty_stays_out_of_the_loss_and_its_gradient_is_bounded(tok):
     assert net.penalty is None
     p = [torch.nn.Parameter(torch.zeros(2)), torch.nn.Parameter(torch.zeros(1))]
     p[0].grad = torch.tensor([3., 4.])
-    got = C.bounded(p, [torch.tensor([0., 100.]), None])
+    got = C.bounded(p, [torch.tensor([0., 100.]), None], 1.)
     assert got == dict(task=5., penalty=100., kept=.05) and p[0].grad.tolist() == [3., 9.]
     p[0].grad = torch.tensor([3., 4.])
-    assert C.bounded(p, [torch.tensor([0., 1.]), None])['kept'] == 1. and p[0].grad.tolist() == [3., 5.]
+    assert C.bounded(p, [torch.tensor([0., 100.]), None], 3.)['kept'] == .15 and p[0].grad.tolist() == [3., 19.]
+    p[0].grad = torch.tensor([3., 4.])
+    assert C.bounded(p, [torch.tensor([0., 1.]), None], 1.)['kept'] == 1. and p[0].grad.tolist() == [3., 5.]
     p[0].grad, p[1].grad = torch.tensor([.1, 0.]), None
-    assert C.bounded(p, [torch.tensor([0., 10.]), torch.tensor([0.])])['kept'] == .1    # a task near done still leaves it the clip's size
+    assert C.bounded(p, [torch.tensor([0., 10.]), torch.tensor([0.])], 1.)['kept'] == .1    # a task near done still leaves it the clip's size
     assert p[0].grad.tolist() == pytest.approx([.1, 1.]) and p[1].grad.tolist() == [0.]
+
+
+def test_weight_holds_while_the_penalty_bites():
+    assert C.next_weight(None, 3., 20., None) == 3.
+    assert C.next_weight(3., 3., 20., None) == 4.5
+    assert C.next_weight(3., 3., 20., 20.) == 4.5                                       # no fall
+    assert C.next_weight(3., 3., 15., 20.) == 3.                                        # biting
+    assert C.next_weight(3., 3., 30., 20.) == 4.5                                       # going back
+    assert C.next_weight(C.ONE_ADV_MOST, 3., 30., 20.) == C.ONE_ADV_MOST
 
 
 def test_log_odds_keep_a_slope_when_the_reader_is_sure(tok):

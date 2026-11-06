@@ -92,7 +92,7 @@ ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the 
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
 ONE_MASS = .5                  # sym, --one_note: the share _warm leaves on a note token's first choice, for the penalty's gradient
-ONE_SHARE = 1.                 # sym, --one_note: the penalty's gradient against the task's, at most (bounded(): the step stays half the task)
+ONE_BITING = .9                # sym, --one_note: a game's pull under this share of the last dev's: its penalty is biting, its weight stays
 ONE_ADV_MOST = 8.              # sym, --one_note: the most a game's penalty weight grows to, by half each dev it stays read
 PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
@@ -1743,6 +1743,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     log = open(out / 'log.jsonl', 'a') if out else None
     fine = open(out / 'steps.jsonl', 'a') if out and protect else None
     top, lam_base, lam_game, adv_from, hot_devs = None, None, {}, None, 0   # protect: the best weights' dev and the rest
+    pull = {}                                          # --one_note: each read game's nats at the last dev
     hot_games, peak, adv_game = set(), {}, {}          # --one_note: the games the frozen reader has read above noise, the
     #                                                    most each game's follower has got over swapped notes, each penalty
     weights0 = dict(weights or {})
@@ -1813,9 +1814,12 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             adv_from, net.adv_max = step, frozen_adv
             rec['frozen_adv'] = frozen_adv
         if frozen_adv and net.one_note:                # a penalty that is not biting grows, unless its follower is falling
+            if lost:
+                pull.clear()
             for g in hot:
                 if g not in rec['fell']:
-                    adv_game[g] = min(ONE_ADV_MOST, adv_game[g] * 1.5) if g in adv_game else frozen_adv
+                    adv_game[g] = next_weight(adv_game.get(g), frozen_adv, one[g]['nats'], pull.get(g))
+                pull[g] = one[g]['nats']
             for g in rec['fell'] if lost else ():
                 adv_game[g] = adv_game.get(g, frozen_adv) * .5
             rec['adv_games'] = {g: round(v, 3) for g, v in adv_game.items()}
@@ -1887,7 +1891,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 if net.stash:
                     eloss.append(net.eaves_step(1 / len(parts)))
         if charge is not None:
-            split = bounded(lora + link, charge)
+            split = bounded(lora + link, charge, net.adv)
         grad = torch.nn.utils.clip_grad_norm_(lora + link, 1.0)
         opt.step()
         sched.step()
@@ -2060,17 +2064,28 @@ def right_by_game(net, device, by_game, readers=('follower', 'base'), bs=48):
     return out
 
 
-def bounded(params, penalty):
-    """Add the penalty's gradient to the task's already in params' .grad, scaled down to at most ONE_SHARE of the task's
-    norm (of 1, the clip, if that is less). The penalty's gradient grows as the writer nears a code the reader stops
-    reading: a run's work and count steps went from 3 to 187 and 1,517 inside 100 steps, so the clip left the step almost
-    all penalty, the follower stopped learning and its code was lost with the reader's (work .97 to .29 at weight 2.25).
-    Returns the two norms and the share of the penalty kept."""
+def next_weight(weight, start, nats, before):
+    """A read game's penalty weight after a dev: start at first; half as much again, unless the pull fell since the last
+    dev, when the penalty is biting and more only risks the follower."""
+    if weight is None:
+        return start
+    if before is not None and nats < ONE_BITING * before:
+        return weight
+    return min(ONE_ADV_MOST, weight * 1.5)
+
+
+def bounded(params, penalty, weight):
+    """Add the penalty's gradient to the task's already in params' .grad, scaled down to at most weight times the task's
+    norm (or the clip's 1, if the task's is less). The weight is then the share of the step the penalty may take, whatever
+    the reader's slope. Unbounded, a run's work and count steps went from 3 to 187 and 1,517 inside 100 steps: the clip left
+    the step all penalty, the follower stopped learning and its code was lost with the reader's (work .97 to .29, the read
+    15.3 nats to 0). At the task's size alone the writer went back to its plain code (count 2.5 to 11.1 nats, work 14.8 to
+    23.2, by 100 steps). Returns the two norms and the share of the penalty kept."""
     def norm(gs):
         return sum(float(g.pow(2).sum()) for g in gs if g is not None) ** .5
 
     task, size = norm(p.grad for p in params), norm(penalty)
-    keep = min(1., ONE_SHARE * max(1., task) / max(size, 1e-9))
+    keep = min(1., weight * max(1., task) / max(size, 1e-9))
     for p, g in zip(params, penalty):
         if g is not None:
             p.grad = keep * g if p.grad is None else p.grad + keep * g
