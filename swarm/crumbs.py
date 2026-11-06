@@ -141,6 +141,7 @@ class Crumbs(nn.Module):
             self.contrast = 0.
             self.soft, self.eaves_on, self.stash = False, False, []
             self.note_pass = 'soft'            # what a note token sees of the note so far (_notes; --note_pass)
+            self.detach_notes = False          # training: send the soft notes without gradient (the warm-up)
             self.codes = [collections.deque(maxlen=256) for _ in range(m)]   # recent training argmax ids per position
             self.sums = collections.defaultdict(float)
         if arm == 'resid':
@@ -510,7 +511,7 @@ class Crumbs(nn.Module):
                     pend = [[self.masks.pending(P, t) for P, t in zip(row, h)] for row, h in zip(pend, hard.tolist())]
             else:
                 e = E[hard].to(cue.dtype)
-            sent.append(e)
+            sent.append(e.detach() if train and self.detach_notes else e)
             if mode == 'soft':
                 embs.append(e)
             elif mode == 'greedy':
@@ -1431,6 +1432,7 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
+          detach_until=0,
           dev_fn=None, cut0=None, gap_ref='first', dev0=False):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
@@ -1456,7 +1458,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     one sym dev before the first step (the untrained notes). Until the reference gap is positive (the notes help
     the reader) no dev holds it, the weight stays, no dev counts as missed and each dev's gap is the next reference.
     The letter share that gates privacy and the weight's
-    rise is letters_exact (the penalty's rule); letters (the first rule) and letters_text are logged beside it."""
+    rise is letters_exact (the penalty's rule); letters (the first rule) and letters_text are logged beside it.
+    detach_until: up to that step the soft notes are sent without gradient and beta is 0 (the warm-up)."""
     games = games or CG.GAMES
     if net.arm == 'sym' and net.contrast and (micro or batch) < 2:
         raise ValueError('the contrastive term reads the next episode\'s notes: it needs 2 or more episodes per backward '
@@ -1495,6 +1498,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             t1 = SYM_TAU[1]
             net.tau = tau0 * (t1 / tau0) ** (step / steps)
             net.beta = BETA if beta_full else BETA * min(1., step / max(1, steps / 2))
+            net.detach_notes = step <= detach_until    # the warm-up: the readers learn the notes as they are
+            if net.detach_notes:
+                net.beta = 0.
             if step == letters_from + 1:
                 net.lam = lam0
             net.adv = net.adv_max * min(1., (step - work) / ADV_RAMP) if work else 0.
@@ -1526,7 +1532,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 rec['write'] = [round(torch.tanh(r.alpha).item(), 3) for r in net.readers]
             if sym:
                 n = max(1, stat['n_tok'])
-                rec.update(tau=round(net.tau, 3), beta=round(net.beta, 3), lam=net.lam,
+                rec.update(tau=round(net.tau, 3), beta=round(net.beta, 3), lam=net.lam, detached=net.detach_notes,
                            let=round(stat['let'] / n, 4), hard_let=round(stat['hard_let'] / n, 4),
                            ent=round(stat['ent'] / n, 3), div=round(stat['div'] / max(1, stat['n_div']), 3),
                            codes=[len(set(q)) for q in net.codes])
@@ -1667,6 +1673,10 @@ def main():
     ap.add_argument('--private_steps', type=int, default=0, help='sym arm: stop this many steps after privacy starts')
     ap.add_argument('--tau0', type=float, default=SYM_TAU[0], help='sym arm: the notes\' starting temperature')
     ap.add_argument('--beta_full', action='store_true', help='sym arm: the entropy terms at full weight from step 1')
+    ap.add_argument('--detach_until', type=int, default=0,
+                    help='sym arm: up to this step the soft notes are sent without gradient and the entropy terms are '
+                         'off, so the readers learn the notes as the writer makes them (with --letters_from the same '
+                         'step, nothing note-shaped trains the writer)')
     ap.add_argument('--m', type=int, default=4)
     ap.add_argument('--out', help='output folder (absolute)')
     ap.add_argument('--report', help='write ROOT/report.json from the arms under ROOT and stop')
@@ -1736,7 +1746,8 @@ def main():
                             every=args.every, letters_from=args.letters_from, lam0=args.lam0, gap0=args.gap0,
                             lam_rule=tuple(float(x) for x in args.lam_rule.split(',')), lost=args.lost,
                             private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full, lr=args.lr,
-                            cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0)
+                            cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0,
+                            detach_until=args.detach_until)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))

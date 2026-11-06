@@ -287,6 +287,28 @@ def test_note_pass_one_matches_greedy(tok):
     assert torch.equal(g['hard'], o['hard']) and torch.equal(g['hard'], sf['hard'])
 
 
+def test_note_warmup_detaches(tok, tmp_path):
+    """The warm-up: while detach_notes is set the soft notes reach the bank without gradient (the readers still
+    train), and train() sets it for the steps up to detach_until with the entropy terms off, then clears it."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.train()
+    eps = trails(2)
+    for on in (True, False):
+        net.detach_notes = on
+        net.sums = collections.defaultdict(float)
+        net.zero_grad()
+        total, _, bank = net.run(eps, 'cpu')
+        assert bank['e'][0].requires_grad is not on
+        total.backward()
+        assert any(q.grad is not None and float(q.grad.abs().sum()) > 0 for q in net.parameters() if q.requires_grad)
+    C.train(net, 'cpu', 2, 2, 0, games=('trail',), out=tmp_path, every=0, letters_from=1, lam0=.01, beta_full=True,
+            detach_until=1, min_steps=100)
+    recs = [json.loads(line) for line in (tmp_path / 'log.jsonl').read_text().splitlines()]
+    assert recs[-1]['step'] == 2 and recs[-1]['detached'] is False and recs[-1]['beta'] == C.BETA
+    assert net.detach_notes is False
+
+
 def test_sym_hint_and_dev0(tok, tmp_path):
     """--note_hint: one line added to every writer's system prompt, none to the reader's; note_stats' three letter
     shares; dev0: a dev before the first step with no controller update; gap_ref max: the reference gap is the
