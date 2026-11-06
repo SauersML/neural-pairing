@@ -99,3 +99,36 @@ def test_right_answers_and_examples(tok):
         out = B.read_all(model, tok, items, B.forms_of([(shot_eps, shot_notes)]), B.FORMS, 2, 'cpu')
     assert set(out) == set(B.FORMS) | {'own_minus_swap', 'own_minus_swap_ci'}
     assert out['own_minus_swap'] == pytest.approx(out['own'] - out['swap'], abs=2e-4)
+
+
+def test_one_note(tok, monkeypatch):
+    """Each scout's note alone: the gold is the number that scout saw; a reader that reads the digit after the note line
+    is right on every own note, and the plain English reads the same way; the examples come before the question."""
+    net = tiny(tok, 'sym', 2)
+    (eps, notes), = notes_of(net, 'count', n=4)
+    for ep, got in zip(eps, notes):
+        for w, n in enumerate(ep['count']['numbers']):
+            got[w, 0] = f'{n}{n}.{n}{n}'
+    items = B.forms_of([(eps, notes)])
+    for ep, f in items:
+        for w, n in enumerate(ep['count']['numbers']):
+            assert str(n) in f['english_own'][w, 0]
+    seen = []
+
+    def reads(model, tk, p, cands, device):
+        seen.append(p)
+        assert list(cands) == [str(n) for n in range(1, 10)]
+        last = p.rsplit(C.NOTE, 1)[-1] if C.NOTE in p.rsplit('<|im_start|>user', 1)[-1] else ''
+        last = last.split('there are ')[-1]
+        digit = next((c for c in last if c.isdigit()), '9')
+        return torch.tensor([0. if c == digit else -1. for c in cands])
+
+    monkeypatch.setattr(E, 'cand_logprobs', reads)
+    got = B.one_note(None, tok, items, items, 0, 4, 'cpu')
+    assert got['notes'] == 12 and got['chance'] == round(1 / 9, 4)
+    assert got['own'] == 1. and got['english_own'] == 1.
+    assert abs(got['own_minus_swap'] - (got['own'] - got['swap'])) < 1e-3
+    assert len(got['examples']) == 12 and all(x['read'] == str(x['number']) for x in got['examples'])
+    seen.clear()
+    B.one_note(None, tok, items, items, 2, 4, 'cpu')
+    assert seen[0].count('<|im_start|>assistant') == 3 and seen[0].count(B.ONE) == 3   # two examples and the question

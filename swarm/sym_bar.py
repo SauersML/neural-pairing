@@ -12,9 +12,11 @@ turns, with their notes and the gold answers, which gives the model the chance t
 trained follower and the base model with its adapter off read through the run's own net (crumbs.py forced: the note
 tokens themselves) as well, so the text path can be checked against the base number. Writes one JSON (--out) with a
 dozen real notes per game beside what each writer saw. A game with no candidates (hotpot) gets the run's two readers
-and its notes only.
+and its notes only. --one_note adds, on count, the direct test of whether a model can read a note at all, with no adding
+to do: one scout's note at a time, which number did the scout see, forced among 1 to 9, in the same five forms.
 Usage: python swarm/sym_bar.py --run RUN --out OUT_JSON [--ckpts gate.pt --games count,work,trap,trail,hotpot
-       --n_test 192 --n_control 48 --models Qwen/Qwen3-8B,arcee-ai/AFM-4.5B,Qwen/Qwen3-1.7B --shots 0,8]"""
+       --n_test 192 --n_control 48 --models Qwen/Qwen3-8B,arcee-ai/AFM-4.5B,Qwen/Qwen3-1.7B --shots 0,8
+       --forms own,swap,off,english_own,english_swap (none: no whole-game readers) --one_note]"""
 import argparse
 import json
 from pathlib import Path
@@ -33,6 +35,9 @@ GAMES = ('count', 'work', 'trap', 'trail', 'hotpot')
 MODELS = ('Qwen/Qwen3-8B', 'arcee-ai/AFM-4.5B', 'Qwen/Qwen3-1.7B')
 FORMS = ('own', 'swap', 'off', 'english_own', 'english_swap')
 SHOW = 12
+ONE = ('A scout counted the apples at a stall and left the note above. How many apples did the scout count? '
+       'Answer with the number alone.')
+NUMBERS = tuple(str(n) for n in range(1, 10))
 
 
 def written(net, bank, b, ep):
@@ -163,6 +168,47 @@ def read_all(model, tok, items, shot_items, forms, n_control, device):
     return got
 
 
+def one_chat(note, answer=None):
+    """One count note and the question (note None: no note line), with its answer if it is an example."""
+    line = '' if note is None else f'{C.NOTE}{note}\n'
+    return [dict(role='user', content=line + ONE)] + ([] if answer is None else [dict(role='assistant', content=str(answer))])
+
+
+def scouts(ep, notes):
+    """[(the number a count scout saw, its note)]: notes None, no note."""
+    return [(n, None if notes is None else notes[w, 0]) for w, n in enumerate(ep['count']['numbers'])]
+
+
+@torch.no_grad()
+def one_note(model, tok, items, shot_items, shots, n_control, device):
+    """Count, a note at a time: {form: share of notes where the true number beats the other eight}, the forms and
+    episodes as read_all, per episode then the mean; shots: as many single notes of the example episodes before it, with
+    their answers; own minus swap with its 95% interval over episodes, and a dozen notes with what the model read."""
+    got, rows, examples = dict(chance=round(1 / len(NUMBERS), 4)), {}, []
+    for form in FORMS:
+        part = items if form in ('own', 'swap') else items[:n_control]
+        key = {'own': 'own', 'swap': 'own', 'off': None}.get(form, 'english_own')
+        before = [t for ep, f in shot_items for n, x in scouts(ep, f[key] if key else None) for t in one_chat(x, n)]
+        before = before[:2 * shots]
+        rows[form] = []
+        for ep, f in part:
+            row = []
+            for n, note in scouts(ep, f[form]):
+                p = prompt_text(tok, ep['agents'][-1]['system'], before + one_chat(note))
+                pick = NUMBERS[int(E.cand_logprobs(model, tok, p, list(NUMBERS), device).argmax())]
+                row.append(float(pick == str(n)))
+                if form == 'own' and len(examples) < SHOW:
+                    examples.append(dict(note=note, number=n, read=pick))
+            rows[form].append(row)
+        got[form] = shares(rows[form])
+    per = [sum(o) / len(o) - sum(x) / len(x) for o, x in zip(rows['own'], rows['swap'])]
+    got['own_minus_swap'] = round(sum(per) / len(per), 4)
+    got['own_minus_swap_ci'] = C.boot_interval(per)
+    got['notes'] = sum(map(len, rows['own']))
+    got['examples'] = examples
+    return got
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--run', required=True, help='a crumbs.py sym run folder (args.json and its checkpoints)')
@@ -173,7 +219,8 @@ def main():
     ap.add_argument('--n_control', type=int, default=48, help='episodes for the off and english forms')
     ap.add_argument('--models', default=','.join(MODELS))
     ap.add_argument('--shots', default=f'0,{E.SHOTS}')
-    ap.add_argument('--forms', default=','.join(FORMS))
+    ap.add_argument('--forms', default=','.join(FORMS), help='none: no whole-game readers')
+    ap.add_argument('--one_note', action='store_true', help='count: read one note at a time, no adding')
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     args = ap.parse_args()
     run, games = Path(args.run), args.games.split(',')
@@ -202,16 +249,22 @@ def main():
             save()
         del net
         E.free()
-    forms = args.forms.split(',')
+    forms = [] if args.forms == 'none' else args.forms.split(',')
     for name in args.models.split(','):
         model, tok = E.load_lm(name, args.device)
         for (ck, g), (items, shot_items) in made.items():
             if g not in CG.CHOICES:                    # no candidates to choose among (hotpot)
                 continue
             for n in (int(x) for x in args.shots.split(',')):
-                got = res['ckpts'][ck][g].setdefault('readers', {}).setdefault(name, {})[f'shots{n}'] = \
-                    read_all(model, tok, items, shot_items[:n], forms, args.n_control, args.device)
-                print(run.name, ck, g, name, f'shots {n}', json.dumps(got), flush=True)
+                if forms:
+                    got = res['ckpts'][ck][g].setdefault('readers', {}).setdefault(name, {})[f'shots{n}'] = \
+                        read_all(model, tok, items, shot_items[:n], forms, args.n_control, args.device)
+                    print(run.name, ck, g, name, f'shots {n}', json.dumps(got), flush=True)
+                if args.one_note and g == 'count':
+                    got = res['ckpts'][ck][g].setdefault('one_note', {}).setdefault(name, {})[f'shots{n}'] = \
+                        one_note(model, tok, items, shot_items, n, args.n_control, args.device)
+                    print(run.name, ck, g, name, f'one note shots {n}',
+                          json.dumps({k: v for k, v in got.items() if k != 'examples'}), flush=True)
                 save()
         del model, tok
         E.free()
