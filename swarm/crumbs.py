@@ -1131,7 +1131,8 @@ def sym_dev(net, device, dev):
                dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4),
                dev_swap=round(dev_nll(net, device, dev, mode='swap'), 4))
     ns = note_stats(net, device, dev)
-    out.update({k: round(ns[k], 4) for k in ('letters', 'letters_exact', 'letters_text')}, examples=ns['examples'],
+    out.update({k: round(ns[k], 4) for k in ('letters', 'letters_exact', 'letters_text', 'letters_max')},
+               letters_by_game={g: round(v, 4) for g, v in ns['letters_by_game'].items()}, examples=ns['examples'],
                distinct=ns['distinct'])
     return out
 
@@ -1340,11 +1341,13 @@ def note_stats(net, device, eps, show=2, bs=50):
     """sym arm: the hard notes on eps: letters, the share of their tokens that are letters by the first rule (every
     token that is not complete UTF-8 a letter); letters_exact, by the penalty's rule (swarm/letters.py, each note
     read from its start with the bytes pending before each token); letters_text,
-    the share of the decoded notes' characters other than spaces that are of category L*; and the first show trail
-    episodes' explorer notes as 'object: text', and distinct, how many different notes those are."""
+    the share of the decoded notes' characters other than spaces that are of category L*, pooled over every note,
+    and per game (letters_by_game) with the highest game's (letters_max); and the first show trail episodes' explorer
+    notes as 'object: text', and distinct, how many different notes those are."""
     import unicodedata
     net.eval()
     n_tok, n_let, n_exact, n_chr, n_ltr, examples, shown, notes = 0, 0, 0, 0, 0, [], 0, []
+    per = collections.defaultdict(lambda: [0, 0])          # game: [characters, letters]
     first = net.letter_first.to(device)
     for s0 in range(0, len(eps), bs):
         chunk = eps[s0:s0 + bs]
@@ -1357,7 +1360,10 @@ def note_stats(net, device, eps, show=2, bs=50):
             got = ids[b][real[b]].tolist()
             n_exact += sum(sum(net.masks.walk(got[g:g + net.m])[0]) for g in range(0, len(got), net.m))
             got = [c for c in net.tok.decode(ids[b][real[b]].tolist()) if not c.isspace()]
-            n_chr, n_ltr = n_chr + len(got), n_ltr + sum(unicodedata.category(c).startswith('L') for c in got)
+            k = sum(unicodedata.category(c).startswith('L') for c in got)
+            n_chr, n_ltr = n_chr + len(got), n_ltr + k
+            g = per[chunk[b].get('game', '?')]
+            g[0], g[1] = g[0] + len(got), g[1] + k
         for b, ep in enumerate(chunk):
             if 'trail' not in ep or shown >= show:
                 continue
@@ -1368,8 +1374,10 @@ def note_stats(net, device, eps, show=2, bs=50):
                 examples.append(f'{ep["trail"]["objects"][r]}: {note}')
                 notes.append(note)
     net.train()
+    by_game = {g: l / c for g, (c, l) in sorted(per.items()) if c}
     return dict(letters=n_let / max(1, n_tok), letters_exact=n_exact / max(1, n_tok), letters_text=n_ltr / max(1, n_chr),
-                examples=examples, distinct=len(set(notes)))
+                letters_by_game=by_game, letters_max=max(by_game.values(), default=0.), examples=examples,
+                distinct=len(set(notes)))
 
 
 def letter_bytes(_cache=[]):
@@ -1534,7 +1542,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
           detach_until=0, gate_held=1, gate_distinct=0, gate_letters=PRIV_LETTERS, lam_min=0., ref_letters=None,
-          dev_fn=None, cut0=None, gap_ref='first', dev0=False, gap_by='cut', resume=None):
+          dev_fn=None, cut0=None, gap_ref='first', dev0=False, gap_by='cut', resume=None, letters_by='max'):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1559,7 +1567,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     one sym dev before the first step (the untrained notes). Until the reference gap is positive (the notes help
     the reader) no dev holds it, the weight stays, no dev counts as missed and each dev's gap is the next reference.
     The letter share that gates privacy and the weight's
-    rise is letters_text (the share of the decoded notes' characters that are letters: one token " pillow" is six).
+    rise is letters_text (the share of the decoded notes' characters that are letters: one token " pillow" is six),
+    of the dev's game with the most (letters_by max: one game writing words cannot hide among six writing digits) or
+    pooled over every note (all); both are logged, letters_max and letters_text, and each game's, letters_by_game.
     The privacy gate can be stricter: gate_held devs in a row with the gap held, at least gate_distinct different
     notes among the dev's example notes (note_stats' distinct) and letters_text under gate_letters (default
     PRIV_LETTERS); until then only the follower, the letter weight, the entropy terms and the contrastive term train.
@@ -1687,7 +1697,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             rec = dict(rec or dict(step=step), dev_nll=round(v, 4), **more)
             if sym:
                 rec.update(sym_dev(net, device, dev))
-                letters = rec['letters_text']
+                letters = rec['letters_max' if letters_by == 'max' else 'letters_text']
                 gap_cut, gap_swap = (rec['dev_cut'] if cut0 is None else cut0) - v, rec['dev_swap'] - v
                 gap = gap_swap if gap_by == 'swap' else gap_cut
                 rec.update(gap=round(gap, 4), gap_cut=round(gap_cut, 4), gap_swap=round(gap_swap, 4))
@@ -1835,6 +1845,9 @@ def main():
     ap.add_argument('--dev0', action='store_true', help='sym arm: a dev before training (the untrained notes)')
     ap.add_argument('--gap_by', default='swap', choices=('swap', 'cut'),
                     help='sym arm: the gap the controller and the privacy gate use (see train); both are logged')
+    ap.add_argument('--letters_by', default='max', choices=('max', 'all'),
+                    help='sym arm: the letter share the controller, the reference rule and the privacy gate use: the '
+                         'dev game with the most letters (max) or pooled over every note (all); both are logged')
     ap.add_argument('--note_hint', default='', help='sym arm: a line added to every writer\'s system prompt')
     ap.add_argument('--note_pass', default='soft', choices=('soft', 'greedy', 'one'),
                     help='sym arm: what a note token sees of the note so far in training (soft tokens, or the argmax '
@@ -1939,7 +1952,7 @@ def main():
                             cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0, gap_by=args.gap_by,
                             detach_until=args.detach_until, gate_held=args.gate_held,
                             gate_distinct=args.gate_distinct, gate_letters=args.gate_letters, lam_min=args.lam_min,
-                            ref_letters=args.ref_letters, resume=state)
+                            ref_letters=args.ref_letters, resume=state, letters_by=args.letters_by)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))

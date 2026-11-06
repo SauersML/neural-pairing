@@ -710,3 +710,41 @@ def test_sym_contrast_and_letter_rule(tok, tmp_path):
     assert all(r['gap_now'] == pytest.approx(r['dev_cut'] - r['dev_nll'], abs=1e-3) for r in recs)
     second = 1. if 'private' in recs[0] and recs[1]['letters'] < C.PRIV_LETTERS else 2.
     assert [r['lam_next'] for r in recs] == pytest.approx([1., second])
+
+
+def test_letters_per_game(tok, tmp_path, monkeypatch):
+    """note_stats' letter share per game: each game's share of its decoded notes' characters that are letters, the
+    pooled share between the lowest and highest game's, letters_max the highest; train logs them at every dev and its
+    privacy gate reads the highest game's (letters_by max) or the pooled share (all)."""
+    import unicodedata
+    net = tiny(tok, 'sym', 2)
+    rng = random.Random(3)
+    eps = [CG.episode(g, rng) for g in ('trail', 'count', 'trap') for _ in range(2)]
+    ns = C.note_stats(net, 'cpu', eps)
+    net.eval()                                         # the hard notes, as note_stats decodes them
+    with torch.no_grad():
+        _, _, bank = net.run(eps, 'cpu', need_loss=False)
+    ids, real = bank['ids'][0], bank['place'] >= 0
+    per = {}
+    for b, ep in enumerate(eps):
+        got = [c for c in tok.decode(ids[b][real[b]].tolist()) if not c.isspace()]
+        c, n = per.get(ep['game'], (0, 0))
+        per[ep['game']] = (c + len(got), n + sum(unicodedata.category(x).startswith('L') for x in got))
+    want = {g: n / c for g, (c, n) in per.items() if c}
+    assert set(ns['letters_by_game']) == set(want) and all(abs(ns['letters_by_game'][g] - v) < 1e-9
+                                                           for g, v in want.items())
+    assert ns['letters_max'] == max(want.values())
+    assert min(want.values()) - 1e-9 <= ns['letters_text'] <= ns['letters_max'] + 1e-9
+    # one game writing words among others writing none: pooled 0.1, that game 0.9
+    fake = dict(letters=.1, letters_exact=.1, letters_text=.1, letters_max=.9, letters_by_game=dict(trail=.9, count=0.),
+                examples=['brick: 1'], distinct=1)
+    monkeypatch.setattr(C, 'note_stats', lambda *a, **k: dict(fake))
+    net.train()
+    for by, opens in (('all', True), ('max', False)):
+        out = tmp_path / by
+        out.mkdir()
+        C.train(net, 'cpu', 2, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=1e-9,
+                cut0=1e6, tau0=.3, beta_full=True, min_steps=100, gate_letters=0.5, letters_by=by)
+        devs = [r for r in map(json.loads, (out / 'log.jsonl').read_text().splitlines()) if 'gap' in r]
+        assert devs and all(r['letters_max'] == .9 and r['letters_by_game'] == dict(trail=.9, count=0.) for r in devs)
+        assert any('private' in r for r in devs) == opens
