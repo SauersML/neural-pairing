@@ -72,6 +72,7 @@ SYSTEM = ('You are agent {x}. You and agent {y} are two assistants who serve one
           'request comes to you, answer the user directly.')
 SYMBOLS = 'From now on, write your messages to your partner in emoji, symbols and digits only, with no letters.'
 CHUNK = 512                                            # positions per checkpointed vocabulary chunk
+CHARGE_EPS = 1e-3                                      # letter_charge sqrt: 3% of one token's share of a 32-token message
 LEAKY = ('doc', 'pair', 'code', 'chat_doc')            # families whose simulated requests can name hidden details
 CLEAN = ('chat_alt', 'fill', 'debug', 'plan')
 _letters = {}
@@ -254,6 +255,12 @@ class FastCache:
         return h[torch.arange(self.R, device=dev), last]
 
 
+def is_filler(text):
+    """A token's text that is only whitespace, or an ellipsis ('…' or two or more dots) with whitespace around it."""
+    s = text.strip()
+    return not s or (set(s) <= set('.…') and (len(s) > 1 or s == '…'))
+
+
 class Talk:
     """The LoRA model, its tokenizer, the vocabulary masks and the message rules (m tokens, bias, tau)."""
 
@@ -269,6 +276,8 @@ class Talk:
         self.pad = tok.convert_tokens_to_ids('<|endoftext|>')
         self._ids = {}
         self.stats = dict(decode_tokens=0, grad_tokens=0)
+        self._filler = {}                              # token id -> is_filler of its text
+        self.charge = 'linear'                         # the letter penalty's shape (letter_charge)
         self.base_lm = None                            # the untrained model as a separate frozen copy (privacy)
         self.dec = None                                # a plain copy holding base + LoRA merged, for decoding
         self.fast_eps, self.fast_T, self._fast = 0, 0, {}   # the fast decode cache (off: 0 episodes)
@@ -384,6 +393,16 @@ class Talk:
     def letters_of(self, msgs):
         """Letter flags of message tokens, each message read from its start (pending bytes carried within it)."""
         return [f for ids in msgs for f in self.masks.walk(ids)[0]]
+
+    def message_stats(self, msgs):
+        """Over messages (token id lists): letter tokens per message, the share of messages with no letter token, and
+        the share of tokens that are filler (is_filler: whitespace and ellipsis only)."""
+        counts = [sum(self.masks.walk(ids)[0]) for ids in msgs]
+        toks = [t for ids in msgs for t in ids]
+        for t in set(toks) - self._filler.keys():
+            self._filler[t] = is_filler(self.tok.decode([t]))
+        return dict(letters_per_msg=round(mean(counts), 3), no_letter_msgs=round(mean(c == 0 for c in counts), 4),
+                    filler=round(mean(self._filler[t] for t in toks), 4))
 
     def hard_logits(self, h, lm=None, rows=None):
         """Logits over the allowed vocabulary, the letter bias taken off the letters after each row's pending bytes
@@ -518,8 +537,8 @@ class Talk:
                        use_cache=False).last_hidden_state
 
     def writer(self, eps, msgs):
-        """The writer pass: per episode a dict {g: soft vectors [m, d]} of its messages, the mean letter mass per
-        message position and the share of positions whose argmax is the decoded token (1 at the fixed point)."""
+        """The writer pass: per episode a dict {g: soft vectors [m, d]} of its messages, the letter mass at each message
+        position [messages * m] and the share of positions whose argmax is the decoded token (1 at the fixed point)."""
         rows, seqs = [], []
         for i, ep in enumerate(eps):
             for x in 'AB':
@@ -543,7 +562,16 @@ class Talk:
         soft = [dict() for _ in eps]
         for q, (i, g) in enumerate(G):
             soft[i][g] = vec[q * self.m:(q + 1) * self.m]
-        return soft, mass.mean(), fixed, torch.tensor(toks)
+        return soft, mass, fixed, torch.tensor(toks)
+
+    def letter_charge(self, mass):
+        """The letter penalty from the soft letter mass per message position [messages * m]. linear: the mean, each
+        letter token priced the same however few remain, so a message's first words keep paying long after the average
+        one stopped. sqrt: the mean over messages of sqrt(letter share + CHARGE_EPS), so the last letters cost the most
+        (8 of 32 cost 0.5, not 0.25; 1 costs 0.18, not 0.03); the epsilon bounds the gradient at no letters."""
+        if self.charge == 'linear':
+            return mass.mean()
+        return (mass.view(-1, self.m).mean(1) + CHARGE_EPS).sqrt().mean()
 
     def reader(self, eps, msgs, soft=None, perm=None, mode='on', lm=None):
         """The reader pass: per (episode, turn) answered, the summed per-token loss and the token count (KL from the
@@ -615,8 +643,8 @@ class Talk:
         soft, mass, fixed, toks = self.writer(eps, msgs)
         tot, cnt, keys = self.reader(eps, msgs, soft)
         on = tot / cnt.clamp(min=1)
-        loss = on.mean() + lam * mass
-        parts = dict(kl=float(on.detach().mean()), letters_soft=float(mass.detach()), fixed=fixed,
+        loss = on.mean() + lam * self.letter_charge(mass)
+        parts = dict(kl=float(on.detach().mean()), letters_soft=float(mass.detach().mean()), fixed=fixed,
                      letters=mean(self.letters_of(toks.view(-1, self.m).tolist())),
                      distinct=len(torch.unique(toks)))
         if contrast and len(eps) > 1:
@@ -751,6 +779,7 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
                 d[mode] = round(sum(t for t, _ in v.values()) / max(1, sum(c for _, c in v.values())), 4)
         if 'on' in d and 'none' in d:
             d['closed'] = round(O.closed_share(d['none'], d['on']), 4)
+            d['none_on'] = round(d['none'] - d['on'], 4)               # what the right messages buy over none
         if 'swap' in d:
             d['gap'] = round(d['swap'] - d['on'], 4)
         by = {}
@@ -765,6 +794,7 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
                                      3) for k in sorted(by)]
         flat = torch.tensor([t for m_ in toks for t in m_])
         d['letters'] = round(mean(net.letters_of(toks)), 4) if len(flat) else None
+        d.update(net.message_stats(toks) if len(flat) else {})
         d['distinct'] = int(len(torch.unique(flat)))
         d['n'] = len(xs)
         d['examples'] = ex
@@ -775,6 +805,11 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
     res['_all'] = dict(letters=round(mean(net.letters_of(all_toks)), 4), distinct=int(len(torch.unique(flat))),
                        gap=round(mean(v['gap'] for v in fam), 4), closed=round(mean(v['closed'] for v in res.values()
                                                                                     if 'closed' in v), 4))
+    res['_all'].update(net.message_stats(all_toks) if len(flat) else {})
+    for k in ('on', 'swap', 'none', 'none_on'):                 # the means over families the gap is one difference of
+        vals = [v[k] for v in res.values() if k in v]
+        if vals:
+            res['_all'][k] = round(mean(vals), 4)
     for name, group in (('_leaky', LEAKY), ('_clean', CLEAN)):
         vs = {f: res[f] for f in group if f in res and 'closed' in res[f]}
         if vs:
@@ -1054,6 +1089,8 @@ def main():
     ap.add_argument('--ctrl_start', type=float, default=0.5)
     ap.add_argument('--bias_k', type=float, default=40.0)
     ap.add_argument('--lam_min', type=float, default=0.0, help='the letter weight never falls below this')
+    ap.add_argument('--letter_charge', default='linear', choices=('linear', 'sqrt'),
+                    help='the letter penalty: mean letter mass, or the mean over messages of its square root')
     ap.add_argument('--gap_ref', default='first', choices=('first', 'max', 'anchor'),
                     help="the reference gap: the controller start's, the largest since (see next_ref), or re-anchored "
                     "once on the first letterless dev that misses it (see ctrl_update)")
@@ -1093,6 +1130,7 @@ def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     net = build(device, args.base, args.rank, args.ckpt if 'train' not in args.parts else None, args.m,
                 base_copy='train' in args.parts and args.lam_p > 0)
+    net.charge = args.letter_charge
     if args.fast_decode and device == 'cuda':
         net.fast_eps, net.fast_T = args.micro, 64 * ((args.max_len + 1024) // 64)
     state = {}

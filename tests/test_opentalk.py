@@ -136,7 +136,7 @@ def test_greedy_messages_are_the_writer_pass_fixed_point():
             assert all(len(m) == net.m and all(net.allowed[v] for v in m) for _, m in msgs[i][k])
     soft, mass, fixed, toks = net.writer(eps, msgs)
     assert fixed > 0.99, fixed                                       # argmax of the writer's logits = the decode
-    assert 0 <= float(mass.detach()) <= 1
+    assert mass.shape[0] % net.m == 0 and 0 <= float(mass.detach().mean()) <= 1
     for i, ep in enumerate(eps):                                     # the decode's own context is the transcript
         for x in 'AB':
             b = net.build(ep, x, msgs[i])
@@ -406,3 +406,39 @@ def test_controller_reanchors_once_on_a_letterless_miss():
     assert OT.ctrl_update(0.4, 0.1, 0.23, 0.01, None, 400, args) == (0.4, False, 0.1, 400)     # a miss, the new ref
     assert OT.ctrl_update(0.4, 0.09, 0.1, 0.01, 400, 600, args) == (0.8, True, 0.1, 400)       # holds against it
     assert OT.ctrl_update(0.8, 0.05, 0.1, 0.01, 400, 800, args) == (0.4, False, 0.1, 400)      # once only
+
+
+def test_sqrt_letter_charge_prices_the_last_letters():
+    net = net_of(m=32)
+    share = lambda k: torch.cat([torch.ones(k), torch.zeros(32 - k)])    # noqa: E731
+    assert float(net.letter_charge(share(8))) == pytest.approx(0.25)      # linear: the mean
+    net.charge = 'sqrt'
+    assert float(net.letter_charge(share(32))) == pytest.approx(1.0, abs=1e-3)
+    assert float(net.letter_charge(share(8))) == pytest.approx(0.5, abs=1e-3)
+    assert float(net.letter_charge(share(1))) == pytest.approx(0.1768, abs=3e-3)
+    two = torch.cat([share(32), share(0)])                                # the mean over messages
+    assert float(net.letter_charge(two)) == pytest.approx((1 + OT.CHARGE_EPS ** 0.5) / 2, abs=1e-3)
+    zero = torch.zeros(32, requires_grad=True)                            # bounded at no letters
+    net.letter_charge(zero).backward()
+    assert torch.isfinite(zero.grad).all() and float(zero.grad.max()) < 1
+    rng = random.Random(9)                                                # a real batch's mass, end to end
+    eps = [episode(rng, i, 'doc') for i in range(2)]
+    net2 = net_of(m=4)
+    net2.charge = 'sqrt'
+    loss, parts = net2.loss(eps, lam=0.5)
+    loss.backward()
+    assert 0 <= parts['letters_soft'] <= 1
+
+
+def test_message_stats_counts_letters_and_filler():
+    assert OT.is_filler('...\n') and OT.is_filler(' ...') and OT.is_filler('…\n') and OT.is_filler('  \n')
+    assert OT.is_filler('…') and OT.is_filler('..') and OT.is_filler('\n')
+    assert not OT.is_filler('.') and not OT.is_filler(' the') and not OT.is_filler('1') and not OT.is_filler('. a')
+    net, rng = net_of(), random.Random(4)
+    eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'doc', 'chat_alt', 'chat_alt'])]
+    res = OT.evaluate(net, eps, bs=2)
+    for k in ('letters_per_msg', 'no_letter_msgs', 'filler', 'none_on'):
+        assert k in res['doc'] and k in res['_all']
+    assert res['doc']['none_on'] == round(res['doc']['none'] - res['doc']['on'], 4)
+    assert res['_all']['letters_per_msg'] == pytest.approx(res['_all']['letters'] * net.m, abs=1e-2)
+    assert {'on', 'swap', 'none'} <= set(res['_all'])
