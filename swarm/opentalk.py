@@ -803,9 +803,8 @@ class Talk:
                      distinct_msgs=len(torch.unique(rows, dim=0)) / max(1, rows.shape[0]))
         perm = list(range(1, len(eps))) + [0]
         if contrast and self.contrast_ref == 'none':
-            with torch.no_grad():
-                with self.base():                    # the untrained model's none: the adapter's own can only flatter it
-                    tn, cn, _ = self.reader(eps, msgs, mode='none')
+            with torch.no_grad():                    # its own none: sending nothing must earn nothing, and the untrained
+                tn, cn, _ = self.reader(eps, msgs, mode='none')  # none is far higher once the reader has trained
                 none = tn / cn.clamp(min=1)
                 if len(eps) > 1:
                     ts, cs, _ = self.reader(eps, msgs, soft, perm=perm)
@@ -1181,14 +1180,17 @@ def families_alive(d, z):
                if not f.startswith('_') and 'gap' in v and v.get('gap_se') is not None)
 
 
-def dev_trouble(gap, ref, eff_tokens, args, alive=None):
+def dev_trouble(gap, ref, eff_tokens, args, alive=None, value=None, peak=None):
     """Why a dev should go back to the best weights ('' if it should not): the messages collapsed onto under
-    --collapse_tokens effective tokens; with alive (a target run), fewer than --min_alive families read above noise;
-    otherwise the gap fell under --gap_floor or --lost_keep of the reference."""
+    --collapse_tokens effective tokens; with alive (a target run), fewer than --min_alive families read above noise,
+    or the closed share outside fill (value) fell under --value_keep of its best so far (peak); otherwise the gap fell
+    under --gap_floor or --lost_keep of the reference."""
     if eff_tokens is not None and eff_tokens < args.collapse_tokens:
         return 'collapsed'
     if alive is not None:
-        return 'dead' if alive < args.min_alive else ''
+        if alive < args.min_alive:
+            return 'dead'
+        return 'value' if value is not None and peak and value < args.value_keep * peak else ''
     if ref is not None and gap < max(args.gap_floor, args.lost_keep * ref):
         return 'gap'
     return ''
@@ -1239,6 +1241,7 @@ def train(net, args, log):
     anchored = None
     target_mode = args.letter_charge == 'target'
     target, half, dev_value, copy_value = args.target0, args.target_half, None, None   # target and its halving time
+    peak = None                                      # the best closed share outside fill at a good dev
     gate_v, gate_m, gate_d, gate_l = (deque(maxlen=args.target_window) for _ in range(4))
     copies = ('head', 'best', 'target') if args.dev_copy else ()
     stage = 'warm' if args.warm else 'full'          # warm: the writer learns to copy; full: the whole loss
@@ -1265,6 +1268,7 @@ def train(net, args, log):
         best, rollbacks, lr_scale[0] = st.get('best'), st.get('rollbacks', 0), st.get('lr_scale', 1.0)
         target, half, dev_value = st.get('target', target), st.get('half', half), st.get('dev_value')
         copy_value, stage = st.get('copy_value'), st.get('stage', stage)
+        peak = st.get('peak', dev_value if stage == 'full' else None)
         net.family_scale = st.get('family_scale', net.family_scale)
         optimizer = (R / 'optim.pt').exists()
         if optimizer:
@@ -1282,7 +1286,7 @@ def train(net, args, log):
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
                     anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
                     lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value, copy_value=copy_value,
-                    family_scale=net.family_scale, stage=stage)
+                    family_scale=net.family_scale, stage=stage, peak=peak)
 
     def go_back(slower=True):
         """The best weights and optimizer state, and the weight, bias and tau they were measured at."""
@@ -1381,7 +1385,7 @@ def train(net, args, log):
             log(dict(step=step, tau=round(net.tau, 3), lam=lam, lam_now=round(lam_now, 5), dev=d,
                      dev_s=round(time.monotonic() - t0), s=round(time.monotonic() - started)))
             if args.protect and stage == 'full':
-                why = '' if switched else dev_trouble(gap, ref, eff, args, alive if target_mode else None)
+                why = '' if switched else dev_trouble(gap, ref, eff, args, alive if target_mode else None, dev_value, peak)
                 if why and best is not None and step != first:   # a part's first dev has trained nothing to undo
                     go_back()
                     rollbacks += 1
@@ -1393,6 +1397,8 @@ def train(net, args, log):
                              bias=net.bias, lr=args.lr * lr_scale[0], rollbacks=rollbacks, target=target, half=half,
                              alive=alive))
                 elif not why:
+                    if dev_value is not None:
+                        peak = max(peak or dev_value, dev_value)
                     charge = d['_all'].get('charge', letters)
                     if target_mode or best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
                         path = str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best'))
@@ -1541,6 +1547,8 @@ def main():
     ap.add_argument('--target_end', type=float, default=0.01, help='target: the lowest target')
     ap.add_argument('--target_window', type=int, default=30, help='target: the steps the training help is averaged over')
     ap.add_argument('--value_bar', type=float, default=0.15, help='target: the closed share outside fill that opens it')
+    ap.add_argument('--value_keep', type=float, default=0.6, help='target: a dev under this share of the best closed share '
+                    'outside fill goes back')
     ap.add_argument('--min_msgs', type=float, default=0.5, help='target: the share of distinct messages per step needed')
     ap.add_argument('--min_alive', type=int, default=4, help='target: fewer families reading above noise goes back')
     ap.add_argument('--lam_rate', type=float, default=0.2, help='target: the weight moves by this times letters - target')

@@ -588,11 +588,25 @@ def test_family_norm_and_contrast_against_none():
     halved, _ = net.loss(eps)
     assert float(halved) == pytest.approx(float(base) / 2, rel=1e-4)
     net.contrast_ref = 'none'
+
+    def no_base():
+        raise AssertionError('the hinge reads the adapter\'s own none')
+    net.base = no_base
     loss, parts = net.loss(eps, contrast=1.0, target=0.2)
     assert {'value', 'value_nf', 'margin', 'margin_n', 'distinct_msgs'} <= set(parts)
     assert 0 < parts['distinct_msgs'] <= 1
     loss.backward()
     assert sum(float(p.grad.abs().sum()) for n, p in net.model.named_parameters() if 'lora_A' in n) > 0
+
+
+def test_a_target_run_goes_back_when_the_value_falls_far_from_its_peak():
+    from types import SimpleNamespace as NS
+    a = NS(collapse_tokens=8.0, min_alive=3, value_keep=0.6, gap_floor=0.1, lost_keep=0.5)
+    assert OT.dev_trouble(.3, .2, 100., a, 8, .25, .48) == 'value'
+    assert OT.dev_trouble(.3, .2, 100., a, 8, .30, .48) == ''
+    assert OT.dev_trouble(.3, .2, 100., a, 8, .25, None) == ''
+    assert OT.dev_trouble(.3, .2, 100., a, 2, .48, .48) == 'dead'
+    assert OT.dev_trouble(.3, .2, 5., a, 8, .48, .48) == 'collapsed'
 
 
 def test_messages_cannot_carry_later_turns():
