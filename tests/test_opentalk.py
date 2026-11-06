@@ -39,8 +39,10 @@ def tiny(seed=0, lora=True):
     return model
 
 
-def net_of(m=4, base_copy=False, merged=False):
+def net_of(m=4, base_copy=False, merged=False, two=False):
     net = OT.Talk(tiny(), O.tok(), m=m)
+    if two:
+        net.read_model = tiny()
     if base_copy:
         net.base_lm = OT.frozen(tiny(lora=False))
     if merged:                                        # the same random base (seed 0), adapter merged in
@@ -265,7 +267,8 @@ def test_end_to_end_on_shards(tmp_path, monkeypatch):
             ep.pop('topk', None)
             recs.append(ep)
         O.write_shards([r for r in recs if r['split'] == split], tmp_path / 'data', split, 0, size=30)
-    monkeypatch.setattr(OT, 'build', lambda *a, **k: net_of(m=3, base_copy=k.get('base_copy'), merged=True))
+    monkeypatch.setattr(OT, 'build', lambda *a, **k: net_of(m=3, base_copy=k.get('base_copy'), merged=True,
+                                                            two=k.get('two', False)))
     monkeypatch.setattr(OT, 'ctrl_ready', lambda gap, gap0, args: True)    # a random model's gap may be <= 0
     out, ckpt = tmp_path / 'out', tmp_path / 'ckpt'
     monkeypatch.setattr(sys, 'argv', ['opentalk.py', '--data', str(tmp_path / 'data'), '--out', str(out), '--ckpt',
@@ -465,7 +468,8 @@ def scripted_run(tmp_path, monkeypatch, devs, steps, *extra):
         ep.pop('topk', None)
         recs.append(ep)
     O.write_shards(recs, tmp_path / 'data', 'train', 0, size=40)
-    monkeypatch.setattr(OT, 'build', lambda *a, **k: net_of(m=3, base_copy=k.get('base_copy'), merged=True))
+    monkeypatch.setattr(OT, 'build', lambda *a, **k: net_of(m=3, base_copy=k.get('base_copy'), merged=True,
+                                                            two=k.get('two', False)))
     monkeypatch.setattr(OT, 'ctrl_ready', lambda gap, gap0, args: True)
     script = iter(devs)
 
@@ -603,7 +607,7 @@ def test_a_target_run_goes_back_when_the_value_falls_far_from_its_peak():
     from types import SimpleNamespace as NS
     a = NS(collapse_tokens=8.0, min_alive=3, value_keep=0.6, gap_floor=0.1, lost_keep=0.5)
     assert OT.dev_trouble(.3, .2, 100., a, 8, .25, .48) == 'value'
-    assert OT.dev_trouble(.3, .2, 100., a, 8, .30, .48) == ''
+    assert OT.dev_trouble(.3, .2, 100., a, 8, .30, .48) == ''         # keep is 0.6 here
     assert OT.dev_trouble(.3, .2, 100., a, 8, .25, None) == ''
     assert OT.dev_trouble(.3, .2, 100., a, 2, .48, .48) == 'dead'
     assert OT.dev_trouble(.3, .2, 5., a, 8, .48, .48) == 'collapsed'
@@ -624,24 +628,106 @@ def test_messages_cannot_carry_later_turns():
         assert all(pos < first_later for pos, g in b['recv'] if g < len(one[0]))
 
 
-def test_a_target_run_holds_and_goes_back_to_the_latest_good_dev(tmp_path, monkeypatch):
+def target_args(*extra):
+    return ('--dev_every', '2', '--protect', '1', '--lam_p', '0', '--letter_charge', 'target', '--contrast_ref', 'none',
+            '--family_norm', '1', '--target0', '0.4', '--target_half', '2', '--target_window', '1', '--value_bar', '-10',
+            '--min_msgs', '0', '--min_alive', '2', '--bias_k', '2', '--lam0', '1', '--lam_min', '0.5', '--log_every', '1',
+            *extra)
+
+
+def test_a_target_run_goes_back_to_its_one_best_checkpoint(tmp_path, monkeypatch):
     monkeypatch.setattr(OT, 'target_open', lambda *a: True)
-    rows = scripted_run(tmp_path, monkeypatch, [(.3, .4, 100., 0.), (.3, .3, 100., 0.), (.0, .01, 100., 0.)], 4,
-                        '--dev_every', '2', '--protect', '1', '--lam_p', '0', '--letter_charge', 'target',
-                        '--contrast_ref', 'none', '--family_norm', '1', '--target0', '0.4', '--target_half', '2',
-                        '--target_window', '1', '--value_bar', '-10', '--min_msgs', '0', '--min_alive', '2',
-                        '--bias_k', '2', '--lam0', '1', '--lam_min', '0.5', '--log_every', '1')
-    steps = [r for r in rows if 'target' in r and 'kl' in r]
-    assert [r['step'] for r in rows if r.get('new_best')] == [0, 2]      # the latest good dev, whatever its letters
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .4, 100., 0.), (.35, .3, 100., 0.), (.33, .3, 100., 0.),
+                                                (.0, .01, 100., 0.)], 6, *target_args())
+    assert [r['step'] for r in rows if r.get('new_best')] == [0, 2]      # by the score only: dev 4 is lower and stays out
     back = next(r for r in rows if r.get('rollback'))
-    assert back['why'] == 'dead' and back['to'] == 2 and back['half'] == 4
-    assert steps[-1]['target'] < 0.4 and steps[-1]['open'] is True
+    assert back['to'] == 2 and back['half'] == 4 and back['why'] == 'dead'
     st = json.loads((tmp_path / 'ckpt' / 'state.json').read_text())
     assert st['family_scale'] == dict(doc=0.5, pair=0.5, fill=0.5, chat_alt=0.5) and st['best']['step'] == 2
     assert st['target'] == pytest.approx(st['best']['target'])           # the target is restored with the weights
-    assert st['best']['target'] < 0.4
     assert st['half'] == 4                                               # the run's end is no second go-back
+    assert json.loads((tmp_path / 'ckpt_best' / 'talk.json').read_text())['step'] == 2
+    assert not (tmp_path / 'ckpt_best.tmp').exists()
     assert json.loads((tmp_path / 'ckpt' / 'talk.json').read_text())['bias'] == 2.0   # 2 * lam0, fixed
+
+
+def test_a_score_far_under_the_best_goes_back_with_every_family_alive(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'target_open', lambda *a: True)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.3, .4, 100., 0.), (.5, .4, 100., 0.)], 4, *target_args())
+    back = next(r for r in rows if r.get('rollback'))
+    assert back['why'] == 'value' and back['to'] == 0
+
+
+def test_a_dev_whose_score_fell_keeps_the_target_shut():
+    from types import SimpleNamespace as NS
+    a = NS(value_bar=.05, min_msgs=.5)
+    full = deque([.5], maxlen=1)
+    assert OT.target_open(full, deque([.5], maxlen=1), deque([.9], maxlen=1), .5, a, .4)
+    assert not OT.target_open(full, deque([.5], maxlen=1), deque([.9], maxlen=1), .5, a, .4, True)
+
+
+def test_the_warm_stage_saves_new_bests_and_ends_on_them(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .4, 100., 0.), (.4, .4, 100., 0.), (.2, .4, 100., 0.)], 4,
+                        *target_args('--warm', '1', '--warm_reader', '1', '--warm_margin', '-1'))
+    assert [r['step'] for r in rows if r.get('new_best')] == [0, 2]
+    assert not any(r.get('rollback') for r in rows)                      # warm never rolls back
+    assert next(r for r in rows if 'ends_on_best' in r)['ends_on_best'] == 2
+
+
+def test_two_adapters_keep_the_jobs_apart(tmp_path, monkeypatch):
+    net, rng = net_of(m=3, two=True, merged=True), random.Random(19)
+    net.chat, net.warm_reader = True, True
+    eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'chat_alt'])]
+    msgs = net.decode(eps)
+    none = lambda: net.reader(eps, msgs, mode='none')[0].tolist()                         # noqa: E731
+    before, was = none(), net.decode(eps)
+    big_adapter(net)                                                     # the writer's adapter moves the messages only
+    assert none() == pytest.approx(before)
+    assert net.decode(eps) != was
+    moved = net.decode(eps)
+    with torch.no_grad():
+        for n, p in net.read_model.named_parameters():
+            if 'lora_B' in n:
+                p.add_(0.3)
+    assert none() != pytest.approx(before)                               # the reader's moves the reading only
+    assert net.decode(eps) == moved
+    with net.base():                                                     # the untrained reader is the reader's adapter off
+        off = none()
+    plain = OT.frozen(tiny(lora=False))
+    assert off == pytest.approx(net.reader(eps, msgs, mode='none', lm=plain)[0].tolist(), rel=0.01)
+    grads = lambda m: sum(float(p.grad.abs().sum()) for p in m.parameters() if p.grad is not None)    # noqa: E731
+    loss, _ = net.warm_loss(eps)
+    loss.backward()
+    assert grads(net.model) > 0 and grads(net.read_model) > 0
+    net.model.zero_grad()
+    net.warm_reader = False
+    net.read_model.zero_grad()
+    loss, _ = net.warm_loss(eps)
+    loss.backward()
+    assert grads(net.model) > 0 and grads(net.read_model) == 0           # the copy's loss never reaches the reader
+    net.model.zero_grad()
+    loss, _ = net.loss(eps)
+    loss.backward()
+    assert grads(net.model) > 0 and grads(net.read_model) > 0            # KL reaches the writer through the soft tokens
+    OT.save(net, tmp_path / 'c')
+    assert (tmp_path / 'c' / 'adapter_reader' / 'adapter_model.safetensors').exists()
+
+
+def test_a_two_adapter_run_resumes_from_a_one_adapter_checkpoint(tmp_path, monkeypatch):
+    first = tmp_path / 'one'
+    first.mkdir()
+    (first / 'ckpt_dir').mkdir()
+    one = net_of(m=3, merged=True)
+    opt = torch.optim.AdamW([p for p in one.model.parameters() if p.requires_grad], lr=1e-4)
+    OT.save(one, first / 'ckpt_dir', dict(step=2, lam=1.0), opt, dict(stage='warm', dev_value=.4, copy_value=.5, target=.4))
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0., .4), (.5, .4, 100., 0., .4)], 5,
+                        *target_args('--two', '1', '--warm', '1', '--warm_reader', '1', '--warm_margin', '1',
+                                     '--resume', str(first / 'ckpt_dir')))
+    starts = next(r for r in rows if 'resumed' in r)
+    assert starts['optimizer'] is False                                  # two groups cannot take a one-group state
+    assert next(r for r in rows if r.get('new_best'))['step'] == 2       # the rollback point exists from the first step
+    assert any(r.get('warm_done') for r in rows)
+    assert (tmp_path / 'ckpt' / 'adapter_reader').exists() and (tmp_path / 'ckpt_best' / 'adapter_reader').exists()
 
 
 def chat_net(m=4):
@@ -762,7 +848,7 @@ def test_a_resumed_part_can_start_with_a_dev_and_never_goes_back_from_it(tmp_pat
                         str(tmp_path / 'ckpt'), '--dev_first', '1')
     assert [r['step'] for r in rows if isinstance(r.get('dev'), dict)] == [2, 4]
     assert not any(r.get('rollback') for r in rows)                      # dead at its first dev: nothing to go back from
-    assert [r['step'] for r in rows if r.get('new_best')] == [4]
+    assert not any(r.get('new_best') for r in rows)                      # .3 only equals the first part's best
 
 
 def test_warm_targets_are_exactly_m_allowed_tokens_and_the_writer_learns_them():
@@ -811,5 +897,5 @@ def test_the_writer_warm_starts_until_it_nears_the_copy_then_trains_in_full(tmp_
     assert [r['stage'] for r in steps] == ['warm', 'warm', 'full', 'full']
     assert 'ce' in steps[0] and 'ce' not in steps[-1] and 'kl' in steps[-1]
     assert not any(r.get('rollback') for r in rows)
-    assert [r['step'] for r in rows if r.get('new_best')][0] == 2        # the dev that ends the warm start is the fallback
+    assert [r['step'] for r in rows if r.get('new_best')] == [0, 2, 4]   # new bests are saved in the warm stage too
     assert json.loads((tmp_path / 'ckpt' / 'state.json').read_text())['stage'] == 'full'

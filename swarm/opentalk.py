@@ -52,10 +52,20 @@ target stays shut until it does, outside fill.
 
 --warm 1: the writer's warm start, before any of the above. It learns by plain cross-entropy to write literal copies
 (Talk.warm_loss: policy target), teacher-forced in one pass, with no decode and no reader; the teacher's answer only picks
-the targets and the writer never sees it. One LoRA does both jobs, so copying alone wrecks the answers (at dev 500 the
-adapter's none doubled on chat_alt): --warm_reader 1 also trains the reader on the same copies. When a dev finds the writer within --warm_margin of the head copy's closed
-share outside fill, the run goes on with the full loss. A damaged adapter's own none flatters what it closes, so every
-gate measures against the better of its none and the untrained model's (closed_fair, copy_POLICY_fair).
+the targets and the writer never sees it. --warm_reader 1 also trains the reader on the same copies. When a dev finds the
+writer within --warm_margin of the head copy's closed share outside fill, the run goes on with the full loss. A damaged
+adapter's own none flatters what it closes, so every gate measures against the better of its none and the untrained
+model's (closed_fair, copy_POLICY_fair).
+
+--two 1: separate LoRAs for the writer and the reader. In the chat format a message and an answer are both assistant turns
+with the same opening, so one LoRA doing both jobs loses whichever has no loss on it: copying alone doubled the answers' none
+(dev 500), and KL alone turned messages into answers (dev 1000). Writer: message positions and the decoding copy. Reader:
+answer positions. In the full stage the writer runs at --writer_lr of the learning rate, because Adam scales its weak
+gradient through the soft tokens up to full-size steps.
+
+--protect with a target run keeps one best checkpoint (<ckpt>_best), by the writer's closed share outside fill, written
+only at a new best, in any stage. A dev under --value_keep of it goes back to it. A dev whose share fell by more than
+--value_noise since the last dev is not good: the letter target stays shut until a dev that did not fall.
 
 Dev (every --dev_every steps; --dev_n episodes per family, carved from the training records and never trained on),
 hard messages only, per family: KL per answer token with the messages (on), with the received messages of another
@@ -71,7 +81,9 @@ Writes OUT/log.jsonl (also printed), OUT/scores.json and CKPT/adapter.
 import argparse
 import json
 import math
+import os
 import random
+import shutil
 import subprocess
 import sys
 import time
@@ -311,6 +323,7 @@ class Talk:
         self.chat = False                              # --format chat: plain chat transcripts (no system line, no frame)
         self.talk_max = 0                              # message turns per task turn at most (fit; 0: as the data says)
         self.warm_reader = False                       # warm_loss also trains the reader on the literal copies
+        self.read_model = None                         # --two: the reader's own LoRA model (self.model then only writes)
         self.base_lm = None                            # the untrained model as a separate frozen copy (privacy)
         self.dec = None                                # a plain copy holding base + LoRA merged, for decoding
         self.fast_eps, self.fast_T, self._fast = 0, 0, {}   # the fast decode cache (off: 0 episodes)
@@ -334,6 +347,10 @@ class Talk:
         return self.model.get_base_model() if hasattr(self.model, 'get_base_model') else self.model
 
     @property
+    def read_lm(self):
+        return self.lm if self.read_model is None else self.read_model.get_base_model()
+
+    @property
     def device(self):
         return self.lm.model.embed_tokens.weight.device
 
@@ -349,8 +366,9 @@ class Talk:
         return self._ids[text]
 
     def base(self):
-        """The untrained model (the adapter off), as a context."""
-        return self.model.disable_adapter() if hasattr(self.model, 'disable_adapter') else O._Null()
+        """The untrained model in the reader's seat (the reader's adapter off), as a context."""
+        m = self.model if self.read_model is None else self.read_model
+        return m.disable_adapter() if hasattr(m, 'disable_adapter') else O._Null()
 
     # ---------------------------------------------------------------------------------------------- transcripts
 
@@ -727,7 +745,7 @@ class Talk:
         perm: received messages from episode perm[i] (its messages from the same seat, cycled). mode none: no
         conversation. lm: another model as the reader (the frozen base_lm)."""
         seqs, puts, keys, tgt = [], ([], [], []), [], []
-        L = lm or self.lm
+        L = lm or self.read_lm
         for i, ep in enumerate(eps):
             j = perm[i] if perm is not None else i
             for x in 'AB':
@@ -855,24 +873,29 @@ def enumerate_msgs(msgs):
     return list(enumerate(m for turn in msgs for m in turn))
 
 
-def build(device, base=BASE, rank=16, ckpt=None, m=32, gc=True, base_copy=False, merged=True):
+def build(device, base=BASE, rank=16, ckpt=None, m=32, gc=True, base_copy=False, merged=True, two=False):
     """The Talk net: base in bf16 (sdpa) with a fresh LoRA on every linear layer (or the one saved at ckpt);
-    base_copy: also a frozen copy of the base as base_lm (the privacy reader); merged: a decoding copy (sync_dec)."""
+    base_copy: also a frozen copy of the base as base_lm (the privacy reader); merged: a decoding copy (sync_dec);
+    two: a separate reader model with its own LoRA (always when ckpt saved one)."""
     from peft import LoraConfig, PeftModel, get_peft_model
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(base)
 
     def load():
         return AutoModelForCausalLM.from_pretrained(base, dtype=torch.bfloat16, attn_implementation='sdpa').to(device)
-    model = load()
-    if ckpt is not None and (Path(ckpt) / 'adapter').exists():
-        model = PeftModel.from_pretrained(model, str(Path(ckpt) / 'adapter'), is_trainable=True)
-    else:
-        model = get_peft_model(model, LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=0.0, target_modules=[
-            'q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']))
-    if gc:
-        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs=dict(use_reentrant=False))
-    net = Talk(model, tok, m=m)
+
+    def adapted(sub):
+        if ckpt is not None and (Path(ckpt) / sub).exists():
+            lm = PeftModel.from_pretrained(load(), str(Path(ckpt) / sub), is_trainable=True)
+        else:
+            lm = get_peft_model(load(), LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=0.0, target_modules=[
+                'q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']))
+        if gc:
+            lm.gradient_checkpointing_enable(gradient_checkpointing_kwargs=dict(use_reentrant=False))
+        return lm
+    net = Talk(adapted('adapter'), tok, m=m)
+    if two or (ckpt is not None and (Path(ckpt) / 'adapter_reader').exists()):
+        net.read_model = adapted('adapter_reader')
     if base_copy:
         net.base_lm = frozen(load(), gc)
     if merged:
@@ -896,6 +919,8 @@ def save(net, ckpt, extra=None, opt=None, state=None):
     ckpt = Path(ckpt)
     ckpt.mkdir(parents=True, exist_ok=True)
     net.model.save_pretrained(str(ckpt / 'adapter'))
+    if net.read_model is not None:
+        net.read_model.save_pretrained(str(ckpt / 'adapter_reader'))
     (ckpt / 'talk.json').write_text(json.dumps({**dict(m=net.m, bias=net.bias, tau=net.tau, symbols=net.symbols),
                                                 **(extra or {})}))
     if opt is not None:
@@ -948,6 +973,8 @@ def evaluate(net, eps, bs=8, base=False, examples=3, readers=(), copies=()):
     res, all_toks = {}, []
     was = net.model.training
     net.model.eval()
+    if net.read_model is not None:
+        net.read_model.eval()
     for f, xs in sorted(fams.items()):
         xs = sorted(xs, key=lambda e: e['length'])
         acc = defaultdict(dict)
@@ -1025,6 +1052,8 @@ def evaluate(net, eps, bs=8, base=False, examples=3, readers=(), copies=()):
         d['examples'] = ex
         res[f] = d
     net.model.train(was)
+    if net.read_model is not None:
+        net.read_model.train(was)
     flat = torch.tensor([t for m_ in all_toks for t in m_])
     fam = [v for v in res.values() if 'gap' in v]
     res['_all'] = dict(letters=round(mean(net.letters_of(all_toks)), 4), distinct=int(len(torch.unique(flat))),
@@ -1155,12 +1184,12 @@ def target_step(target, lam, letters, opened, half, args):
     return max(args.target_end, target * 0.5 ** (1 / half)), lam
 
 
-def target_open(value, margin, distinct, dev_value, args, copy_value=None):
+def target_open(value, margin, distinct, dev_value, args, copy_value=None, fell=False):
     """Whether the letter target may fall. Messages help outside fill: the last dev's closed share and the mean over
     the last --target_window steps both reach --value_bar, and the dev's beats a literal copy's (copy_value). Messages
     are not constant: the steps' mean share of distinct messages reaches --min_msgs, and at least half of the help goes
-    when another episode's messages are read."""
-    if len(value) < value.maxlen or dev_value is None or dev_value < args.value_bar:
+    when another episode's messages are read. fell: the last dev's share fell, so it was not a good dev."""
+    if fell or len(value) < value.maxlen or dev_value is None or dev_value < args.value_bar:
         return False
     if copy_value is not None and dev_value <= copy_value:
         return False
@@ -1227,24 +1256,33 @@ def train(net, args, log):
             rest.append(ep)
     data.recs, data.pos = rest, 0
     lora = [p for p in net.model.parameters() if p.requires_grad]
-    opt = torch.optim.AdamW(lora, lr=args.lr, weight_decay=0.0)
+    groups = [dict(params=lora)]
+    if net.read_model is not None:
+        groups.append(dict(params=[p for p in net.read_model.parameters() if p.requires_grad]))
+    opt = torch.optim.AdamW(groups, lr=args.lr, weight_decay=0.0)
+    stage = 'warm' if args.warm else 'full'          # warm: the writer learns to copy; full: the whole loss
     warm = [0]                                       # steps the warmup counts as done (a resumed optimizer)
     lr_scale = [1.0]                                 # halved by each go-back to the best weights
     lr_at = lambda s: min(1, (s + 1 + warm[0]) / 50) * lr_scale[0]                      # noqa: E731
-    sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_at)
+
+    def schedule():
+        if net.read_model is None:
+            return torch.optim.lr_scheduler.LambdaLR(opt, lr_at)
+        return torch.optim.lr_scheduler.LambdaLR(opt, [lambda s: lr_at(s) * (args.writer_lr if stage == 'full' else 1.0),
+                                                       lr_at])
+    sched = schedule()
     log(dict(train=len(rest), dev=len(dev), dev_families=seen, allowed=int(net.allowed.sum()),
              letters=int(net.letter.sum()), letter_free=int((net.allowed & ~net.letter).sum()),
-             trainable=sum(p.numel() for p in lora), cut_at_degenerate=data.cuts))
+             trainable=sum(p.numel() for g in groups for p in g['params']), cut_at_degenerate=data.cuts))
     feed = batches(data, net, args, rng)
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
     anchored = None
     target_mode = args.letter_charge == 'target'
     target, half, dev_value, copy_value = args.target0, args.target_half, None, None   # target and its halving time
-    peak = None                                      # the best closed share outside fill at a good dev
+    prev_value, fell = None, False                   # the last dev's share outside fill, and whether it fell to there
     gate_v, gate_m, gate_d, gate_l = (deque(maxlen=args.target_window) for _ in range(4))
     copies = ('head', 'best', 'target') if args.dev_copy else ()
-    stage = 'warm' if args.warm else 'full'          # warm: the writer learns to copy; full: the whole loss
     lam_from, ramp_t0, lam_now = 0.0, None, 0.0      # the weight in force moves from lam_from to lam from ramp_t0
     best, rollbacks, last_dev, force_dev, watch_on = None, 0, None, False, True
     roll_d, roll_m = deque(maxlen=args.watch_steps), deque(maxlen=args.watch_steps)
@@ -1253,12 +1291,21 @@ def train(net, args, log):
     first = 0                                        # the step this part of the run started at
     dec_train = 0                                    # message tokens decoded in training steps (not in devs)
     skip_dev = None
-    if args.resume:                                  # the adapter, controller and data position of a checkpoint
+
+    def load_weights(B):
+        """The writer's adapter and the reader's from a checkpoint (the reader starts from the writer's if it saved one)."""
         from peft import set_peft_model_state_dict
         from safetensors.torch import load_file
-        R = Path(args.resume)
-        set_peft_model_state_dict(net.model, load_file(str(R / 'adapter' / 'adapter_model.safetensors')))
+        B = Path(B)
+        set_peft_model_state_dict(net.model, load_file(str(B / 'adapter' / 'adapter_model.safetensors')))
+        if net.read_model is not None:
+            sub = 'adapter_reader' if (B / 'adapter_reader').exists() else 'adapter'
+            set_peft_model_state_dict(net.read_model, load_file(str(B / sub / 'adapter_model.safetensors')))
         net.sync_dec()
+
+    if args.resume:                                  # the adapter, controller and data position of a checkpoint
+        R = Path(args.resume)
+        load_weights(R)
         step, lam = int(talk['step']), float(talk.get('lam', 0.0))
         net.bias, net.symbols = float(talk.get('bias', 0.0)), bool(talk.get('symbols', False))
         ref, ok, gap0 = st.get('ref'), bool(st.get('ok', False)), st.get('gap0')
@@ -1268,13 +1315,14 @@ def train(net, args, log):
         best, rollbacks, lr_scale[0] = st.get('best'), st.get('rollbacks', 0), st.get('lr_scale', 1.0)
         target, half, dev_value = st.get('target', target), st.get('half', half), st.get('dev_value')
         copy_value, stage = st.get('copy_value'), st.get('stage', stage)
-        peak = st.get('peak', dev_value if stage == 'full' else None)
+        prev_value, fell = st.get('prev_value', dev_value), st.get('fell', False)
         net.family_scale = st.get('family_scale', net.family_scale)
-        optimizer = (R / 'optim.pt').exists()
+        optimizer = (R / 'optim.pt').exists() and (R / 'adapter_reader').exists() == (net.read_model is not None)
         if optimizer:
             opt.load_state_dict(torch.load(R / 'optim.pt', map_location=net.device))
+        if (R / 'optim.pt').exists():                # a fresh optimizer on trained weights takes no warmup either
             warm[0] = step
-        sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_at)
+        sched = schedule()
         for _ in range(step * micros):               # the micro-batches the first part trained on
             next(feed)
         first = step                                 # its dev at this step has run and set the controller
@@ -1286,26 +1334,39 @@ def train(net, args, log):
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
                     anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
                     lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value, copy_value=copy_value,
-                    family_scale=net.family_scale, stage=stage, peak=peak)
+                    family_scale=net.family_scale, stage=stage, prev_value=prev_value, fell=fell)
 
     def go_back(slower=True):
         """The best weights and optimizer state, and the weight, bias and tau they were measured at."""
-        nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value, copy_value
-        from peft import set_peft_model_state_dict
-        from safetensors.torch import load_file
+        nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value, copy_value, prev_value, fell
         B = Path(best['path'])
-        set_peft_model_state_dict(net.model, load_file(str(B / 'adapter' / 'adapter_model.safetensors')))
-        net.sync_dec()
+        load_weights(B)
         opt.load_state_dict(torch.load(B / 'optim.pt', map_location=net.device))
         lam = lam_now = lam_from = best['lam']
         ramp_t0 = None
         net.bias = best['bias']
         if target_mode:                              # letters fell too fast for the messages: half the pace from there
             target, half, dev_value = best['target'], half * 2 if slower else half, best.get('dev_value')
-            copy_value = best.get('copy_value')
+            copy_value, prev_value, fell = best.get('copy_value'), best.get('dev_value'), False
             for q in (gate_v, gate_m, gate_d, gate_l):
                 q.clear()
+
+    def save_best(gap, charge, lam_b, bias_b):
+        """The one best checkpoint, swapped in whole: a crash while saving leaves the old one."""
+        nonlocal best
+        path = str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best'))
+        best = dict(step=step, gap=gap, charge=charge, lam=lam_b, bias=bias_b, path=path, target=target,
+                    dev_value=dev_value, copy_value=copy_value)
+        save(net, path + '.tmp', dict(step=step, lam=lam_b, bias=bias_b), opt, ckpt_state())
+        shutil.rmtree(path, ignore_errors=True)
+        os.replace(path + '.tmp', path)
+        log(dict(step=step, new_best=True, gap=gap, charge=charge, lam=lam_b, value_nf=dev_value))
+
+    if args.resume and target_mode and args.protect and best is None and dev_value is not None:
+        save_best(st.get('gap0'), None, lam, net.bias)   # a rollback point from the first step on
     net.model.train()
+    if net.read_model is not None:
+        net.read_model.train()
     while True:
         frac = min(1.0, step / args.steps)
         net.tau = args.tau0 * (args.tau1 / args.tau0) ** frac
@@ -1330,6 +1391,9 @@ def train(net, args, log):
             gap0 = gap if gap0 is None else gap0
             fair = any('closed_fair' in v for f, v in d.items() if not f.startswith('_'))
             dev_value = value_outside_fill(d, 'closed_fair' if fair else 'closed')
+            fell = bool(target_mode and prev_value is not None and dev_value is not None
+                        and dev_value < prev_value - args.value_noise)
+            prev_value = dev_value
             copy_value = value_outside_fill(d, 'copy_head_fair' if fair else 'copy_head_closed')
             alive = families_alive(d, args.read_z)
             d['_all'].update(value_nf=dev_value, copy_head_nf=copy_value, alive=alive,
@@ -1384,8 +1448,9 @@ def train(net, args, log):
                 log(dict(step=step, lam_p_halved=round(lam_p_max, 5), gap=gap))
             log(dict(step=step, tau=round(net.tau, 3), lam=lam, lam_now=round(lam_now, 5), dev=d,
                      dev_s=round(time.monotonic() - t0), s=round(time.monotonic() - started)))
-            if args.protect and stage == 'full':
-                why = '' if switched else dev_trouble(gap, ref, eff, args, alive if target_mode else None, dev_value, peak)
+            if args.protect and (stage == 'full' or target_mode):
+                why = '' if switched or stage != 'full' else dev_trouble(
+                    gap, ref, eff, args, alive if target_mode else None, dev_value, best and best.get('dev_value'))
                 if why and best is not None and step != first:   # a part's first dev has trained nothing to undo
                     go_back()
                     rollbacks += 1
@@ -1397,21 +1462,25 @@ def train(net, args, log):
                              bias=net.bias, lr=args.lr * lr_scale[0], rollbacks=rollbacks, target=target, half=half,
                              alive=alive))
                 elif not why:
-                    if dev_value is not None:
-                        peak = max(peak or dev_value, dev_value)
                     charge = d['_all'].get('charge', letters)
-                    if target_mode or best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
-                        path = str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best'))
-                        best = dict(step=step, gap=gap, charge=charge, lam=lam_dev, bias=bias_dev, path=path,
-                                    target=target, dev_value=dev_value, copy_value=copy_value)
-                        save(net, path, dict(step=step, lam=lam_dev, bias=bias_dev), opt, ckpt_state())
-                        log(dict(step=step, new_best=True, gap=gap, charge=charge, lam=lam_dev, letters=letters))
+                    if target_mode:
+                        better = dev_value is not None and (best is None or best.get('dev_value') is None
+                                                            or dev_value > best['dev_value'])
+                    else:
+                        better = best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']
+                    if better:
+                        save_best(gap, charge, lam_dev, bias_dev)
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
         if stop or step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
-            if args.protect and stage == 'full' and best is not None and best['step'] != step:   # ends on its best weights
-                go_back(slower=False)
-                log(dict(step=step, ends_on_best=best['step'], gap=best['gap']))
+            if args.protect and (stage == 'full' or target_mode) and best is not None and best['step'] != step:
+                if (target_mode and target < best.get('target', target) and not fell
+                        and (Path(args.ckpt) / 'adapter').exists()):
+                    load_weights(args.ckpt)                 # letters fell since the best: the last dev's, at its lower letters
+                    log(dict(step=step, ends_on_dev=True, best=best['step'], target=target))
+                else:
+                    go_back(slower=False)                   # ends on its best weights
+                    log(dict(step=step, ends_on_best=best['step'], gap=best['gap']))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             log(dict(step=step, done=True, s=round(time.monotonic() - started), rollbacks=rollbacks,
                      best=best and best['step']))
@@ -1447,7 +1516,8 @@ def train(net, args, log):
         util.on = False
         if not parts_all:
             continue
-        torch.nn.utils.clip_grad_norm_(lora, 1.0)
+        for g in opt.param_groups:
+            torch.nn.utils.clip_grad_norm_(g['params'], 1.0)
         opt.step()
         sched.step()
         opt.zero_grad(set_to_none=True)
@@ -1468,7 +1538,7 @@ def train(net, args, log):
                 vals = [p[k] for p in parts_all if k in p]
                 if vals:
                     q.append(mean(vals))
-            opened = target_open(gate_v, gate_m, gate_d, dev_value, args, copy_value)
+            opened = target_open(gate_v, gate_m, gate_d, dev_value, args, copy_value, fell)
             target, lam = target_step(target, lam, mean(p['letters_soft'] for p in parts_all), opened, half, args)
             if opened:
                 target = min(target, mean(gate_l) + TARGET_SLACK)
@@ -1547,8 +1617,13 @@ def main():
     ap.add_argument('--target_end', type=float, default=0.01, help='target: the lowest target')
     ap.add_argument('--target_window', type=int, default=30, help='target: the steps the training help is averaged over')
     ap.add_argument('--value_bar', type=float, default=0.15, help='target: the closed share outside fill that opens it')
-    ap.add_argument('--value_keep', type=float, default=0.6, help='target: a dev under this share of the best closed share '
-                    'outside fill goes back')
+    ap.add_argument('--value_keep', type=float, default=0.8, help='target: a dev under this share of the best closed share '
+                    'outside fill goes back to it')
+    ap.add_argument('--value_noise', type=float, default=0.01, help='target: a fall in the closed share outside fill '
+                    'since the last dev, past this, means that dev was not good and the target stays shut')
+    ap.add_argument('--two', type=int, default=0, help='1: separate LoRAs for the writer and the reader')
+    ap.add_argument('--writer_lr', type=float, default=0.1, help='two: the writer\'s share of the learning rate in the '
+                    'full stage')
     ap.add_argument('--min_msgs', type=float, default=0.5, help='target: the share of distinct messages per step needed')
     ap.add_argument('--min_alive', type=int, default=4, help='target: fewer families reading above noise goes back')
     ap.add_argument('--lam_rate', type=float, default=0.2, help='target: the weight moves by this times letters - target')
@@ -1601,7 +1676,7 @@ def main():
     log(dict(args=vars(args)))
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     net = build(device, args.base, args.rank, args.ckpt if 'train' not in args.parts else None, args.m,
-                base_copy='train' in args.parts and args.lam_p > 0)
+                base_copy='train' in args.parts and args.lam_p > 0, two=bool(args.two))
     net.charge = args.letter_charge
     net.contrast_ref = args.contrast_ref
     net.chat, net.talk_max, net.warm_reader = args.format == 'chat', args.talk_max, bool(args.warm_reader)
