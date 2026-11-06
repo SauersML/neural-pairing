@@ -2,7 +2,7 @@
 swarm/opendata.py's records and cached teacher rows: records become walker visits and a reader conversation with a
 teacher row on every answer token, the KL loss trains and reaches the crumbs (the same with gradient checkpointing),
 a teacher equal to the reader gives KL 0, a turn without a teacher gives the cross-entropy, and the evaluation reports
-every mode, turn and visit count."""
+every mode, turn, visit count and group of families; training goes round the records pass after pass."""
 import json
 from pathlib import Path
 import sys
@@ -187,6 +187,13 @@ def test_evaluate_open_reports(tok, monkeypatch):
     assert {1, 'all'} <= set(seen['by_visit']) <= set(CO.VISITS_AT) | {'all'}
     assert abs(seen['by_visit']['all']['on'] - seen['on']) < 1e-9
     assert set(seen['by_source']) == {'src0', 'src1'} and set(seen['by_family']) == {'doc', 'chat_alt'}
+    # by_group: the families pooled (doc leaky; chat_alt clean and real), each as summarize() gives it
+    groups = seen['by_group']
+    assert set(groups) == {'leaky', 'clean', 'real'}
+    assert [groups[g]['episodes'] for g in ('leaky', 'clean', 'real')] == [2, 1, 1]
+    for g, f in (('leaky', 'doc'), ('real', 'chat_alt')):
+        assert abs(groups[g]['closed_on'] - seen['by_family'][f]['closed_on']) < 1e-9
+        assert set(groups[g]['by_turn']) and 'all' in groups[g]['by_visit'] and 'by_source' not in groups[g]
     json.dumps(res)
     one = CO.score_batch(net, [CO.episode(net, recs[0], 64, 4)], 'cpu', zero=False)[0]
     assert one['visits'] == 4 and set(one['by_visit']) == {1, 2}
@@ -197,3 +204,17 @@ def test_evaluate_open_reports(tok, monkeypatch):
     # dev: the KL with the crumbs on and cut over the dev episodes
     on, more = CO.dev_kl(net, [CO.episode(net, r, 64, 4) for r in recs[:3]], 'cpu')
     assert abs(on - seen['on']) < 1e-4 and abs(more['dev_cut'] - seen['cut']) < 1e-3
+
+
+def test_passes_go_round():
+    """passes(): the training records pass after pass, each new pass in its own order, the skipped ids and the ones
+    that do not fit left out of every pass; a pass that gives nothing ends it."""
+    recs = [dict(id=f'r{i}') for i in range(5)]
+    first = iter(recs)
+    next(first)                                         # the dev drew r0 already
+    order = lambda n: iter(recs[::-1] if n % 2 == 0 else recs)
+    new = []
+    got = CO.passes(first, order, {'r0'}, lambda r: None if r['id'] == 'r2' else r['id'], new.append)
+    assert [next(got) for _ in range(9)] == ['r1', 'r3', 'r4', 'r4', 'r3', 'r1', 'r1', 'r3', 'r4']
+    assert new == [2, 3]
+    assert list(CO.passes(iter(recs), order, {'r0'}, lambda r: None)) == []

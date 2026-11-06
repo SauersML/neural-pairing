@@ -7,22 +7,24 @@ each of its task turns' requests, and the teacher's answer to each. Every answer
 (the frozen base model, which saw both sides; its top-32 cached with the records, opendata.Episodes(teacher=True), so
 the teacher never runs here) by KL(teacher || reader) on the teacher's top-32 plus one bucket for every other token.
 Fill-in turns (no teacher, real text) use the text itself as a one-hot teacher, so the KL there is the cross-entropy.
-The reader is the side named B unless B has no task turn. Crumbs come from the kv arm of swarm/crumbs.py: m slot
-tokens per visit (--source slots), or the keys and values of the visit's own part (sentence). Training: LoRA with
-gradient checkpointing, batches of episodes of similar length (sorted pools of POOL batches), a dev of 32 training
-episodes (KL with the crumbs on and cut) every 200 steps, and the GPU's utilization logged at step 20 and every 100
-steps (OUT/gpu.jsonl).
+The reader is the side named B unless B has no task turn. Crumbs come from the kv arm of swarm/crumbs.py: m slot tokens
+per visit (--source slots), or the keys and values of the visit's own part (sentence). Training: LoRA with gradient
+checkpointing, batches of episodes of similar length (sorted pools of POOL batches; when a pass over the training
+records ends before --steps, the next starts in a new order), a dev of 32 training episodes (KL with the crumbs on and
+cut) every 200 steps, and the GPU's utilization logged at step 20 and every 100 steps (OUT/gpu.jsonl).
 
 Evaluation, per split (eval_seen, eval_heldout): the reader's KL per answer token with the crumbs on, cut and
-transplanted (each record reads the next record's crumbs), and the share of the cut KL that the crumbs close, (cut -
-on) / cut. These are given overall, per source and family, by the reader's turn index and by visit count (only the
-walker's first v visits, v in VISITS_AT, and all of them). Beside them are the same with no training: the adapter off
-and the crumbs the parts' own keys and values. Writes OUT/log.jsonl, OUT/gpu.jsonl, OUT/trained.pt, OUT/scores.json.
+transplanted (each record reads the next record's crumbs), and the share of the cut KL that the crumbs close, (cut - on)
+/ cut. These are given overall, per source, family and group of families (GROUPS), by the reader's turn index and by
+visit count (only the walker's first v visits, v in VISITS_AT, and all of them). Beside them are the same with no
+training: the adapter off and the crumbs the parts' own keys and values. Writes OUT/log.jsonl, OUT/gpu.jsonl,
+OUT/trained.pt, OUT/scores.json.
 Usage: python swarm/crumb_open.py --data DIR --out OUT [--base Qwen/Qwen3-1.7B --source slots --m 16 --steps 1500]
 (DIR: opendata's folder for the teacher model, holding shards/ and teacher/)"""
 import argparse
 import contextlib
 import importlib
+import itertools
 import json
 from pathlib import Path
 import random
@@ -47,6 +49,11 @@ VISITS_AT = (1, 2, 4)                                   # by_visit: the walker's
 VSAME = 4                                               # by_visit_same: records with at least this many visits
 POOL = 16                                               # batches per length-sorted training pool
 N_DEV, DEV_EVERY = 32, 200
+# by_group: families pooled. leaky: those whose requests the hand check found naming details only the hidden half
+# holds; clean: the rest; real: the families with no simulated request at all (every user turn is real text). Every
+# simulated user is shown the hidden half (opendata.sim_prompt), debug's and plan's too.
+GROUPS = dict(leaky=('doc', 'pair', 'code', 'chat_doc'), clean=('chat_alt', 'fill', 'debug', 'plan'),
+              real=('chat_alt', 'fill'))
 
 
 def od():
@@ -244,8 +251,27 @@ def records(data, split, seed):
     return od().Episodes(data, split, seed=seed, teacher=True)
 
 
+def passes(first, more, skip, fits, on_pass=None):
+    """Training episodes, pass after pass over the training records: first (their iterator, maybe started), then
+    more(n) for pass n (the records in a new order). Records whose id is in skip are left out, and so are those
+    fits(rec) turns down (None); a whole pass that gives none ends it. on_pass(n) is called as pass n starts."""
+    it, n = first, 1
+    while True:
+        used = 0
+        for rec in it:
+            if rec['id'] not in skip and (ep := fits(rec)) is not None:
+                used += 1
+                yield ep
+        if not used:
+            return
+        n += 1
+        if on_pass is not None:
+            on_pass(n)
+        it = more(n)
+
+
 def evaluate_open(net, device, data, n, part_tokens, most, bs=4, seed=7, zero=True):
-    """summarize() per split over its first n records that fit (also per family)."""
+    """summarize() per split over its first n records that fit (also per family and per group of families)."""
     net.eval()
     out = {}
     for split in SPLITS:
@@ -264,6 +290,13 @@ def evaluate_open(net, device, data, n, part_tokens, most, bs=4, seed=7, zero=Tr
             out[split]['by_family'] = {f: {k: v for k, v in summarize([r for r in per if r['family'] == f]).items()
                                            if not isinstance(v, dict)}
                                        for f in sorted({r['family'] for r in per})}
+            out[split]['by_group'] = {}
+            for g, fams in GROUPS.items():
+                rows = [r for r in per if r['family'] in fams]
+                if rows:
+                    got = summarize(rows)
+                    got.pop('by_source')
+                    out[split]['by_group'][g] = dict(got, episodes=len(rows))
     net.train()
     return out
 
@@ -339,6 +372,15 @@ def main():
             dev.append(ep)
         if len(dev) >= N_DEV:
             break
+    epochs = [1]
+
+    def new_pass(n):
+        epochs.append(n)
+        print(json.dumps(dict(epoch=n, step=drawn[0] // args.batch + 1)), flush=True)
+
+    train_eps = passes(train_recs, lambda n: records(args.data, 'train', args.seed + 1000 * (n - 1)),
+                       {ep['open']['id'] for ep in dev}, lambda r: episode(net, r, args.part_tokens, args.visits),
+                       new_pass)
     gpu, marks, pool, drawn = GpuLog(), {}, [], [0]
     shuffle = random.Random(args.seed + 1)
     log = open(out / 'gpu.jsonl', 'a')
@@ -355,13 +397,7 @@ def main():
             log.flush()
 
     def fill():
-        got = []
-        for rec in train_recs:
-            ep = episode(net, rec, args.part_tokens, args.visits)
-            if ep is not None:
-                got.append(ep)
-            if len(got) >= POOL * args.batch:
-                break
+        got = list(itertools.islice(train_eps, POOL * args.batch))
         got.sort(key=lambda e: e['open']['tokens'])
         chunks = [got[i:i + args.batch] for i in range(0, len(got), args.batch)]
         shuffle.shuffle(chunks)
@@ -389,7 +425,7 @@ def main():
                               micro=args.micro, min_steps=args.steps, every=args.every, dev=dev,
                               dev_fn=lambda n, d: dev_kl(n, d, args.device))
         torch.save(dict(steps_run=ran, dev_nll=record, weights=C.kept(net)), out / 'trained.pt')
-    scores = dict(vars(args), steps_run=ran, dev_kl=record,
+    scores = dict(vars(args), steps_run=ran, epochs=epochs[-1], dev_kl=record,
                   test=evaluate_open(net, args.device, args.data, args.n_eval, args.part_tokens, args.visits))
     (out / 'scores.json').write_text(json.dumps(scores, indent=1))
     print(json.dumps({s: {k: v for k, v in (r or {}).items() if not isinstance(v, dict)}
