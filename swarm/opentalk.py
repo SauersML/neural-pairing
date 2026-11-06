@@ -54,6 +54,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+from collections import Counter, defaultdict, deque
 from pathlib import Path
 
 import torch
@@ -401,8 +402,14 @@ class Talk:
         toks = [t for ids in msgs for t in ids]
         for t in set(toks) - self._filler.keys():
             self._filler[t] = is_filler(self.tok.decode([t]))
+        shares = [c / len(ids) for c, ids in zip(counts, msgs)]
+        charge = mean(math.sqrt(x + CHARGE_EPS) for x in shares) if self.charge == 'sqrt' else mean(shares)
+        n = len(toks)
+        entropy = -sum(v / n * math.log(v / n) for v in Counter(toks).values())
         return dict(letters_per_msg=round(mean(counts), 3), no_letter_msgs=round(mean(c == 0 for c in counts), 4),
-                    filler=round(mean(self._filler[t] for t in toks), 4))
+                    filler=round(mean(self._filler[t] for t in toks), 4), charge=round(charge, 4),
+                    eff_tokens=round(math.exp(entropy), 1),
+                    distinct_msgs=round(len({tuple(ids) for ids in msgs}) / len(msgs), 4))
 
     def hard_logits(self, h, lm=None, rows=None):
         """Logits over the allowed vocabulary, the letter bias taken off the letters after each row's pending bytes
@@ -709,8 +716,8 @@ def save(net, ckpt, extra=None, opt=None, state=None):
     ckpt = Path(ckpt)
     ckpt.mkdir(parents=True, exist_ok=True)
     net.model.save_pretrained(str(ckpt / 'adapter'))
-    (ckpt / 'talk.json').write_text(json.dumps(dict(m=net.m, bias=net.bias, tau=net.tau, symbols=net.symbols,
-                                                    **(extra or {}))))
+    (ckpt / 'talk.json').write_text(json.dumps({**dict(m=net.m, bias=net.bias, tau=net.tau, symbols=net.symbols),
+                                                **(extra or {})}))
     if opt is not None:
         torch.save(opt.state_dict(), ckpt / 'optim.pt')
     if state is not None:
@@ -734,11 +741,23 @@ def fit(ep, net, max_len):
     return dict(ep, turns=out, topk={j: v for j, v in ep.get('topk', {}).items() if j < k}, length=n)
 
 
+def paired_se(a, b):
+    """The standard error of the mean per-token difference a - b over the (episode, turn) keys both hold, each a
+    (summed KL, tokens)."""
+    diffs = [a[k][0] / a[k][1] - b[k][0] / b[k][1] for k in a.keys() & b.keys() if a[k][1] and b[k][1]]
+    if len(diffs) < 2:
+        return 0.0
+    m = sum(diffs) / len(diffs)
+    return round(math.sqrt(sum((x - m) ** 2 for x in diffs) / (len(diffs) - 1) / len(diffs)), 4)
+
+
 @torch.no_grad()
-def evaluate(net, eps, bs=8, base=False, examples=3):
+def evaluate(net, eps, bs=8, base=False, examples=3, readers=()):
     """Hard-message numbers per family (see the module docstring): KL per answer token on, swap and none, the share
-    closed overall and by task-turn index, letters, distinct tokens, example messages; base adds the untrained
-    model's on and none."""
+    closed overall and by task-turn index, letters, distinct tokens, example messages. Untrained readers, never
+    trained on anything: base True adds the untrained model's on, swap and none, base 'read' its on and swap; readers
+    [(name, lm)] adds other frozen models' on and swap. Each gap (swap - on) comes with its standard error over
+    (episode, turn) pairs."""
     fams = {}
     for ep in eps:
         fams.setdefault(ep['family'], []).append(ep)
@@ -747,7 +766,7 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
     net.model.eval()
     for f, xs in sorted(fams.items()):
         xs = sorted(xs, key=lambda e: e['length'])
-        acc = {mode: {} for mode in ('on', 'swap', 'none', 'base_on', 'base_none')}
+        acc = defaultdict(dict)
         toks, ex = [], []
         for s in range(0, len(xs), bs):
             b = xs[s:s + bs]
@@ -761,11 +780,18 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
                 for (i, k, x), t_, c_ in zip(keys, tot.tolist(), cnt.tolist()):
                     acc[mode][(s + i, k)] = (t_, c_)
             if base:
+                modes = [('base_on', dict())] + ([('base_swap', dict(perm=perm))] if len(b) > 1 else [])
+                modes += [('base_none', dict(mode='none'))] if base is True else []
                 with net.base():
-                    for mode, kw in (('base_on', dict()), ('base_none', dict(mode='none'))):
+                    for mode, kw in modes:
                         tot, cnt, keys = net.reader(b, msgs, **kw)
                         for (i, k, x), t_, c_ in zip(keys, tot.tolist(), cnt.tolist()):
                             acc[mode][(s + i, k)] = (t_, c_)
+            for name, lm in readers:
+                for mode, kw in [(f'{name}_on', dict())] + ([(f'{name}_swap', dict(perm=perm))] if len(b) > 1 else []):
+                    tot, cnt, keys = net.reader(b, msgs, lm=lm, **kw)
+                    for (i, k, x), t_, c_ in zip(keys, tot.tolist(), cnt.tolist()):
+                        acc[mode][(s + i, k)] = (t_, c_)
             for m_ in msgs:
                 for turn in m_:
                     for spk, ids in turn:
@@ -780,8 +806,12 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
         if 'on' in d and 'none' in d:
             d['closed'] = round(O.closed_share(d['none'], d['on']), 4)
             d['none_on'] = round(d['none'] - d['on'], 4)               # what the right messages buy over none
-        if 'swap' in d:
-            d['gap'] = round(d['swap'] - d['on'], 4)
+        for pre in ('', 'base_', *(f'{name}_' for name, _ in readers)):
+            if f'{pre}swap' in d and f'{pre}on' in d:
+                d[f'{pre}gap'] = round(d[f'{pre}swap'] - d[f'{pre}on'], 4)
+                d[f'{pre}gap_se'] = paired_se(acc[f'{pre}swap'], acc[f'{pre}on'])
+        if 'base_none' in d and 'base_on' in d:
+            d['base_none_on'] = round(d['base_none'] - d['base_on'], 4)
         by = {}
         for (q, k), (t, c) in acc['on'].items():
             tn, cn = acc['none'].get((q, k), (0, 0))
@@ -810,6 +840,12 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
         vals = [v[k] for v in res.values() if k in v]
         if vals:
             res['_all'][k] = round(mean(vals), 4)
+    for pre in ('', 'base_', *(f'{name}_' for name, _ in readers)):  # each reader's gap and its standard error
+        vs = [v for k, v in res.items() if not k.startswith('_') and f'{pre}gap' in v]
+        if vs:
+            if pre:
+                res['_all'][f'{pre}gap'] = round(mean(v[f'{pre}gap'] for v in vs), 4)
+            res['_all'][f'{pre}gap_se'] = round(math.sqrt(sum(v[f'{pre}gap_se'] ** 2 for v in vs)) / len(vs), 4)
     for name, group in (('_leaky', LEAKY), ('_clean', CLEAN)):
         vs = {f: res[f] for f in group if f in res and 'closed' in res[f]}
         if vs:
@@ -900,10 +936,28 @@ def ctrl_update(lam, gap, ref, letters, anchored, step, args):
     words) with a positive gap becomes the reference, once (anchored: its step); it stays a miss, so privacy waits
     for a dev that holds against the new reference."""
     lam, ok = letter_ctrl(lam, gap, ref, args)
-    if (args.gap_ref == 'anchor' and anchored is None and not ok and gap > 0 and args.ref_letters is not None
-            and letters < args.ref_letters):
+    if (args.gap_ref == 'anchor' and anchored is None and not ok and gap > getattr(args, 'gap_floor', 0.0)
+            and gap > 0 and args.ref_letters is not None and letters < args.ref_letters):
         return lam, ok, gap, step
     return lam, ok, next_ref(ref, gap, letters, args), anchored
+
+
+def ramped(lam, lam_from, t0, step, ramp):
+    """The letter weight at step: from lam_from at step t0 linearly to the controller's lam over ramp steps (a jump
+    in the weight and the bias together locks messages into filler within about 30 steps)."""
+    if t0 is None or ramp <= 0:
+        return lam
+    return lam_from + (lam - lam_from) * min(1.0, (step - t0) / ramp)
+
+
+def dev_trouble(gap, ref, eff_tokens, args):
+    """Why a dev should go back to the best weights ('' if it should not): the messages collapsed onto under
+    --collapse_tokens effective tokens, or the gap fell under --gap_floor or --lost_keep of the reference."""
+    if eff_tokens is not None and eff_tokens < args.collapse_tokens:
+        return 'collapsed'
+    if ref is not None and gap < max(args.gap_floor, args.lost_keep * ref):
+        return 'gap'
+    return ''
 
 
 def ctrl_ready(gap, gap0, args):
@@ -939,7 +993,9 @@ def train(net, args, log):
     lora = [p for p in net.model.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(lora, lr=args.lr, weight_decay=0.0)
     warm = [0]                                       # steps the warmup counts as done (a resumed optimizer)
-    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1 + warm[0]) / 50))
+    lr_scale = [1.0]                                 # halved by each go-back to the best weights
+    lr_at = lambda s: min(1, (s + 1 + warm[0]) / 50) * lr_scale[0]                      # noqa: E731
+    sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_at)
     log(dict(train=len(rest), dev=len(dev), dev_families=seen, allowed=int(net.allowed.sum()),
              letters=int(net.letter.sum()), letter_free=int((net.allowed & ~net.letter).sum()),
              trainable=sum(p.numel() for p in lora), cut_at_degenerate=data.cuts))
@@ -947,6 +1003,10 @@ def train(net, args, log):
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
     anchored = None
+    lam_from, ramp_t0, lam_now = 0.0, None, 0.0      # the weight in force moves from lam_from to lam from ramp_t0
+    best, rollbacks, last_dev, force_dev, watch_on = None, 0, None, False, True
+    roll_d, roll_m = deque(maxlen=args.watch_steps), deque(maxlen=args.watch_steps)
+    out_of_data = False
     started, step, util, t_train = time.monotonic(), 0, Util(), 0.0
     first = 0                                        # the step this part of the run started at
     dec_train = 0                                    # message tokens decoded in training steps (not in devs)
@@ -962,11 +1022,13 @@ def train(net, args, log):
         ref, ok, gap0 = st.get('ref'), bool(st.get('ok', False)), st.get('gap0')
         priv, base_gap, lam_p_max = st.get('priv'), st.get('base_gap'), st.get('lam_p_max', args.lam_p)
         anchored = st.get('anchored')
+        lam_from, ramp_t0 = st.get('lam_from', lam), st.get('ramp_t0')
+        best, rollbacks, lr_scale[0] = st.get('best'), st.get('rollbacks', 0), st.get('lr_scale', 1.0)
         optimizer = (R / 'optim.pt').exists()
         if optimizer:
             opt.load_state_dict(torch.load(R / 'optim.pt', map_location=net.device))
             warm[0] = step
-        sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1 + warm[0]) / 50))
+        sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_at)
         for _ in range(step * micros):               # the micro-batches the first part trained on
             next(feed)
         skip_dev = first = step                      # its dev at this step has run and set the controller
@@ -975,19 +1037,48 @@ def train(net, args, log):
 
     def ckpt_state():
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
-                    anchored=anchored)
+                    anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
+                    lr_scale=lr_scale[0])
+
+    def go_back():
+        """The best weights and optimizer state, and the weight, bias and tau they were measured at."""
+        nonlocal lam, lam_from, ramp_t0, lam_now
+        from peft import set_peft_model_state_dict
+        from safetensors.torch import load_file
+        B = Path(best['path'])
+        set_peft_model_state_dict(net.model, load_file(str(B / 'adapter' / 'adapter_model.safetensors')))
+        net.sync_dec()
+        opt.load_state_dict(torch.load(B / 'optim.pt', map_location=net.device))
+        lam = lam_now = lam_from = best['lam']
+        ramp_t0 = None
+        net.bias = best['bias']
     net.model.train()
     while True:
         frac = min(1.0, step / args.steps)
         net.tau = args.tau0 * (args.tau1 / args.tau0) ** frac
-        if step % args.dev_every == 0 and args.dev_every > 0 and step != skip_dev:
+        lam_now = ramped(lam, lam_from, ramp_t0, step, args.ramp)
+        if ref is not None:
+            net.bias = args.bias_k * lam_now
+        stop = step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes or out_of_data \
+            or rollbacks > args.max_rollbacks
+        scheduled = args.dev_every > 0 and step % args.dev_every == 0 and step != skip_dev and step != last_dev
+        final = stop and args.protect and args.dev_every > 0 and step != last_dev and step != skip_dev
+        if scheduled or force_dev or final:
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
             t0 = time.monotonic()
-            d = evaluate(net, dev, bs=args.dev_bs)
+            watch_on = scheduled or not force_dev            # a forced dev that finds nothing quiets the watch until
+            force_dev, last_dev = False, step                # the next scheduled one
+            roll_d.clear()
+            roll_m.clear()
+            d = evaluate(net, dev, bs=args.dev_bs, base='read' if args.dev_base else False)
             gap = d['_all']['gap']
             gap0 = gap if gap0 is None else gap0
             letters = d['_all']['letters']
-            if args.ctrl and step >= args.free:
+            lam_dev, bias_dev = lam_now, net.bias
+            eff = d['_all'].get('eff_tokens')
+            collapsed = bool(args.protect and eff is not None and eff < args.collapse_tokens)
+            if args.ctrl and step >= args.free and not collapsed:
+                lam_old = lam
                 if ref is None and not ctrl_ready(gap, gap0, args):
                     log(dict(step=step, ctrl_wait=True, gap=gap, at_step0=gap0))
                 else:
@@ -996,22 +1087,53 @@ def train(net, args, log):
                         net.symbols = bool(args.symbols_line)            # the prior moves onto the symbols
                     else:
                         lam, ok, ref, anchored = ctrl_update(lam, gap, ref, letters, anchored, step, args)
-                    net.bias = args.bias_k * lam
+                    if lam != lam_old:
+                        lam_from, ramp_t0 = lam_now, step
+                    lam_now = ramped(lam, lam_from, ramp_t0, step, args.ramp)
+                    net.bias = args.bias_k * lam_now
                     log(dict(step=step, ctrl=True, gap=gap, ref=ref, held=ok, lam=round(lam, 5),
-                             bias=round(net.bias, 4), letters=letters, symbols_line=net.symbols, anchored=anchored))
+                             bias=round(args.bias_k * lam, 4), bias_now=round(net.bias, 4), letters=letters,
+                             symbols_line=net.symbols, anchored=anchored))
+            read, read_se = d['_all'].get('base_gap'), d['_all'].get('base_gap_se')
+            reading = read is None or read > args.read_z * read_se    # the frozen reader reads above noise
             if priv is None and args.lam_p and ref is not None and letters < args.priv_letters and ok:
-                priv, base_gap = step, gap
-                log(dict(step=step, privacy_starts=True, letters=letters, gap=gap))
+                if reading:
+                    priv, base_gap = step, gap
+                    log(dict(step=step, privacy_starts=True, letters=letters, gap=gap, base_gap=read, base_se=read_se))
+                else:
+                    log(dict(step=step, privacy_not_needed=True, letters=letters, base_gap=read, base_se=read_se))
             elif priv is not None and base_gap > 0 and gap < args.ctrl_keep * base_gap:
                 lam_p_max /= 2
                 log(dict(step=step, lam_p_halved=round(lam_p_max, 5), gap=gap))
-            log(dict(step=step, tau=round(net.tau, 3), lam=lam, dev=d, dev_s=round(time.monotonic() - t0),
-                     s=round(time.monotonic() - started)))
+            log(dict(step=step, tau=round(net.tau, 3), lam=lam, lam_now=round(lam_now, 5), dev=d,
+                     dev_s=round(time.monotonic() - t0), s=round(time.monotonic() - started)))
+            if args.protect:
+                why = dev_trouble(gap, ref, eff, args)
+                if why and best is not None:
+                    go_back()
+                    rollbacks += 1
+                    ok, watch_on = False, True
+                    lr_scale[0] *= args.rollback_lr
+                    for g in opt.param_groups:
+                        g['lr'] = args.lr * lr_scale[0]
+                    log(dict(step=step, rollback=True, why=why, to=best['step'], gap=gap, eff_tokens=eff, lam=lam,
+                             bias=net.bias, lr=args.lr * lr_scale[0], rollbacks=rollbacks))
+                elif not why:
+                    charge = d['_all'].get('charge', letters)
+                    if best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
+                        path = str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best'))
+                        best = dict(step=step, gap=gap, charge=charge, lam=lam_dev, bias=bias_dev, path=path)
+                        save(net, path, dict(step=step, lam=lam_dev, bias=bias_dev), opt, ckpt_state())
+                        log(dict(step=step, new_best=True, gap=gap, charge=charge, lam=lam_dev, letters=letters))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
-        if step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
+        if stop or step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
+            if args.protect and best is not None and best['step'] != step:    # the run ends on its best weights
+                go_back()
+                log(dict(step=step, ends_on_best=best['step'], gap=best['gap']))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
-            log(dict(step=step, done=True, s=round(time.monotonic() - started)))
+            log(dict(step=step, done=True, s=round(time.monotonic() - started), rollbacks=rollbacks,
+                     best=best and best['step']))
             return dict(step=step, lam=lam)
         lam_p = lam_p_max * min(1.0, (step - priv) / args.priv_ramp) if priv is not None else 0.0
         t_step = time.monotonic()
@@ -1022,10 +1144,10 @@ def train(net, args, log):
             eps = next(feed, None)
             if eps is None:
                 log(dict(step=step, data_exhausted=True))
-                save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
-                return dict(step=step, lam=lam)
+                out_of_data, parts_all = True, []
+                break
             try:
-                loss, parts = net.loss(eps, lam, args.contrast, args.contrast_target, lam_p)
+                loss, parts = net.loss(eps, lam_now, args.contrast, args.contrast_target, lam_p)
                 (loss * len(eps) / args.batch).backward()
                 parts_all.append(parts)
                 n_eps += len(eps)
@@ -1049,8 +1171,15 @@ def train(net, args, log):
         step += 1
         t_train += time.monotonic() - t_step
         dec_train += net.stats['decode_tokens'] - dec0
+        if args.protect and watch_on:                # a collapse takes ~30 steps: the batches can call a dev early
+            roll_d.append(mean(p['distinct'] for p in parts_all))
+            roll_m.append(mean(p.get('margin', 1e9) for p in parts_all))
+            if len(roll_d) == args.watch_steps and (mean(roll_d) < args.watch_distinct or (
+                    ref is not None and mean(roll_m) < args.watch_margin * ref)):
+                force_dev = True
+                log(dict(step=step, forced_dev=True, distinct=round(mean(roll_d), 1), margin=round(mean(roll_m), 4)))
         if step % args.log_every == 0 or step == first + 20:
-            rec = dict(step=step, tau=round(net.tau, 3), lam=lam, lam_p=round(lam_p, 4), eps=n_eps,
+            rec = dict(step=step, tau=round(net.tau, 3), lam=round(lam_now, 5), lam_p=round(lam_p, 4), eps=n_eps,
                        s_step=round(time.monotonic() - t_step, 2), s=round(time.monotonic() - started))
             for k in parts_all[0]:
                 rec[k] = round(mean(p[k] for p in parts_all), 4)
@@ -1089,6 +1218,30 @@ def main():
     ap.add_argument('--ctrl_start', type=float, default=0.5)
     ap.add_argument('--bias_k', type=float, default=40.0)
     ap.add_argument('--lam_min', type=float, default=0.0, help='the letter weight never falls below this')
+    ap.add_argument('--ramp', type=int, default=0, help='steps over which a controller change of the weight and bias '
+                    'takes effect, linearly (0: at once)')
+    ap.add_argument('--dev_base', type=int, default=1, help='each dev reports the untrained model as a reader, on and '
+                    'swapped')
+    ap.add_argument('--read_z', type=float, default=3.0, help='privacy starts only if that reader\'s gap is over this '
+                    'many standard errors')
+    ap.add_argument('--readers', default='', help='comma-separated other untrained models read the messages at the '
+                    'final evaluation, on and swapped')
+    ap.add_argument('--protect', type=int, default=0, help='save the best weights at each dev; a dev that loses the gap '
+                    'or collapses goes back to them at a lower learning rate; the run ends on them')
+    ap.add_argument('--lost_keep', type=float, default=0.5, help='protect: a dev under this share of the reference gap '
+                    'has lost it')
+    ap.add_argument('--gap_floor', type=float, default=0.05, help='protect: a dev under this gap has lost it, and does '
+                    'not re-anchor the reference')
+    ap.add_argument('--collapse_tokens', type=float, default=8.0, help='protect: a dev whose messages use under this '
+                    'many effective tokens has collapsed')
+    ap.add_argument('--rollback_lr', type=float, default=0.5, help='protect: the learning rate is multiplied by this at '
+                    'each go-back')
+    ap.add_argument('--max_rollbacks', type=int, default=3, help='protect: after more go-backs than this the run ends')
+    ap.add_argument('--watch_steps', type=int, default=20, help='protect: the training steps the early check averages')
+    ap.add_argument('--watch_distinct', type=float, default=40.0, help='protect: a dev comes early if the mean distinct '
+                    'tokens per step fall under this')
+    ap.add_argument('--watch_margin', type=float, default=0.25, help='protect: or if the mean training margin falls '
+                    'under this share of the reference gap')
     ap.add_argument('--letter_charge', default='linear', choices=('linear', 'sqrt'),
                     help='the letter penalty: mean letter mass, or the mean over messages of its square root')
     ap.add_argument('--gap_ref', default='first', choices=('first', 'max', 'anchor'),
@@ -1142,15 +1295,27 @@ def main():
             j = json.loads(meta.read_text())
             net.bias, net.tau = j.get('bias', net.bias), j.get('tau', net.tau)
             net.symbols = j.get('symbols', net.symbols)
-        scores = dict(state=state)
+        scores, sets = dict(state=state), {}
         for split in ('eval_seen', 'eval_heldout'):
             eps = [e for r in O.Episodes(args.eval_data or args.data, split, seed=1, teacher=True)
                    if (e := fit(r, net, args.max_len))]
             if args.eval_n:
                 eps = eps[:args.eval_n]
+            sets[split] = eps
             scores[split] = evaluate(net, eps, bs=args.dev_bs, base=True)
             log(dict(eval=split, res=scores[split]))
-        (out / 'scores.json').write_text(json.dumps(scores, indent=1, ensure_ascii=False))
+            (out / 'scores.json').write_text(json.dumps(scores, indent=1, ensure_ascii=False))
+        for spec in filter(None, args.readers.split(',')):        # written after each, so a failure here loses no score
+            from transformers import AutoModelForCausalLM
+            name = spec.split('/')[-1].replace('-', '_').replace('.', '_').lower()
+            lm = AutoModelForCausalLM.from_pretrained(spec, dtype=torch.bfloat16, attn_implementation='sdpa')
+            lm = lm.to(device).eval()
+            for split, eps in sets.items():
+                scores[f'{split}_{name}'] = evaluate(net, eps, bs=args.dev_bs, readers=[(name, lm)])
+                log(dict(eval=f'{split}_{name}', res=scores[f'{split}_{name}']))
+                (out / 'scores.json').write_text(json.dumps(scores, indent=1, ensure_ascii=False))
+            del lm
+            torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
 
 if __name__ == '__main__':

@@ -270,7 +270,10 @@ def test_end_to_end_on_shards(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, 'argv', ['opentalk.py', '--data', str(tmp_path / 'data'), '--out', str(out), '--ckpt',
                                       str(ckpt), '--steps', '20', '--batch', '2', '--micro', '1', '--bucket', '2',
                                       '--dev_every', '10', '--dev_n', '2', '--dev_bs', '2', '--free', '0', '--ctrl',
-                                      '--log_every', '5', '--lam_p', '0.5', '--priv_letters', '1.1'])
+                                      '--log_every', '5', '--lam_p', '0.5', '--priv_letters', '1.1', '--readers',
+                                      'x/Tiny-1.5'])
+    import transformers
+    monkeypatch.setattr(transformers.AutoModelForCausalLM, 'from_pretrained', lambda *a, **k: tiny(3, lora=False))
     OT.main()
     rows = [json.loads(line) for line in open(out / 'log.jsonl')]
     devs = [r for r in rows if 'dev' in r and isinstance(r['dev'], dict)]
@@ -282,7 +285,9 @@ def test_end_to_end_on_shards(tmp_path, monkeypatch):
     s20 = next(r for r in rows if r.get('step') == 20 and 'tok_s_grad' in r)
     assert s20['tok_s_grad'] > 0 and s20['tok_s_decode'] > 0 and s20['h_per_1000_steps'] > 0
     scores = json.loads((out / 'scores.json').read_text())
-    assert set(scores) == {'state', 'eval_seen', 'eval_heldout'}
+    assert set(scores) == {'state', 'eval_seen', 'eval_heldout', 'eval_seen_tiny_1_5', 'eval_heldout_tiny_1_5'}
+    assert 'tiny_1_5_on' in scores['eval_seen_tiny_1_5']['doc'] and 'base_none' in scores['eval_seen']['doc']
+    assert all('base_gap' in r['dev']['_all'] and 'base_none' not in r['dev']['_all'] for r in devs)
     assert (ckpt / 'adapter').exists()
     trained = {r['step'] for r in rows if 'kl' in r}
     assert trained                                                    # training steps logged
@@ -442,3 +447,95 @@ def test_message_stats_counts_letters_and_filler():
     assert res['doc']['none_on'] == round(res['doc']['none'] - res['doc']['on'], 4)
     assert res['_all']['letters_per_msg'] == pytest.approx(res['_all']['letters'] * net.m, abs=1e-2)
     assert {'on', 'swap', 'none'} <= set(res['_all'])
+
+
+def scripted_run(tmp_path, monkeypatch, devs, steps, *extra):
+    """A short run whose devs return the scripted overall numbers in order (gap, letters, eff_tokens, base_gap)."""
+    rng = random.Random(6)
+    recs = []
+    for i in range(40):
+        f = ['doc', 'pair', 'fill', 'chat_alt'][i % 4]
+        ep = episode(rng, i, f, turns=2, teacher=f != 'fill')
+        ep.update(id=f'train{i}', split='train')
+        for k, t in enumerate(ep['turns']):
+            if ep['teacher']:
+                ids, lp = ep['topk'][k]
+                t['_top'] = (ids.numpy().astype(np.int32), lp.numpy().astype(np.float16))
+        ep.pop('topk', None)
+        recs.append(ep)
+    O.write_shards(recs, tmp_path / 'data', 'train', 0, size=40)
+    monkeypatch.setattr(OT, 'build', lambda *a, **k: net_of(m=3, base_copy=k.get('base_copy'), merged=True))
+    monkeypatch.setattr(OT, 'ctrl_ready', lambda gap, gap0, args: True)
+    script = iter(devs)
+
+    def fake(net, eps, bs=8, base=False, examples=3, readers=()):
+        gap, letters, eff, read = next(script)
+        return dict(_all=dict(gap=gap, letters=letters, eff_tokens=eff, charge=letters ** 0.5, base_gap=read,
+                              base_gap_se=0.01, closed=0.0, distinct=100))
+    monkeypatch.setattr(OT, 'evaluate', fake)
+    monkeypatch.setattr(sys, 'argv', ['opentalk.py', '--data', str(tmp_path / 'data'), '--out', str(tmp_path / 'out'),
+                                      '--ckpt', str(tmp_path / 'ckpt'), '--steps', str(steps), '--batch', '2',
+                                      '--micro', '1', '--bucket', '2', '--dev_n', '1', '--dev_bs', '2', '--free', '0',
+                                      '--ctrl', '--lam0', '0.5', '--lam_min', '0.5', '--parts', 'train', *extra])
+    OT.main()
+    return [json.loads(line) for line in open(tmp_path / 'out' / 'log.jsonl')]
+
+
+def test_a_lost_dev_goes_back_to_the_best_weights(tmp_path, monkeypatch):
+    from safetensors.torch import load_file
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .7, 100., 0.), (.35, .5, 100., 0.), (.01, .5, 100., 0.),
+                                                (.3, .5, 100., 0.)], 6, '--dev_every', '2', '--protect', '1',
+                        '--lam_p', '0')
+    back = next(r for r in rows if r.get('rollback'))
+    assert back['step'] == 4 and back['to'] == 2 and back['why'] == 'gap' and back['lr'] == pytest.approx(5e-5)
+    assert [r['step'] for r in rows if r.get('new_best')] == [0, 2]
+    assert next(r for r in rows if 'ends_on_best' in r)['ends_on_best'] == 2
+    best = load_file(str(tmp_path / 'ckpt_best' / 'adapter' / 'adapter_model.safetensors'))
+    end = load_file(str(tmp_path / 'ckpt' / 'adapter' / 'adapter_model.safetensors'))
+    assert best.keys() == end.keys() and all(torch.equal(best[k], end[k]) for k in best)
+    st = json.loads((tmp_path / 'ckpt' / 'state.json').read_text())
+    assert st['rollbacks'] == 1 and st['lr_scale'] == 0.5 and st['best']['step'] == 2
+
+
+def test_a_collapsed_dev_goes_back_and_skips_the_controller(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .7, 100., 0.), (.4, .01, 3., 0.)], 2, '--dev_every', '2',
+                        '--protect', '1', '--lam_p', '0', '--gap_ref', 'anchor', '--ref_letters', '0.05')
+    assert next(r for r in rows if r.get('rollback'))['why'] == 'collapsed'
+    assert [r['step'] for r in rows if r.get('ctrl')] == [0]             # no controller record at the collapsed dev
+
+
+def test_the_batches_call_one_early_dev(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .7, 100., 0.)] * 3, 3, '--dev_every', '100', '--protect', '1',
+                        '--lam_p', '0', '--watch_steps', '1', '--watch_distinct', '1000000')
+    assert len([r for r in rows if r.get('forced_dev')]) == 1             # quiet until the next scheduled dev
+    assert [r['step'] for r in rows if isinstance(r.get('dev'), dict)] == [0, 1, 3]   # 3: the run's last, for its best
+
+
+def test_privacy_starts_only_if_a_frozen_reader_reads(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .01, 100., 0.01), (.3, .01, 100., 0.2)], 2, '--dev_every', '2',
+                        '--lam_p', '0.5')
+    assert [r['step'] for r in rows if r.get('privacy_not_needed')] == [0]
+    assert [r['step'] for r in rows if r.get('privacy_starts')] == [2]
+
+
+def test_ramp_trouble_and_paired_se():
+    from types import SimpleNamespace as NS
+    assert OT.ramped(1.0, 0.5, 400, 400, 200) == 0.5 and OT.ramped(1.0, 0.5, 400, 500, 200) == 0.75
+    assert OT.ramped(1.0, 0.5, 400, 900, 200) == 1.0 and OT.ramped(1.0, 0.5, None, 500, 200) == 1.0
+    assert OT.ramped(1.0, 0.5, 400, 500, 0) == 1.0
+    args = NS(collapse_tokens=8.0, gap_floor=0.05, lost_keep=0.5)
+    assert OT.dev_trouble(0.3, 0.23, 100., args) == '' and OT.dev_trouble(0.3, 0.23, 7., args) == 'collapsed'
+    assert OT.dev_trouble(0.1, 0.23, 100., args) == 'gap' and OT.dev_trouble(0.04, 0.05, 100., args) == 'gap'
+    assert OT.dev_trouble(0.04, None, 100., args) == ''
+    a, b = {0: (2., 2), 1: (6., 2), 2: (4., 2)}, {0: (0., 2), 1: (0., 2), 2: (0., 2)}
+    assert OT.paired_se(a, b) == pytest.approx(0.5774, abs=1e-3) and OT.paired_se({0: (1., 1)}, {0: (1., 1)}) == 0.0
+
+
+def test_frozen_readers_report_on_and_swapped():
+    net, rng = net_of(), random.Random(4)
+    eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'doc', 'chat_alt', 'chat_alt'])]
+    res = OT.evaluate(net, eps, bs=2, base='read', readers=[('other', tiny(3, lora=False))])
+    for k in ('base_on', 'base_swap', 'base_gap', 'base_gap_se', 'other_on', 'other_swap', 'other_gap', 'other_gap_se'):
+        assert k in res['doc'], k
+    assert 'base_none' not in res['doc'] and {'base_gap', 'base_gap_se', 'other_gap', 'gap_se'} <= set(res['_all'])
+    assert res['doc']['other_gap'] == round(res['doc']['other_swap'] - res['doc']['other_on'], 4)
