@@ -643,6 +643,44 @@ def test_sym_resume(tok, tmp_path):
         C.resumed(b / 'odd.pt')
 
 
+def test_sym_rollback(tok, tmp_path, monkeypatch):
+    """--rollback once private: a dev that holds a good code saves private.pt and raises the privacy weight up to its
+    top, a dev whose code is lost restores those weights and halves the weight with fresh optimizers, and training ends
+    on the last good weights; steps.jsonl logs every private step."""
+    real = C.sym_dev
+    plan = iter([(3, .5), (3, .5), (1, .5), (3, .5), (3, .9)])  # distinct and letters of each dev
+
+    def planned(net, device, dev):
+        distinct, letters = next(plan)
+        return dict(real(net, device, dev), distinct=distinct, letters_max=letters, letters_text=letters)
+
+    monkeypatch.setattr(C, 'sym_dev', planned)
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.adv = net.adv_max = 1.
+    net.train()
+    out = tmp_path / 'r'
+    out.mkdir()
+    C.train(net, 'cpu', 5, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=1e-9, cut0=1e6,
+            tau0=.3, beta_full=True, min_steps=100, gate_letters=.8, gate_distinct=2, gap_ref='max', rollback=True)
+    recs = [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
+    devs = [r for r in recs if 'dev_nll' in r]
+    assert devs[0]['private'] == 1 and devs[1]['good'] and devs[1]['adv_max'] == 1.
+    assert devs[2]['rollback'] == 2 and devs[2]['adv_max'] == .5
+    assert devs[3]['good'] and devs[3]['adv_max'] == .625
+    assert 'good' not in devs[4] and 'rollback' not in devs[4]         # letters over the gate, the gap fine
+    assert recs[-1] == dict(step=5, final_weights=4)
+    saved = torch.load(out / 'private.pt')
+    assert saved['steps_run'] == 4
+    state = net.state_dict()
+    assert saved['weights'] and all(torch.equal(v, state[k]) for k, v in saved['weights'].items())
+    assert any('.eaves.' in k for k in saved['weights'])
+    fine = [json.loads(line) for line in (out / 'steps.jsonl').read_text().splitlines()]
+    assert [r['step'] for r in fine] == [2, 3, 4, 5] and all({'grad', 'ent', 'div', 'adv'} <= set(r) for r in fine)
+    assert fine[1]['adv_w'] == pytest.approx(2 / C.ADV_RAMP, abs=1e-3)
+    assert fine[2]['adv_w'] == pytest.approx(.5 * 3 / C.ADV_RAMP, abs=1e-3)   # the rollback's halved weight
+
+
 def test_sym_contrast_and_letter_rule(tok, tmp_path):
     """The contrastive term: one per follower row with notes, its gradient reaching both episodes' notes (its own and
     the next episode's, which it reads instead), none with --contrast 0; the letter weight: 0 up to letters_from,
