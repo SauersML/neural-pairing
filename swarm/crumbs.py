@@ -33,9 +33,9 @@ Arms (--arm):
             leaves unfinished bytes that occur inside some letter's UTF-8 encoding; so the lone continuation byte B1
             ends the emoji U+1F9F1 after F0 9F A7 and is no letter there, but ends U+00F1 after C3), BETA (ramped over the first half) times each
             token's entropy minus the entropy of its batch-mean distribution, and --contrast times a contrastive
-            term: each reader's says read again with the next episode's notes, softplus of its says' summed NLL with
-            its own notes minus that with the other's (-log the share of p(says | own) + p(says | other) its own notes
-            take). lam is 0 up to --letters_from, then 0.01, and after each dev times 1.5 while the dev notes' gap
+            term: each reader's says read again with other episodes' notes (--con_negatives: the next episode's, or
+            with 0 every other episode in the backward pass), -log the share of p(says | own) + the p(says | other)s
+            its own notes take, each p from its says' summed NLL (one other: softplus of own minus other). lam is 0 up to --letters_from, then 0.01, and after each dev times 1.5 while the dev notes' gap
             (cut minus hard NLL) holds 0.8 of its last value before the penalty, else times 0.5 (LETTERS, LAM_RULE).
             Privacy (--adv lambda), ramped in over ADV_RAMP steps once the dev notes are under PRIV_LETTERS letters
             with the gap held: the base model with
@@ -79,7 +79,7 @@ LETTERS = (300, 0.01)         # sym: letter penalty lam 0 up to step 300 (--lett
 LAM_RULE = (0.8, 1.5, 0.5)    # dev times 1.5 while the dev gap (cut minus hard NLL) holds 0.8 of its last value
                               # before the penalty, else times 0.5
 PRIV_LETTERS = 0.05           # sym: privacy starts once the dev notes are under 5% letters with the gap held
-CONTRAST = 1.0                # sym: the contrastive term's weight (own notes against the next episode's)
+CONTRAST = 1.0                # sym: the contrastive term's weight (own notes against other episodes')
 BETA = 0.1                    # sym: entropy penalty and batch-diversity bonus, ramped from 0 over the first half
 ADV_RAMP = 300                # sym: steps over which the privacy terms ramp in once the notes are letterless
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
@@ -139,6 +139,7 @@ class Crumbs(nn.Module):
             self.note = self._ids(NOTE)
             self.tau, self.lam, self.beta, self.adv, self.adv_max = SYM_TAU[0], 0., 0., 0., 0.
             self.contrast = 0.
+            self.con_negatives = 1                 # other episodes per contrastive row (0: all in the pass)
             self.soft, self.eaves_on, self.stash = False, False, []
             self.note_pass = 'soft'            # what a note token sees of the note so far (_notes; --note_pass)
             self.detach_notes = False          # training: send the soft notes without gradient (the warm-up)
@@ -633,25 +634,35 @@ class Crumbs(nn.Module):
         return out
 
     def _contrast(self, rows_t, x, a, bank, sel, own):
-        """sym, training: the contrastive term of the rows that have notes to read. Their says read again with the
-        next episode's notes (shifted); per row softplus(own - other), each its says' summed NLL (own: per say token,
-        the pass with its own notes): -log the share of p(says | own) + p(says | other) its own notes take."""
+        """sym, training: the contrastive term of the rows that have notes to read. Their says read again with other
+        episodes' notes: the k-th next episode's for k = 1 .. K (shifted; K con_negatives, 0: every other episode in
+        the pass); per row -log the share of p(says | own) + sum_k p(says | other k) its own notes take, each p from
+        its says' summed NLL (own: per say token, the pass with its own notes); with K = 1, softplus(own - other).
+        con_gap: the mean over the others of their summed NLL minus own."""
         has = (bank['place'][rows_t] >= 0).any(-1)
         if not bool(has.any()):
             return
-        self.grab = True
-        try:
-            self._forward(rows_t, x, a, shifted(bank), 1, False)
-            h = self.last
-        finally:
-            self.grab, self.last = False, None
+        B = bank['place'].shape[0]
+        K = B - 1 if self.con_negatives == 0 else min(self.con_negatives, B - 1)
         gold = x['ids'][sel[:, 0], sel[:, 1] + 1]
-        other = F.cross_entropy(self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float(), gold,
-                                reduction='none')
-        d = torch.zeros(len(rows_t), device=own.device).index_add(0, sel[:, 0], other - own)
-        keep = has & (torch.zeros_like(d).index_add(0, sel[:, 0], torch.ones_like(own)) > 0)
-        self.sums['con'] = self.sums['con'] + F.softplus(-d[keep]).sum()
-        self.sums['con_gap'] += float(d[keep].detach().sum())
+        zero = torch.zeros(len(rows_t), device=own.device)
+        mine = zero.index_add(0, sel[:, 0], own)
+        others = []
+        for k in range(1, K + 1):
+            self.grab = True
+            try:
+                self._forward(rows_t, x, a, shifted(bank, k), 1, False)
+                h = self.last
+            finally:
+                self.grab, self.last = False, None
+            other = F.cross_entropy(self.model.get_output_embeddings()(h[sel[:, 0], sel[:, 1]]).float(), gold,
+                                    reduction='none')
+            others.append(zero.index_add(0, sel[:, 0], other))
+        o = torch.stack(others)                                            # [K, rows]
+        keep = has & (zero.index_add(0, sel[:, 0], torch.ones_like(own)) > 0)
+        con = torch.logsumexp(torch.cat([-mine[None], -o]), 0) + mine
+        self.sums['con'] = self.sums['con'] + con[keep].sum()
+        self.sums['con_gap'] += float((o - mine).mean(0)[keep].detach().sum())
         self.sums['n_con'] += int(keep.sum())
 
     def adv_targets(self, ep, a, st):
@@ -909,10 +920,11 @@ def kl_topk(logits, ids, lp, normalized=False):
     return (t.exp() * (t - s)).sum(-1) + t_rest * (t_rest.log() - s_rest.log())
 
 
-def shifted(bank):
-    """bank with each episode's crumbs replaced by the next episode's (the last episode's by the first's)."""
+def shifted(bank, k=1):
+    """bank with each episode's crumbs replaced by those of the k-th episode after it (wrapping round: with k = 1 the
+    last episode's by the first's)."""
     B = bank['place'].shape[0]
-    idx = (torch.arange(B, device=bank['place'].device) + 1) % B
+    idx = (torch.arange(B, device=bank['place'].device) + k) % B
     return {k: None if v is None else [t[idx] for t in v] if isinstance(v, list) else v[idx] for k, v in bank.items()}
 
 
@@ -1665,6 +1677,8 @@ def main():
     ap.add_argument('--adv', type=float, default=0., help='sym arm: the privacy terms\' weight lambda')
     ap.add_argument('--n_intercept', type=int, default=2000, help='sym arm: trail episodes per split in messages.json')
     ap.add_argument('--contrast', type=float, default=CONTRAST, help='sym arm: the contrastive term\'s weight')
+    ap.add_argument('--con_negatives', type=int, default=1,
+                    help='sym arm: other episodes per contrastive row, the next ones in the pass (0: all of them)')
     ap.add_argument('--letters_from', type=int, default=LETTERS[0], help='sym arm: the step the letter penalty starts')
     ap.add_argument('--every', type=int, default=100, help='steps between dev evaluations')
     ap.add_argument('--lam0', type=float, default=LETTERS[1], help='sym arm: the letter weight it starts at')
@@ -1725,7 +1739,7 @@ def main():
     net = build(args.device, args.arm, args.m, base=args.base)
     if args.arm == 'sym':
         net.adv = net.adv_max = args.adv
-        net.contrast = args.contrast
+        net.contrast, net.con_negatives = args.contrast, args.con_negatives
         net.hint = args.note_hint
         net.note_pass = args.note_pass
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]

@@ -503,6 +503,37 @@ def test_kv_text_crumbs(tok):
         assert len(texts) == len(eps)
 
 
+def test_sym_contrast_negatives(tok):
+    """--con_negatives: 0 reads every other episode's notes in the pass as negatives (with 2 episodes the same one
+    other as the default 1); more negatives give a larger term, one per follower row, whose gradient reaches every
+    episode's notes; shifted(bank, k) gives the k-th next episode's crumbs."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.train()
+    net.tau, net.lam, net.beta, net.contrast = 1., 0., 0., 1.
+
+    def con(eps, k):
+        net.con_negatives = k
+        torch.manual_seed(0)
+        net.sums = C.collections.defaultdict(float)
+        _, _, bank = net.run(eps, 'cpu')
+        return net.sums, bank
+
+    two = trails(2, seed=3)
+    a, _ = con(two, 1)
+    b, _ = con(two, 0)
+    assert a['n_con'] == b['n_con'] == 2 and float(a['con']) == pytest.approx(float(b['con']), rel=1e-5)
+    three = trails(3, seed=3)
+    one, _ = con(three, 1)
+    every, bank = con(three, 0)
+    assert one['n_con'] == every['n_con'] == 3 and float(every['con']) > float(one['con']) + 1e-6
+    g = torch.autograd.grad(every['con'], bank['e'][0])[0].abs().sum(-1)
+    assert all(float(g[b].sum()) > 0 for b in range(3))
+    sh = C.shifted(bank, 2)
+    assert torch.equal(sh['place'], bank['place'][[2, 0, 1]])
+    net.con_negatives = 1
+
+
 def test_sym_contrast_and_letter_rule(tok, tmp_path):
     """The contrastive term: one per follower row with notes, its gradient reaching both episodes' notes (its own and
     the next episode's, which it reads instead), none with --contrast 0; the letter weight: 0 up to letters_from,
