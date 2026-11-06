@@ -469,7 +469,7 @@ def scripted_run(tmp_path, monkeypatch, devs, steps, *extra):
     monkeypatch.setattr(OT, 'ctrl_ready', lambda gap, gap0, args: True)
     script = iter(devs)
 
-    def fake(net, eps, bs=8, base=False, examples=3, readers=()):
+    def fake(net, eps, bs=8, base=False, examples=3, readers=(), copies=()):
         gap, letters, eff, read = next(script)
         fams = {f: dict(gap=gap, gap_se=0.01, none=0.5, on=0.5 - gap, closed=gap) for f in ('doc', 'pair', 'fill', 'chat_alt')}
         return dict(_all=dict(gap=gap, letters=letters, eff_tokens=eff, charge=letters ** 0.5, base_gap=read,
@@ -626,3 +626,112 @@ def test_a_target_run_holds_and_goes_back_to_the_latest_good_dev(tmp_path, monke
     assert st['best']['target'] < 0.4
     assert st['half'] == 4                                               # the run's end is no second go-back
     assert json.loads((tmp_path / 'ckpt' / 'talk.json').read_text())['bias'] == 2.0   # 2 * lam0, fixed
+
+
+def chat_net(m=4):
+    net = net_of(m=m)
+    net.chat = True
+    return net
+
+
+def test_chat_format_is_a_plain_chat():
+    net, rng = chat_net(), random.Random(13)
+    ep = episode(rng, 0, 'pair')
+    ep['turns'][0].update(talk=2, who='A')
+    ep['turns'][1].update(talk=3, who='B')
+    ep['turns'][2].update(talk=2, who='A')
+    msgs = [[(OT.Talk.speaker(ep, k, j), [100 + 10 * k + j] * net.m) for j in range(t['talk'])]
+            for k, t in enumerate(ep['turns'])]
+    b = net.build(ep, 'A', msgs)
+    text = net.tok.decode(b['ids'])
+    assert 'system' not in text and 'agent' not in text.lower() and 'Your messages' not in text
+    assert text.startswith('<|im_start|>user\n' + ep['views']['A'] + '\n\n' + ep['turns'][0]['user'] + '<|im_end|>\n')
+    head = net.ids(OT.ANSWER_HEAD)
+    flat = [m for turn in msgs for m in turn]
+    for pos, g in b['own']:                                              # own messages are assistant turns
+        assert b['ids'][pos - len(head):pos] == head and b['ids'][pos:pos + net.m] == flat[g][1]
+        assert b['ids'][pos + net.m:pos + net.m + 2] == net.ids(OT.TURN_END)
+    for pos, g in b['recv']:                                             # the partner's are user turns
+        h = net.ids(OT.USER_HEAD)
+        assert b['ids'][pos - len(h):pos] == h and b['ids'][pos:pos + net.m] == flat[g][1]
+    for k, pos, n in b['ans']:
+        assert b['ids'][pos - len(head):pos] == head and b['ids'][pos:pos + n] == ep['turns'][k]['response_ids']
+    y = net.build(ep, 'B', msgs)                                         # a partner's view opens its first user turn
+    assert net.tok.decode(y['ids']).startswith('<|im_start|>user\n' + ep['views']['B'] + '\n\n')
+    assert net.tok.decode(y['ids']).count(ep['turns'][0]['user']) == 0
+    none = net.build(ep, 'A', msgs, mode='none')                         # none: the answerer's own turns alone
+    assert not none['own'] and not none['recv'] and len(none['ans']) == 2
+    plain = net.ids(f"<|im_start|>user\n{ep['views']['A']}\n\n", cache=False) + \
+        net.ids(ep['turns'][0]['user'] + OT.TURN_END, cache=False) + head
+    assert none['ids'][:len(plain)] == plain
+
+
+def test_chat_messages_are_the_writer_pass_fixed_point_and_keep_the_order():
+    net, rng = big_adapter(chat_net()), random.Random(14)
+    net.bias = 3.0
+    eps = [episode(rng, i, f, turns=3 + i % 2) for i, f in enumerate(['doc', 'pair', 'chat_alt'])]
+    msgs = net.decode(eps)
+    _, mass, fixed, _ = net.writer(eps, msgs)
+    assert fixed > 0.99, fixed
+    assert net.decode([eps[1]])[0] == msgs[1]
+    later = dict(eps[1], turns=[dict(t) for t in eps[1]['turns']])
+    for t in later['turns'][1:]:
+        t['user'] = 'Something else entirely, about twelve kinds of cheese.'
+        t['response_ids'] = list(reversed(t['response_ids']))
+    assert net.decode([later])[0][0] == msgs[1][0]
+    loss, parts = net.loss(eps, lam=0.5, contrast=1.0, target=0.2)
+    loss.backward()
+    assert parts['fixed'] > 0.99
+
+
+def test_copy_messages_take_only_what_the_partner_holds_by_then():
+    net, rng = chat_net(m=4), random.Random(15)
+    ep = OT.fit(episode(rng, 0, 'pair'), net, 4000)
+    for t, talk, who in zip(ep['turns'], (2, 4, 2), 'ABA'):
+        t.update(talk=talk, who=who)
+    head = net.copy_messages(ep, 'head')
+    assert [s for s, _ in head[1]] == ['B', 'A', 'B', 'A']
+    assert head[0][0][1] == net.ids(ep['turns'][0]['user'], cache=False)[:4]   # the asker sends its request's head
+    b0 = net.held(ep, 'B', 0)
+    assert head[0][1] == ('B', b0[:4])
+    a1 = net.held(ep, 'A', 1)
+    assert head[1][1][1] == a1[:4] and head[1][3][1] == a1[4:8]
+    assert not set(net.ids(ep['turns'][2]['user'], cache=False)) - set(net.held(ep, 'A', 2))     # its own request
+    later = net.ids(ep['turns'][2]['user'], cache=False)
+    assert not any(later[i:i + 4] == w for _, w in sum(head[:2], []) for i in range(len(later) - 3))
+    whole = net.copy_messages(ep, 'whole')
+    assert whole[0][1][1] == b0 and whole[1][3][1] == []
+    long = list(range(1000, 1100))
+    picks = OT.best_windows(long, [1050, 1051, 1090], 8, 2)
+    assert 1050 in picks[0] and 1051 in picks[0] and 1090 in picks[1] and len(picks[0]) == 8
+    assert OT.best_windows([1, 2], [1], 8, 2) == [[1, 2], []]
+
+
+def test_a_dev_reports_the_copy_rows_and_fit_caps_the_talk():
+    net, rng = chat_net(m=3), random.Random(16)
+    net.talk_max = 2
+    eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'doc', 'chat_alt', 'chat_alt'])]
+    assert all(t['talk'] == 2 for e in eps for t in e['turns'])
+    d = OT.evaluate(net, eps, bs=2, copies=('head', 'best'))
+    for f in ('doc', 'chat_alt'):
+        assert {'copy_head', 'copy_best', 'copy_head_closed', 'copy_best_closed'} <= set(d[f])
+    assert OT.value_outside_fill(d, 'copy_head_closed') is not None
+    from types import SimpleNamespace as NS
+    args = NS(value_bar=0.05, min_msgs=0.5)
+    q = lambda *x: deque(x, maxlen=len(x))                               # noqa: E731
+    v, m, dd = q(.2, .2), q(.2, .2), q(.9, .9)
+    assert OT.target_open(v, m, dd, 0.2, args, copy_value=0.1)
+    assert not OT.target_open(v, m, dd, 0.2, args, copy_value=0.2)       # the writer has to beat a plain copy
+    assert not OT.target_open(v, m, dd, None, args)                      # shut until a dev has measured it
+
+
+def test_a_chat_target_run_trains_with_no_letters_pull_while_shut(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .9, 100., 0.)] * 2, 2, '--dev_every', '2', '--protect', '1',
+                        '--lam_p', '0', '--letter_charge', 'target', '--contrast_ref', 'none', '--family_norm', '1',
+                        '--format', 'chat', '--talk_max', '2', '--target0', '1', '--target_window', '1',
+                        '--value_bar', '0.05', '--min_alive', '2', '--bias_k', '0', '--lam0', '1', '--dev_copy', '1',
+                        '--symbols_line', '0', '--log_every', '1')
+    steps = [r for r in rows if 'target' in r and 'kl' in r]
+    assert steps and all(r['target'] == 1.0 for r in steps)              # no copy measured in the fake: dev value decides
+    st = json.loads((tmp_path / 'ckpt' / 'talk.json').read_text())
+    assert st['bias'] == 0.0 and st['symbols'] is False

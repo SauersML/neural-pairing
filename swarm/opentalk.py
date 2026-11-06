@@ -44,6 +44,12 @@ of its own none (its none KL at the last dev), so fill's cross-entropy does not 
 --contrast_ref none: the contrast hinge compares the reader with no messages, not with wrong ones: it only ever lowers
 KL_on, so wrong messages earn nothing by hurting; the swap pass stays as a no_grad check.
 
+--format chat: each agent's transcript is a plain chat with no system line and no frame, as close to the teacher's as the
+split allows: its view opens its first user turn, a request is a user turn, its own messages are assistant turns and its
+partner's are user turns. mode none is then just the answerer's own turns in the real format. --dev_copy 1: each dev adds
+the same reader on literal copies of the partner's text (Talk.copy_messages) as the bar the writer has to beat; the
+target stays shut until it does, outside fill.
+
 Dev (every --dev_every steps; --dev_n episodes per family, carved from the training records and never trained on),
 hard messages only, per family: KL per answer token with the messages (on), with the received messages of another
 dev episode of the family (swap) and with no conversation at all (none); the share the messages close,
@@ -80,6 +86,9 @@ SYSTEM = ('You are agent {x}. You and agent {y} are two assistants who serve one
           'private material that the other cannot see, and each request from the user comes to one of you. Before '
           'each answer you and agent {y} exchange short messages: write to agent {y} what it needs to know. When a '
           'request comes to you, answer the user directly.')
+USER_HEAD, TURN_END = '<|im_start|>user\n', '<|im_end|>\n'
+ANSWER_HEAD = '<|im_start|>assistant\n<think>\n\n</think>\n\n'
+TARGET_SLACK = 0.02                                    # target: while open it stays at most this far above the letters
 SYMBOLS = 'From now on, write your messages to your partner in emoji, symbols and digits only, with no letters.'
 CHUNK = 512                                            # positions per checkpointed vocabulary chunk
 SCALE_FLOOR = 0.05                                     # family_norm: the smallest none KL a family is divided by
@@ -292,6 +301,8 @@ class Talk:
         self.letter_target = 0.0                       # charge target: the letter share a message owes nothing for
         self.family_scale = {}                         # family_norm: family -> the none KL its KL is divided by
         self.contrast_ref = 'swap'                     # what the contrast hinge compares KL_on with
+        self.chat = False                              # --format chat: plain chat transcripts (no system line, no frame)
+        self.talk_max = 0                              # message turns per task turn at most (fit; 0: as the data says)
         self.base_lm = None                            # the untrained model as a separate frozen copy (privacy)
         self.dec = None                                # a plain copy holding base + LoRA merged, for decoding
         self.fast_eps, self.fast_T, self._fast = 0, 0, {}   # the fast decode cache (off: 0 episodes)
@@ -335,18 +346,34 @@ class Talk:
 
     # ---------------------------------------------------------------------------------------------- transcripts
 
+    def opens(self, ep, x):
+        """Chat format: whether x's view has opened its first user turn (so the next user turn has no header)."""
+        return dict(open=self.chat and bool(ep['views'][x]))
+
+    def user_turn(self, state):
+        if state and state['open']:
+            state['open'] = False
+            return []
+        return self.ids(USER_HEAD)
+
     def prefix(self, ep, x):
         view = ep['views'][x]
+        if self.chat:
+            return self.ids(f'{USER_HEAD}{view}\n\n', cache=False) if view else []
         mat = f'Your private material:\n{view}' if view else 'You hold no private material.'
         rules = SYSTEM.format(x=x, y=other(x)) + (' ' + SYMBOLS if self.symbols else '')
         return self.ids(f'<|im_start|>system\n{rules}<|im_end|>\n') + \
             self.ids(f'<|im_start|>user\n{mat}<|im_end|>\n', cache=False)
 
-    def request(self, ep, k, x, talk=True):
+    def request(self, ep, k, x, talk=True, state=None):
         t, y = ep['turns'][k], other(x)
+        if self.chat and x != t['who']:
+            return []
         if x == t['who']:
             ask = (f'Write part {t["user"]} of the text, exactly as it reads, and nothing else.'
                    if ep['family'] == 'fill' else t['user'])
+            if self.chat:
+                return self.user_turn(state) + self.ids(ask + TURN_END, cache=False)
             head = f'<|im_start|>user\nRequest from the user:\n{ask}'
             tail = f'\n\nYour messages with agent {y} before you answer:'
         else:
@@ -358,12 +385,65 @@ class Talk:
         """After turn k's messages: the answerer's answer header, answer and end; the other's end of turn."""
         t = ep['turns'][k]
         if x != t['who']:
-            return self.ids('<|im_end|>\n')
+            return [] if self.chat else self.ids('<|im_end|>\n')
         r = list(t['response_ids'])
-        return self.ids(ASSIST) + r + (self.ids('\n') if r and r[-1] == O.IM_END else self.ids('<|im_end|>\n'))
+        return self.ids(self.answer_head()) + r + (self.ids('\n') if r and r[-1] == O.IM_END
+                                                   else self.ids('<|im_end|>\n'))
 
-    def mark(self, s):
+    def answer_head(self):
+        return ANSWER_HEAD if self.chat else ASSIST
+
+    def mark(self, s, x=None, state=None):
+        """Before a message from s in x's transcript."""
+        if self.chat:
+            return self.ids(ANSWER_HEAD) if s == x else self.user_turn(state)
         return self.ids(f'\n{s}:')
+
+    def unmark(self):
+        """After a message."""
+        return self.ids(TURN_END) if self.chat else []
+
+    def held(self, ep, s, k):
+        """The ids s holds when it writes at task turn k, oldest first: its view, its earlier requests and the teacher's
+        answers to them, and this turn's request if it is s's. Nothing from a later turn."""
+        ids = list(self.ids(ep['views'][s], cache=False)) if ep['views'][s] else []
+        for j, t in enumerate(ep['turns'][:k + 1]):
+            if t['who'] == s:
+                ids += self.ids(t['user'], cache=False)
+                if j < k:
+                    r = list(t['response_ids'])
+                    ids += r[:-1] if r and r[-1] == O.IM_END else r
+        return ids
+
+    def copy_messages(self, ep, policy='head', L=None):
+        """Literal messages in the episode's talk slots: the asker's first slot is its request's first L tokens (its later
+        slots empty), and each partner slot takes from what the partner holds by then: head walks L tokens at a time from
+        the start, never repeating; best takes the windows covering most of this turn's answer (an oracle: the teacher's
+        answer picks them); whole sends all that is new, with no length limit (later slots empty)."""
+        L = L or self.m
+        res, sent = [], dict(A=0, B=0)
+        for k, t in enumerate(ep['turns']):
+            who, y = t['who'], other(t['who'])
+            src = self.held(ep, y, k)
+            slots = [j for j in range(t['talk']) if self.speaker(ep, k, j) == y]
+            windows = best_windows(src, t['response_ids'], L, len(slots)) if policy == 'best' else None
+            msgs = []
+            for j in range(t['talk']):
+                if j % 2 == 0:
+                    m = self.ids(t['user'], cache=False)[:L] if j == 0 else []
+                    msgs.append((who, list(m)))
+                    continue
+                if policy == 'head':
+                    m = src[sent[y]:sent[y] + L]
+                    sent[y] += L
+                elif policy == 'best':
+                    m = windows[slots.index(j)]
+                else:
+                    m = src[sent[y]:]
+                    sent[y] = len(src)
+                msgs.append((y, list(m)))
+            res.append(msgs)
+        return res
 
     @staticmethod
     def speaker(ep, k, j):
@@ -375,10 +455,11 @@ class Talk:
         messages per turn, lists of (speaker, ids); g counts the episode's messages in order. mode none: no
         conversation. recv: ids to put in place of the received messages, in order (cycled; hard swaps)."""
         ids, own, got, ans, g, r = list(self.prefix(ep, x)), [], [], [], 0, 0
+        state = self.opens(ep, x)
         for k, t in enumerate(ep['turns']):
-            ids += self.request(ep, k, x, talk=mode != 'none')
+            ids += self.request(ep, k, x, talk=mode != 'none', state=state)
             for s, m in (msgs[k] if mode != 'none' else []):
-                ids += self.mark(s)
+                ids += self.mark(s, x, state)
                 if s == x:
                     own.append((len(ids), g))
                     ids += m
@@ -386,10 +467,11 @@ class Talk:
                     got.append((len(ids), g))
                     ids += recv[r % len(recv)] if recv else m
                     r += 1
+                ids += self.unmark()
                 g += 1
             c = self.close(ep, k, x)
             if x == t['who']:
-                ans.append((k, len(ids) + len(self.ids(ASSIST)), len(t['response_ids'])))
+                ans.append((k, len(ids) + len(self.ids(self.answer_head())), len(t['response_ids'])))
             ids += c
         return dict(ids=ids, own=own, recv=got, ans=ans)
 
@@ -480,17 +562,18 @@ class Talk:
         N = len(eps)
         row = {('A', i): i for i in range(N)} | {('B', i): N + i for i in range(N)}
         pending = [self.prefix(eps[i], x) for x in 'AB' for i in range(N)]
+        state = {(x, i): self.opens(eps[i], x) for x in 'AB' for i in range(N)}
         out = [[[] for _ in ep['turns']] for ep in eps]
         for k in range(max(len(ep['turns']) for ep in eps)):
             live = [i for i in range(N) if k < len(eps[i]['turns'])]
             for i in live:
                 for x in 'AB':
-                    pending[row[(x, i)]] += self.request(eps[i], k, x)
+                    pending[row[(x, i)]] += self.request(eps[i], k, x, state=state[(x, i)])
             for j in range(max(eps[i]['turns'][k]['talk'] for i in live)):
                 spk = {i: self.speaker(eps[i], k, j) for i in live if j < eps[i]['turns'][k]['talk']}
                 for i, s in spk.items():
                     for x in 'AB':
-                        pending[row[(x, i)]] += self.mark(s)
+                        pending[row[(x, i)]] += self.mark(s, x, state[(x, i)])
                 h = C.flush(pending)
                 pending = [[] for _ in range(2 * N)]
                 ei = list(spk)
@@ -509,7 +592,7 @@ class Talk:
                     msg = [toks[t][q] for t in range(self.m)]
                     out[i][k].append((spk[i], msg))
                     for x in 'AB':                     # tokens 0..m-2 are in the cache already
-                        pending[row[(x, i)]].append(msg[-1])
+                        pending[row[(x, i)]] += [msg[-1]] + self.unmark()
             for i in live:
                 for x in 'AB':
                     pending[row[(x, i)]] += self.close(eps[i], k, x)
@@ -707,6 +790,25 @@ class Talk:
         return loss, parts
 
 
+def best_windows(src, answer, L, n):
+    """n non-overlapping windows of L tokens of src covering most of the answer's distinct tokens, those rare in src
+    counting more."""
+    if len(src) <= L:
+        return [list(src)] + [[] for _ in range(n - 1)]
+    count, want = Counter(src), set(answer)
+    weight = {t: 1 / count[t] for t in want if t in count}
+    stride = max(1, L // 4)
+    scored = sorted(((-sum(weight.get(t, 0.0) for t in set(src[s:s + L])), s)
+                     for s in range(0, len(src) - L + stride, stride)))
+    picks = []
+    for _, s in scored:
+        if all(abs(s - q) >= L for q in picks):
+            picks.append(s)
+        if len(picks) == n:
+            break
+    return [src[s:s + L] for s in picks] + [[] for _ in range(n - len(picks))]
+
+
 def enumerate_msgs(msgs):
     """An episode's messages in order: (g, (speaker, ids))."""
     return list(enumerate(m for turn in msgs for m in turn))
@@ -768,7 +870,10 @@ def fit(ep, net, max_len):
     view = max(len(net.ids(ep['views'][x], cache=False)) for x in 'AB')
     n, out = view + 120, []
     for t in ep['turns']:
-        n += len(net.ids(t['user'], cache=False)) + 40 + t['talk'] * (net.m + 3) + len(t['response_ids']) + 12
+        if net.talk_max:
+            t = dict(t, talk=min(t['talk'], net.talk_max))
+        n += len(net.ids(t['user'], cache=False)) + 40 + t['talk'] * (net.m + (12 if net.chat else 3)) + \
+            len(t['response_ids']) + 12
         if n > max_len:
             break
         out.append(t)
@@ -789,12 +894,13 @@ def paired_se(a, b):
 
 
 @torch.no_grad()
-def evaluate(net, eps, bs=8, base=False, examples=3, readers=()):
+def evaluate(net, eps, bs=8, base=False, examples=3, readers=(), copies=()):
     """Hard-message numbers per family (see the module docstring): KL per answer token on, swap and none, the share
     closed overall and by task-turn index, letters, distinct tokens, example messages. Untrained readers, never
     trained on anything: base True adds the untrained model's on, swap and none, base 'read' its on and swap; readers
     [(name, lm)] adds other frozen models' on and swap. Each gap (swap - on) comes with its standard error over
-    (episode, turn) pairs."""
+    (episode, turn) pairs. copies: policies of Talk.copy_messages whose literal messages the same reader also reads
+    (copy_POLICY, copy_POLICY_closed)."""
     fams = {}
     for ep in eps:
         fams.setdefault(ep['family'], []).append(ep)
@@ -824,6 +930,10 @@ def evaluate(net, eps, bs=8, base=False, examples=3, readers=()):
                         tot, cnt, keys = net.reader(b, msgs, **kw)
                         for (i, k, x), t_, c_ in zip(keys, tot.tolist(), cnt.tolist()):
                             acc[mode][(s + i, k)] = (t_, c_)
+            for pol in copies:
+                tot, cnt, keys = net.reader(b, [net.copy_messages(e, pol) for e in b])
+                for (i, k, x), t_, c_ in zip(keys, tot.tolist(), cnt.tolist()):
+                    acc[f'copy_{pol}'][(s + i, k)] = (t_, c_)
             for name, lm in readers:
                 for mode, kw in [(f'{name}_on', dict())] + ([(f'{name}_swap', dict(perm=perm))] if len(b) > 1 else []):
                     tot, cnt, keys = net.reader(b, msgs, lm=lm, **kw)
@@ -843,6 +953,8 @@ def evaluate(net, eps, bs=8, base=False, examples=3, readers=()):
         if 'on' in d and 'none' in d:
             d['closed'] = round(O.closed_share(d['none'], d['on']), 4)
             d['none_on'] = round(d['none'] - d['on'], 4)               # what the right messages buy over none
+            for pol in copies:
+                d[f'copy_{pol}_closed'] = round(O.closed_share(d['none'], d[f'copy_{pol}']), 4)
         for pre in ('', 'base_', *(f'{name}_' for name, _ in readers)):
             if f'{pre}swap' in d and f'{pre}on' in d:
                 d[f'{pre}gap'] = round(d[f'{pre}swap'] - d[f'{pre}on'], 4)
@@ -997,19 +1109,22 @@ def target_step(target, lam, letters, opened, half, args):
     return max(args.target_end, target * 0.5 ** (1 / half)), lam
 
 
-def target_open(value, margin, distinct, dev_value, args):
+def target_open(value, margin, distinct, dev_value, args, copy_value=None):
     """Whether the letter target may fall. Messages help outside fill: the last dev's closed share and the mean over
-    the last --target_window steps both reach --value_bar. Messages are not constant: the steps' mean share of distinct
-    messages reaches --min_msgs, and at least half of the help goes when another episode's messages are read."""
-    if len(value) < value.maxlen or (dev_value is not None and dev_value < args.value_bar):
+    the last --target_window steps both reach --value_bar, and the dev's beats a literal copy's (copy_value). Messages
+    are not constant: the steps' mean share of distinct messages reaches --min_msgs, and at least half of the help goes
+    when another episode's messages are read."""
+    if len(value) < value.maxlen or dev_value is None or dev_value < args.value_bar:
+        return False
+    if copy_value is not None and dev_value <= copy_value:
         return False
     help_ = mean(value)
     return help_ >= args.value_bar and mean(distinct) >= args.min_msgs and mean(margin) >= 0.5 * help_
 
 
-def value_outside_fill(d):
-    """A dev's mean closed share over its families other than fill (None without any)."""
-    vals = [v['closed'] for f, v in d.items() if not f.startswith('_') and f != 'fill' and 'closed' in v]
+def value_outside_fill(d, key='closed'):
+    """A dev's mean closed share (or key) over its families other than fill (None without any)."""
+    vals = [v[key] for f, v in d.items() if not f.startswith('_') and f != 'fill' and key in v]
     return round(mean(vals), 4) if vals else None
 
 
@@ -1076,8 +1191,9 @@ def train(net, args, log):
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
     anchored = None
     target_mode = args.letter_charge == 'target'
-    target, half, dev_value = args.target0, args.target_half, None        # the letter target and its halving time
-    gate_v, gate_m, gate_d = (deque(maxlen=args.target_window) for _ in range(3))
+    target, half, dev_value, copy_value = args.target0, args.target_half, None, None   # target and its halving time
+    gate_v, gate_m, gate_d, gate_l = (deque(maxlen=args.target_window) for _ in range(4))
+    copies = ('head', 'best') if args.dev_copy else ()
     lam_from, ramp_t0, lam_now = 0.0, None, 0.0      # the weight in force moves from lam_from to lam from ramp_t0
     best, rollbacks, last_dev, force_dev, watch_on = None, 0, None, False, True
     roll_d, roll_m = deque(maxlen=args.watch_steps), deque(maxlen=args.watch_steps)
@@ -1100,6 +1216,7 @@ def train(net, args, log):
         lam_from, ramp_t0 = st.get('lam_from', lam), st.get('ramp_t0')
         best, rollbacks, lr_scale[0] = st.get('best'), st.get('rollbacks', 0), st.get('lr_scale', 1.0)
         target, half, dev_value = st.get('target', target), st.get('half', half), st.get('dev_value')
+        copy_value = st.get('copy_value')
         net.family_scale = st.get('family_scale', net.family_scale)
         optimizer = (R / 'optim.pt').exists()
         if optimizer:
@@ -1115,12 +1232,12 @@ def train(net, args, log):
     def ckpt_state():
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
                     anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
-                    lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value,
+                    lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value, copy_value=copy_value,
                     family_scale=net.family_scale)
 
     def go_back(slower=True):
         """The best weights and optimizer state, and the weight, bias and tau they were measured at."""
-        nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value
+        nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value, copy_value
         from peft import set_peft_model_state_dict
         from safetensors.torch import load_file
         B = Path(best['path'])
@@ -1132,7 +1249,8 @@ def train(net, args, log):
         net.bias = best['bias']
         if target_mode:                              # letters fell too fast for the messages: half the pace from there
             target, half, dev_value = best['target'], half * 2 if slower else half, best.get('dev_value')
-            for q in (gate_v, gate_m, gate_d):
+            copy_value = best.get('copy_value')
+            for q in (gate_v, gate_m, gate_d, gate_l):
                 q.clear()
     net.model.train()
     while True:
@@ -1153,12 +1271,14 @@ def train(net, args, log):
             force_dev, last_dev = False, step                # the next scheduled one
             roll_d.clear()
             roll_m.clear()
-            d = evaluate(net, dev, bs=args.dev_bs, base='read' if args.dev_base else False)
+            d = evaluate(net, dev, bs=args.dev_bs, base='read' if args.dev_base else False, copies=copies)
             gap = d['_all']['gap']
             gap0 = gap if gap0 is None else gap0
             dev_value = value_outside_fill(d)
+            copy_value = value_outside_fill(d, 'copy_head_closed')
             alive = families_alive(d, args.read_z)
-            d['_all'].update(value_nf=dev_value, alive=alive)
+            d['_all'].update(value_nf=dev_value, copy_head_nf=copy_value, alive=alive,
+                             copy_best_nf=value_outside_fill(d, 'copy_best_closed'))
             if args.family_norm:
                 net.family_scale = {f: v['none'] for f, v in d.items() if not f.startswith('_') and 'none' in v}
             letters = d['_all']['letters']
@@ -1217,7 +1337,7 @@ def train(net, args, log):
                     if target_mode or best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
                         path = str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best'))
                         best = dict(step=step, gap=gap, charge=charge, lam=lam_dev, bias=bias_dev, path=path,
-                                    target=target, dev_value=dev_value)
+                                    target=target, dev_value=dev_value, copy_value=copy_value)
                         save(net, path, dict(step=step, lam=lam_dev, bias=bias_dev), opt, ckpt_state())
                         log(dict(step=step, new_best=True, gap=gap, charge=charge, lam=lam_dev, letters=letters))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
@@ -1275,12 +1395,14 @@ def train(net, args, log):
                 log(dict(step=step, forced_dev=True, distinct=round(mean(roll_d), 1), margin=round(mean(roll_m), 4)))
         opened = False
         if target_mode and ref is not None:          # letters fall only while messages help and are not constant
-            for q, k in ((gate_v, 'value_nf'), (gate_m, 'margin_n'), (gate_d, 'distinct_msgs')):
+            for q, k in ((gate_v, 'value_nf'), (gate_m, 'margin_n'), (gate_d, 'distinct_msgs'), (gate_l, 'letters_soft')):
                 vals = [p[k] for p in parts_all if k in p]
                 if vals:
                     q.append(mean(vals))
-            opened = target_open(gate_v, gate_m, gate_d, dev_value, args)
+            opened = target_open(gate_v, gate_m, gate_d, dev_value, args, copy_value)
             target, lam = target_step(target, lam, mean(p['letters_soft'] for p in parts_all), opened, half, args)
+            if opened:
+                target = min(target, mean(gate_l) + TARGET_SLACK)
         if step % args.log_every == 0 or step == first + 20:
             rec = dict(step=step, tau=round(net.tau, 3), lam=round(lam_now, 5), lam_p=round(lam_p, 4), eps=n_eps,
                        s_step=round(time.monotonic() - t_step, 2), s=round(time.monotonic() - started))
@@ -1359,6 +1481,10 @@ def main():
     ap.add_argument('--min_msgs', type=float, default=0.5, help='target: the share of distinct messages per step needed')
     ap.add_argument('--min_alive', type=int, default=4, help='target: fewer families reading above noise goes back')
     ap.add_argument('--lam_rate', type=float, default=0.2, help='target: the weight moves by this times letters - target')
+    ap.add_argument('--format', default='agent', choices=('agent', 'chat'),
+                    help='chat: plain chat transcripts with no system line (see the module docstring)')
+    ap.add_argument('--talk_max', type=int, default=0, help='message turns per task turn at most (0: as the data says)')
+    ap.add_argument('--dev_copy', type=int, default=0, help='1: each dev also reads literal copies, the bar for the target')
     ap.add_argument('--family_norm', type=int, default=0, help='1: each family\'s KL in shares of its none KL')
     ap.add_argument('--contrast_ref', default='swap', choices=('swap', 'none'),
                     help='what the contrast hinge compares KL_on with (none: wrong messages earn nothing by hurting)')
@@ -1403,6 +1529,7 @@ def main():
                 base_copy='train' in args.parts and args.lam_p > 0)
     net.charge = args.letter_charge
     net.contrast_ref = args.contrast_ref
+    net.chat, net.talk_max = args.format == 'chat', args.talk_max
     if args.fast_decode and device == 'cuda':
         net.fast_eps, net.fast_T = args.micro, 64 * ((args.max_len + 1024) // 64)
     state = {}
