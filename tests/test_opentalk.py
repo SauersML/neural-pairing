@@ -635,27 +635,73 @@ def target_args(*extra):
             *extra)
 
 
-def test_a_target_run_goes_back_to_its_one_best_checkpoint(tmp_path, monkeypatch):
-    monkeypatch.setattr(OT, 'target_open', lambda *a: True)
-    rows = scripted_run(tmp_path, monkeypatch, [(.3, .4, 100., 0.), (.35, .3, 100., 0.), (.33, .3, 100., 0.),
-                                                (.0, .01, 100., 0.)], 6, *target_args())
-    assert [r['step'] for r in rows if r.get('new_best')] == [0, 2]      # by the score only: dev 4 is lower and stays out
+def test_letter_levels_halve_from_the_start():
+    assert [OT.level_of(x, 1.0) for x in (1.0, .6, .5, .3, .25, .1, .01)] == [0, 0, 1, 1, 2, 3, 6]
+
+
+def test_a_run_back_at_a_level_uses_that_levels_file_and_keeps_its_pace(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'target_open', lambda *a: False)             # the target stays: all one level
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.6, .4, 100., 0.), (.3, .4, 100., 0.), (.6, .4, 100., 0.)], 6,
+                        *target_args())
+    assert [r['step'] for r in rows if 'new_level_best' in r] == [0, 2]  # dev 6 only equals the best
     back = next(r for r in rows if r.get('rollback'))
-    assert back['to'] == 2 and back['half'] == 4 and back['why'] == 'dead'
+    assert back['why'] == 'value' and back['to'] == 2 and back['half'] == 2   # under 80% of .6, at the same pace
+    assert json.loads((tmp_path / 'ckpt_L0' / 'talk.json').read_text())['step'] == 2
+    assert not (tmp_path / 'ckpt_L0.tmp').exists()
+
+
+def test_the_80_percent_rule_reads_the_current_level_not_the_overall_best(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'level_of', lambda target, t0: 0 if target == t0 else 1)
+    monkeypatch.setattr(OT, 'target_open', lambda *a: True)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.45, .3, 100., 0.), (.46, .3, 100., 0.), (.35, .3, 100., 0.)], 6,
+                        *target_args())
+    assert [(r['step'], r['new_level_best']) for r in rows if 'new_level_best' in r] == [(0, 0), (4, 1)]
+    assert [r['step'] for r in rows if r.get('new_best')] == [0]         # .46 is under the overall best
+    assert not any(r.get('rollback') and r['step'] < 6 for r in rows)    # .45 fell: not good, no file, no rollback
+    back = next(r for r in rows if r.get('rollback'))
+    assert back['why'] == 'value' and back['to'] == 4                    # under 80% of .46, not back to level 0's .5
+    assert back['half'] == 2
+
+
+def test_a_level_with_no_good_dev_goes_back_one_level_and_slows(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'level_of', lambda target, t0: 0 if target == t0 else 1)
+    monkeypatch.setattr(OT, 'target_open', lambda *a: True)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.3, .3, 100., 0.), (.3, .3, 100., 0.)], 4, *target_args())
+    back = next(r for r in rows if r.get('rollback'))
+    assert back['why'] == 'level' and back['to'] == 0 and back['half'] == 4
     st = json.loads((tmp_path / 'ckpt' / 'state.json').read_text())
-    assert st['family_scale'] == dict(doc=0.5, pair=0.5, fill=0.5, chat_alt=0.5) and st['best']['step'] == 2
-    assert st['target'] == pytest.approx(st['best']['target'])           # the target is restored with the weights
-    assert st['half'] == 4                                               # the run's end is no second go-back
-    assert json.loads((tmp_path / 'ckpt_best' / 'talk.json').read_text())['step'] == 2
-    assert not (tmp_path / 'ckpt_best.tmp').exists()
-    assert json.loads((tmp_path / 'ckpt' / 'talk.json').read_text())['bias'] == 2.0   # 2 * lam0, fixed
+    assert list(st['levels']) == ['0'] and st['misses'] == 0
 
 
-def test_a_score_far_under_the_best_goes_back_with_every_family_alive(tmp_path, monkeypatch):
+def test_a_dead_dev_at_a_new_level_goes_back_at_once(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'level_of', lambda target, t0: 0 if target == t0 else 1)
     monkeypatch.setattr(OT, 'target_open', lambda *a: True)
-    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.3, .4, 100., 0.), (.5, .4, 100., 0.)], 4, *target_args())
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.0, .01, 100., 0.)], 2, *target_args())
     back = next(r for r in rows if r.get('rollback'))
-    assert back['why'] == 'value' and back['to'] == 0
+    assert back['why'] == 'dead' and back['to'] == 0 and back['half'] == 4
+
+
+def test_the_run_ends_on_the_lowest_letter_level_with_a_good_dev(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'level_of', lambda target, t0: 0 if target == t0 else 1)
+    monkeypatch.setattr(OT, 'target_open', lambda *a: True)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.45, .3, 100., 0.), (.46, .3, 100., 0.)], 4, *target_args())
+    end = next(r for r in rows if 'ends_on_level' in r)
+    assert end['ends_on_level'] == 1 and end['at'] == 4 and end['best'] == 0
+    assert (tmp_path / 'ckpt_L0' / 'adapter').exists() and (tmp_path / 'ckpt_L1' / 'adapter').exists()
+    assert json.loads((tmp_path / 'ckpt_best' / 'talk.json').read_text())['step'] == 0
+
+
+def test_the_final_evaluation_reads_the_lowest_good_level_and_the_overall_best(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'level_of', lambda target, t0: 0 if target == t0 else 1)
+    monkeypatch.setattr(OT, 'target_open', lambda *a: True)
+    real = O.Episodes
+    monkeypatch.setattr(O, 'Episodes', lambda path, split, **k: real(path, 'train', **k))
+    devs = [(.5, .4, 100., 0.), (.45, .3, 100., 0.), (.46, .3, 100., 0.)] + [(.2, .1, 100., 0.)] * 4
+    scripted_run(tmp_path, monkeypatch, devs, 4, *target_args('--parts', 'train,eval', '--eval_n', '2'))
+    scores = json.loads((tmp_path / 'out' / 'scores.json').read_text())
+    assert {'eval_seen', 'eval_heldout', 'overall_best_eval_seen', 'overall_best_eval_heldout'} <= set(scores)
+    assert scores['state']['level'] == '1' and scores['state']['final']['step'] == 4
+    assert scores['state']['best']['step'] == 0
 
 
 def test_a_dev_whose_score_fell_keeps_the_target_shut():
@@ -671,7 +717,7 @@ def test_the_warm_stage_saves_new_bests_and_ends_on_them(tmp_path, monkeypatch):
                         *target_args('--warm', '1', '--warm_reader', '1', '--warm_margin', '-1'))
     assert [r['step'] for r in rows if r.get('new_best')] == [0, 2]
     assert not any(r.get('rollback') for r in rows)                      # warm never rolls back
-    assert next(r for r in rows if 'ends_on_best' in r)['ends_on_best'] == 2
+    assert next(r for r in rows if 'ends_on_level' in r)['at'] == 2
 
 
 def test_two_adapters_keep_the_jobs_apart(tmp_path, monkeypatch):

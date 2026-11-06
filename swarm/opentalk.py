@@ -63,9 +63,14 @@ with the same opening, so one LoRA doing both jobs loses whichever has no loss o
 answer positions. In the full stage the writer runs at --writer_lr of the learning rate, because Adam scales its weak
 gradient through the soft tokens up to full-size steps.
 
---protect with a target run keeps one best checkpoint (<ckpt>_best), by the writer's closed share outside fill, written
-only at a new best, in any stage. A dev under --value_keep of it goes back to it. A dev whose share fell by more than
---value_noise since the last dev is not good: the letter target stays shut until a dev that did not fall.
+--protect with a target run keeps the overall best checkpoint (<ckpt>_best), by the writer's closed share outside fill,
+and one best per letter-target level (<ckpt>_L<level>; level 0 runs from --target0 to half of it, then one per halving),
+each written only at its own new best, in any stage. A dev whose share fell by more than --value_noise since the last dev
+is not good, and the letter target stays shut until a dev that did not fall. A dev under --value_keep of its level's best,
+or collapsed or dead, goes back to that level's file. A level's first file needs a good dev within --value_keep of the
+best one level up; after --level_patience devs without one, or at once if collapsed or dead, the run goes back one level
+and the target falls at half the pace. The final evaluation reads the lowest letter level holding a good dev, and also the
+overall best (overall_best_<split> in scores.json) when that is a different checkpoint.
 
 Dev (every --dev_every steps; --dev_n episodes per family, carved from the training records and never trained on),
 hard messages only, per family: KL per answer token with the messages (on), with the received messages of another
@@ -1203,6 +1208,23 @@ def value_outside_fill(d, key='closed'):
     return round(mean(vals), 4) if vals else None
 
 
+def level_of(target, target0):
+    """The letter-target level: 0 from target0 down to half of it, then one more per halving."""
+    return max(0, math.floor(math.log2(target0 / max(target, 1e-9)) + 1e-9))
+
+
+def load_adapters(net, B):
+    """The writer's adapter and the reader's from a checkpoint (the reader starts from the writer's if it saved none)."""
+    from peft import set_peft_model_state_dict
+    from safetensors.torch import load_file
+    B = Path(B)
+    set_peft_model_state_dict(net.model, load_file(str(B / 'adapter' / 'adapter_model.safetensors')))
+    if net.read_model is not None:
+        sub = 'adapter_reader' if (B / 'adapter_reader').exists() else 'adapter'
+        set_peft_model_state_dict(net.read_model, load_file(str(B / sub / 'adapter_model.safetensors')))
+    net.sync_dec()
+
+
 def families_alive(d, z):
     """How many of a dev's families have a gap above z standard errors."""
     return sum(v['gap'] > z * v['gap_se'] for f, v in d.items()
@@ -1281,6 +1303,7 @@ def train(net, args, log):
     target_mode = args.letter_charge == 'target'
     target, half, dev_value, copy_value = args.target0, args.target_half, None, None   # target and its halving time
     prev_value, fell = None, False                   # the last dev's share outside fill, and whether it fell to there
+    levels, misses, miss_level = {}, 0, 0            # letter level -> its best file; devs at this level without a good one
     gate_v, gate_m, gate_d, gate_l = (deque(maxlen=args.target_window) for _ in range(4))
     copies = ('head', 'best', 'target') if args.dev_copy else ()
     lam_from, ramp_t0, lam_now = 0.0, None, 0.0      # the weight in force moves from lam_from to lam from ramp_t0
@@ -1292,20 +1315,9 @@ def train(net, args, log):
     dec_train = 0                                    # message tokens decoded in training steps (not in devs)
     skip_dev = None
 
-    def load_weights(B):
-        """The writer's adapter and the reader's from a checkpoint (the reader starts from the writer's if it saved one)."""
-        from peft import set_peft_model_state_dict
-        from safetensors.torch import load_file
-        B = Path(B)
-        set_peft_model_state_dict(net.model, load_file(str(B / 'adapter' / 'adapter_model.safetensors')))
-        if net.read_model is not None:
-            sub = 'adapter_reader' if (B / 'adapter_reader').exists() else 'adapter'
-            set_peft_model_state_dict(net.read_model, load_file(str(B / sub / 'adapter_model.safetensors')))
-        net.sync_dec()
-
     if args.resume:                                  # the adapter, controller and data position of a checkpoint
         R = Path(args.resume)
-        load_weights(R)
+        load_adapters(net, R)
         step, lam = int(talk['step']), float(talk.get('lam', 0.0))
         net.bias, net.symbols = float(talk.get('bias', 0.0)), bool(talk.get('symbols', False))
         ref, ok, gap0 = st.get('ref'), bool(st.get('ok', False)), st.get('gap0')
@@ -1316,6 +1328,7 @@ def train(net, args, log):
         target, half, dev_value = st.get('target', target), st.get('half', half), st.get('dev_value')
         copy_value, stage = st.get('copy_value'), st.get('stage', stage)
         prev_value, fell = st.get('prev_value', dev_value), st.get('fell', False)
+        levels, misses, miss_level = st.get('levels', {}), st.get('misses', 0), st.get('miss_level', 0)
         net.family_scale = st.get('family_scale', net.family_scale)
         optimizer = (R / 'optim.pt').exists() and (R / 'adapter_reader').exists() == (net.read_model is not None)
         if optimizer:
@@ -1334,36 +1347,50 @@ def train(net, args, log):
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
                     anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
                     lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value, copy_value=copy_value,
-                    family_scale=net.family_scale, stage=stage, prev_value=prev_value, fell=fell)
+                    family_scale=net.family_scale, stage=stage, prev_value=prev_value, fell=fell, levels=levels,
+                    misses=misses, miss_level=miss_level)
 
-    def go_back(slower=True):
-        """The best weights and optimizer state, and the weight, bias and tau they were measured at."""
+    def go_back(slower=True, to=None):
+        """A saved file's weights and optimizer state (the overall best's unless to), and the weight, bias and tau they
+        were measured at."""
         nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value, copy_value, prev_value, fell
-        B = Path(best['path'])
-        load_weights(B)
+        to = to or best
+        B = Path(to['path'])
+        load_adapters(net, B)
         opt.load_state_dict(torch.load(B / 'optim.pt', map_location=net.device))
-        lam = lam_now = lam_from = best['lam']
+        lam = lam_now = lam_from = to['lam']
         ramp_t0 = None
-        net.bias = best['bias']
+        net.bias = to['bias']
         if target_mode:                              # letters fell too fast for the messages: half the pace from there
-            target, half, dev_value = best['target'], half * 2 if slower else half, best.get('dev_value')
-            copy_value, prev_value, fell = best.get('copy_value'), best.get('dev_value'), False
+            target, half, dev_value = to['target'], half * 2 if slower else half, to.get('dev_value')
+            copy_value, prev_value, fell = to.get('copy_value'), to.get('dev_value'), False
             for q in (gate_v, gate_m, gate_d, gate_l):
                 q.clear()
 
-    def save_best(gap, charge, lam_b, bias_b):
-        """The one best checkpoint, swapped in whole: a crash while saving leaves the old one."""
-        nonlocal best
-        path = str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best'))
-        best = dict(step=step, gap=gap, charge=charge, lam=lam_b, bias=bias_b, path=path, target=target,
-                    dev_value=dev_value, copy_value=copy_value)
+    def save_file(path, gap, charge, lam_b, bias_b):
+        """A checkpoint swapped in whole, so a crash while saving leaves the old one; what go_back needs to return to it."""
         save(net, path + '.tmp', dict(step=step, lam=lam_b, bias=bias_b), opt, ckpt_state())
         shutil.rmtree(path, ignore_errors=True)
         os.replace(path + '.tmp', path)
+        return dict(step=step, gap=gap, charge=charge, lam=lam_b, bias=bias_b, path=path, target=target,
+                    dev_value=dev_value, copy_value=copy_value)
+
+    def save_best(gap, charge, lam_b, bias_b):
+        nonlocal best
+        best = save_file(str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best')), gap, charge, lam_b, bias_b)
         log(dict(step=step, new_best=True, gap=gap, charge=charge, lam=lam_b, value_nf=dev_value))
 
-    if args.resume and target_mode and args.protect and best is None and dev_value is not None:
-        save_best(st.get('gap0'), None, lam, net.bias)   # a rollback point from the first step on
+    def save_level(gap, charge, lam_b, bias_b):
+        level = level_of(target, args.target0)
+        path = str(Path(args.ckpt).parent / f'{Path(args.ckpt).name}_L{level}')
+        levels[str(level)] = save_file(path, gap, charge, lam_b, bias_b)
+        log(dict(step=step, new_level_best=level, target=round(target, 4), value_nf=dev_value))
+
+    if args.resume and target_mode and args.protect and dev_value is not None:   # rollback points from the first step on
+        if best is None:
+            save_best(st.get('gap0'), None, lam, net.bias)
+        if not levels:
+            save_level(st.get('gap0'), None, lam, net.bias)
     net.model.train()
     if net.read_model is not None:
         net.read_model.train()
@@ -1400,7 +1427,7 @@ def train(net, args, log):
                              copy_best_nf=value_outside_fill(d, 'copy_best_fair' if fair else 'copy_best_closed'),
                              copy_target_nf=value_outside_fill(d, 'copy_target_fair' if fair else 'copy_target_closed'),
                              none_nf=value_outside_fill(d, 'none'), base_none_nf=value_outside_fill(d, 'base_none'),
-                             on_nf=value_outside_fill(d, 'on'))
+                             on_nf=value_outside_fill(d, 'on'), level=level_of(target, args.target0), target=round(target, 4))
             switched = (stage == 'warm' and dev_value is not None and copy_value is not None
                         and copy_value >= args.value_bar and dev_value >= copy_value - args.warm_margin)
             if switched:
@@ -1448,43 +1475,64 @@ def train(net, args, log):
                 log(dict(step=step, lam_p_halved=round(lam_p_max, 5), gap=gap))
             log(dict(step=step, tau=round(net.tau, 3), lam=lam, lam_now=round(lam_now, 5), dev=d,
                      dev_s=round(time.monotonic() - t0), s=round(time.monotonic() - started)))
-            if args.protect and (stage == 'full' or target_mode):
-                why = '' if switched or stage != 'full' else dev_trouble(
-                    gap, ref, eff, args, alive if target_mode else None, dev_value, best and best.get('dev_value'))
-                if why and best is not None and step != first:   # a part's first dev has trained nothing to undo
-                    go_back()
-                    rollbacks += 1
-                    ok, watch_on = False, True
-                    lr_scale[0] *= args.rollback_lr
-                    for g in opt.param_groups:
-                        g['lr'] = args.lr * lr_scale[0]
-                    log(dict(step=step, rollback=True, why=why, to=best['step'], gap=gap, eff_tokens=eff, lam=lam,
-                             bias=net.bias, lr=args.lr * lr_scale[0], rollbacks=rollbacks, target=target, half=half,
-                             alive=alive))
+            back = None
+            if args.protect and target_mode:
+                level = level_of(target, args.target0)
+                if level != miss_level:
+                    misses, miss_level = 0, level
+                cur = levels.get(str(level))
+                up = levels.get(str(max((int(k) for k in levels if int(k) < level), default=-1)))
+                why = '' if switched or stage != 'full' else dev_trouble(gap, ref, eff, args, alive, dev_value,
+                                                                         cur and cur.get('dev_value'))
+                good = dev_value is not None and not why and not fell and (
+                    dev_value > cur['dev_value'] if cur else up is None or dev_value >= args.value_keep * up['dev_value'])
+                if cur is None and up is not None and not good:
+                    misses += 1
+                if step != first:                                # a part's first dev has trained nothing to undo
+                    if why and cur:
+                        back = dict(to=cur, slower=False)        # the same level, at the same pace
+                    elif up and not cur and (why or misses >= args.level_patience):
+                        back, why = dict(to=up, slower=True), why or 'level'
+                if not back and good:
+                    charge = d['_all'].get('charge', letters)
+                    save_level(gap, charge, lam_dev, bias_dev)
+                    if best is None or best.get('dev_value') is None or dev_value > best['dev_value']:
+                        save_best(gap, charge, lam_dev, bias_dev)
+            elif args.protect and stage == 'full':
+                why = '' if switched else dev_trouble(gap, ref, eff, args)
+                if why and best is not None and step != first:
+                    back = dict(slower=True)
                 elif not why:
                     charge = d['_all'].get('charge', letters)
-                    if target_mode:
-                        better = dev_value is not None and (best is None or best.get('dev_value') is None
-                                                            or dev_value > best['dev_value'])
-                    else:
-                        better = best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']
-                    if better:
+                    if best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
                         save_best(gap, charge, lam_dev, bias_dev)
+            if back:
+                go_back(**back)
+                misses = 0
+                rollbacks += 1
+                ok, watch_on = False, True
+                lr_scale[0] *= args.rollback_lr
+                for g in opt.param_groups:
+                    g['lr'] = args.lr * lr_scale[0]
+                log(dict(step=step, rollback=True, why=why, to=(back.get('to') or best)['step'], gap=gap, eff_tokens=eff,
+                         lam=lam, bias=net.bias, lr=args.lr * lr_scale[0], rollbacks=rollbacks, target=target, half=half,
+                         alive=alive))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
         if stop or step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
-            if args.protect and (stage == 'full' or target_mode) and best is not None and best['step'] != step:
-                if (target_mode and target < best.get('target', target) and not fell
-                        and (Path(args.ckpt) / 'adapter').exists()):
-                    load_weights(args.ckpt)                 # letters fell since the best: the last dev's, at its lower letters
-                    log(dict(step=step, ends_on_dev=True, best=best['step'], target=target))
-                else:
-                    go_back(slower=False)                   # ends on its best weights
-                    log(dict(step=step, ends_on_best=best['step'], gap=best['gap']))
+            if args.protect and target_mode and levels:     # the lowest letter level holding a good dev
+                low = max(int(k) for k in levels)
+                go_back(slower=False, to=levels[str(low)])
+                log(dict(step=step, ends_on_level=low, at=levels[str(low)]['step'], target=target,
+                         value_nf=levels[str(low)].get('dev_value'), best=best and best['step']))
+            elif args.protect and stage == 'full' and best is not None and best['step'] != step:
+                go_back(slower=False)                       # ends on its best weights
+                log(dict(step=step, ends_on_best=best['step'], gap=best['gap']))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             log(dict(step=step, done=True, s=round(time.monotonic() - started), rollbacks=rollbacks,
                      best=best and best['step']))
-            return dict(step=step, lam=lam)
+            low = str(max(int(k) for k in levels)) if levels else None
+            return dict(step=step, lam=lam, best=best, level=low, final=levels[low] if low else None)
         lam_p = lam_p_max * min(1.0, (step - priv) / args.priv_ramp) if priv is not None else 0.0
         t_step = time.monotonic()
         parts_all, n_eps = [], 0
@@ -1621,6 +1669,8 @@ def main():
                     'outside fill goes back to it')
     ap.add_argument('--value_noise', type=float, default=0.01, help='target: a fall in the closed share outside fill '
                     'since the last dev, past this, means that dev was not good and the target stays shut')
+    ap.add_argument('--level_patience', type=int, default=2, help='target: devs at a new letter level without a good one '
+                    'before the run goes back one level')
     ap.add_argument('--two', type=int, default=0, help='1: separate LoRAs for the writer and the reader')
     ap.add_argument('--writer_lr', type=float, default=0.1, help='two: the writer\'s share of the learning rate in the '
                     'full stage')
@@ -1702,6 +1752,15 @@ def main():
                                      copies=('head', 'best', 'target') if args.dev_copy else ())
             log(dict(eval=split, res=scores[split]))
             (out / 'scores.json').write_text(json.dumps(scores, indent=1, ensure_ascii=False))
+        over, final = (state or {}).get('best'), (state or {}).get('final')
+        if over and final and over['step'] != final['step'] and Path(over['path'], 'adapter').exists():
+            load_adapters(net, over['path'])                       # the overall best, as well as the lowest good letters
+            for split, eps in sets.items():
+                scores[f'overall_best_{split}'] = evaluate(net, eps, bs=args.dev_bs, base=True,
+                                                           copies=('head', 'best', 'target') if args.dev_copy else ())
+                log(dict(eval=f'overall_best_{split}', res=scores[f'overall_best_{split}']))
+                (out / 'scores.json').write_text(json.dumps(scores, indent=1, ensure_ascii=False))
+            load_adapters(net, final['path'])
         for spec in filter(None, args.readers.split(',')):        # written after each, so a failure here loses no score
             from transformers import AutoModelForCausalLM
             name = spec.split('/')[-1].replace('-', '_').replace('.', '_').lower()
