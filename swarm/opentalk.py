@@ -914,6 +914,7 @@ def train(net, args, log):
     anchored = None
     started, step, util, t_train = time.monotonic(), 0, Util(), 0.0
     first = 0                                        # the step this part of the run started at
+    dec_train = 0                                    # message tokens decoded in training steps (not in devs)
     skip_dev = None
     if args.resume:                                  # the adapter, controller and data position of a checkpoint
         from peft import set_peft_model_state_dict
@@ -980,6 +981,7 @@ def train(net, args, log):
         lam_p = lam_p_max * min(1.0, (step - priv) / args.priv_ramp) if priv is not None else 0.0
         t_step = time.monotonic()
         parts_all, n_eps = [], 0
+        dec0 = net.stats['decode_tokens']
         util.on = True
         for _ in range(micros):
             eps = next(feed, None)
@@ -1011,6 +1013,7 @@ def train(net, args, log):
         net.sync_dec()
         step += 1
         t_train += time.monotonic() - t_step
+        dec_train += net.stats['decode_tokens'] - dec0
         if step % args.log_every == 0 or step == first + 20:
             rec = dict(step=step, tau=round(net.tau, 3), lam=lam, lam_p=round(lam_p, 4), eps=n_eps,
                        s_step=round(time.monotonic() - t_step, 2), s=round(time.monotonic() - started))
@@ -1020,7 +1023,7 @@ def train(net, args, log):
                 rec['gb'] = round(torch.cuda.max_memory_allocated() / 2 ** 30, 1)
             if step == first + 20:                 # throughput over this part's training steps (devs left out)
                 rec.update(tok_s_grad=round(net.stats['grad_tokens'] / t_train),
-                           tok_s_decode=round(net.stats['decode_tokens'] / t_train), gpu_util=util.mean(),
+                           tok_s_decode=round(dec_train / t_train), gpu_util=util.mean(),
                            h_per_1000_steps=round(t_train / 20 * 1000 / 3600, 2))
             log(rec)
 
