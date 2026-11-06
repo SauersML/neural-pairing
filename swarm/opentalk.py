@@ -325,6 +325,7 @@ class Talk:
         self.letter_target = 0.0                       # charge target: the letter share a message owes nothing for
         self.keep_charge, self.kept_charge = False, None   # --grad_probe: this micro-batch's weighted letter charge
         self.nonsat, self.away, self._keep = 0.0, None, None   # --nonsat: the letter push away from saturated letters
+        self.nonsat_filler, self.fill = False, None    # --nonsat_filler: the push at filler positions and blank messages
         self.family_scale = {}                         # family_norm: family -> the none KL its KL is divided by
         self.contrast_ref = 'swap'                     # what the contrast hinge compares KL_on with
         self.chat = False                              # --format chat: plain chat transcripts (no system line, no frame)
@@ -532,7 +533,7 @@ class Talk:
 
     def message_stats(self, msgs):
         """Over messages (token id lists): letter tokens per message, the share of messages with no letter token, the
-        share of tokens that are filler (is_filler: whitespace and ellipsis only), and the share that are neither, with
+        share of messages that are all filler or nearly (at most 3 other tokens), the share of tokens that are filler (is_filler: whitespace and ellipsis only), and the share that are neither, with
         the commonest of those: what stands where letters would."""
         flags = [self.masks.walk(ids)[0] for ids in msgs]
         counts = [sum(f) for f in flags]
@@ -545,6 +546,8 @@ class Talk:
         entropy = -sum(v / n * math.log(v / n) for v in Counter(toks).values())
         other = Counter(t for ids, f in zip(msgs, flags) for t, x in zip(ids, f) if not x and not self._filler[t])
         return dict(letters_per_msg=round(mean(counts), 3), no_letter_msgs=round(mean(c == 0 for c in counts), 4),
+                    blank_msgs=round(mean(all(self._filler[t] for t in ids) for ids in msgs), 4),
+                    short_msgs=round(mean(sum(not self._filler[t] for t in ids) <= 3 for ids in msgs), 4),
                     filler=round(mean(self._filler[t] for t in toks), 4), charge=round(charge, 4),
                     symbols=round(sum(other.values()) / n, 4),
                     top_symbols=[[self.tok.decode([t]), round(v / n, 4)] for t, v in other.most_common(12)],
@@ -665,7 +668,8 @@ class Talk:
         # letterless token exists there, its log P would be -inf and its gradient NaN: all count, so nothing pushes.
         none = ~((keep > 0) & self.allowed).any(-1, keepdim=True)
         keep = torch.where(none, torch.ones_like(keep), keep)
-        return (*out, ((z / self.tau).log_softmax(-1) + keep.log()).logsumexp(-1))
+        fill = (p * (1 - self.filler_keep(z.shape[-1], z.device))).sum(-1)
+        return (*out, fill, ((z / self.tau).log_softmax(-1) + keep.log()).logsumexp(-1))
 
     def chunked(self, fn, h, *rest):
         """fn over h (and rest) in CHUNK-row pieces, each under activation checkpointing when grad is on: the
@@ -705,8 +709,8 @@ class Talk:
         position [messages * m] and the share of positions whose argmax is the decoded token (1 at the fixed point)."""
         hs, G, toks = self.own_hidden(eps, msgs)
         pends = [q for g in range(0, len(toks), self.m) for q in self.masks.walk(toks[g:g + self.m])[1]]
-        vec, mass, arg, *away = self.chunked(self._soft, hs, self.rows(pends))
-        self.away = away[0] if away else None
+        vec, mass, arg, *push = self.chunked(self._soft, hs, self.rows(pends))
+        self.fill, self.away = push or (None, None)
         fixed = float((arg == torch.tensor(toks, device=self.device)).float().mean())
         soft = [dict() for _ in eps]
         for q, (i, g) in enumerate(G):
@@ -877,12 +881,19 @@ class Talk:
                      letters=mean(self.letters_of(rows.tolist())), distinct=len(torch.unique(toks)),
                      distinct_msgs=len(torch.unique(rows, dim=0)) / max(1, rows.shape[0]))
         if self.keep_charge:
-            # --nonsat: what the push descends, at the positions holding a letter, in messages over the target
-            over = (mass.detach().view(-1, self.m).mean(1) > self.letter_target).float()
-            self.kept_charge = (((mass.detach() * -self.away).view(-1, self.m).mean(1) * over).mean()
+            # --nonsat: what the push descends, at the positions holding a letter, in messages over the target.
+            # --nonsat_filler: at filler positions too, and in all-filler messages, which hold no letters to be over
+            # the target with: otherwise newline is a free way out of the push and a blank message nothing pulls back.
+            over = mass.detach().view(-1, self.m).mean(1) > self.letter_target
+            parts.update(g_charge_value=float(charge.detach()), g_over=float(over.float().mean()))
+            where = mass.detach()
+            if self.nonsat and self.nonsat_filler:
+                filler = self.filler_keep(self.allowed.shape[-1], self.device)[rows.to(self.device)] == 0
+                blank = filler.all(1)
+                over, where = over | blank, where + self.fill.detach()
+                parts.update(g_blank=float(blank.float().mean()))
+            self.kept_charge = (((where * -self.away).view(-1, self.m).mean(1) * over.float()).mean()
                                 if self.nonsat else charge)
-            parts.update(g_charge_value=float(charge.detach()),
-                         g_over=float((mass.detach().view(-1, self.m).mean(1) > self.letter_target).float().mean()))
         perm = list(range(1, len(eps))) + [0]
         if contrast and self.contrast_ref == 'none':
             with torch.no_grad():                    # its own none: sending nothing must earn nothing, and the untrained
@@ -1387,6 +1398,7 @@ def train(net, args, log):
     first = 0                                        # the step this part of the run started at
     dec_train = 0                                    # message tokens decoded in training steps (not in devs)
     skip_dev = None
+    last_saved = None
 
     if args.resume:                                  # the adapter, controller and data position of a checkpoint
         R = Path(args.resume)
@@ -1581,6 +1593,9 @@ def train(net, args, log):
                     if best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
                         save_best(gap, charge, lam_dev, bias_dev)
             if back:
+                if stop:                                     # what it stopped on, though the rollback drops them
+                    save(net, f'{args.ckpt}_last', dict(step=step, lam=lam), opt, ckpt_state())
+                    last_saved = step
                 go_back(**back)
                 misses = 0
                 rollbacks += 1
@@ -1596,7 +1611,8 @@ def train(net, args, log):
         if stop or step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
             # the weights training ended on, which going back below replaces in the checkpoint: --resume from this
             # file to train on from where it stopped
-            save(net, f'{args.ckpt}_last', dict(step=step, lam=lam), opt, ckpt_state())
+            if last_saved != step:
+                save(net, f'{args.ckpt}_last', dict(step=step, lam=lam), opt, ckpt_state())
             if args.protect and target_mode and levels:     # the lowest letter level holding a good dev
                 low = max(int(k) for k in levels)
                 go_back(slower=False, to=levels[str(low)])
@@ -1782,6 +1798,9 @@ def main():
     ap.add_argument('--nonsat', type=float, default=0.0, help='a letter push that does not vanish on a sure letter: -log '
                     'P(a letterless token that is not filler) at letter positions of messages over the target, its '
                     'gradient scaled each step to this times the norm of the rest of the writer gradient')
+    ap.add_argument('--nonsat_filler', type=int, default=0, help='--nonsat also at filler positions, and in all-filler '
+                    'messages though they hold no letters: messages have no stop token, so a message ends in filler only '
+                    'once its letters are under the target')
     ap.add_argument('--grad_probe', type=int, default=0, help='every N steps: log the writer gradient from the letter '
                     'charge against the rest (g_charge, g_answer, g_cos); one extra backward through the writer')
     ap.add_argument('--dev_copy', type=int, default=0, help='1: each dev also reads literal copies, the bar for the target')
@@ -1828,7 +1847,7 @@ def main():
     net = build(device, args.base, args.rank, args.ckpt if 'train' not in args.parts else None, args.m,
                 base_copy='train' in args.parts and args.lam_p > 0, two=bool(args.two))
     net.charge = args.letter_charge
-    net.nonsat = args.nonsat
+    net.nonsat, net.nonsat_filler = args.nonsat, bool(args.nonsat_filler)
     net.contrast_ref = args.contrast_ref
     net.chat, net.talk_max, net.warm_reader = args.format == 'chat', args.talk_max, bool(args.warm_reader)
     if args.fast_decode and device == 'cuda':

@@ -446,7 +446,7 @@ def test_message_stats_counts_letters_and_filler():
     net, rng = net_of(), random.Random(4)
     eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'doc', 'chat_alt', 'chat_alt'])]
     res = OT.evaluate(net, eps, bs=2)
-    for k in ('letters_per_msg', 'no_letter_msgs', 'filler', 'none_on'):
+    for k in ('letters_per_msg', 'no_letter_msgs', 'blank_msgs', 'short_msgs', 'filler', 'none_on'):
         assert k in res['doc'] and k in res['_all']
     assert res['doc']['none_on'] == round(res['doc']['none'] - res['doc']['on'], 4)
     assert res['_all']['letters_per_msg'] == pytest.approx(res['_all']['letters'] * net.m, abs=1e-2)
@@ -825,6 +825,68 @@ def test_a_position_with_no_letterless_token_is_not_pushed():
     away.sum().backward()
     grads = [p.grad for p in net.model.parameters() if p.grad is not None]
     assert grads and all(torch.isfinite(g).all() for g in grads)
+
+
+def blank_push(monkeypatch, on):
+    """The push on a batch of all-newline messages, under a target no message is over: the net and its episodes."""
+    net, rng = net_of(m=3), random.Random(19)
+    net.nonsat, net.nonsat_filler, net.keep_charge, net.letter_target = .5, on, True, .99
+    eps = [OT.fit(episode(rng, 0, 'doc'), net, 4000)]
+    nl = net.tok.encode('\n')[-1]
+    blank = [[[(s, [nl] * net.m) for s, _ in turn] for turn in e] for e in net.decode(eps)]
+    monkeypatch.setattr(net, 'decode', lambda *a, **k: blank)
+    return net, eps
+
+
+def test_the_filler_push_pulls_a_blank_message_off_newline(monkeypatch):
+    net, eps = blank_push(monkeypatch, True)
+    parts = net.loss(eps)[1]
+    assert parts['g_blank'] == 1 and parts['g_over'] == 0
+    before = float(net.away.detach().mean())
+    params = [p for p in net.model.parameters() if p.requires_grad]
+    grads = torch.autograd.grad(net.kept_charge, params, allow_unused=True)
+    assert any(g is not None and g.abs().sum() > 0 for g in grads)
+    assert all(g is None or torch.isfinite(g).all() for g in grads)
+    with torch.no_grad():
+        for p, g in zip(params, grads):
+            if g is not None:
+                p.sub_(g / max(float(torch.cat([x.view(-1) for x in grads if x is not None]).norm()), 1e-9) * .5)
+    net.keep_charge = True
+    net.loss(eps)
+    assert float(net.away.detach().mean()) > before              # likelier a letterless token that is not filler
+
+
+def test_without_the_filler_push_a_blank_message_owes_nothing(monkeypatch):
+    net, eps = blank_push(monkeypatch, False)
+    parts = net.loss(eps)[1]
+    assert 'g_blank' not in parts and float(net.kept_charge.abs()) < 1e-3
+
+
+def test_the_filler_push_weighs_filler_and_letter_positions(monkeypatch):
+    net, eps = blank_push(monkeypatch, True)
+    net.letter_target = 0.0
+    net.loss(eps)
+    assert net.fill.min() >= 0 and net.fill.max() <= 1 + 1e-5
+    keep = net.filler_keep(net.allowed.shape[-1], net.device)
+    assert keep[net.tok.encode('\n')[-1]] == 0 and net.kept_charge > 0
+
+
+def test_the_filler_push_runs_at_its_scale(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.)] * 3, 4,
+                        *target_args('--nonsat', '.5', '--nonsat_filler', '1', '--target0', '0.001'))
+    got = [r for r in rows if 'g_answer' in r]
+    assert got and all('g_blank' in r and r['g_charge'] > 0 for r in got)
+    assert all(r['g_total'] ** 2 == pytest.approx(r['g_answer'] ** 2 * (1 + .25 + r['g_cos']), rel=.05) for r in got)
+
+
+def test_a_rollback_at_the_last_dev_keeps_what_it_stopped_on(tmp_path, monkeypatch):
+    from safetensors.torch import load_file
+    monkeypatch.setattr(OT, 'target_open', lambda *a: False)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.5, .4, 100., 0.), (.05, .4, 100., 0.)], 4, *target_args())
+    assert any(r.get('rollback') for r in rows)
+    last = load_file(str(tmp_path / 'ckpt_last' / 'adapter' / 'adapter_model.safetensors'))
+    kept = load_file(str(tmp_path / 'ckpt' / 'adapter' / 'adapter_model.safetensors'))
+    assert any(not torch.equal(last[k], kept[k]) for k in kept)
 
 
 def test_the_letter_push_joins_the_writers_gradient_at_its_scale(tmp_path, monkeypatch):
