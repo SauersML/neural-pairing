@@ -191,7 +191,7 @@ def notes_figure(name='letterfree_notes'):
     W = 2400
     d = json.loads(NOTES.read_text())
     s = canvas(W)
-    y = title(s, 'Trained models read each other’s no-letter notes; in two of five games an untrained copy can’t', W)
+    y = title(s, 'Trained models read each other’s no-letter notes; in two of five games an untrained copy stays near chance', W)
 
     side, h = 600, 330
     s.rect(M, y, side, h, CARD, 24)
