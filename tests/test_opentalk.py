@@ -771,6 +771,18 @@ def test_a_non_finite_first_dev_saves_no_file(tmp_path, monkeypatch):
     assert 0 not in [r['step'] for r in rows if 'new_level_best' in r or r.get('new_best')]
 
 
+def test_the_weights_training_ended_on_are_kept_when_the_run_goes_back(tmp_path, monkeypatch):
+    from safetensors.torch import load_file
+    monkeypatch.setattr(OT, 'target_open', lambda *a: False)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (.45, .4, 100., 0.), (.45, .4, 100., 0.)], 4, *target_args())
+    assert next(r for r in rows if 'ends_on_level' in r)['at'] == 0      # the checkpoint holds step 0's weights
+    last = load_file(str(tmp_path / 'ckpt_last' / 'adapter' / 'adapter_model.safetensors'))
+    kept = load_file(str(tmp_path / 'ckpt' / 'adapter' / 'adapter_model.safetensors'))
+    assert any(not torch.equal(last[k], kept[k]) for k in kept)
+    assert (tmp_path / 'ckpt_last' / 'optim.pt').exists()
+    assert json.loads((tmp_path / 'ckpt_last' / 'state.json').read_text())['stage'] == 'full'
+
+
 def test_a_lower_share_counts_as_fell_only_when_on_rose():
     assert not OT.score_fell(.4638, .5029, .1766, .184, .01)             # dev 1200: none improved, on did not rise
     assert OT.score_fell(.1595, .4819, .2632, .1875, .01)                # dev 1000: the messages really collapsed

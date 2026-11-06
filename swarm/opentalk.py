@@ -1594,6 +1594,9 @@ def train(net, args, log):
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
         if stop or step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
+            # the weights training ended on, which going back below replaces in the checkpoint: --resume from this
+            # file to train on from where it stopped
+            save(net, f'{args.ckpt}_last', dict(step=step, lam=lam), opt, ckpt_state())
             if args.protect and target_mode and levels:     # the lowest letter level holding a good dev
                 low = max(int(k) for k in levels)
                 go_back(slower=False, to=levels[str(low)])
