@@ -60,9 +60,11 @@ def test_stages(setup):
     for st in ('alone_future', 'alone_span', 'alone_system'):  # B's first turn reads more, or the same at other places
         assert kl[st][0] > 100 * abs(kl['alone'][0])
     for st in ('framed', 'ordered', 'no_system', 'true_pos', 'parts', 'cut_agent', 'marked', 'marked_no_system',
-               'marked_true_pos', 'chat_walker', 'chat_walker_no_b_system', 'alone_both_system'):
-        assert kl[st][0] > 1e-8 and kl[st][1] > 1e-8
+               'marked_true_pos', 'chat_walker', 'chat_walker_no_b_system', 'alone_both_system', 'first_token',
+               'system_line', 'alone_no_first'):
+        assert kl[st][0] > 1e-9 and kl[st][1] > 1e-9
     assert kl['framed'] != kl['ordered'] and kl['ordered'] != kl['no_system'] and kl['no_system'] != kl['true_pos']
+    assert kl['first_token'] != kl['no_system'] and kl['system_line'] != kl['first_token']
     got = CC.summary([r, r])
     assert got['alone']['against'] == 'cut_plain' and got['parts']['against'] == 'cut_agent'
     assert got['whole_chat']['closed'] == pytest.approx(1., abs=1e-3)

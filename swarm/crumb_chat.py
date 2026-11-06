@@ -19,8 +19,11 @@ positions after A's, A's at their own count) and alone_system (B has its system 
 text gets worse without B's system line: marked, marked_no_system and marked_true_pos are ordered, no_system and true_pos
 with each part's chat markers among the crumbs. The split as it could run: chat_walker (A's own turns in the chat's format
 under its system line, B under its own, SPAN after), chat_walker_no_b_system, and alone_both_system (both system lines,
-true positions). cut_agent and cut_plain are B alone with and without its system line, whole_chat the whole chat in one
-pass (the check on the cached teacher).
+true positions). Whether what a missing system line takes away is the stream's first token, which attention leans on
+whatever its text: first_token and system_line are no_system with A's first token or its whole system line among the
+crumbs, read by every B token; alone_no_first is alone without A's first token. cut_agent and cut_plain are B alone with
+and without its system line, whole_chat the whole chat in one pass (the check on the cached teacher). The same again per
+who opens the chat (by_opener): when B opens, B's own first token reads nothing and is clean.
 Writes one JSON: per stage the KL per answer token, the cut it is measured against, the closed share with a 95% interval
 over episodes, and the same per B turn index.
 Usage: python swarm/crumb_chat.py --data DIR --out OUT.json [--family chat_alt --split eval_seen --n_eval 600]"""
@@ -39,7 +42,8 @@ from swarm import crumbs as C                           # noqa: E402
 
 AGENT_STAGES = ('parts', 'framed', 'ordered', 'alone_system', 'marked', 'chat_walker', 'alone_both_system')   # against cut_agent
 PLAIN_STAGES = ('no_system', 'true_pos', 'alone', 'with_b', 'alone_future', 'alone_span', 'whole_chat', 'marked_no_system',
-                'marked_true_pos', 'chat_walker_no_b_system')          # against cut_plain
+                'marked_true_pos', 'chat_walker_no_b_system', 'first_token', 'system_line',
+                'alone_no_first')                                      # against cut_plain
 
 
 def chat_tokens(rec):
@@ -174,6 +178,11 @@ def stages(net, rec, device, span):
     out['marked'] = reading(True, taken(fkv, midx, device), ment, positions=counted(True))
     out['marked_no_system'] = reading(False, taken(fkv, midx, device), ment, positions=counted(False))
     out['marked_true_pos'] = reading(False, taken(tkv, midx, device), ment)
+    # no_system with A's first token, or its whole system line, among the crumbs: every B token reads them
+    n_line = len(net._ids(f'<|im_start|>system\n{CO.WALKER}<|im_end|>\n'))
+    out['first_token'] = reading(False, taken(fkv, [0] + idx, device), [-1] + ent, positions=counted(False))
+    out['system_line'] = reading(False, taken(fkv, list(range(n_line)) + idx, device), [-1] * n_line + ent,
+                                 positions=counted(False))
     # A's own turns in the chat's format, without B's
     mine = [i for i, k in enumerate(turn) if k not in reader]
     a_ids, a_turn = [chat[i] for i in mine], [turn[i] for i in mine]
@@ -182,6 +191,7 @@ def stages(net, rec, device, span):
     abank = taken(akv, every, device)
     out['alone'] = reading(False, abank, a_turn)
     out['alone_future'] = reading(False, abank, a_turn, future=True)
+    out['alone_no_first'] = reading(False, taken(akv, every[1:], device), a_turn[1:])
     out['alone_system'] = reading(True, abank, a_turn)
     _, ckv = forward(net, device, a_ids, every, capture=True)
     out['alone_span'] = reading(False, taken(ckv, every, device), a_turn, positions=counted(False))
@@ -281,11 +291,14 @@ def main():
             picked.append((rec, ep))
         if seen >= args.n_eval:
             break
-    rows, capped, total, lost, started = [], 0, 0, 0, time.monotonic()
+    rows, opener, capped, total, lost, started = [], [], 0, 0, 0, time.monotonic()
 
     def save():
         res = dict(vars(args), episodes=len(rows), of=len(picked), capped=capped, material_tokens=total,
                    past_the_cap=lost, s=round(time.monotonic() - started), stages=summary(rows) if rows else None)
+        res['by_opener'] = {o: dict(episodes=opener.count(o),
+                                    stages=summary([r for r, x in zip(rows, opener) if x == o]))
+                            for o in sorted(set(opener))}
         Path(args.out).write_text(json.dumps(res, indent=1))
         return res
 
@@ -295,14 +308,18 @@ def main():
         sizes = [len(net._ids(p)) for p in every]
         capped, total, lost = capped + (len(every) > args.visits), total + sum(sizes), lost + sum(sizes[args.visits:])
         rows.append(row(net, rec, ep, args.device, args.span))
+        opener.append('walker' if rec['turns'][0]['who'] == w else 'reader')
         if i % 10 == 0:
             res = save()
             print(json.dumps(dict(episodes=len(rows), of=len(picked), s=res['s'],
                                   closed={k: v.get('closed') for k, v in res['stages'].items()})), flush=True)
     res = save()
-    print(json.dumps({k: v for k, v in res.items() if k != 'stages'}), flush=True)
+    print(json.dumps({k: v for k, v in res.items() if k not in ('stages', 'by_opener')}), flush=True)
     for st, v in res['stages'].items():
         print(st, json.dumps({k: x for k, x in v.items() if k != 'by_turn'}), flush=True)
+    for o, got in res['by_opener'].items():
+        print(f'opener {o}', got['episodes'], json.dumps({st: [v['kl'], v.get('closed')] for st, v in got['stages'].items()}),
+              flush=True)
 
 
 if __name__ == '__main__':
