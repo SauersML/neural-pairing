@@ -9,8 +9,9 @@ untrained base model this way at every dev and charges its frozen-reader penalty
 A model's prior can hide a note: asked safe or trap it may say the same whatever the note says, while the note still moves
 its answer. So besides the share right on own and on swapped notes, moved() compares how far the true value stands above
 the other candidates on the two notes: 0 for a note that tells the model nothing, and for a reader that gets every note
-right the same number as own minus swapped. Well under 0 is a read too, of a code turned over: the note still steers the
-model, and a few examples show it which way."""
+right the same number as own minus swapped. It says how steady a note's pull is and not how strong: any two fixed strings
+pull a model some way, so a game with two values sits near +.5 or -.5 under any fixed code, and only over 0 is a pull
+towards the truth. The size is in the margin's nats (crumbs.one_note_by_game)."""
 import random
 
 import torch

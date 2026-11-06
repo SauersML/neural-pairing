@@ -91,6 +91,7 @@ RIGHT_EPS = 24                # sym, --protect: test-value episodes per game in 
 ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the untrained reader's one-note read
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
+ONE_SURE = 3.                  # sym, --one_note: the nats by which a token of the notes the penalty reads stands over its next
 ONE_ADV_MOST = 8.              # sym, --one_note: the most a game's penalty weight grows to, by half each dev it stays read
 PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
@@ -168,6 +169,7 @@ class Crumbs(nn.Module):
         self.source, self.rerope, self.remember = 'slots', False, False
         self.split = False                             # crumb_open: the chat split into two agents' own real chats
         self.one_note = False                          # sym: the frozen-reader penalty reads one note at a time
+        self.warm = None                               # sym, one_note: the writer's last notes as the penalty reads them
         self.charged = 0                               # sym, one_note: which notes the next penalty charges
         if arm == 'sym':
             self.banned = letter_table(tok, model.config.vocab_size)[1]
@@ -454,6 +456,8 @@ class Crumbs(nn.Module):
         elif self.arm == 'sym':
             e, ids = self._notes(x, got, streams)
             out['e'] = [put(e)] if bank['e'] is None else [torch.cat([bank['e'][0], put(e)], 1)]
+            if self.warm is not None:
+                out['warm'] = [put(self.warm)] if bank.get('warm') is None else [torch.cat([bank['warm'][0], put(self.warm)], 1)]
             out['ids'] = [put(ids)] if bank['ids'] is None else [torch.cat([bank['ids'][0], put(ids)], 1)]
         else:
             ks, vs = [], []
@@ -546,7 +550,7 @@ class Crumbs(nn.Module):
 
         soft = train or self.soft
         mode = self.note_pass if soft else 'greedy'
-        embs, ids, sent = [], [], []
+        embs, ids, sent, warm = [], [], [], []
         pend = [[b''] * Kn for _ in range(N)]                  # training: each note's pending bytes (argmax tokens)
         if mode == 'one':
             with torch.no_grad():
@@ -569,11 +573,21 @@ class Crumbs(nn.Module):
                 pend = [[self.masks.pending(P, t) for P, t in zip(row, h)] for row, h in zip(pend, hard.tolist())]
             e = (p.to(E.dtype) @ E).to(cue.dtype) if soft else E[hard].to(cue.dtype)
             sent.append(e.detach() if train and self.detach_notes else e)
+            if train and self.one_note and self.adv:
+                warm.append((self._warm(logits).to(E.dtype) @ E).to(cue.dtype))
             if mode == 'soft':
                 embs.append(e)
             elif mode == 'greedy':
                 embs.append(E[hard].to(cue.dtype))
+        self.warm = torch.stack(warm, 2).reshape(N, Kn * m, -1) if warm else None
         return torch.stack(sent, 2).reshape(N, Kn * m, -1), torch.stack(ids, 2).reshape(N, Kn * m)
+
+    def _warm(self, logits):
+        """The note token's distribution for the penalty: softmax at the temperature, token by token, at which the writer's
+        first choice stands ONE_SURE nats over its second; never colder than the run's."""
+        two = logits.topk(2, -1).values.detach()
+        scale = (ONE_SURE / (two[..., 0] - two[..., 1]).clamp_min(1e-6)).clamp_max(1 / self.tau)
+        return ((logits - two[..., :1]) * scale[..., None]).softmax(-1)
 
     def _track(self, p, hard, valid, j, pend):
         """Training, note token j: the sums of the letter mass (each note's letters after its pending bytes pend
@@ -783,10 +797,13 @@ class Crumbs(nn.Module):
     def one_note_penalty(self, eps, bank, device):
         """sym: the frozen reader's one-note read, charged: the base model with its adapter disabled reads up to
         ONE_CHARGED notes of these episodes, one at a time with the soft notes, so the gradient reaches their writers; per
-        target |log p(gold) - log p(gold) with the note masked|, among its candidates: how far the note moves the reader
-        off its own prior. No floor at chance: a reader whose prior says Safe stays under it on every note that says Trap,
-        which is what one_note.moved reads. Either way: charged for lifts alone, a run's trap code flipped within 9 draws
-        to notes that steer the reader off the truth, which a reader shown a few examples turns back."""
+        target relu(log p(gold) - log p(gold) with the note masked), among its candidates: what the note gives the reader
+        over its own prior. No floor at chance: a reader whose prior says Safe stays under it on every note that says Trap,
+        which is what one_note.moved reads. One way only: any two fixed strings move a reader by some amount, so charging
+        moves either way asks trap's two-note code for the impossible (a run's follower fell to .73 with its read unchanged
+        at -.51). The notes it reads are _warm's: a code the writer is sure of has softmax(logits / tau) at one token and no
+        gradient at all. A run's count penalty of 2.5 nats at weight 3 had a median gradient norm of .011 (trail's whole
+        step had 6.3) and never moved those notes; on those weights its gradient was 0 at temperature 1."""
         items = [(b, ask) for b, ep in enumerate(eps) for ask in ON.asks(ep)]
         if not items:
             return
@@ -804,10 +821,10 @@ class Crumbs(nn.Module):
         x = self._pad(streams, device)
         rows_t = torch.tensor(rows, device=device)
         with self.model.disable_adapter():
-            lp, _ = self._gold_logp(rows_t, x, 0, bank, aims, True)
+            lp, _ = self._gold_logp(rows_t, x, 0, dict(bank, e=bank['warm']), aims, True)
             with torch.no_grad():
                 lp0, _ = self._gold_logp(rows_t, x, 0, bank, aims, False)
-        self.sums['adv'] = self.sums['adv'] + (lp - lp0).abs().sum()
+        self.sums['adv'] = self.sums['adv'] + F.relu(lp - lp0).sum()
         self.sums['n_adv'] += len(aims)
 
     def _adversary(self, rows_t, x, a, bank, items):
@@ -1772,8 +1789,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             lack = 1 - max(0., r['follower_own'] - r['follower_swap']) / max(1e-6, 1 - r['chance'])
             weights[g] = weights0.get(g, 1.) * (max(ONE_DRAWN, lack, leak(one.get(g))) if net.one_note else max(.25, lack))
         rec['weights'] = {g: round(v, 3) for g, v in weights.items()}
-        hot = [g for g, r in one.items() if max(r['ci'][0], r['moved_ci'][0], -r['moved_ci'][1]) > RIGHT_NOISE] \
-            if net.one_note else [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
+        hot = [g for g, r in one.items() if max(r['ci'][0], r['moved_ci'][0]) > RIGHT_NOISE] if net.one_note else \
+            [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
         hot_devs = hot_devs + 1 if hot else 0
         hot_games.update(hot)
         if hot:
@@ -2028,8 +2045,7 @@ def leak(one):
     """What one game's one-note read (one_note_by_game) counts against the best weights' score."""
     if not one:
         return 0.
-    lo, hi = one['moved_ci']
-    return max(0., one['own'] - one['swap'], abs(one['moved']) if lo > 0 or hi < 0 else 0.)   # steered off the truth: a read too
+    return max(0., one['own'] - one['swap'], one['moved'] if one['moved_ci'][0] > 0 else 0.)
 
 
 @torch.no_grad()
@@ -2037,7 +2053,7 @@ def one_note_by_game(net, device, by_game, bs=48, most=None):
     """Per game of by_game {game: episodes}: the untrained base model (the adapter off) reading the trained writers'
     notes one at a time as text (one_note.py), up to most notes: the share right on own notes and on another episode's
     of the game (the next in its chunk), own minus swapped with its 95% interval over episodes (ci), one_note.moved with
-    its own (moved_ci), chance, the notes read."""
+    its own (moved_ci), the true value's mean margin gain on own notes in nats, chance, the notes read."""
     was = net.training
     net.eval()
     most = most or ONE_NOTES
@@ -2060,12 +2076,14 @@ def one_note_by_game(net, device, by_game, bs=48, most=None):
                             right[i].append(float(pick == ask['gold']))
                             margin[i].append(m)
                 if right[0]:
-                    per.append((sum(right[0]) / len(right[0]), sum(right[1]) / len(right[1]), ON.moved(*margin)))
+                    per.append((sum(right[0]) / len(right[0]), sum(right[1]) / len(right[1]), ON.moved(*margin),
+                                sum(o - s for o, s in zip(*margin)) / len(margin[0])))
         if per:
-            own, swap, shift = zip(*per)
+            own, swap, shift, nats = zip(*per)
             out[g] = dict(own=round(sum(own) / len(per), 4), swap=round(sum(swap) / len(per), 4),
                           ci=boot_interval([x - y for x, y in zip(own, swap)]), moved=round(sum(shift) / len(per), 4),
-                          moved_ci=boot_interval(list(shift)), chance=ON.chance(eps), notes=n)
+                          moved_ci=boot_interval(list(shift)), nats=round(sum(nats) / len(per), 3), chance=ON.chance(eps),
+                          notes=n)
     if was:
         net.train()
     return out

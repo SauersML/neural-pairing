@@ -104,11 +104,11 @@ def test_penalty_charges_the_read_and_reaches_the_writers(tok, game, monkeypatch
 
 def test_penalty_charges_what_the_note_gives_over_the_prior(tok, monkeypatch):
     """Under chance and still charged: a note that lifts the gold from -3 to -1 among two candidates; a note that takes
-    it down as far is charged the same, since that code only needs turning over; a note that moves nothing is not."""
+    it down, or moves nothing, is not."""
     net = tiny(tok, 'sym', 2)
     net.train()
     net.adv, net.one_note = 1., True
-    for on, off, charged in ((-1., -3., 2.), (-3., -1., 2.), (-2., -2., 0.)):
+    for on, off, charged in ((-1., -3., 2.), (-3., -1., 0.), (-2., -2., 0.)):
         def fake(rows_t, x, a, bank, aims, read):
             return torch.full((len(aims),), on if read else off), torch.full((len(aims),), 2.)
 
@@ -118,12 +118,40 @@ def test_penalty_charges_what_the_note_gives_over_the_prior(tok, monkeypatch):
         assert net.sums['n_adv'] > 0 and float(net.sums['adv']) == pytest.approx(charged * net.sums['n_adv'])
 
 
+def test_penalty_reads_notes_warmed_token_by_token(tok, monkeypatch):
+    """However sure the writer, the first choice stands ONE_SURE nats over the second, and a token the writer is unsure of
+    stays as the run has it. The warm notes line up with the bank's, and the gradient reaches the writers through them."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.tau = .5
+    logits = torch.tensor([[900., 0., -5.], [1., 0., -5.], [50., 50., float('-inf')]])
+    p = net._warm(logits)
+    assert float((p[0, 0] / p[0, 1]).log()) == pytest.approx(C.ONE_SURE, abs=1e-3)
+    assert torch.allclose(p[1], (logits[1] / net.tau).softmax(-1))
+    assert p[2].tolist() == [.5, .5, 0.]
+    net.train()
+    net.adv, net.one_note = 1., True
+    params = [q for q in net.model.parameters() if q.requires_grad]
+    eps = episodes('count', 3, False)
+    monkeypatch.setattr(C, 'ONE_SURE', 1e9)
+    net.sums = collections.defaultdict(float)
+    bank = net.run(eps, 'cpu')[2]
+    assert bank['warm'][0].shape == bank['e'][0].shape and torch.allclose(bank['warm'][0], bank['e'][0])
+    monkeypatch.setattr(C, 'ONE_SURE', .01)
+    net.sums = collections.defaultdict(float)
+    bank = net.run(eps, 'cpu')[2]
+    hard = net.model.get_input_embeddings().weight[bank['ids'][0]]
+    assert (bank['warm'][0] - hard).norm() > (bank['e'][0] - hard).norm()
+    grads = torch.autograd.grad(net.sums['adv'], params, allow_unused=True)
+    assert any(g is not None and float(g.abs().sum()) > 0 for g in grads)
+
+
 def test_penalty_is_off_with_no_weight(tok):
     net = tiny(tok, 'sym', 2)
     net.train()
     net.adv, net.one_note = 0., True
     net.sums = collections.defaultdict(float)
-    net.run(episodes('count', 2, False), 'cpu')
+    assert 'warm' not in net.run(episodes('count', 2, False), 'cpu')[2]
     assert net.sums['n_adv'] == 0
 
 
@@ -171,13 +199,13 @@ def test_prior_cannot_hide_a_note(tok, monkeypatch):
     shown['on'] = 1.
     got = C.one_note_by_game(net, 'cpu', dict(trap=eps))['trap']
     assert got['own'] == got['swap'] and got['ci'] == [0., 0.]
-    assert got['moved'] > .2 and got['moved_ci'][0] > 0
+    assert got['moved'] > .2 and got['moved_ci'][0] > 0 and got['nats'] > 0
     shown['on'] = 0.
     got = C.one_note_by_game(net, 'cpu', dict(trap=eps))['trap']
     assert got['moved'] == 0. and C.leak(got) == 0.
     assert C.leak(dict(own=.5, swap=.1, moved=.2, moved_ci=[.1, .3])) == pytest.approx(.4)
     assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[.1, .5])) == .3
-    assert C.leak(dict(own=.5, swap=.5, moved=-.3, moved_ci=[-.5, -.1])) == .3      # steered off the truth
+    assert C.leak(dict(own=.5, swap=.5, moved=-.3, moved_ci=[-.5, -.1])) == 0.      # steered off the truth: no read
     assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[-.1, .5])) == 0.        # noise
     assert C.leak(None) == 0.
 
@@ -256,7 +284,7 @@ def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
                     relay=dict(follower_own=.1, follower_swap=.1, chance=.2, base_own=0., base_swap=0., base_ci=[0., 0.]))
 
     def planned_one(net, device, by_game, bs=48, most=None):
-        return dict(trap=dict(own=.5, swap=.5, ci=[0., 0.], moved=-.3, moved_ci=[-.4, -.2], chance=.5, notes=9))
+        return dict(trap=dict(own=.5, swap=.5, ci=[0., 0.], moved=.3, moved_ci=[.2, .4], chance=.5, notes=9))
 
     monkeypatch.setattr(C, 'sym_dev', planned_dev)
     monkeypatch.setattr(C, 'right_by_game', planned_right)

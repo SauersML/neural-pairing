@@ -187,6 +187,8 @@ def one_note(model, tok, items, shot_items, shots, n_control, device):
     shift = [ON.moved(o, x) for o, x in zip(margins['own'], margins['swap'])]
     got['moved'] = round(sum(shift) / len(shift), 4)
     got['moved_ci'] = C.boot_interval(shift)
+    gain = [sum(a - b for a, b in zip(o, x)) / len(o) for o, x in zip(margins['own'], margins['swap'])]
+    got['nats'] = round(sum(gain) / len(gain), 3)
     got['notes'] = sum(map(len, rows['own']))
     got['examples'] = examples
     return got
