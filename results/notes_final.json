@@ -1,0 +1,110 @@
+{
+"trail": {
+"trained": 0.7422,
+"trained_swap": 0.1901,
+"chance": 0.1667,
+"read_chance": 0.1667,
+"read": 0.197,
+"read_swap": 0.178,
+"read_ci": [
+0.0017,
+0.0365
+],
+"english": 1.0,
+"shots": 8,
+"note": "51751145",
+"saw": "You enter the garage. You see a violin.",
+"says": [
+"garage: violin.\ncloset: moon.\nbathroom: wool.\nThe key is in the bathroom."
+]
+},
+"maze": {
+"trained": 0.8222,
+"trained_swap": 0.3138,
+"chance": 0.3333,
+"read_chance": 0.3333,
+"read": 0.3127,
+"read_swap": 0.333,
+"read_ci": [
+-0.0281,
+-0.0126
+],
+"english": 1.0,
+"shots": 8,
+"note": "54692745",
+"saw": "The conservatory has purple, maroon and red doors. You take the purple door.",
+"says": [
+"The purple door.",
+"The purple door.",
+"The maroon door.",
+"The maroon door.",
+"The purple door.",
+"The maroon door.",
+"The purple door."
+]
+},
+"work": {
+"trained": 0.9167,
+"trained_swap": 0.3427,
+"chance": 0.1667,
+"read_chance": 0.1667,
+"read": 0.8958,
+"read_swap": 0.1784,
+"read_ci": [
+0.681,
+0.7513
+],
+"english": 1.0,
+"shots": 8,
+"note": "(31) + (32",
+"saw": "You sit at Desk 3. The task: 31 + 32.",
+"says": [
+"Desk 1: 59.",
+"Desk 2: 47.",
+"Desk 3: 63.",
+"Desk 4: 65.",
+"59 + 47 + 63 + 65 = 234."
+]
+},
+"trap": {
+"trained": 0.9727,
+"trained_swap": 0.474,
+"chance": 0.5,
+"read_chance": 0.5,
+"read": 0.9913,
+"read_swap": 0.4896,
+"read_ci": [
+0.4722,
+0.5286
+],
+"english": 1.0,
+"shots": 8,
+"note": "31311311",
+"saw": "You enter the garage. The floor gives way: you fall into a trap!",
+"says": [
+"Safe.",
+"Safe.",
+"Trap.",
+"Trap."
+]
+},
+"count": {
+"trained": 1.0,
+"trained_swap": 0.1302,
+"chance": 0.1429,
+"read_chance": 0.1111,
+"read": 0.9948,
+"read_swap": 0.1337,
+"read_ci": [
+0.8281,
+0.8906
+],
+"english": 1.0,
+"shots": 8,
+"note": "55. \n\n5. 5",
+"saw": "You visit the market and count the apples at Hal's stall: there are 5.",
+"says": [
+"There are 11 apples."
+]
+}
+}
