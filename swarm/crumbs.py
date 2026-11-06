@@ -759,26 +759,27 @@ class Crumbs(nn.Module):
                 out.append((cut + first - 1, gold[first], [c[first] for c, d in zip(alts, div) if d == first]))
         return out
 
-    def _gold_logp(self, rows_t, x, a, bank, targets, on):
-        """log p(gold) among each target's candidates (adv_targets: their first differing token) as the model with its
-        current adapters reads x, and the candidates' count."""
+    def _gold_logp(self, rows_t, x, a, bank, targets, on, odds=False):
+        """log p(gold) (odds: its log odds) among each target's candidates (adv_targets: their first differing token) as
+        the model with its current adapters reads x, and the candidates' count."""
         self.grab = True
         try:
             self._forward(rows_t, x, a, bank, 1, False, on)
             h = self.last
         finally:
             self.grab, self.last = False, None
-        return self._among(h, targets)
+        return self._among(h, targets, odds)
 
-    def _among(self, h, targets):
-        """log p(gold) among each target's candidates, from the final norm's output h; and the candidates' count."""
+    def _among(self, h, targets, odds=False):
+        """log p(gold) (odds: its log odds) among each target's candidates, from the final norm's output h; and the
+        candidates' count."""
         dev = h.device
         at = (torch.tensor([i for i, _ in targets], device=dev), torch.tensor([t[0] for _, t in targets], device=dev))
         C = max(1 + len(t[2]) for _, t in targets)
         cand = torch.tensor([[t[1]] + t[2] + [-1] * (C - 1 - len(t[2])) for _, t in targets], device=dev)
         W = self.model.get_output_embeddings().weight[cand.clamp(min=0)].float()
         lg = torch.einsum('gd,gcd->gc', h[at].float(), W).masked_fill(cand < 0, float('-inf'))
-        return lg.log_softmax(-1)[:, 0], (cand >= 0).sum(-1).float()
+        return lg[:, 0] - lg[:, 1:].logsumexp(-1) if odds else lg.log_softmax(-1)[:, 0], (cand >= 0).sum(-1).float()
 
     def _one_stream(self, ask, gold):
         """The untrained reader's prompt for one note (one_note.chat, the note's tokens read from the bank) with the
@@ -797,8 +798,9 @@ class Crumbs(nn.Module):
     def one_note_penalty(self, eps, bank, device):
         """sym: the frozen reader's one-note read, charged: the base model with its adapter disabled reads up to
         ONE_CHARGED notes of these episodes, one at a time with the soft notes, so the gradient reaches their writers; per
-        target relu(log p(gold) - log p(gold) with the note masked), among its candidates: what the note gives the reader
-        over its own prior. No floor at chance: a reader whose prior says Safe stays under it on every note that says Trap,
+        target relu(log odds of gold - the same with the note masked), among its candidates: what the note gives the reader
+        over its own prior, in log odds since log p stops changing once the reader is sure (work's notes pulled 29 nats and
+        its log p had no slope to charge). No floor at chance: a reader whose prior says Safe stays under it on every note that says Trap,
         which is what one_note.moved reads. One way only: any two fixed strings move a reader by some amount, so charging
         moves either way asks trap's two-note code for the impossible (a run's follower fell to .73 with its read unchanged
         at -.51). The notes it reads are _warm's: a code the writer is sure of has softmax(logits / tau) at one token and no
@@ -823,9 +825,9 @@ class Crumbs(nn.Module):
         x = self._pad(streams, device)
         rows_t = torch.tensor(rows, device=device)
         with self.model.disable_adapter():
-            lp, _ = self._gold_logp(rows_t, x, 0, dict(bank, e=bank['warm']), aims, True)
+            lp, _ = self._gold_logp(rows_t, x, 0, dict(bank, e=bank['warm']), aims, True, odds=True)
             with torch.no_grad():
-                lp0, _ = self._gold_logp(rows_t, x, 0, bank, aims, False)
+                lp0, _ = self._gold_logp(rows_t, x, 0, bank, aims, False, odds=True)
         self.sums['adv'] = self.sums['adv'] + F.relu(lp - lp0).sum()
         self.sums['n_adv'] += len(aims)
 
@@ -2047,7 +2049,8 @@ def leak(one):
     """What one game's one-note read (one_note_by_game) counts against the best weights' score."""
     if not one:
         return 0.
-    return max(0., one['own'] - one['swap'], one['moved'] if one['moved_ci'][0] > 0 else 0.)
+    pull = min(1., max(0., one['nats']) / -math.log(one['chance']))      # a pull under log C changes no answer among C
+    return max(0., one['own'] - one['swap'], one['moved'] * pull if one['moved_ci'][0] > 0 else 0.)
 
 
 @torch.no_grad()

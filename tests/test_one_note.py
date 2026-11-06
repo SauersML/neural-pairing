@@ -5,6 +5,7 @@ dev charges only the games read above noise and counts the leak against the best
 import collections
 import itertools
 import json
+import math
 from pathlib import Path
 import random
 import sys
@@ -109,7 +110,8 @@ def test_penalty_charges_what_the_note_gives_over_the_prior(tok, monkeypatch):
     net.train()
     net.adv, net.one_note = 1., True
     for on, off, charged in ((-1., -3., 2.), (-3., -1., 0.), (-2., -2., 0.)):
-        def fake(rows_t, x, a, bank, aims, read):
+        def fake(rows_t, x, a, bank, aims, read, odds=False):
+            assert odds
             return torch.full((len(aims),), on if read else off), torch.full((len(aims),), 2.)
 
         monkeypatch.setattr(net, '_gold_logp', fake)
@@ -144,6 +146,18 @@ def test_penalty_reads_notes_warmed_token_by_token(tok, monkeypatch):
     assert (bank['warm'][0] - hard).norm() > (bank['e'][0] - hard).norm()
     grads = torch.autograd.grad(net.sums['adv'], params, allow_unused=True)
     assert any(g is not None and float(g.abs().sum()) > 0 for g in grads)
+
+
+def test_log_odds_keep_a_slope_when_the_reader_is_sure(tok):
+    net = tiny(tok, 'sym', 2)
+    W = net.model.get_output_embeddings().weight.detach()
+    h = (W[5] - W[6]).detach()[None, None].repeat(1, 1, 1) * 1e4
+    h = h.requires_grad_()
+    targets = [(0, (0, 5, [6]))]
+    slope = [float(torch.autograd.grad(net._among(h, targets, odds)[0].sum(), h)[0].abs().sum()) for odds in (False, True)]
+    assert slope[0] < 1e-6 < slope[1]
+    p, odds = net._among(h, targets)[0], net._among(h, targets, True)[0]
+    assert float(p) == 0. and float(odds) > 10
 
 
 def test_penalty_is_off_with_no_weight(tok):
@@ -203,10 +217,13 @@ def test_prior_cannot_hide_a_note(tok, monkeypatch):
     shown['on'] = 0.
     got = C.one_note_by_game(net, 'cpu', dict(trap=eps))['trap']
     assert got['moved'] == 0. and C.leak(got) == 0.
-    assert C.leak(dict(own=.5, swap=.1, moved=.2, moved_ci=[.1, .3])) == pytest.approx(.4)
-    assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[.1, .5])) == .3
-    assert C.leak(dict(own=.5, swap=.5, moved=-.3, moved_ci=[-.5, -.1])) == 0.      # steered off the truth: no read
-    assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[-.1, .5])) == 0.        # noise
+    big = dict(nats=30., chance=1 / 9)
+    assert C.leak(dict(own=.5, swap=.1, moved=.2, moved_ci=[.1, .3], **big)) == pytest.approx(.4)
+    assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[.1, .5], **big)) == .3
+    assert C.leak(dict(own=.5, swap=.5, moved=-.3, moved_ci=[-.5, -.1], **big)) == 0.  # steered off the truth: no read
+    assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[-.1, .5], **big)) == 0.    # noise
+    weak = C.leak(dict(own=.5, swap=.5, moved=.6, moved_ci=[.4, .8], nats=.1, chance=1 / 9))
+    assert weak == pytest.approx(.6 * .1 / math.log(9))                                # steady, and too weak to change an answer
     assert C.leak(None) == 0.
 
 
@@ -227,8 +244,8 @@ def test_train_charges_the_games_read_above_noise(tok, tmp_path, monkeypatch):
     def planned_one(net, device, by_game, bs=48, most=None):
         v = next(plan)
         assert set(by_game) == {'count', 'trap'}
-        return dict(count=dict(own=v + .1, swap=.1, ci=[v - .1, v + .1], moved=v, moved_ci=[v - .1, v + .1], chance=.11, notes=9),
-                    trap=dict(own=.5, swap=.5, ci=[-.1, .1], moved=0., moved_ci=[-.1, .1], chance=.5, notes=9))
+        return dict(count=dict(own=v + .1, swap=.1, ci=[v - .1, v + .1], moved=v, moved_ci=[v - .1, v + .1], nats=9., chance=.11, notes=9),
+                    trap=dict(own=.5, swap=.5, ci=[-.1, .1], moved=0., moved_ci=[-.1, .1], nats=0., chance=.5, notes=9))
 
     weights = []
     monkeypatch.setattr(C, 'sym_dev', planned_dev)
@@ -284,7 +301,7 @@ def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
                     relay=dict(follower_own=.1, follower_swap=.1, chance=.2, base_own=0., base_swap=0., base_ci=[0., 0.]))
 
     def planned_one(net, device, by_game, bs=48, most=None):
-        return dict(trap=dict(own=.5, swap=.5, ci=[0., 0.], moved=.3, moved_ci=[.2, .4], chance=.5, notes=9))
+        return dict(trap=dict(own=.5, swap=.5, ci=[0., 0.], moved=.3, moved_ci=[.2, .4], nats=9., chance=.5, notes=9))
 
     monkeypatch.setattr(C, 'sym_dev', planned_dev)
     monkeypatch.setattr(C, 'right_by_game', planned_right)
