@@ -712,6 +712,22 @@ def test_a_dev_whose_score_fell_keeps_the_target_shut():
     assert not OT.target_open(full, deque([.5], maxlen=1), deque([.9], maxlen=1), .5, a, .4, True)
 
 
+def test_a_lower_share_counts_as_fell_only_when_on_rose():
+    assert not OT.score_fell(.4638, .5029, .1766, .184, .01)             # dev 1200: none improved, on did not rise
+    assert OT.score_fell(.1595, .4819, .2632, .1875, .01)                # dev 1000: the messages really collapsed
+    assert not OT.score_fell(.4, .5, .2, None, .01)                      # no earlier on to compare with
+    assert not OT.score_fell(.495, .5, .3, .2, .01)                      # the share moved within noise
+
+
+def test_the_gradient_probe_splits_the_writers_gradient(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.)] * 3, 4, *target_args('--grad_probe', '2', '--target0', '0.01'))
+    got = [r for r in rows if 'g_answer' in r]
+    assert got and all(r['g_charge'] > 0 and r['g_answer'] > 0 for r in got)
+    assert all(-1 <= r['g_cos'] <= 1 and 'lr_writer' in r for r in got)
+    assert all(r['g_total'] ** 2 == pytest.approx(r['g_charge'] ** 2 + r['g_answer'] ** 2
+                                                  + 2 * r['g_cos'] * r['g_charge'] * r['g_answer'], rel=.02) for r in got)
+
+
 def test_the_warm_stage_saves_new_bests_and_ends_on_them(tmp_path, monkeypatch):
     rows = scripted_run(tmp_path, monkeypatch, [(.3, .4, 100., 0.), (.4, .4, 100., 0.), (.2, .4, 100., 0.)], 4,
                         *target_args('--warm', '1', '--warm_reader', '1', '--warm_margin', '-1'))

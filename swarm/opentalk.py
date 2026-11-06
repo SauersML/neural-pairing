@@ -65,8 +65,8 @@ gradient through the soft tokens up to full-size steps.
 
 --protect with a target run keeps the overall best checkpoint (<ckpt>_best), by the writer's closed share outside fill,
 and one best per letter-target level (<ckpt>_L<level>; level 0 runs from --target0 to half of it, then one per halving),
-each written only at its own new best, in any stage. A dev whose share fell by more than --value_noise since the last dev
-is not good, and the letter target stays shut until a dev that did not fall. A dev under --value_keep of its level's best,
+each written only at its own new best, in any stage. A dev whose share fell and whose on rose, each by more than
+--value_noise since the last dev (score_fell), is not good, and the letter target stays shut until a dev that did not fall. A dev under --value_keep of its level's best,
 or collapsed or dead, goes back to that level's file. A level's first file needs a good dev within --value_keep of the
 best one level up; after --level_patience devs without one, or at once if collapsed or dead, the run goes back one level
 and the target falls at half the pace. The final evaluation reads the lowest letter level holding a good dev, and also the
@@ -323,6 +323,7 @@ class Talk:
         self._filler = {}                              # token id -> is_filler of its text
         self.charge = 'linear'                         # the letter penalty's shape (letter_charge)
         self.letter_target = 0.0                       # charge target: the letter share a message owes nothing for
+        self.keep_charge, self.kept_charge = False, None   # --grad_probe: this micro-batch's weighted letter charge
         self.family_scale = {}                         # family_norm: family -> the none KL its KL is divided by
         self.contrast_ref = 'swap'                     # what the contrast hinge compares KL_on with
         self.chat = False                              # --format chat: plain chat transcripts (no system line, no frame)
@@ -731,6 +732,27 @@ class Talk:
             parts['kl'] = float(on.detach().mean())
         return loss, parts
 
+    def charge_grads(self, scale):
+        """The writer's gradient from the kept letter charge alone, by a backward through the writer only. Leaves the
+        grads empty for the whole loss's backward."""
+        (self.kept_charge * scale).backward(retain_graph=True)
+        ps = [p for p in self.model.parameters() if p.requires_grad]
+        got = [p.grad.clone() if p.grad is not None else torch.zeros_like(p) for p in ps]
+        for p in ps:
+            p.grad = None
+        self.kept_charge = None
+        return got
+
+    def grad_split(self, charge):
+        """After the whole loss's backward: the writer's gradient norms from the letter charge and from everything else
+        (the answer loss and the contrast), and the cosine between the two. Both are clipped and stepped together."""
+        ps = [p for p in self.model.parameters() if p.requires_grad]
+        total = torch.cat([(p.grad if p.grad is not None else torch.zeros_like(p)).view(-1) for p in ps])
+        c = torch.cat([g.view(-1) for g in charge])
+        a = total - c
+        return dict(g_charge=float(c.norm()), g_answer=float(a.norm()), g_total=float(total.norm()),
+                    g_cos=float(torch.nn.functional.cosine_similarity(c, a, dim=0)))
+
     def letter_charge(self, mass):
         """The letter penalty from the soft letter mass per message position [messages * m]. linear: the mean, each
         letter token priced the same however few remain, so a message's first words keep paying long after the average
@@ -819,11 +841,16 @@ class Talk:
         tot, cnt, keys = self.reader(eps, msgs, soft)
         on = tot / cnt.clamp(min=1)
         w = self.answer_weights(eps, keys)
-        loss = (on * w).mean() + lam * self.letter_charge(mass)
+        charge = lam * self.letter_charge(mass)
+        loss = (on * w).mean() + charge
         rows = toks.view(-1, self.m)
         parts = dict(kl=float(on.detach().mean()), letters_soft=float(mass.detach().mean()), fixed=fixed,
                      letters=mean(self.letters_of(rows.tolist())), distinct=len(torch.unique(toks)),
                      distinct_msgs=len(torch.unique(rows, dim=0)) / max(1, rows.shape[0]))
+        if self.keep_charge:
+            self.kept_charge = charge
+            parts.update(g_charge_value=float(charge.detach()),
+                         g_over=float((mass.detach().view(-1, self.m).mean(1) > self.letter_target).float().mean()))
         perm = list(range(1, len(eps))) + [0]
         if contrast and self.contrast_ref == 'none':
             with torch.no_grad():                    # its own none: sending nothing must earn nothing, and the untrained
@@ -1208,6 +1235,12 @@ def value_outside_fill(d, key='closed'):
     return round(mean(vals), 4) if vals else None
 
 
+def score_fell(value, prev, on, prev_on, noise):
+    """Whether a dev's score fell: its closed share outside fill dropped and its on outside fill rose, each by more than
+    noise. A lower share alone can mean only that none improved, with the messages reading as well as before."""
+    return None not in (value, prev, on, prev_on) and value < prev - noise and on > prev_on + noise
+
+
 def level_of(target, target0):
     """The letter-target level: 0 from target0 down to half of it, then one more per halving."""
     return max(0, math.floor(math.log2(target0 / max(target, 1e-9)) + 1e-9))
@@ -1268,6 +1301,10 @@ def train(net, args, log):
     hold = sorted(have - set(st['files'])) if st.get('files') else []     # read later, as the first part did
     data = O.Episodes(args.data, 'train', seed=args.seed, teacher=True, wait_minutes=args.wait_data, hold=hold)
     files = sorted(data.files)
+    # chat_doc's real turns are counted from the item cache, and a missing item counts every turn as real, so a pod
+    # without the cache keeps degenerate simulated turns and carves another dev set.
+    items_missing = sum(O.chat_users(r['source']).get(r['item']) is None for r in data.recs
+                        if r['family'] == 'chat_doc' and r['turns'] and 'sim' not in r['turns'][0])
     dev, seen, rest = [], {}, []
     for ep in data.recs:
         f = ep['family']
@@ -1295,14 +1332,14 @@ def train(net, args, log):
     sched = schedule()
     log(dict(train=len(rest), dev=len(dev), dev_families=seen, allowed=int(net.allowed.sum()),
              letters=int(net.letter.sum()), letter_free=int((net.allowed & ~net.letter).sum()),
-             trainable=sum(p.numel() for g in groups for p in g['params']), cut_at_degenerate=data.cuts))
+             trainable=sum(p.numel() for g in groups for p in g['params']), cut_at_degenerate=data.cuts, chat_items_missing=items_missing))
     feed = batches(data, net, args, rng)
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
     anchored = None
     target_mode = args.letter_charge == 'target'
     target, half, dev_value, copy_value = args.target0, args.target_half, None, None   # target and its halving time
-    prev_value, fell = None, False                   # the last dev's share outside fill, and whether it fell to there
+    prev_value, prev_on, fell = None, None, False    # the last dev's share and on outside fill, and whether it fell
     levels, misses, miss_level = {}, 0, 0            # letter level -> its best file; devs at this level without a good one
     gate_v, gate_m, gate_d, gate_l = (deque(maxlen=args.target_window) for _ in range(4))
     copies = ('head', 'best', 'target') if args.dev_copy else ()
@@ -1327,7 +1364,7 @@ def train(net, args, log):
         best, rollbacks, lr_scale[0] = st.get('best'), st.get('rollbacks', 0), st.get('lr_scale', 1.0)
         target, half, dev_value = st.get('target', target), st.get('half', half), st.get('dev_value')
         copy_value, stage = st.get('copy_value'), st.get('stage', stage)
-        prev_value, fell = st.get('prev_value', dev_value), st.get('fell', False)
+        prev_value, prev_on, fell = st.get('prev_value', dev_value), st.get('prev_on'), st.get('fell', False)
         levels, misses, miss_level = st.get('levels', {}), st.get('misses', 0), st.get('miss_level', 0)
         net.family_scale = st.get('family_scale', net.family_scale)
         optimizer = (R / 'optim.pt').exists() and (R / 'adapter_reader').exists() == (net.read_model is not None)
@@ -1347,13 +1384,13 @@ def train(net, args, log):
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
                     anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
                     lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value, copy_value=copy_value,
-                    family_scale=net.family_scale, stage=stage, prev_value=prev_value, fell=fell, levels=levels,
+                    family_scale=net.family_scale, stage=stage, prev_value=prev_value, prev_on=prev_on, fell=fell, levels=levels,
                     misses=misses, miss_level=miss_level)
 
     def go_back(slower=True, to=None):
         """A saved file's weights and optimizer state (the overall best's unless to), and the weight, bias and tau they
         were measured at."""
-        nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value, copy_value, prev_value, fell
+        nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value, copy_value, prev_value, prev_on, fell
         to = to or best
         B = Path(to['path'])
         load_adapters(net, B)
@@ -1363,7 +1400,7 @@ def train(net, args, log):
         net.bias = to['bias']
         if target_mode:                              # letters fell too fast for the messages: half the pace from there
             target, half, dev_value = to['target'], half * 2 if slower else half, to.get('dev_value')
-            copy_value, prev_value, fell = to.get('copy_value'), to.get('dev_value'), False
+            copy_value, prev_value, prev_on, fell = to.get('copy_value'), to.get('dev_value'), to.get('on_value'), False
             for q in (gate_v, gate_m, gate_d, gate_l):
                 q.clear()
 
@@ -1373,7 +1410,7 @@ def train(net, args, log):
         shutil.rmtree(path, ignore_errors=True)
         os.replace(path + '.tmp', path)
         return dict(step=step, gap=gap, charge=charge, lam=lam_b, bias=bias_b, path=path, target=target,
-                    dev_value=dev_value, copy_value=copy_value)
+                    dev_value=dev_value, copy_value=copy_value, on_value=prev_on)
 
     def save_best(gap, charge, lam_b, bias_b):
         nonlocal best
@@ -1418,9 +1455,9 @@ def train(net, args, log):
             gap0 = gap if gap0 is None else gap0
             fair = any('closed_fair' in v for f, v in d.items() if not f.startswith('_'))
             dev_value = value_outside_fill(d, 'closed_fair' if fair else 'closed')
-            fell = bool(target_mode and prev_value is not None and dev_value is not None
-                        and dev_value < prev_value - args.value_noise)
-            prev_value = dev_value
+            on_value = value_outside_fill(d, 'on')
+            fell = bool(target_mode and score_fell(dev_value, prev_value, on_value, prev_on, args.value_noise))
+            prev_value, prev_on = dev_value, on_value
             copy_value = value_outside_fill(d, 'copy_head_fair' if fair else 'copy_head_closed')
             alive = families_alive(d, args.read_z)
             d['_all'].update(value_nf=dev_value, copy_head_nf=copy_value, alive=alive,
@@ -1538,18 +1575,23 @@ def train(net, args, log):
         parts_all, n_eps = [], 0
         dec0 = net.stats['decode_tokens']
         util.on = True
-        for _ in range(micros):
+        for micro_i in range(micros):
             eps = next(feed, None)
             if eps is None:
                 log(dict(step=step, data_exhausted=True))
                 out_of_data, parts_all = True, []
                 break
             try:
+                net.keep_charge = bool(args.grad_probe and stage == 'full' and micro_i == 0
+                                       and (step + 1) % args.grad_probe == 0)
                 if stage == 'warm':
                     loss, parts = net.warm_loss(eps)
                 else:
                     loss, parts = net.loss(eps, lam_now, args.contrast, args.contrast_target, lam_p)
+                kept = net.charge_grads(len(eps) / args.batch) if net.keep_charge else None
                 (loss * len(eps) / args.batch).backward()
+                if kept is not None:
+                    parts.update(net.grad_split(kept))
                 parts_all.append(parts)
                 n_eps += len(eps)
             except torch.cuda.OutOfMemoryError:
@@ -1594,7 +1636,8 @@ def train(net, args, log):
             rec = dict(step=step, tau=round(net.tau, 3), lam=round(lam_now, 5), lam_p=round(lam_p, 4), eps=n_eps,
                        s_step=round(time.monotonic() - t_step, 2), s=round(time.monotonic() - started))
             if target_mode:
-                rec.update(target=round(target, 4), open=opened, help=round(mean(gate_v), 4) if gate_v else None, stage=stage)
+                rec.update(target=round(target, 4), open=opened, help=round(mean(gate_v), 4) if gate_v else None, stage=stage,
+                           lr_writer=round(opt.param_groups[0]['lr'], 7))
             for k in {k for p in parts_all for k in p}:
                 rec[k] = round(mean(p[k] for p in parts_all if k in p), 4)
             if torch.cuda.is_available():
@@ -1684,6 +1727,8 @@ def main():
     ap.add_argument('--warm_reader', type=int, default=0, help='warm: 1 also trains the reader on the literal copies')
     ap.add_argument('--warm_margin', type=float, default=0.02, help='warm: how near the head copy the writer must score')
     ap.add_argument('--dev_first', type=int, default=0, help='1: a resumed run starts with a dev')
+    ap.add_argument('--grad_probe', type=int, default=0, help='every N steps: log the writer gradient from the letter '
+                    'charge against the rest (g_charge, g_answer, g_cos); one extra backward through the writer')
     ap.add_argument('--dev_copy', type=int, default=0, help='1: each dev also reads literal copies, the bar for the target')
     ap.add_argument('--family_norm', type=int, default=0, help='1: each family\'s KL in shares of its none KL')
     ap.add_argument('--contrast_ref', default='swap', choices=('swap', 'none'),
