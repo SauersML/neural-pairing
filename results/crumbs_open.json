@@ -2912,5 +2912,1583 @@
    }
   },
   "even": 48
+ },
+ "split_full": {
+  "role": "the plain full KV in the agents' own real chats: no system lines, A's own turns in chat format, each token at its true place in the whole chat, B reading only what A had said by then (crumb_open --split)",
+  "run": "magic-crumbs50",
+  "commit": "89e3dd3",
+  "m": null,
+  "micro": 1,
+  "dev": [
+   {
+    "step": 200,
+    "on": 0.0319,
+    "cut": 0.4958,
+    "closed": 0.9356
+   },
+   {
+    "step": 400,
+    "on": 0.0263,
+    "cut": 0.494,
+    "closed": 0.9467
+   },
+   {
+    "step": 600,
+    "on": 0.0246,
+    "cut": 0.5008,
+    "closed": 0.9509
+   },
+   {
+    "step": 800,
+    "on": 0.0215,
+    "cut": 0.4974,
+    "closed": 0.9567
+   },
+   {
+    "step": 1000,
+    "on": 0.02,
+    "cut": 0.4984,
+    "closed": 0.9599
+   },
+   {
+    "step": 1200,
+    "on": 0.0194,
+    "cut": 0.5023,
+    "closed": 0.9614
+   },
+   {
+    "step": 1400,
+    "on": 0.0193,
+    "cut": 0.5057,
+    "closed": 0.9619
+   }
+  ],
+  "steps_run": 1500,
+  "epochs": 2,
+  "cost_usd": 0.7891,
+  "headline": {
+   "chat_alt eval_seen": {
+    "on": 0.0168,
+    "cut": 0.2703,
+    "closed_on": 0.9378,
+    "closed_transplant": -5.3249,
+    "closed_zero": 0.9231
+   },
+   "fill eval_seen": {
+    "on": 0.0069,
+    "cut": 3.2744,
+    "closed_on": 0.9979,
+    "closed_transplant": -0.1483,
+    "closed_zero": 0.8931
+   },
+   "fill eval_heldout": {
+    "on": 0.0081,
+    "cut": 3.5314,
+    "closed_on": 0.9977,
+    "closed_transplant": -0.1557,
+    "closed_zero": 0.8905
+   },
+   "chat_doc eval_seen": {
+    "on": 0.0113,
+    "cut": 0.2592,
+    "closed_on": 0.9566,
+    "closed_transplant": -3.3445,
+    "closed_zero": 0.9543
+   },
+   "code eval_seen": {
+    "on": 0.0114,
+    "cut": 0.8924,
+    "closed_on": 0.9872,
+    "closed_transplant": -0.0167,
+    "closed_zero": 0.9754
+   },
+   "debug eval_seen": {
+    "on": 0.0075,
+    "cut": 0.1797,
+    "closed_on": 0.9581,
+    "closed_transplant": -6.1825,
+    "closed_zero": 0.9221
+   },
+   "doc eval_seen": {
+    "on": 0.0115,
+    "cut": 0.5552,
+    "closed_on": 0.9794,
+    "closed_transplant": -1.0039,
+    "closed_zero": 0.9799
+   },
+   "pair eval_seen": {
+    "on": 0.0806,
+    "cut": 0.977,
+    "closed_on": 0.9175,
+    "closed_transplant": 0.0154,
+    "closed_zero": 0.8327
+   },
+   "plan eval_seen": {
+    "on": 0.1527,
+    "cut": 0.3145,
+    "closed_on": 0.5144,
+    "closed_transplant": -2.467,
+    "closed_zero": 0.4717
+   },
+   "doc eval_heldout": {
+    "on": 0.0176,
+    "cut": 0.7234,
+    "closed_on": 0.9757,
+    "closed_transplant": -0.1351,
+    "closed_zero": 0.9755
+   },
+   "pair eval_heldout": {
+    "on": 0.0719,
+    "cut": 0.5097,
+    "closed_on": 0.859,
+    "closed_transplant": -0.0811,
+    "closed_zero": 0.8033
+   }
+  },
+  "all": {
+   "eval_seen": {
+    "on": 0.0292,
+    "cut": 0.5308,
+    "closed_on": 0.945,
+    "closed_transplant": -1.65,
+    "closed_zero": 0.8881
+   },
+   "eval_heldout": {
+    "on": 0.0269,
+    "cut": 1.0685,
+    "closed_on": 0.9749,
+    "closed_transplant": -0.1394,
+    "closed_zero": 0.9178
+   }
+  }
+ },
+ "adapter_off_ladder": {
+  "role": "why real chats were low, with no adapter and no training: the unchanged Qwen3-1.7B reading the KV of A's turns, one change at a time, on every chat_alt chat of eval_seen (swarm/crumb_chat.py)",
+  "runs": [
+   "magic-crumbs48",
+   "magic-crumbs51",
+   "magic-crumbs52"
+  ],
+  "commit": "9429852",
+  "episodes": 148,
+  "capped": 0,
+  "answer_tokens": 74926,
+  "cost_usd": 0.2437,
+  "stages": {
+   "parts": {
+    "kl": 0.2405,
+    "against": "cut_agent",
+    "closed": 0.1579,
+    "closed_ci": [
+     -0.0503,
+     0.3163
+    ]
+   },
+   "cut_agent": {
+    "kl": 0.2856
+   },
+   "whole_chat": {
+    "kl": 0.0011,
+    "against": "cut_plain",
+    "closed": 0.9957,
+    "closed_ci": [
+     0.9947,
+     0.9965
+    ]
+   },
+   "cut_plain": {
+    "kl": 0.2522
+   },
+   "framed": {
+    "kl": 0.239,
+    "against": "cut_agent",
+    "closed": 0.1631,
+    "closed_ci": [
+     -0.0386,
+     0.3184
+    ]
+   },
+   "ordered": {
+    "kl": 0.0885,
+    "against": "cut_agent",
+    "closed": 0.6903,
+    "closed_ci": [
+     0.6422,
+     0.7305
+    ]
+   },
+   "no_system": {
+    "kl": 0.4312,
+    "against": "cut_plain",
+    "closed": -0.7094,
+    "closed_ci": [
+     -1.0826,
+     -0.3954
+    ]
+   },
+   "true_pos": {
+    "kl": 0.8581,
+    "against": "cut_plain",
+    "closed": -2.402,
+    "closed_ci": [
+     -3.1576,
+     -1.7168
+    ]
+   },
+   "marked": {
+    "kl": 0.0882,
+    "against": "cut_agent",
+    "closed": 0.6911,
+    "closed_ci": [
+     0.6434,
+     0.732
+    ]
+   },
+   "marked_no_system": {
+    "kl": 0.443,
+    "against": "cut_plain",
+    "closed": -0.7562,
+    "closed_ci": [
+     -1.1461,
+     -0.4232
+    ]
+   },
+   "marked_true_pos": {
+    "kl": 1.059,
+    "against": "cut_plain",
+    "closed": -3.1982,
+    "closed_ci": [
+     -4.1172,
+     -2.3711
+    ]
+   },
+   "first_token": {
+    "kl": 0.099,
+    "against": "cut_plain",
+    "closed": 0.6075,
+    "closed_ci": [
+     0.5338,
+     0.6685
+    ]
+   },
+   "system_line": {
+    "kl": 0.0864,
+    "against": "cut_plain",
+    "closed": 0.6574,
+    "closed_ci": [
+     0.596,
+     0.7052
+    ]
+   },
+   "alone": {
+    "kl": 0.0265,
+    "against": "cut_plain",
+    "closed": 0.8947,
+    "closed_ci": [
+     0.8629,
+     0.9184
+    ]
+   },
+   "alone_future": {
+    "kl": 3.139,
+    "against": "cut_plain",
+    "closed": -11.4442,
+    "closed_ci": [
+     -14.4786,
+     -9.1692
+    ]
+   },
+   "alone_no_first": {
+    "kl": 1.0122,
+    "against": "cut_plain",
+    "closed": -3.0126,
+    "closed_ci": [
+     -3.939,
+     -2.1723
+    ]
+   },
+   "alone_system": {
+    "kl": 0.0564,
+    "against": "cut_agent",
+    "closed": 0.8026,
+    "closed_ci": [
+     0.7594,
+     0.8366
+    ]
+   },
+   "alone_span": {
+    "kl": 0.0695,
+    "against": "cut_plain",
+    "closed": 0.7245,
+    "closed_ci": [
+     0.6735,
+     0.7688
+    ]
+   },
+   "chat_walker": {
+    "kl": 0.0781,
+    "against": "cut_agent",
+    "closed": 0.7267,
+    "closed_ci": [
+     0.6826,
+     0.7646
+    ]
+   },
+   "chat_walker_no_b_system": {
+    "kl": 0.4261,
+    "against": "cut_plain",
+    "closed": -0.6891,
+    "closed_ci": [
+     -1.0827,
+     -0.3437
+    ]
+   },
+   "alone_both_system": {
+    "kl": 0.0326,
+    "against": "cut_agent",
+    "closed": 0.8859,
+    "closed_ci": [
+     0.8589,
+     0.9083
+    ]
+   },
+   "with_b": {
+    "kl": 0.0011,
+    "against": "cut_plain",
+    "closed": 0.9957,
+    "closed_ci": [
+     0.9947,
+     0.9965
+    ]
+   }
+  },
+  "by_opener": {
+   "reader": {
+    "episodes": 79,
+    "stages": {
+     "parts": {
+      "kl": 0.2544,
+      "tokens": 45142,
+      "against": "cut_agent",
+      "closed": -0.6233,
+      "closed_ci": [
+       -1.1559,
+       -0.209
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -7.1272,
+        "kl": 0.3946,
+        "cut": 0.0486,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.2862,
+        "kl": 0.1612,
+        "cut": 0.2258,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.5075,
+        "kl": 0.1289,
+        "cut": 0.2617,
+        "tokens": 6813
+       }
+      }
+     },
+     "cut_agent": {
+      "kl": 0.1567,
+      "tokens": 45142
+     },
+     "whole_chat": {
+      "kl": 0.0011,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.9915,
+      "closed_ci": [
+       0.9887,
+       0.9935
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.0037,
+        "kl": 0.0012,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.995,
+        "kl": 0.0011,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.9966,
+        "kl": 0.0009,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "cut_plain": {
+      "kl": 0.1303,
+      "tokens": 45142
+     },
+     "framed": {
+      "kl": 0.2533,
+      "tokens": 45142,
+      "against": "cut_agent",
+      "closed": -0.6159,
+      "closed_ci": [
+       -1.142,
+       -0.2103
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -7.0352,
+        "kl": 0.3902,
+        "cut": 0.0486,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.2896,
+        "kl": 0.1604,
+        "cut": 0.2258,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.4814,
+        "kl": 0.1357,
+        "cut": 0.2617,
+        "tokens": 6813
+       }
+      }
+     },
+     "ordered": {
+      "kl": 0.0755,
+      "tokens": 45142,
+      "against": "cut_agent",
+      "closed": 0.5185,
+      "closed_ci": [
+       0.4211,
+       0.596
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.0014,
+        "kl": 0.0485,
+        "cut": 0.0486,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.5638,
+        "kl": 0.0985,
+        "cut": 0.2258,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.6746,
+        "kl": 0.0852,
+        "cut": 0.2617,
+        "tokens": 6813
+       }
+      }
+     },
+     "no_system": {
+      "kl": 0.0524,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.598,
+      "closed_ci": [
+       0.5036,
+       0.6728
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.1405,
+        "kl": 0.0014,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.5691,
+        "kl": 0.0922,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.6775,
+        "kl": 0.0813,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "true_pos": {
+      "kl": 0.0385,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.7044,
+      "closed_ci": [
+       0.6241,
+       0.7644
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.0126,
+        "kl": 0.0012,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.6733,
+        "kl": 0.0699,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.7887,
+        "kl": 0.0533,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "marked": {
+      "kl": 0.0759,
+      "tokens": 45142,
+      "against": "cut_agent",
+      "closed": 0.516,
+      "closed_ci": [
+       0.4185,
+       0.5936
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.0008,
+        "kl": 0.0485,
+        "cut": 0.0486,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.5612,
+        "kl": 0.0991,
+        "cut": 0.2258,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.6715,
+        "kl": 0.086,
+        "cut": 0.2617,
+        "tokens": 6813
+       }
+      }
+     },
+     "marked_no_system": {
+      "kl": 0.0526,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.5962,
+      "closed_ci": [
+       0.5014,
+       0.6713
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.205,
+        "kl": 0.0015,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.5674,
+        "kl": 0.0926,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.6766,
+        "kl": 0.0816,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "marked_true_pos": {
+      "kl": 0.1031,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.2085,
+      "closed_ci": [
+       -0.075,
+       0.4162
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.0119,
+        "kl": 0.0012,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.2312,
+        "kl": 0.1645,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.1569,
+        "kl": 0.2127,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "first_token": {
+      "kl": 0.0995,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.2362,
+      "closed_ci": [
+       0.0405,
+       0.3805
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -43.6385,
+        "kl": 0.0546,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.3688,
+        "kl": 0.135,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.5096,
+        "kl": 0.1237,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "system_line": {
+      "kl": 0.0724,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.4444,
+      "closed_ci": [
+       0.3004,
+       0.5537
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -33.4304,
+        "kl": 0.0421,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.5394,
+        "kl": 0.0985,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.6731,
+        "kl": 0.0825,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "alone": {
+      "kl": 0.0405,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.6889,
+      "closed_ci": [
+       0.593,
+       0.7573
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.0129,
+        "kl": 0.0012,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.6535,
+        "kl": 0.0741,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.7836,
+        "kl": 0.0546,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "alone_future": {
+      "kl": 3.4885,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": -25.7702,
+      "closed_ci": [
+       -34.4719,
+       -19.3475
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -3972.8821,
+        "kl": 4.8635,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": -10.4357,
+        "kl": 2.4465,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": -9.3858,
+        "kl": 2.6196,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "alone_no_first": {
+      "kl": 0.017,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.8695,
+      "closed_ci": [
+       0.8318,
+       0.8964
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.0215,
+        "kl": 0.0012,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.8537,
+        "kl": 0.0313,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.9189,
+        "kl": 0.0205,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "alone_system": {
+      "kl": 0.0613,
+      "tokens": 45142,
+      "against": "cut_agent",
+      "closed": 0.6088,
+      "closed_ci": [
+       0.5071,
+       0.6889
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.005,
+        "kl": 0.0488,
+        "cut": 0.0486,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.6631,
+        "kl": 0.0761,
+        "cut": 0.2258,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.7927,
+        "kl": 0.0542,
+        "cut": 0.2617,
+        "tokens": 6813
+       }
+      }
+     },
+     "alone_span": {
+      "kl": 0.0718,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.4493,
+      "closed_ci": [
+       0.3292,
+       0.5444
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.1484,
+        "kl": 0.0014,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.4334,
+        "kl": 0.1212,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.4957,
+        "kl": 0.1272,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "chat_walker": {
+      "kl": 0.074,
+      "tokens": 45142,
+      "against": "cut_agent",
+      "closed": 0.5279,
+      "closed_ci": [
+       0.444,
+       0.5974
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.0021,
+        "kl": 0.0487,
+        "cut": 0.0486,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.5964,
+        "kl": 0.0911,
+        "cut": 0.2258,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.634,
+        "kl": 0.0958,
+        "cut": 0.2617,
+        "tokens": 6813
+       }
+      }
+     },
+     "chat_walker_no_b_system": {
+      "kl": 0.0507,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.6112,
+      "closed_ci": [
+       0.5321,
+       0.6772
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.1484,
+        "kl": 0.0014,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.6053,
+        "kl": 0.0844,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.6358,
+        "kl": 0.0919,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     },
+     "alone_both_system": {
+      "kl": 0.0411,
+      "tokens": 45142,
+      "against": "cut_agent",
+      "closed": 0.7379,
+      "closed_ci": [
+       0.6696,
+       0.7905
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.005,
+        "kl": 0.0488,
+        "cut": 0.0486,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.8246,
+        "kl": 0.0396,
+        "cut": 0.2258,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.909,
+        "kl": 0.0238,
+        "cut": 0.2617,
+        "tokens": 6813
+       }
+      }
+     },
+     "with_b": {
+      "kl": 0.0011,
+      "tokens": 45142,
+      "against": "cut_plain",
+      "closed": 0.9915,
+      "closed_ci": [
+       0.9887,
+       0.9936
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.0129,
+        "kl": 0.0012,
+        "cut": 0.0012,
+        "tokens": 18973
+       },
+       "1": {
+        "closed": 0.9951,
+        "kl": 0.0011,
+        "cut": 0.2139,
+        "tokens": 19356
+       },
+       "2": {
+        "closed": 0.9966,
+        "kl": 0.0009,
+        "cut": 0.2522,
+        "tokens": 6813
+       }
+      }
+     }
+    }
+   },
+   "walker": {
+    "episodes": 69,
+    "stages": {
+     "parts": {
+      "kl": 0.2195,
+      "tokens": 29784,
+      "against": "cut_agent",
+      "closed": 0.5437,
+      "closed_ci": [
+       0.4113,
+       0.6432
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.531,
+        "kl": 0.301,
+        "cut": 0.6418,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.5918,
+        "kl": 0.1292,
+        "cut": 0.3165,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.5503,
+        "kl": 0.0826,
+        "cut": 0.1837,
+        "tokens": 4313
+       }
+      }
+     },
+     "cut_agent": {
+      "kl": 0.481,
+      "tokens": 29784
+     },
+     "whole_chat": {
+      "kl": 0.001,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": 0.9976,
+      "closed_ci": [
+       0.9971,
+       0.9981
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.998,
+        "kl": 0.0011,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.9968,
+        "kl": 0.001,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.9951,
+        "kl": 0.0008,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "cut_plain": {
+      "kl": 0.4371,
+      "tokens": 29784
+     },
+     "framed": {
+      "kl": 0.2175,
+      "tokens": 29784,
+      "against": "cut_agent",
+      "closed": 0.5478,
+      "closed_ci": [
+       0.4171,
+       0.6454
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.5382,
+        "kl": 0.2964,
+        "cut": 0.6418,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.5862,
+        "kl": 0.131,
+        "cut": 0.3165,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.5461,
+        "kl": 0.0834,
+        "cut": 0.1837,
+        "tokens": 4313
+       }
+      }
+     },
+     "ordered": {
+      "kl": 0.1082,
+      "tokens": 29784,
+      "against": "cut_agent",
+      "closed": 0.7751,
+      "closed_ci": [
+       0.7366,
+       0.8109
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.8149,
+        "kl": 0.1188,
+        "cut": 0.6418,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.6865,
+        "kl": 0.0992,
+        "cut": 0.3165,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.5402,
+        "kl": 0.0845,
+        "cut": 0.1837,
+        "tokens": 4313
+       }
+      }
+     },
+     "no_system": {
+      "kl": 1.0053,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": -1.3003,
+      "closed_ci": [
+       -1.8579,
+       -0.8604
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.8821,
+        "kl": 1.0802,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": -2.2566,
+        "kl": 0.9857,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": -3.3555,
+        "kl": 0.7529,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "true_pos": {
+      "kl": 2.1004,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": -3.8059,
+      "closed_ci": [
+       -4.9426,
+       -2.8544
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -3.1488,
+        "kl": 2.3811,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": -5.1108,
+        "kl": 1.8496,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": -7.7297,
+        "kl": 1.5091,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "marked": {
+      "kl": 0.107,
+      "tokens": 29784,
+      "against": "cut_agent",
+      "closed": 0.7775,
+      "closed_ci": [
+       0.7392,
+       0.8127
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.8189,
+        "kl": 0.1163,
+        "cut": 0.6418,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.6845,
+        "kl": 0.0999,
+        "cut": 0.3165,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.5353,
+        "kl": 0.0853,
+        "cut": 0.1837,
+        "tokens": 4313
+       }
+      }
+     },
+     "marked_no_system": {
+      "kl": 1.0347,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": -1.3674,
+      "closed_ci": [
+       -1.9349,
+       -0.894
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.9061,
+        "kl": 1.094,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": -2.3809,
+        "kl": 1.0233,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": -3.7797,
+        "kl": 0.8263,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "marked_true_pos": {
+      "kl": 2.5077,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": -4.7377,
+      "closed_ci": [
+       -6.1049,
+       -3.6263
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -4.1345,
+        "kl": 2.9468,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": -5.9929,
+        "kl": 2.1165,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": -8.1397,
+        "kl": 1.58,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "first_token": {
+      "kl": 0.0982,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": 0.7753,
+      "closed_ci": [
+       0.735,
+       0.8124
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.8164,
+        "kl": 0.1054,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.69,
+        "kl": 0.0938,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.543,
+        "kl": 0.079,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "system_line": {
+      "kl": 0.1076,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": 0.7537,
+      "closed_ci": [
+       0.7075,
+       0.7953
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.7957,
+        "kl": 0.1173,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.6716,
+        "kl": 0.0994,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.4989,
+        "kl": 0.0866,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "alone": {
+      "kl": 0.0053,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": 0.9878,
+      "closed_ci": [
+       0.9838,
+       0.9911
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.998,
+        "kl": 0.0011,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.9668,
+        "kl": 0.01,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.9284,
+        "kl": 0.0124,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "alone_future": {
+      "kl": 2.6093,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": -4.9702,
+      "closed_ci": [
+       -6.4379,
+       -3.7534
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -5.271,
+        "kl": 3.5991,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": -5.4021,
+        "kl": 1.9377,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.4415,
+        "kl": 0.0966,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "alone_no_first": {
+      "kl": 2.5204,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": -4.7669,
+      "closed_ci": [
+       -6.1908,
+       -3.5821
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -4.0159,
+        "kl": 2.8787,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": -6.0558,
+        "kl": 2.1356,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": -9.9637,
+        "kl": 1.8953,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "alone_system": {
+      "kl": 0.0489,
+      "tokens": 29784,
+      "against": "cut_agent",
+      "closed": 0.8983,
+      "closed_ci": [
+       0.8745,
+       0.9183
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.923,
+        "kl": 0.0494,
+        "cut": 0.6418,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.8411,
+        "kl": 0.0503,
+        "cut": 0.3165,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.7585,
+        "kl": 0.0444,
+        "cut": 0.1837,
+        "tokens": 4313
+       }
+      }
+     },
+     "alone_span": {
+      "kl": 0.0661,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": 0.8488,
+      "closed_ci": [
+       0.8169,
+       0.8773
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.8912,
+        "kl": 0.0625,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.7533,
+        "kl": 0.0747,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.6361,
+        "kl": 0.0629,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "chat_walker": {
+      "kl": 0.0843,
+      "tokens": 29784,
+      "against": "cut_agent",
+      "closed": 0.8248,
+      "closed_ci": [
+       0.7933,
+       0.8534
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.8635,
+        "kl": 0.0876,
+        "cut": 0.6418,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.7322,
+        "kl": 0.0848,
+        "cut": 0.3165,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.6181,
+        "kl": 0.0701,
+        "cut": 0.1837,
+        "tokens": 4313
+       }
+      }
+     },
+     "chat_walker_no_b_system": {
+      "kl": 0.9951,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": -1.2768,
+      "closed_ci": [
+       -1.9074,
+       -0.7829
+      ],
+      "by_turn": {
+       "0": {
+        "closed": -0.8208,
+        "kl": 1.045,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": -2.2952,
+        "kl": 0.9973,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": -3.6035,
+        "kl": 0.7958,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     },
+     "alone_both_system": {
+      "kl": 0.0197,
+      "tokens": 29784,
+      "against": "cut_agent",
+      "closed": 0.9591,
+      "closed_ci": [
+       0.9492,
+       0.9675
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.9664,
+        "kl": 0.0215,
+        "cut": 0.6418,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.9445,
+        "kl": 0.0176,
+        "cut": 0.3165,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.9091,
+        "kl": 0.0167,
+        "cut": 0.1837,
+        "tokens": 4313
+       }
+      }
+     },
+     "with_b": {
+      "kl": 0.0011,
+      "tokens": 29784,
+      "against": "cut_plain",
+      "closed": 0.9976,
+      "closed_ci": [
+       0.997,
+       0.998
+      ],
+      "by_turn": {
+       "0": {
+        "closed": 0.998,
+        "kl": 0.0011,
+        "cut": 0.5739,
+        "tokens": 16819
+       },
+       "1": {
+        "closed": 0.9966,
+        "kl": 0.001,
+        "cut": 0.3027,
+        "tokens": 8652
+       },
+       "2": {
+        "closed": 0.9951,
+        "kl": 0.0009,
+        "cut": 0.1729,
+        "tokens": 4313
+       }
+      }
+     }
+    }
+   }
+  }
  }
 }
