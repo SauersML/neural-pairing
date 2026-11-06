@@ -140,6 +140,7 @@ class Crumbs(nn.Module):
             self.tau, self.lam, self.beta, self.adv, self.adv_max = SYM_TAU[0], 0., 0., 0., 0.
             self.contrast = 0.
             self.soft, self.eaves_on, self.stash = False, False, []
+            self.note_pass = 'soft'            # what a note token sees of the note so far (_notes; --note_pass)
             self.codes = [collections.deque(maxlen=256) for _ in range(m)]   # recent training argmax ids per position
             self.sums = collections.defaultdict(float)
         if arm == 'resid':
@@ -431,12 +432,16 @@ class Crumbs(nn.Module):
 
     def _notes(self, x, got, streams):
         """sym arm: every note of the writer streams x (from _pad; got: their per-layer (k, v), the past each note
-        branches off), m passes, each over every note at once: the note's tokens see the writer's tokens before its
-        place, then the cue turn (CUE) and the note's tokens so far (inputs_embeds, 4D mask), and the last one's
-        final state through the model's own head gives the next token's logits (special tokens masked). The token
-        fed back and sent is softmax(logits / tau) @ the embedding matrix in training (and mode soft), else the argmax
-        token's row. Returns the note embeddings [N, n, d] and argmax ids [N, n] in slot order (note k, token j at
-        k * m + j)."""
+        branches off), each over every note at once: the note's tokens see the writer's tokens before its place, then
+        the cue turn (CUE) and the note's tokens so far (inputs_embeds, 4D mask), and each token's logits come from
+        the final state before it through the model's own head (special tokens masked). Sent: softmax(logits / tau)
+        @ the embedding matrix in training (and mode soft), else the argmax token's row. What each token sees of the
+        note so far (note_pass): soft, m passes each feeding back the soft tokens so far; greedy, m passes feeding back
+        the argmax tokens (the contexts of greedy decoding at evaluation); one, the argmax tokens decoded without
+        gradient in m passes, then one pass with gradient over the cue and those m - 1 tokens, whose logits at each
+        note position make the soft tokens (greedy's numbers in two passes' worth of backward). Evaluation (no soft)
+        decodes greedily in m passes. Returns the note embeddings [N, n, d] and argmax ids [N, n] in slot order (note
+        k, token j at k * m + j)."""
         from transformers import DynamicCache
         device, att = x['ids'].device, x['att'].bool()
         N, T = att.shape
@@ -451,13 +456,15 @@ class Crumbs(nn.Module):
         cue = E[torch.tensor(self.cue, device=device)]
         train = torch.is_grad_enabled() and self.training
         banned = self.banned.to(device)
-        embs, ids = [], []
-        pend = [[b''] * Kn for _ in range(N)]                  # training: each note's pending bytes (argmax tokens)
-        for j in range(m):
-            L = len(self.cue) + j
+        head = self.model.get_output_embeddings()
+        c = len(self.cue)
+
+        def states(fed):
+            """The final states [N, Kn, c + len(fed), d] of one pass over each note's cue and the tokens fed."""
+            L = c + len(fed)
             new = cue[None, None].expand(N, Kn, -1, -1)
-            if embs:
-                new = torch.cat([new, torch.stack(embs, 2)], 2)
+            if fed:
+                new = torch.cat([new, torch.stack(fed, 2)], 2)
             new = new.reshape(N, Kn * L, -1)
             pos = (start[:, :, None] + torch.arange(L, device=device)).reshape(N, Kn * L)
             past = (torch.arange(T, device=device)[None, None] < pe[:, :, None]) & att[:, None] & valid[..., None]
@@ -470,22 +477,45 @@ class Crumbs(nn.Module):
             try:
                 self.model(inputs_embeds=new, attention_mask=mask, position_ids=pos, past_key_values=cache,
                            use_cache=True, logits_to_keep=1)
-                h = self.last.view(N, Kn, L, -1)[:, :, -1]
+                return self.last.view(N, Kn, L, -1)
             finally:
                 self.grab, self.last = False, None
-            logits = self.model.get_output_embeddings()(h).float().masked_fill(banned, float('-inf'))
-            hard = logits.argmax(-1)
-            if train or self.soft:
+
+        def logits_of(h):
+            return head(h).float().masked_fill(banned, float('-inf'))
+
+        soft = train or self.soft
+        mode = self.note_pass if soft else 'greedy'
+        embs, ids, sent = [], [], []
+        pend = [[b''] * Kn for _ in range(N)]                  # training: each note's pending bytes (argmax tokens)
+        if mode == 'one':
+            with torch.no_grad():
+                for j in range(m):
+                    hard = logits_of(states(embs)[:, :, -1]).argmax(-1)
+                    ids.append(hard)
+                    embs.append(E[hard].to(cue.dtype))
+            every = logits_of(states(embs[:m - 1])[:, :, c - 1:c - 1 + m])     # [N, Kn, m, V]
+        for j in range(m):
+            if mode == 'one':
+                logits, hard = every[:, :, j], ids[j]
+            else:
+                logits = logits_of(states(embs)[:, :, -1])
+                hard = logits.argmax(-1)
+                ids.append(hard)
+            if soft:
                 p = (logits / self.tau).softmax(-1)
-                e = p.to(E.dtype) @ E
+                e = (p.to(E.dtype) @ E).to(cue.dtype)
                 if train:
                     self._track(p, hard, valid, j, pend)
                     pend = [[self.masks.pending(P, t) for P, t in zip(row, h)] for row, h in zip(pend, hard.tolist())]
             else:
-                e = E[hard]
-            embs.append(e.to(cue.dtype))
-            ids.append(hard)
-        return torch.stack(embs, 2).reshape(N, Kn * m, -1), torch.stack(ids, 2).reshape(N, Kn * m)
+                e = E[hard].to(cue.dtype)
+            sent.append(e)
+            if mode == 'soft':
+                embs.append(e)
+            elif mode == 'greedy':
+                embs.append(E[hard].to(cue.dtype))
+        return torch.stack(sent, 2).reshape(N, Kn * m, -1), torch.stack(ids, 2).reshape(N, Kn * m)
 
     def _track(self, p, hard, valid, j, pend):
         """Training, note token j: the sums of the letter mass (each note's letters after its pending bytes pend
@@ -1349,6 +1379,7 @@ def load(out, device):
         net.adv = net.adv_max = args.get('adv', 0.)
         net.tau = SYM_TAU[1]
         net.hint = args.get('note_hint', '')
+        net.note_pass = args.get('note_pass', 'soft')
     return net
 
 
@@ -1627,6 +1658,9 @@ def main():
                     help='sym arm: the reference gap: the last dev before the penalty, or the largest so far')
     ap.add_argument('--dev0', action='store_true', help='sym arm: a dev before training (the untrained notes)')
     ap.add_argument('--note_hint', default='', help='sym arm: a line added to every writer\'s system prompt')
+    ap.add_argument('--note_pass', default='soft', choices=('soft', 'greedy', 'one'),
+                    help='sym arm: what a note token sees of the note so far in training (soft tokens, or the argmax '
+                         'tokens: greedy in m passes, one: decoded without gradient, then one pass with it)')
     ap.add_argument('--lam_rule', default=','.join(map(str, LAM_RULE[1:])),
                     help='sym arm: up,down: the letter weight\'s factor after a dev with the gap held, and without')
     ap.add_argument('--lost', type=int, default=0, help='sym arm: stop after this many devs in a row without the gap')
@@ -1672,6 +1706,7 @@ def main():
         net.adv = net.adv_max = args.adv
         net.contrast = args.contrast
         net.hint = args.note_hint
+        net.note_pass = args.note_pass
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]
     (out / 'args.json').write_text(json.dumps(vars(args), indent=1))
     if args.init and not args.resume:

@@ -253,6 +253,40 @@ def test_letters_by_context(tok):
     assert abs(ns['letters_exact'] - want / n) < 1e-9
 
 
+def test_note_pass_one_matches_greedy(tok):
+    """note_pass one (the argmax tokens decoded without gradient, then one pass with it) gives greedy's numbers
+    (m passes feeding back the argmax tokens): the same note ids, soft tokens, letter mass, loss and gradients; soft
+    (feeding back the soft tokens) sends different tokens; evaluation decodes the same notes in every mode."""
+    net = tiny(tok, 'sym', 4)
+    lora_effect(net)
+    net.tau, net.lam, net.beta = .5, .3, .01
+    eps = trails(2)
+    params = [q for q in net.parameters() if q.requires_grad]
+    got = {}
+    for mode in ('greedy', 'one', 'soft'):
+        net.note_pass = mode
+        net.train()
+        net.sums = collections.defaultdict(float)
+        net.zero_grad()
+        loss = net.loss(eps, 'cpu')
+        loss.backward()
+        _, _, bank = net.run(eps, 'cpu')
+        net.eval()
+        with torch.no_grad():
+            _, _, hard = net.run(eps, 'cpu', need_loss=False)
+        got[mode] = dict(loss=float(loss.detach()), let=float(net.sums['let'].detach()), e=bank['e'][0].detach(),
+                         ids=bank['ids'][0], grads=[q.grad.clone() for q in params if q.grad is not None],
+                         hard=hard['ids'][0])
+    g, o, sf = got['greedy'], got['one'], got['soft']
+    assert torch.equal(g['ids'], o['ids']) and torch.allclose(g['e'], o['e'], atol=1e-5)
+    assert abs(g['loss'] - o['loss']) < 1e-5 and abs(g['let'] - o['let']) < 1e-4
+    assert len(g['grads']) == len(o['grads']) > 0
+    for a, b in zip(g['grads'], o['grads']):
+        assert torch.allclose(a, b, rtol=1e-4, atol=1e-6)
+    assert not torch.allclose(g['e'], sf['e'], atol=1e-5)
+    assert torch.equal(g['hard'], o['hard']) and torch.equal(g['hard'], sf['hard'])
+
+
 def test_sym_hint_and_dev0(tok, tmp_path):
     """--note_hint: one line added to every writer's system prompt, none to the reader's; note_stats' three letter
     shares; dev0: a dev before the first step with no controller update; gap_ref max: the reference gap is the
