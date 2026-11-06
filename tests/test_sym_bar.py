@@ -2,6 +2,7 @@
 the note tokens as text; swapped notes are the next episode's; no notes means no note lines; the forced choice is the
 highest log-prob among a group's whole says; the examples come before the test turn."""
 from pathlib import Path
+import random
 import sys
 
 import pytest
@@ -135,3 +136,12 @@ def test_one_note(tok, monkeypatch):
     B.one_note(None, tok, items, items, 2, 4, 'cpu')
     question = ON.asks(eps[0])[0]['question']
     assert seen[0].count('<|im_start|>assistant') == 3 and seen[0].count(question) == 3   # two examples and the question
+
+
+def test_swapped_notes_from_a_shorter_episode():
+    """Maze's episodes differ in rooms: another episode's notes run out, and its first note stands in."""
+    rng = random.Random(0)
+    ep = next(e for e in (CG.episode('maze', rng, True) for _ in range(40)) if len(e['places']) == 8)
+    chat = B.turns(ep, 1, {(0, 0): 'first', (0, 1): 'second'}, 7)
+    assert chat[0]['content'].startswith(f'{C.NOTE}first\n') and chat[2]['content'].startswith(f'{C.NOTE}second\n')
+    assert chat[-1]['content'].startswith(f'{C.NOTE}first\n')

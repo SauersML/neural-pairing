@@ -64,7 +64,7 @@ def turns(ep, a, notes, upto=None):
                     if ws['place'] is None:
                         continue
                     if ws['place'] == seg['place']:
-                        lines += f'{C.NOTE}{notes[w, k]}\n'
+                        lines += f'{C.NOTE}{notes.get((w, k), notes.get((w, 0)))}\n'     # another episode may have fewer rooms
                     k += 1
         out.append(dict(role='user', content=lines + seg['user']))
         if s == upto:
