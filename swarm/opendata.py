@@ -1100,11 +1100,12 @@ class Episodes:
     """The records of a split, in a seeded order, each yielded once (a run never repeats an episode); len() is the
     count. families: only those families. teacher: attach record['topk'] = {turn: (ids, lp)} from the teacher files
     (a teacher record whose top-k is missing is left out)."""
-    def __init__(self, path, split, seed=0, families=None, teacher=False, wait_minutes=0):
+    def __init__(self, path, split, seed=0, families=None, teacher=False, wait_minutes=0, hold=()):
         self.path, self.split, self.families, self.teacher = Path(path), split, families, teacher
         self.wait_minutes, self.seed, self.files, self.ids, self.cuts = wait_minutes, seed, set(), set(), {}
-        self.recs, self.pos = [], 0
-        self.refresh()
+        self.recs, self.pos, self.hold = [], 0, set(hold)
+        self.refresh()                                   # hold: shard names left for a later refresh (a resumed
+        self.hold = set()                                # run reads first the shards its first part had)
 
     def load(self, p):
         """One shard's records, each cut at its first degenerate simulated user turn (first_degenerate; counts in
@@ -1133,7 +1134,7 @@ class Episodes:
         the new records go after the ones not yet yielded, in a seeded order. Returns how many came."""
         new = []
         for p in sorted((self.path / 'shards').glob(f'{self.split}-*.jsonl.gz')):
-            if p.name in self.files:
+            if p.name in self.files or p.name in self.hold:
                 continue
             self.files.add(p.name)
             for r in self.load(p):

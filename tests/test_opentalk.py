@@ -4,6 +4,7 @@ contrast and privacy terms, the hard evaluation, and a short end-to-end run on o
 import json
 from pathlib import Path
 import random
+import shutil
 import sys
 
 import numpy as np
@@ -287,3 +288,93 @@ def test_end_to_end_on_shards(tmp_path, monkeypatch):
     assert trained                                                    # training steps logged
     first = next(r for r in rows if 'train' in r)
     assert first['dev'] == 8 and first['train'] == 62                  # 2 per family carved out, never trained on
+
+
+def test_fast_cache_decodes_what_the_cache_decodes():
+    rng = random.Random(11)
+    eps = [episode(rng, i, f, turns=3) for i, f in enumerate(['doc', 'pair', 'pair'])]
+    net = net_of(merged=True)
+    big_adapter(net)
+    net.sync_dec()
+    net.bias = 2.0                                         # the letter bias, by pending bytes, in every step
+    plain = net.decode(eps)
+    net.fast_eps, net.fast_T = 2, 2048                     # pieces of 2 episodes, the last one padded
+    assert net.decode(eps) == plain
+    net.fast_eps = 4                                       # one piece, rows past the batch left empty
+    assert net.decode(eps) == plain
+    assert len(net._fast) == 2 and all(isinstance(c, OT.FastCache) for c in net._fast.values())
+    net.fast_T = 64                                        # too short for a transcript: the Cache takes over
+    net._fast = {}
+    assert net.decode(eps) == plain
+
+
+def test_fast_cache_hidden_states_match_the_cache():
+    net = net_of(merged=True)
+    big_adapter(net)
+    net.sync_dec()
+    a, b = OT.Cache(net, 3, net.dec), OT.FastCache(net, 3, 256, net.dec)
+    rng = random.Random(2)
+    for tails in ([[5, 6, 7], [8], []], [[9], [10], [11]], [[], [12, 13], [14]], [[15], [], [16]]):
+        tails = [[t + rng.randint(0, 900) for t in row] for row in tails]
+        ha, hb = a.flush(tails), b.flush(tails)
+        live = [r for r, t in enumerate(tails) if t]
+        assert torch.allclose(ha[live], hb[live], atol=1e-5)
+
+
+def test_resume_continues_the_run_exactly(tmp_path, monkeypatch):
+    from safetensors.torch import load_file
+    rng = random.Random(6)
+    recs = []
+    for i in range(40):
+        f = ['doc', 'pair', 'fill', 'chat_alt'][i % 4]
+        ep = episode(rng, i, f, turns=2, teacher=f != 'fill')
+        ep.update(id=f'train{i}', split='train')
+        for k, t in enumerate(ep['turns']):
+            if ep['teacher']:
+                ids, lp = ep['topk'][k]
+                t['_top'] = (ids.numpy().astype(np.int32), lp.numpy().astype(np.float16))
+        ep.pop('topk', None)
+        recs.append(ep)
+    O.write_shards(recs, tmp_path / 'data', 'train', 0, size=20)
+    monkeypatch.setattr(OT, 'build', lambda *a, **k: net_of(m=3, merged=True))
+    monkeypatch.setattr(OT, 'ctrl_ready', lambda gap, gap0, args: True)
+    save = OT.save
+
+    def keep(net, ckpt, extra=None, opt=None, state=None):    # each save also kept as ckpt_step<N>
+        save(net, ckpt, extra, opt, state)
+        shutil.copytree(ckpt, f'{ckpt}_step{extra["step"]}', dirs_exist_ok=True)
+    monkeypatch.setattr(OT, 'save', keep)
+
+    def run(name, steps, *extra):
+        monkeypatch.setattr(sys, 'argv', ['opentalk.py', '--data', str(tmp_path / 'data'), '--out',
+                                          str(tmp_path / name), '--ckpt', str(tmp_path / name / 'ckpt'), '--steps',
+                                          str(steps), '--batch', '2', '--micro', '1', '--bucket', '2', '--dev_every',
+                                          '2', '--dev_n', '1', '--dev_bs', '2', '--free', '0', '--ctrl', '--lam0',
+                                          '0.5', '--lam_p', '0', '--parts', 'train', *extra])
+        OT.main()
+        return [json.loads(line) for line in open(tmp_path / name / 'log.jsonl')]
+    run('whole', 4)
+    first = tmp_path / 'whole' / 'ckpt_step2'                             # the run as it stood at step 2
+    assert (first / 'optim.pt').exists()
+    st = json.loads((first / 'state.json').read_text())
+    assert st['files'] == ['train-0000.jsonl.gz', 'train-0001.jsonl.gz'] and st['ref'] is not None
+    O.write_shards(recs[:5], tmp_path / 'data', 'train', 0, tag='g9-')    # a shard that came after the start
+    rows = run('rest', 4, '--resume', str(first))
+    res = next(r for r in rows if 'resumed' in r)
+    assert res['step'] == 2 and res['optimizer'] and res['held_shards'] == ['train-g9-0000.jsonl.gz']
+    assert [r['step'] for r in rows if isinstance(r.get('dev'), dict)] == [4]     # its step-2 dev already ran
+    w = load_file(str(tmp_path / 'whole' / 'ckpt' / 'adapter' / 'adapter_model.safetensors'))
+    r_ = load_file(str(tmp_path / 'rest' / 'ckpt' / 'adapter' / 'adapter_model.safetensors'))
+    assert w.keys() == r_.keys() and all(torch.equal(w[k], r_[k]) for k in w)
+    talk_w = json.loads((tmp_path / 'whole' / 'ckpt' / 'talk.json').read_text())
+    talk_r = json.loads((tmp_path / 'rest' / 'ckpt' / 'talk.json').read_text())
+    assert talk_w == talk_r
+
+
+def test_evaluate_splits_leaky_and_clean_families():
+    net, rng = net_of(), random.Random(4)
+    eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'doc', 'chat_alt', 'chat_alt', 'pair',
+                                                                       'pair'])]
+    res = OT.evaluate(net, eps, bs=2)
+    assert res['_leaky']['families'] == ['doc', 'pair'] and res['_clean']['families'] == ['chat_alt']
+    assert res['_leaky']['closed'] == round((res['doc']['closed'] + res['pair']['closed']) / 2, 4)

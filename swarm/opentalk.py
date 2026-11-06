@@ -72,6 +72,8 @@ SYSTEM = ('You are agent {x}. You and agent {y} are two assistants who serve one
           'request comes to you, answer the user directly.')
 SYMBOLS = 'From now on, write your messages to your partner in emoji, symbols and digits only, with no letters.'
 CHUNK = 512                                            # positions per checkpointed vocabulary chunk
+LEAKY = ('doc', 'pair', 'code', 'chat_doc')            # families whose simulated requests can name hidden details
+CLEAN = ('chat_alt', 'fill', 'debug', 'plan')
 _letters = {}
 
 
@@ -141,6 +143,110 @@ class Cache:
         return out.last_hidden_state[torch.arange(self.R, device=ids.device), last]
 
 
+def run_layers(lm, x, pos, write, mask, ks, vs):
+    """The decoder stack of a Qwen3 lm on input embeddings x [R, L, d] at positions pos [R, L], with a key-value
+    cache held per row: layer i's keys and values go into ks[i], vs[i] [R, kv heads, T, head dim] at slots write
+    [R, L], and each query attends the slots mask [R, 1, L, Tu] allows among the first Tu. The final norm's output
+    [R, L, d]. The lm's own modules (norms, projections, rotary embedding, MLP) do the work; only the cache and the
+    attention call are here. The query heads that share a key-value head ride in its query axis (head j * G + g
+    reads key-value head j, as in the model's grouped attention), so the attention kernel needs no repeated keys."""
+    from transformers.models.qwen3.modeling_qwen3 import apply_rotary_pos_emb
+    cos, sin = lm.model.rotary_emb(x, pos)
+    idx = None
+    for i, layer in enumerate(lm.model.layers):
+        a = layer.self_attn
+        h = layer.input_layernorm(x)
+        shp = (*h.shape[:-1], -1, a.head_dim)
+        q = a.q_norm(a.q_proj(h).view(shp)).transpose(1, 2)
+        k = a.k_norm(a.k_proj(h).view(shp)).transpose(1, 2)
+        v = a.v_proj(h).view(shp).transpose(1, 2)
+        q, k = apply_rotary_pos_emb(q, k, cos, sin)
+        if idx is None:
+            B, H, L, D = q.shape
+            K, Tu = k.shape[1], mask.shape[-1]
+            G = H // K
+            idx = write[:, None, :, None].expand(-1, K, -1, D)
+            mg = mask.repeat(1, 1, G, 1)                                  # row g * L + l: query l's mask
+        ks[i].scatter_(2, idx, k)
+        vs[i].scatter_(2, idx, v)
+        o = F.scaled_dot_product_attention(q.reshape(B, K, G * L, D), ks[i][:, :, :Tu], vs[i][:, :, :Tu],
+                                           attn_mask=mg, scale=a.scaling).reshape(B, H, L, D)
+        x = x + a.o_proj(o.transpose(1, 2).reshape(*x.shape[:-1], -1))
+        x = x + layer.mlp(layer.post_attention_layernorm(x))
+    return lm.model.norm(x)
+
+
+class FastCache:
+    """Cache's interface (flush(tails) -> each row's hidden state at its last new token [R, d]) on a preallocated
+    key-value cache with one write position per row (row r's tokens go to slots n_r, n_r + 1, ... with no padding
+    between chunks), so nothing is copied as it grows. Slot T - 1 takes the padding's writes and no real token. A
+    flush of one token per row (every message step) replays a CUDA graph captured once per row count (graph=True,
+    on CUDA): the whole decoder stack as one launch. Build one per row count and reuse it: reset() starts a batch."""
+
+    def __init__(self, net, R, T, lm=None, graph=True):
+        self.net, self.R, self.T, self.lm = net, R, T, lm or net.lm
+        c = self.lm.config
+        hd = getattr(c, 'head_dim', None) or c.hidden_size // c.num_attention_heads
+        dt, dev = self.lm.model.embed_tokens.weight.dtype, net.device
+        self.ks = [torch.zeros(R, c.num_key_value_heads, T, hd, dtype=dt, device=dev) for _ in range(c.num_hidden_layers)]
+        self.vs = [torch.zeros_like(k) for k in self.ks]
+        self.ar = torch.arange(T, device=dev)
+        self.graph = graph and dev.type == 'cuda'
+        self.g = None
+        self.reset()
+
+    def reset(self):
+        self.nl = [0] * self.R                                   # tokens held per row
+        self.tokens = 0
+
+    def _run(self, ids, pos, write, Tu=None):
+        x = self.lm.model.embed_tokens(ids)
+        mask = self.ar[None, None, None, :Tu or self.T] <= write[:, None, :, None]
+        return run_layers(self.lm, x, pos, write, mask, self.ks, self.vs)
+
+    def _step(self, ids, pos, write):
+        if not self.graph:
+            return self._run(ids, pos, write)
+        if self.g is None:                                       # warm up on a side stream, then capture
+            self.sid, self.spos, self.swr = ids.clone(), pos.clone(), write.clone()
+            s = torch.cuda.Stream()
+            s.wait_stream(torch.cuda.current_stream())
+            with torch.cuda.stream(s), torch.no_grad():
+                for _ in range(2):
+                    self._run(self.sid, self.spos, self.swr)
+            torch.cuda.current_stream().wait_stream(s)
+            self.g = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(self.g), torch.no_grad():
+                self.sout = self._run(self.sid, self.spos, self.swr)
+        self.sid.copy_(ids)
+        self.spos.copy_(pos)
+        self.swr.copy_(write)
+        self.g.replay()
+        return self.sout
+
+    def flush(self, tails):
+        tails = list(tails) + [[] for _ in range(self.R - len(tails))]
+        L = max(1, max(len(t) for t in tails))
+        lens = [len(t) for t in tails]
+        if max(n + k for n, k in zip(self.nl, lens)) >= self.T - 1:
+            raise OverflowError('a row outgrew the fast cache')
+        ids = torch.full((self.R, L), self.net.pad, dtype=torch.long)
+        write = torch.full((self.R, L), self.T - 1, dtype=torch.long)
+        pos = torch.zeros(self.R, L, dtype=torch.long)
+        for r, t in enumerate(tails):
+            if t:
+                ids[r, :len(t)] = torch.tensor(t)
+                write[r, :len(t)] = pos[r, :len(t)] = torch.arange(self.nl[r], self.nl[r] + len(t))
+        dev = self.net.device
+        ids, pos, write = ids.to(dev), pos.to(dev), write.to(dev)
+        h = self._step(ids, pos, write) if L == 1 else self._run(ids, pos, write,
+                                                                  max(n + k for n, k in zip(self.nl, lens)))
+        self.nl = [n + k for n, k in zip(self.nl, lens)]
+        self.tokens += sum(lens)
+        last = torch.tensor([max(0, k - 1) for k in lens], device=dev)
+        return h[torch.arange(self.R, device=dev), last]
+
+
 class Talk:
     """The LoRA model, its tokenizer, the vocabulary masks and the message rules (m tokens, bias, tau)."""
 
@@ -158,6 +264,7 @@ class Talk:
         self.stats = dict(decode_tokens=0, grad_tokens=0)
         self.base_lm = None                            # the untrained model as a separate frozen copy (privacy)
         self.dec = None                                # a plain copy holding base + LoRA merged, for decoding
+        self.fast_eps, self.fast_T, self._fast = 0, 0, {}   # the fast decode cache (off: 0 episodes)
 
     def sync_dec(self):
         """Writes base weight + scaling * B @ A of every LoRA layer into the decoding copy (after each optimizer
@@ -279,17 +386,53 @@ class Talk:
             return z
         return z - self.bias * (self._table[rows] if rows is not None else self.letter_f)
 
-    @torch.no_grad()
     def decode(self, eps):
-        """Greedy messages for a batch, both agents' rows in one key-value cache (rows 0..N-1 agent A, N..2N-1 B).
-        At each message the speaker's row writes and both rows read each new token. Returns per episode, per turn,
-        the messages as (speaker, ids)."""
+        """Greedy messages for a batch (see _decode). With the fast cache on (fast_eps episodes per cache, set by
+        --fast_decode), a batch of more episodes runs in pieces of fast_eps, each in the one preallocated cache: an
+        episode's messages do not depend on the others in its batch."""
+        if not self.fast_eps or len(eps) <= self.fast_eps:
+            return self._decode(eps)
+        return [m for s in range(0, len(eps), self.fast_eps) for m in self._decode(eps[s:s + self.fast_eps])]
+
+    def cache(self, N, D):
+        """The key-value cache for N episodes: the one FastCache of 2 * fast_eps rows (fast_T slots per row) kept
+        across batches (rows past 2N stay empty), or a Cache."""
+        if not self.fast_eps:
+            return Cache(self, 2 * N, D)
+        key = (id(D), self.fast_eps, self.fast_T)
+        if key not in self._fast:
+            self._fast[key] = FastCache(self, 2 * self.fast_eps, self.fast_T, D)
+        c = self._fast[key]
+        c.reset()
+        return c
+
+    def _decode(self, eps):
+        """Greedy messages for a batch (_messages) in its key-value cache; a batch that outgrows the fast cache runs
+        again in a Cache."""
+        D = self.dec                                   # the merged copy (sync_dec), else the adapter model
+        C = self.cache(len(eps), D)
+        if isinstance(C, FastCache):
+            try:
+                return self._messages(eps, C, D)
+            except OverflowError:
+                C = Cache(self, 2 * len(eps), D)
+        return self._messages(eps, C, D)
+
+    @torch.no_grad()
+    def _messages(self, eps, C, D):
+        """Greedy messages for a batch, both agents' rows in one key-value cache C (rows 0..N-1 agent A, N..2N-1 B)
+        run by model D. At each message the speaker's row writes and both rows read each new token. Returns per
+        episode, per turn, the messages as (speaker, ids)."""
         was = self.model.training
         self.model.eval()
+        try:
+            return self._messages_in(eps, C, D)
+        finally:
+            self.model.train(was)
+
+    def _messages_in(self, eps, C, D):
         N = len(eps)
         row = {('A', i): i for i in range(N)} | {('B', i): N + i for i in range(N)}
-        D = self.dec                                   # the merged copy (sync_dec), else the adapter model
-        C = Cache(self, 2 * N, D)
         pending = [self.prefix(eps[i], x) for x in 'AB' for i in range(N)]
         out = [[[] for _ in ep['turns']] for ep in eps]
         for k in range(max(len(ep['turns']) for ep in eps)):
@@ -325,7 +468,6 @@ class Talk:
                 for x in 'AB':
                     pending[row[(x, i)]] += self.close(eps[i], k, x)
         self.stats['decode_tokens'] += C.tokens
-        self.model.train(was)
         return out
 
     # ---------------------------------------------------------------------------------------------------- passes
@@ -526,12 +668,18 @@ def frozen(lm, gc=True):
     return lm.train()
 
 
-def save(net, ckpt, extra=None):
+def save(net, ckpt, extra=None, opt=None, state=None):
+    """The adapter and talk.json (m, bias, tau, symbols, extra); with opt and state also optim.pt and state.json
+    (the controller and the data read so far), so that --resume continues from here."""
     ckpt = Path(ckpt)
     ckpt.mkdir(parents=True, exist_ok=True)
     net.model.save_pretrained(str(ckpt / 'adapter'))
     (ckpt / 'talk.json').write_text(json.dumps(dict(m=net.m, bias=net.bias, tau=net.tau, symbols=net.symbols,
                                                     **(extra or {}))))
+    if opt is not None:
+        torch.save(opt.state_dict(), ckpt / 'optim.pt')
+    if state is not None:
+        (ckpt / 'state.json').write_text(json.dumps(state))
 
 
 # ------------------------------------------------------------------------------------------------------ evaluation
@@ -620,6 +768,12 @@ def evaluate(net, eps, bs=8, base=False, examples=3):
     res['_all'] = dict(letters=round(mean(net.letters_of(all_toks)), 4), distinct=int(len(torch.unique(flat))),
                        gap=round(mean(v['gap'] for v in fam), 4), closed=round(mean(v['closed'] for v in res.values()
                                                                                     if 'closed' in v), 4))
+    for name, group in (('_leaky', LEAKY), ('_clean', CLEAN)):
+        vs = {f: res[f] for f in group if f in res and 'closed' in res[f]}
+        if vs:
+            res[name] = dict(families=sorted(vs), closed=round(mean(v['closed'] for v in vs.values()), 4),
+                             gap=round(mean(v['gap'] for v in vs.values() if 'gap' in v), 4)
+                             if any('gap' in v for v in vs.values()) else None)
     if len(flat):                                      # the 20 most used message tokens, with their share
         u, c = torch.unique(flat, return_counts=True)
         top = c.argsort(descending=True)[:20]
@@ -693,10 +847,22 @@ def ctrl_ready(gap, gap0, args):
     return gap > 0 and gap >= args.ctrl_start * gap0
 
 
+def resume_state(path):
+    """A checkpoint's talk.json and state.json (state.json: ref, ok, gap0, priv, base_gap, lam_p_max and files, the
+    shards the run had read at its start; {} when the checkpoint has none)."""
+    R = Path(path)
+    st = R / 'state.json'
+    return json.loads((R / 'talk.json').read_text()), (json.loads(st.read_text()) if st.exists() else {})
+
+
 def train(net, args, log):
     rng = random.Random(args.seed)
     torch.manual_seed(args.seed)
-    data = O.Episodes(args.data, 'train', seed=args.seed, teacher=True, wait_minutes=args.wait_data)
+    talk, st = resume_state(args.resume) if args.resume else ({}, {})
+    have = {p.name for p in (Path(args.data) / 'shards').glob('train-*.jsonl.gz')}
+    hold = sorted(have - set(st['files'])) if st.get('files') else []     # read later, as the first part did
+    data = O.Episodes(args.data, 'train', seed=args.seed, teacher=True, wait_minutes=args.wait_data, hold=hold)
+    files = sorted(data.files)
     dev, seen, rest = [], {}, []
     for ep in data.recs:
         f = ep['family']
@@ -708,7 +874,8 @@ def train(net, args, log):
     data.recs, data.pos = rest, 0
     lora = [p for p in net.model.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(lora, lr=args.lr, weight_decay=0.0)
-    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1) / 50))
+    warm = [0]                                       # steps the warmup counts as done (a resumed optimizer)
+    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1 + warm[0]) / 50))
     log(dict(train=len(rest), dev=len(dev), dev_families=seen, allowed=int(net.allowed.sum()),
              letters=int(net.letter.sum()), letter_free=int((net.allowed & ~net.letter).sum()),
              trainable=sum(p.numel() for p in lora), cut_at_degenerate=data.cuts))
@@ -716,11 +883,35 @@ def train(net, args, log):
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
     started, step, util, t_train = time.monotonic(), 0, Util(), 0.0
+    skip_dev = None
+    if args.resume:                                  # the adapter, controller and data position of a checkpoint
+        from peft import set_peft_model_state_dict
+        from safetensors.torch import load_file
+        R = Path(args.resume)
+        set_peft_model_state_dict(net.model, load_file(str(R / 'adapter' / 'adapter_model.safetensors')))
+        net.sync_dec()
+        step, lam = int(talk['step']), float(talk.get('lam', 0.0))
+        net.bias, net.symbols = float(talk.get('bias', 0.0)), bool(talk.get('symbols', False))
+        ref, ok, gap0 = st.get('ref'), bool(st.get('ok', False)), st.get('gap0')
+        priv, base_gap, lam_p_max = st.get('priv'), st.get('base_gap'), st.get('lam_p_max', args.lam_p)
+        optimizer = (R / 'optim.pt').exists()
+        if optimizer:
+            opt.load_state_dict(torch.load(R / 'optim.pt', map_location=net.device))
+            warm[0] = step
+        sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1 + warm[0]) / 50))
+        for _ in range(step * micros):               # the micro-batches the first part trained on
+            next(feed)
+        skip_dev = step                              # its dev at this step has run and set the controller
+        log(dict(resumed=str(R), step=step, lam=lam, bias=net.bias, symbols=net.symbols, ref=ref, gap0=gap0,
+                 optimizer=optimizer, held_shards=hold, data_pos=data.pos))
+
+    def ckpt_state():
+        return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files)
     net.model.train()
     while True:
         frac = min(1.0, step / args.steps)
         net.tau = args.tau0 * (args.tau1 / args.tau0) ** frac
-        if step % args.dev_every == 0 and args.dev_every > 0:
+        if step % args.dev_every == 0 and args.dev_every > 0 and step != skip_dev:
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
             t0 = time.monotonic()
             d = evaluate(net, dev, bs=args.dev_bs)
@@ -747,10 +938,10 @@ def train(net, args, log):
                 log(dict(step=step, lam_p_halved=round(lam_p_max, 5), gap=gap))
             log(dict(step=step, tau=round(net.tau, 3), lam=lam, dev=d, dev_s=round(time.monotonic() - t0),
                      s=round(time.monotonic() - started)))
-            save(net, args.ckpt, dict(step=step, lam=lam))
+            save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
         if step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
-            save(net, args.ckpt, dict(step=step, lam=lam))
+            save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             log(dict(step=step, done=True, s=round(time.monotonic() - started)))
             return dict(step=step, lam=lam)
         lam_p = lam_p_max * min(1.0, (step - priv) / args.priv_ramp) if priv is not None else 0.0
@@ -761,7 +952,7 @@ def train(net, args, log):
             eps = next(feed, None)
             if eps is None:
                 log(dict(step=step, data_exhausted=True))
-                save(net, args.ckpt, dict(step=step, lam=lam))
+                save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
                 return dict(step=step, lam=lam)
             try:
                 loss, parts = net.loss(eps, lam, args.contrast, args.contrast_target, lam_p)
@@ -842,6 +1033,10 @@ def main():
     ap.add_argument('--symbols_line', type=int, default=1, help='add SYMBOLS to the system prompts at the controller start')
     ap.add_argument('--wait_data', type=float, default=0, help='minutes to wait for new train shards when out of them')
     ap.add_argument('--eval_data', default='', help='the final evaluation\'s data folder (default --data)')
+    ap.add_argument('--resume', default='', help='a checkpoint folder to continue from (adapter, talk.json, state.json, '
+                    'optim.pt)')
+    ap.add_argument('--fast_decode', type=int, default=1, help='decode in a preallocated cache with a CUDA graph per '
+                    'message step (CUDA only)')
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -856,6 +1051,8 @@ def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     net = build(device, args.base, args.rank, args.ckpt if 'train' not in args.parts else None, args.m,
                 base_copy='train' in args.parts and args.lam_p > 0)
+    if args.fast_decode and device == 'cuda':
+        net.fast_eps, net.fast_T = args.micro, 64 * ((args.max_len + 1024) // 64)
     state = {}
     if 'train' in args.parts:
         state = train(net, args, log)
