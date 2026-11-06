@@ -1,5 +1,6 @@
 {
  "about": "swarm/crumb_open.py on opendata's Qwen3-1.7B build (magic-opentalk4: 5,922 train records, eval_seen 600, eval_heldout 400): the reader's KL per answer token to the teacher with the crumbs on and cut, and the share of the cut KL the crumbs close, on the run's 32 dev episodes every 200 steps",
+ "real_wording": "Real chats are family chat_alt, on eval_seen only. Each arm's 'headline' leads with it, then fill, then the other families. The group called real below is chat_alt and fill together: eval_heldout has no chat_alt (its families are doc, fill and pair), so its real is fill-in alone, and eval_seen's real mixes the two. Read neither as real chats.",
  "sentence": {
   "role": "the full-copy ceiling: the reader gets the keys and values of every token the walker read, 525.2 positions per episode on average, 1.0164 of the walker's material (516.7 tokens on average; 32 dev and 100 eval_seen episodes); stopped at step 425 since its devs give that number",
   "run": "magic-crumbs23",
@@ -72,6 +73,85 @@
   "steps_run": 1500,
   "epochs": 2,
   "cost_usd": 0.8606,
+  "headline": {
+   "chat_alt eval_seen": {
+    "on": 0.1774,
+    "cut": 0.2094,
+    "closed_on": 0.1527,
+    "closed_transplant": -0.0952,
+    "closed_zero": 0.1579
+   },
+   "fill eval_seen": {
+    "on": 1.8146,
+    "cut": 2.4974,
+    "closed_on": 0.2734,
+    "closed_transplant": -0.1027,
+    "closed_zero": 0.8478
+   },
+   "fill eval_heldout": {
+    "on": 2.239,
+    "cut": 3.1116,
+    "closed_on": 0.2804,
+    "closed_transplant": -0.1343,
+    "closed_zero": 0.8797
+   },
+   "chat_doc eval_seen": {
+    "on": 0.1416,
+    "cut": 0.2035,
+    "closed_on": 0.304,
+    "closed_transplant": -0.0672,
+    "closed_zero": 0.7508
+   },
+   "code eval_seen": {
+    "on": 0.2825,
+    "cut": 0.3926,
+    "closed_on": 0.2805,
+    "closed_transplant": -0.0887,
+    "closed_zero": 0.8632
+   },
+   "debug eval_seen": {
+    "on": 0.092,
+    "cut": 0.1305,
+    "closed_on": 0.295,
+    "closed_transplant": -0.0949,
+    "closed_zero": 0.8222
+   },
+   "doc eval_seen": {
+    "on": 0.3102,
+    "cut": 0.4152,
+    "closed_on": 0.2529,
+    "closed_transplant": -0.0526,
+    "closed_zero": 0.8234
+   },
+   "pair eval_seen": {
+    "on": 0.4279,
+    "cut": 0.5974,
+    "closed_on": 0.2838,
+    "closed_transplant": -0.0343,
+    "closed_zero": 0.7077
+   },
+   "plan eval_seen": {
+    "on": 0.2605,
+    "cut": 0.3058,
+    "closed_on": 0.1482,
+    "closed_transplant": -0.1228,
+    "closed_zero": 0.2794
+   },
+   "doc eval_heldout": {
+    "on": 0.3743,
+    "cut": 0.5123,
+    "closed_on": 0.2693,
+    "closed_transplant": -0.0754,
+    "closed_zero": 0.8222
+   },
+   "pair eval_heldout": {
+    "on": 0.3926,
+    "cut": 0.5227,
+    "closed_on": 0.2489,
+    "closed_transplant": -0.0515,
+    "closed_zero": 0.6385
+   }
+  },
   "test": {
    "eval_seen": {
     "all": {
@@ -616,7 +696,7 @@
   ]
  },
  "selection": {
-  "role": "the bar for the trained slots at their budget, evaluation only (swarm/crumb_select.py): the full copy kept to 16 or 64 positions per walker visit, evenly spaced (even), by the base reader's first-question attention shared over layers and heads (snap) or per key-value head (snaphead); zero_* with the adapter off against the base reader's cut (zero_full is closed_zero), the rest with crumbs22's adapter as walker and reader against its own cut (the slots' closed_on); kept: positions kept per episode",
+  "role": "the bar for the trained slots at their budget, evaluation only (swarm/crumb_select.py): the full copy kept to 16 or 64 positions per walker visit, evenly spaced (even), by the base reader's first-question attention shared over layers and heads (snap) or per key-value head (snaphead); zero_* with the adapter off against the base reader's cut (zero_full is closed_zero), the rest with crumbs22's adapter as walker and reader against its own cut (the slots' closed_on); kept: positions kept per episode; no per-family split in these two runs, so their real is not real chats (see real_wording)",
   "run": "magic-crumbs31",
   "commit": "e7474ab",
   "ckpt": "magic-crumbs22 trained.pt",
@@ -1342,6 +1422,529 @@
      }
     }
    }
+  },
+  "crumbs29_adapter": {
+   "role": "the same bar at 64 positions per visit with crumbs29's adapter as walker and reader, so 64 trained slots and 64 kept positions are read by the same reader (neither run trained that adapter on kept positions)",
+   "run": "magic-crumbs41",
+   "commit": "c42a01b",
+   "ckpt": "magic-crumbs29 trained.pt",
+   "cost_usd": 0.1755,
+   "test": {
+    "eval_seen": {
+     "all": {
+      "closed": {
+       "zero_full": 0.7148,
+       "zero_even64": 0.2135,
+       "zero_snap64": 0.1869,
+       "zero_snaphead64": 0.2607,
+       "full": 0.7268,
+       "even64": 0.3323,
+       "snap64": 0.2114
+      },
+      "kl": {
+       "zero_cut": 0.6839,
+       "zero_full": 0.195,
+       "zero_even64": 0.5379,
+       "zero_snap64": 0.5561,
+       "zero_snaphead64": 0.5056,
+       "cut": 0.3977,
+       "full": 0.1087,
+       "even64": 0.2656,
+       "snap64": 0.3137
+      },
+      "episodes": 596,
+      "positions": 559.0772,
+      "kept": {
+       "64": 127.9497
+      },
+      "by_turn": {
+       "1": {
+        "closed": {
+         "zero_full": 0.6861,
+         "zero_even64": 0.239,
+         "zero_snap64": 0.2351,
+         "zero_snaphead64": 0.3239,
+         "full": 0.704,
+         "even64": 0.3495,
+         "snap64": 0.2603
+        },
+        "episodes": 596
+       },
+       "2": {
+        "closed": {
+         "zero_full": 0.7705,
+         "zero_even64": 0.1732,
+         "zero_snap64": 0.0959,
+         "zero_snaphead64": 0.1441,
+         "full": 0.7767,
+         "even64": 0.3151,
+         "snap64": 0.1241
+        },
+        "episodes": 382
+       },
+       "3": {
+        "closed": {
+         "zero_full": 0.7769,
+         "zero_even64": 0.1307,
+         "zero_snap64": 0.0721,
+         "zero_snaphead64": 0.1034,
+         "full": 0.7832,
+         "even64": 0.2722,
+         "snap64": 0.1024
+        },
+        "episodes": 189
+       },
+       "4": {
+        "closed": {
+         "zero_full": 0.7153,
+         "zero_even64": 0.2444,
+         "zero_snap64": 0.2257,
+         "zero_snaphead64": 0.304,
+         "full": 0.5282,
+         "even64": 0.2208,
+         "snap64": 0.1714
+        },
+        "episodes": 62
+       },
+       "5": {
+        "closed": {
+         "zero_full": 0.6853,
+         "zero_even64": 0.2145,
+         "zero_snap64": 0.2429,
+         "zero_snaphead64": 0.3313,
+         "full": 0.4896,
+         "even64": 0.1749,
+         "snap64": 0.1807
+        },
+        "episodes": 39
+       },
+       "6": {
+        "closed": {
+         "zero_full": 0.6774,
+         "zero_even64": 0.1684,
+         "zero_snap64": 0.2803,
+         "zero_snaphead64": 0.3029,
+         "full": 0.4588,
+         "even64": 0.1533,
+         "snap64": 0.1619
+        },
+        "episodes": 25
+       }
+      }
+     },
+     "real": {
+      "closed": {
+       "zero_full": 0.6697,
+       "zero_even64": 0.1505,
+       "zero_snap64": 0.0498,
+       "zero_snaphead64": 0.0917,
+       "full": 0.7133,
+       "even64": 0.3397,
+       "snap64": 0.0907
+      },
+      "kl": {
+       "zero_cut": 0.9469,
+       "zero_full": 0.3127,
+       "zero_even64": 0.8044,
+       "zero_snap64": 0.8998,
+       "zero_snaphead64": 0.8601,
+       "cut": 0.5443,
+       "full": 0.1561,
+       "even64": 0.3594,
+       "snap64": 0.4949
+      },
+      "episodes": 253,
+      "positions": 511.6324,
+      "kept": {
+       "64": 114.7273
+      },
+      "by_turn": {
+       "1": {
+        "closed": {
+         "zero_full": 0.5295,
+         "zero_even64": 0.163,
+         "zero_snap64": 0.0596,
+         "zero_snaphead64": 0.1089,
+         "full": 0.5791,
+         "even64": 0.3621,
+         "snap64": 0.1058
+        },
+        "episodes": 253
+       },
+       "2": {
+        "closed": {
+         "zero_full": 0.7799,
+         "zero_even64": 0.1539,
+         "zero_snap64": 0.0456,
+         "zero_snaphead64": 0.0879,
+         "full": 0.8168,
+         "even64": 0.3338,
+         "snap64": 0.0815
+        },
+        "episodes": 211
+       },
+       "3": {
+        "closed": {
+         "zero_full": 0.7704,
+         "zero_even64": 0.103,
+         "zero_snap64": 0.0322,
+         "zero_snaphead64": 0.051,
+         "full": 0.8285,
+         "even64": 0.2872,
+         "snap64": 0.0707
+        },
+        "episodes": 88
+       }
+      }
+     },
+     "simulated": {
+      "closed": {
+       "zero_full": 0.7505,
+       "zero_even64": 0.2634,
+       "zero_snap64": 0.2955,
+       "zero_snaphead64": 0.3945,
+       "full": 0.7373,
+       "even64": 0.3265,
+       "snap64": 0.3049
+      },
+      "kl": {
+       "zero_cut": 0.5606,
+       "zero_full": 0.1399,
+       "zero_even64": 0.4129,
+       "zero_snap64": 0.3949,
+       "zero_snaphead64": 0.3394,
+       "cut": 0.329,
+       "full": 0.0864,
+       "even64": 0.2216,
+       "snap64": 0.2287
+      },
+      "episodes": 343,
+      "positions": 594.0729,
+      "kept": {
+       "64": 137.7026
+      },
+      "by_turn": {
+       "1": {
+        "closed": {
+         "zero_full": 0.7504,
+         "zero_even64": 0.2702,
+         "zero_snap64": 0.307,
+         "zero_snaphead64": 0.412,
+         "full": 0.7569,
+         "even64": 0.3441,
+         "snap64": 0.3257
+        },
+        "episodes": 343
+       },
+       "2": {
+        "closed": {
+         "zero_full": 0.742,
+         "zero_even64": 0.2315,
+         "zero_snap64": 0.2478,
+         "zero_snaphead64": 0.3142,
+         "full": 0.6713,
+         "even64": 0.2659,
+         "snap64": 0.2364
+        },
+        "episodes": 171
+       },
+       "3": {
+        "closed": {
+         "zero_full": 0.7972,
+         "zero_even64": 0.2181,
+         "zero_snap64": 0.1982,
+         "zero_snaphead64": 0.269,
+         "full": 0.6723,
+         "even64": 0.2356,
+         "snap64": 0.1802
+        },
+        "episodes": 101
+       },
+       "4": {
+        "closed": {
+         "zero_full": 0.7153,
+         "zero_even64": 0.2444,
+         "zero_snap64": 0.2257,
+         "zero_snaphead64": 0.304,
+         "full": 0.5282,
+         "even64": 0.2208,
+         "snap64": 0.1714
+        },
+        "episodes": 62
+       },
+       "5": {
+        "closed": {
+         "zero_full": 0.6853,
+         "zero_even64": 0.2145,
+         "zero_snap64": 0.2429,
+         "zero_snaphead64": 0.3313,
+         "full": 0.4896,
+         "even64": 0.1749,
+         "snap64": 0.1807
+        },
+        "episodes": 39
+       },
+       "6": {
+        "closed": {
+         "zero_full": 0.6774,
+         "zero_even64": 0.1684,
+         "zero_snap64": 0.2803,
+         "zero_snaphead64": 0.3029,
+         "full": 0.4588,
+         "even64": 0.1533,
+         "snap64": 0.1619
+        },
+        "episodes": 25
+       }
+      }
+     }
+    },
+    "eval_heldout": {
+     "all": {
+      "closed": {
+       "zero_full": 0.8363,
+       "zero_even64": 0.1679,
+       "zero_snap64": 0.1197,
+       "zero_snaphead64": 0.1838,
+       "full": 0.8645,
+       "even64": 0.3525,
+       "snap64": 0.1543
+      },
+      "kl": {
+       "zero_cut": 1.5901,
+       "zero_full": 0.2603,
+       "zero_even64": 1.3231,
+       "zero_snap64": 1.3997,
+       "zero_snaphead64": 1.2978,
+       "cut": 0.9556,
+       "full": 0.1295,
+       "even64": 0.6188,
+       "snap64": 0.8081
+      },
+      "episodes": 400,
+      "positions": 622.6225,
+      "kept": {
+       "64": 135.72
+      },
+      "by_turn": {
+       "1": {
+        "closed": {
+         "zero_full": 0.811,
+         "zero_even64": 0.1815,
+         "zero_snap64": 0.1623,
+         "zero_snaphead64": 0.2399,
+         "full": 0.8344,
+         "even64": 0.3486,
+         "snap64": 0.1936
+        },
+        "episodes": 400
+       },
+       "2": {
+        "closed": {
+         "zero_full": 0.8811,
+         "zero_even64": 0.1465,
+         "zero_snap64": 0.044,
+         "zero_snaphead64": 0.0844,
+         "full": 0.9184,
+         "even64": 0.3661,
+         "snap64": 0.0837
+        },
+        "episodes": 217
+       },
+       "3": {
+        "closed": {
+         "zero_full": 0.8883,
+         "zero_even64": 0.1316,
+         "zero_snap64": 0.0296,
+         "zero_snaphead64": 0.0655,
+         "full": 0.9321,
+         "even64": 0.3442,
+         "snap64": 0.0705
+        },
+        "episodes": 79
+       },
+       "4": {
+        "closed": {
+         "zero_full": 0.8499,
+         "zero_even64": 0.1664,
+         "zero_snap64": 0.3586,
+         "zero_snaphead64": 0.4303,
+         "full": 0.6794,
+         "even64": 0.134,
+         "snap64": 0.2804
+        },
+        "episodes": 9
+       },
+       "5": {
+        "closed": {
+         "zero_full": 0.7274,
+         "zero_even64": 0.2414,
+         "zero_snap64": 0.2705,
+         "zero_snaphead64": 0.3143,
+         "full": 0.3698,
+         "even64": 0.2223,
+         "snap64": 0.2339
+        },
+        "episodes": 2
+       }
+      }
+     },
+     "real": {
+      "closed": {
+       "zero_full": 0.8797,
+       "zero_even64": 0.1194,
+       "zero_snap64": -0.0029,
+       "zero_snaphead64": 0.0305,
+       "full": 0.9692,
+       "even64": 0.4038,
+       "snap64": 0.0613
+      },
+      "kl": {
+       "zero_cut": 5.2832,
+       "zero_full": 0.6353,
+       "zero_even64": 4.6523,
+       "zero_snap64": 5.2985,
+       "zero_snaphead64": 5.1219,
+       "cut": 3.1613,
+       "full": 0.0975,
+       "even64": 1.8848,
+       "snap64": 2.9676
+      },
+      "episodes": 150,
+      "positions": 301.5733,
+      "kept": {
+       "64": 78.04
+      },
+      "by_turn": {
+       "1": {
+        "closed": {
+         "zero_full": 0.8686,
+         "zero_even64": 0.1138,
+         "zero_snap64": -0.0085,
+         "zero_snaphead64": 0.026,
+         "full": 0.9764,
+         "even64": 0.4287,
+         "snap64": 0.079
+        },
+        "episodes": 150
+       },
+       "2": {
+        "closed": {
+         "zero_full": 0.8883,
+         "zero_even64": 0.1277,
+         "zero_snap64": 0.0016,
+         "zero_snaphead64": 0.0344,
+         "full": 0.9629,
+         "even64": 0.3907,
+         "snap64": 0.0434
+        },
+        "episodes": 138
+       },
+       "3": {
+        "closed": {
+         "zero_full": 0.8944,
+         "zero_even64": 0.1153,
+         "zero_snap64": 0.0038,
+         "zero_snaphead64": 0.0355,
+         "full": 0.9599,
+         "even64": 0.3482,
+         "snap64": 0.0458
+        },
+        "episodes": 54
+       }
+      }
+     },
+     "simulated": {
+      "closed": {
+       "zero_full": 0.7815,
+       "zero_even64": 0.2291,
+       "zero_snap64": 0.2745,
+       "zero_snaphead64": 0.3772,
+       "full": 0.7337,
+       "even64": 0.2883,
+       "snap64": 0.2706
+      },
+      "kl": {
+       "zero_cut": 0.8448,
+       "zero_full": 0.1846,
+       "zero_even64": 0.6512,
+       "zero_snap64": 0.6129,
+       "zero_snaphead64": 0.5261,
+       "cut": 0.5105,
+       "full": 0.1359,
+       "even64": 0.3633,
+       "snap64": 0.3724
+      },
+      "episodes": 250,
+      "positions": 815.252,
+      "kept": {
+       "64": 170.328
+      },
+      "by_turn": {
+       "1": {
+        "closed": {
+         "zero_full": 0.7707,
+         "zero_even64": 0.2289,
+         "zero_snap64": 0.2817,
+         "zero_snaphead64": 0.3894,
+         "full": 0.7308,
+         "even64": 0.2901,
+         "snap64": 0.2772
+        },
+        "episodes": 250
+       },
+       "2": {
+        "closed": {
+         "zero_full": 0.8508,
+         "zero_even64": 0.2259,
+         "zero_snap64": 0.2232,
+         "zero_snaphead64": 0.2958,
+         "full": 0.7563,
+         "even64": 0.2763,
+         "snap64": 0.2305
+        },
+        "episodes": 79
+       },
+       "3": {
+        "closed": {
+         "zero_full": 0.8371,
+         "zero_even64": 0.2696,
+         "zero_snap64": 0.2476,
+         "zero_snaphead64": 0.32,
+         "full": 0.7306,
+         "even64": 0.3148,
+         "snap64": 0.2497
+        },
+        "episodes": 25
+       },
+       "4": {
+        "closed": {
+         "zero_full": 0.8499,
+         "zero_even64": 0.1664,
+         "zero_snap64": 0.3586,
+         "zero_snaphead64": 0.4303,
+         "full": 0.6794,
+         "even64": 0.134,
+         "snap64": 0.2804
+        },
+        "episodes": 9
+       },
+       "5": {
+        "closed": {
+         "zero_full": 0.7274,
+         "zero_even64": 0.2414,
+         "zero_snap64": 0.2705,
+         "zero_snaphead64": 0.3143,
+         "full": 0.3698,
+         "even64": 0.2223,
+         "snap64": 0.2339
+        },
+        "episodes": 2
+       }
+      }
+     }
+    }
+   }
   }
  },
  "slots64": {
@@ -1397,6 +2000,85 @@
   "steps_run": 1500,
   "epochs": 2,
   "cost_usd": 0.9573,
+  "headline": {
+   "chat_alt eval_seen": {
+    "on": 0.1715,
+    "cut": 0.21,
+    "closed_on": 0.1833,
+    "closed_transplant": -0.1058,
+    "closed_zero": 0.1582
+   },
+   "fill eval_seen": {
+    "on": 1.4043,
+    "cut": 2.5306,
+    "closed_on": 0.4451,
+    "closed_transplant": -0.1871,
+    "closed_zero": 0.8478
+   },
+   "fill eval_heldout": {
+    "on": 1.714,
+    "cut": 3.1608,
+    "closed_on": 0.4577,
+    "closed_transplant": -0.259,
+    "closed_zero": 0.8797
+   },
+   "chat_doc eval_seen": {
+    "on": 0.1266,
+    "cut": 0.204,
+    "closed_on": 0.3793,
+    "closed_transplant": -0.0924,
+    "closed_zero": 0.7511
+   },
+   "code eval_seen": {
+    "on": 0.2475,
+    "cut": 0.394,
+    "closed_on": 0.3718,
+    "closed_transplant": -0.1137,
+    "closed_zero": 0.8631
+   },
+   "debug eval_seen": {
+    "on": 0.0779,
+    "cut": 0.1317,
+    "closed_on": 0.4085,
+    "closed_transplant": -0.1351,
+    "closed_zero": 0.8229
+   },
+   "doc eval_seen": {
+    "on": 0.2811,
+    "cut": 0.4141,
+    "closed_on": 0.3211,
+    "closed_transplant": -0.0687,
+    "closed_zero": 0.8235
+   },
+   "pair eval_seen": {
+    "on": 0.3813,
+    "cut": 0.5983,
+    "closed_on": 0.3627,
+    "closed_transplant": -0.0574,
+    "closed_zero": 0.7079
+   },
+   "plan eval_seen": {
+    "on": 0.2459,
+    "cut": 0.3026,
+    "closed_on": 0.1874,
+    "closed_transplant": -0.1212,
+    "closed_zero": 0.2784
+   },
+   "doc eval_heldout": {
+    "on": 0.3471,
+    "cut": 0.5074,
+    "closed_on": 0.3159,
+    "closed_transplant": -0.1078,
+    "closed_zero": 0.8224
+   },
+   "pair eval_heldout": {
+    "on": 0.3648,
+    "cut": 0.5208,
+    "closed_on": 0.2995,
+    "closed_transplant": -0.0745,
+    "closed_zero": 0.6386
+   }
+  },
   "test": {
    "eval_seen": {
     "all": {

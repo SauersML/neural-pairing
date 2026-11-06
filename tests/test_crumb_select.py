@@ -132,5 +132,12 @@ def test_evaluate_select_matches_crumb_open(tok, monkeypatch):
             assert got['kl'][f'{k}1000'] == pytest.approx(got['kl']['full'], rel=1e-4)
         assert got['kept'][2] <= 2 * 4 and got['kept'][1000] == got['positions']
         assert set(got['by_turn']) and all('closed' in t for t in got['by_turn'].values())
-    assert set(res['eval_seen']) == {'all', 'real', 'simulated'} and set(res['eval_heldout']) == {'all', 'real',
-                                                                                                    'simulated'}
+    assert set(res['eval_seen']) == {'all', 'real', 'simulated', 'by_family'}
+    assert set(res['eval_heldout']) == {'all', 'real', 'simulated', 'by_family'}
+    # per family, as crumb_open gives it: real chats (chat_alt) apart from fill-in, which eval_heldout's real is alone
+    for split, fams in (('eval_seen', {'doc', 'chat_alt'}), ('eval_heldout', {'fill', 'doc'})):
+        got = res[split]['by_family']
+        assert set(got) == fams and sum(r['episodes'] for r in got.values()) == res[split]['all']['episodes']
+        for f in fams:
+            assert got[f]['kl']['zero_full'] == pytest.approx(ref[split]['by_family'][f]['zero_on'], rel=1e-4)
+    assert res['eval_heldout']['real']['kl'] == pytest.approx(res['eval_heldout']['by_family']['fill']['kl'])

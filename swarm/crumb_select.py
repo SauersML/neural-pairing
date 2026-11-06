@@ -5,7 +5,8 @@ give each position, summed over every layer and head and max-pooled over 7 posit
 layer and head as a slot is; snaphead: each layer's key-value heads keep their own m); and those shared positions with
 a trained crumbs adapter as walker and reader. Modes zero_* run with the adapter off and close a share of the base
 reader's cut KL (as crumb_open's closed_zero); the others run with the adapter on and close a share of its own cut (as
-the slots' closed_on). Each is the KL per answer token to the teacher overall, per group of families and per turn, on
+the slots' closed_on). Each is the KL per answer token to the teacher overall, per group of families, per family and
+per turn, on
 crumb_open's evaluation episodes (the same records, fit and order as its evaluate_open, the fit taken with the
 adapter's slots). Usage:
 python swarm/crumb_select.py --data DIR --ckpt TRAINED_PT --out OUT [--m 16 --budgets 16,64 --n_eval 600]"""
@@ -184,7 +185,7 @@ def summarize(rows):
 
 
 def evaluate_select(net, device, data, n, part_tokens, most, budgets, bs=4, seed=7, adapter=True, log=None):
-    """summarize() per split, overall and per group of families, on crumb_open's evaluation episodes."""
+    """summarize() per split, overall, per group of families and per family, on crumb_open's evaluation episodes."""
     net.eval()
     out = {}
     for split in CO.SPLITS:
@@ -216,6 +217,8 @@ def evaluate_select(net, device, data, n, part_tokens, most, budgets, bs=4, seed
                 rows = [r for r in per if r['family'] in fams]
                 if rows:
                     out[split][g] = summarize(rows)
+            out[split]['by_family'] = {f: summarize([r for r in per if r['family'] == f])
+                                       for f in sorted({r['family'] for r in per})}
     net.train()
     return out
 
@@ -249,7 +252,9 @@ def main():
     (out / 'scores.json').write_text(json.dumps(dict(vars(args), steps_run=saved.get('steps_run'), test=res),
                                                 indent=1))
     for split, groups in res.items():
-        for g, r in groups.items():
+        rows = {g: r for g, r in groups.items() if g != 'by_family'}
+        rows.update({f'family {f}': r for f, r in groups['by_family'].items()})
+        for g, r in rows.items():
             print(split, g, json.dumps({k: round(v, 4) for k, v in r['closed'].items()}), flush=True)
 
 
