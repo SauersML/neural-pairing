@@ -769,6 +769,21 @@ def test_warm_targets_are_exactly_m_allowed_tokens_and_the_writer_learns_them():
     assert sum(float(p.grad.abs().sum()) for n, p in net.model.named_parameters() if 'lora_A' in n) > 0
     hs, G, toks = net.own_hidden(eps[:1], [net.copy_messages(eps[0], 'target')])
     assert hs.shape[0] == len(toks) == len(G) * 4
+    net.model.zero_grad()
+    net.warm_reader = True
+    both, parts = net.warm_loss(eps)
+    assert 'kl' in parts and 0 <= parts['acc_first'] <= 1 and float(both) > parts['ce']
+    both.backward()
+
+
+def test_dev_closed_shares_measure_against_the_better_none():
+    net, rng = chat_net(m=3), random.Random(18)
+    eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'doc', 'chat_alt', 'chat_alt'])]
+    d = OT.evaluate(net, eps, bs=2, base=True, copies=('head',))
+    for f in ('doc', 'chat_alt'):
+        ref = min(d[f]['none'], d[f]['base_none'])
+        assert d[f]['closed_fair'] == pytest.approx(O.closed_share(ref, d[f]['on']), abs=1e-3)
+        assert d[f]['copy_head_fair'] == pytest.approx(O.closed_share(ref, d[f]['copy_head']), abs=1e-3)
 
 
 def test_the_writer_warm_starts_until_it_nears_the_copy_then_trains_in_full(tmp_path, monkeypatch):

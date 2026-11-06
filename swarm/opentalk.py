@@ -52,8 +52,10 @@ target stays shut until it does, outside fill.
 
 --warm 1: the writer's warm start, before any of the above. It learns by plain cross-entropy to write literal copies
 (Talk.warm_loss: policy target), teacher-forced in one pass, with no decode and no reader; the teacher's answer only picks
-the targets and the writer never sees it. When a dev finds the writer within --warm_margin of the head copy's closed
-share outside fill, the run goes on with the full loss.
+the targets and the writer never sees it. One LoRA does both jobs, so copying alone wrecks the answers (at dev 500 the
+adapter's none doubled on chat_alt): --warm_reader 1 also trains the reader on the same copies. When a dev finds the writer within --warm_margin of the head copy's closed
+share outside fill, the run goes on with the full loss. A damaged adapter's own none flatters what it closes, so every
+gate measures against the better of its none and the untrained model's (closed_fair, copy_POLICY_fair).
 
 Dev (every --dev_every steps; --dev_n episodes per family, carved from the training records and never trained on),
 hard messages only, per family: KL per answer token with the messages (on), with the received messages of another
@@ -308,6 +310,7 @@ class Talk:
         self.contrast_ref = 'swap'                     # what the contrast hinge compares KL_on with
         self.chat = False                              # --format chat: plain chat transcripts (no system line, no frame)
         self.talk_max = 0                              # message turns per task turn at most (fit; 0: as the data says)
+        self.warm_reader = False                       # warm_loss also trains the reader on the literal copies
         self.base_lm = None                            # the untrained model as a separate frozen copy (privacy)
         self.dec = None                                # a plain copy holding base + LoRA merged, for decoding
         self.fast_eps, self.fast_T, self._fast = 0, 0, {}   # the fast decode cache (off: 0 episodes)
@@ -686,15 +689,24 @@ class Talk:
 
     def warm_loss(self, eps):
         """The writer's warm start: the cross-entropy of its message positions against literal copies, teacher-forced."""
-        hs, _, toks = self.own_hidden(eps, [self.copy_messages(e, 'target') for e in eps])
+        msgs = [self.copy_messages(e, 'target') for e in eps]
+        hs, _, toks = self.own_hidden(eps, msgs)
         t = torch.tensor(toks, device=self.device)
 
         def fn(h_, t_):
             z = self.hard_logits(h_)
             return F.cross_entropy(z, t_, reduction='none'), (z.argmax(-1) == t_).float()
         per, hit = self.chunked(fn, hs, t)
-        return per.mean(), dict(ce=float(per.detach().mean()), acc=float(hit.mean()), distinct=len(torch.unique(t)),
-                                letters=mean(self.letters_of(t.view(-1, self.m).tolist())))
+        loss = per.mean()
+        parts = dict(ce=float(per.detach().mean()), acc=float(hit.mean()), distinct=len(torch.unique(t)),
+                     letters=mean(self.letters_of(t.view(-1, self.m).tolist())),
+                     acc_first=float(hit.view(-1, self.m)[:, 0].mean()))    # choosing what to send, not continuing it
+        if self.warm_reader:
+            tot, cnt, keys = self.reader(eps, msgs)
+            on = tot / cnt.clamp(min=1)
+            loss = loss + (on * self.answer_weights(eps, keys)).mean()
+            parts['kl'] = float(on.detach().mean())
+        return loss, parts
 
     def letter_charge(self, mass):
         """The letter penalty from the soft letter mass per message position [messages * m]. linear: the mean, each
@@ -792,7 +804,8 @@ class Talk:
         perm = list(range(1, len(eps))) + [0]
         if contrast and self.contrast_ref == 'none':
             with torch.no_grad():
-                tn, cn, _ = self.reader(eps, msgs, mode='none')
+                with self.base():                    # the untrained model's none: the adapter's own can only flatter it
+                    tn, cn, _ = self.reader(eps, msgs, mode='none')
                 none = tn / cn.clamp(min=1)
                 if len(eps) > 1:
                     ts, cs, _ = self.reader(eps, msgs, soft, perm=perm)
@@ -984,6 +997,11 @@ def evaluate(net, eps, bs=8, base=False, examples=3, readers=(), copies=()):
             d['none_on'] = round(d['none'] - d['on'], 4)               # what the right messages buy over none
             for pol in copies:
                 d[f'copy_{pol}_closed'] = round(O.closed_share(d['none'], d[f'copy_{pol}']), 4)
+            if 'base_none' in d:                                       # against the better none, the honest measure
+                ref = min(d['none'], d['base_none'])
+                d['closed_fair'] = round(O.closed_share(ref, d['on']), 4)
+                for pol in copies:
+                    d[f'copy_{pol}_fair'] = round(O.closed_share(ref, d[f'copy_{pol}']), 4)
         for pre in ('', 'base_', *(f'{name}_' for name, _ in readers)):
             if f'{pre}swap' in d and f'{pre}on' in d:
                 d[f'{pre}gap'] = round(d[f'{pre}swap'] - d[f'{pre}on'], 4)
@@ -1302,22 +1320,27 @@ def train(net, args, log):
             force_dev, last_dev = False, step                # the next scheduled one
             roll_d.clear()
             roll_m.clear()
-            d = evaluate(net, dev, bs=args.dev_bs, base='read' if args.dev_base else False, copies=copies)
+            d = evaluate(net, dev, bs=args.dev_bs, base=(not target_mode and 'read') or bool(args.dev_base)
+                         if args.dev_base else False, copies=copies)
             gap = d['_all']['gap']
             gap0 = gap if gap0 is None else gap0
-            dev_value = value_outside_fill(d)
-            copy_value = value_outside_fill(d, 'copy_head_closed')
+            fair = any('closed_fair' in v for f, v in d.items() if not f.startswith('_'))
+            dev_value = value_outside_fill(d, 'closed_fair' if fair else 'closed')
+            copy_value = value_outside_fill(d, 'copy_head_fair' if fair else 'copy_head_closed')
             alive = families_alive(d, args.read_z)
             d['_all'].update(value_nf=dev_value, copy_head_nf=copy_value, alive=alive,
-                             copy_best_nf=value_outside_fill(d, 'copy_best_closed'),
-                             copy_target_nf=value_outside_fill(d, 'copy_target_closed'))
+                             copy_best_nf=value_outside_fill(d, 'copy_best_fair' if fair else 'copy_best_closed'),
+                             copy_target_nf=value_outside_fill(d, 'copy_target_fair' if fair else 'copy_target_closed'),
+                             none_nf=value_outside_fill(d, 'none'), base_none_nf=value_outside_fill(d, 'base_none'),
+                             on_nf=value_outside_fill(d, 'on'))
             switched = (stage == 'warm' and dev_value is not None and copy_value is not None
-                        and dev_value >= copy_value - args.warm_margin)
+                        and copy_value >= args.value_bar and dev_value >= copy_value - args.warm_margin)
             if switched:
                 stage = 'full'
                 log(dict(step=step, warm_done=True, value_nf=dev_value, copy_head_nf=copy_value))
             if args.family_norm:
-                net.family_scale = {f: v['none'] for f, v in d.items() if not f.startswith('_') and 'none' in v}
+                net.family_scale = {f: min(v['none'], v.get('base_none', v['none'])) for f, v in d.items()
+                                    if not f.startswith('_') and 'none' in v}
             letters = d['_all']['letters']
             lam_dev, bias_dev = lam_now, net.bias
             eff = d['_all'].get('eff_tokens')
@@ -1525,6 +1548,7 @@ def main():
                     help='chat: plain chat transcripts with no system line (see the module docstring)')
     ap.add_argument('--talk_max', type=int, default=0, help='message turns per task turn at most (0: as the data says)')
     ap.add_argument('--warm', type=int, default=0, help='1: start with the writer\'s warm start (see the module docstring)')
+    ap.add_argument('--warm_reader', type=int, default=0, help='warm: 1 also trains the reader on the literal copies')
     ap.add_argument('--warm_margin', type=float, default=0.02, help='warm: how near the head copy the writer must score')
     ap.add_argument('--dev_first', type=int, default=0, help='1: a resumed run starts with a dev')
     ap.add_argument('--dev_copy', type=int, default=0, help='1: each dev also reads literal copies, the bar for the target')
@@ -1572,7 +1596,7 @@ def main():
                 base_copy='train' in args.parts and args.lam_p > 0)
     net.charge = args.letter_charge
     net.contrast_ref = args.contrast_ref
-    net.chat, net.talk_max = args.format == 'chat', args.talk_max
+    net.chat, net.talk_max, net.warm_reader = args.format == 'chat', args.talk_max, bool(args.warm_reader)
     if args.fast_decode and device == 'cuda':
         net.fast_eps, net.fast_T = args.micro, 64 * ((args.max_len + 1024) // 64)
     state = {}
