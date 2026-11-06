@@ -1097,22 +1097,45 @@ def evaluate(net, device, n=300, n_choice=150, n_gen=100, seed=12345, games=None
 
 @torch.no_grad()
 def sym_dev(net, device, dev):
-    """sym arm: a dev's NLLs with the soft notes, cut and transplanted, and note_stats' letter shares and examples."""
+    """sym arm: a dev's NLLs with the soft notes, cut, transplanted (the next dev episode's notes, of any game) and
+    swapped (another episode of the same game's notes), and note_stats' letter shares and examples."""
     out = dict(dev_soft=round(dev_nll(net, device, dev, mode='soft'), 4),
                dev_cut=round(dev_nll(net, device, dev, mode='off'), 4),
-               dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4))
+               dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4),
+               dev_swap=round(dev_nll(net, device, dev, mode='swap'), 4))
     ns = note_stats(net, device, dev)
     out.update({k: round(ns[k], 4) for k in ('letters', 'letters_exact', 'letters_text')}, examples=ns['examples'],
                distinct=ns['distinct'])
     return out
 
 
+def swap_chunks(eps, bs=50):
+    """eps in forced chunks for the within-game swap: each game's episodes together (a last chunk of one joins the
+    chunk before it), so the transplant's next episode is always one of the same game; a game with one episode is a
+    chunk of one, which reads its own notes (no swap there, so it adds no gap rather than a cross-game one)."""
+    groups = {}
+    for ep in eps:
+        groups.setdefault(ep['game'], []).append(ep)
+    chunks = []
+    for g in groups.values():
+        parts = [g[s0:s0 + bs] for s0 in range(0, len(g), bs)]
+        if len(parts) > 1 and len(parts[-1]) == 1:
+            tail = parts.pop()
+            parts[-1] = parts[-1] + tail
+        chunks += parts
+    return chunks
+
+
 def dev_nll(net, device, eps, bs=50, mode='on'):
-    """Mean say NLL over eps (crumbs on, or forced's mode)."""
+    """Mean say NLL over eps (crumbs on, or forced's mode). swap: each episode reads the notes of another episode of
+    its own game (the transplant within swap_chunks), so a note that is the same for every episode, or that carries
+    only the game, scores no gap against it."""
     net.eval()
     got = []
-    for s0 in range(0, len(eps), bs):
-        got += [v for v in net.forced(eps[s0:s0 + bs], device, mode=mode, choose=False)[0] if v is not None]
+    chunks = swap_chunks(eps, bs) if mode == 'swap' else [eps[s0:s0 + bs] for s0 in range(0, len(eps), bs)]
+    for c in chunks:
+        got += [v for v in net.forced(c, device, mode='transplant' if mode == 'swap' else mode, choose=False)[0]
+                if v is not None]
     net.train()
     return sum(got) / len(got)
 
@@ -1453,7 +1476,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
           detach_until=0, gate_held=1, gate_distinct=0, gate_letters=PRIV_LETTERS, lam_min=0., ref_letters=None,
-          dev_fn=None, cut0=None, gap_ref='first', dev0=False):
+          dev_fn=None, cut0=None, gap_ref='first', dev0=False, gap_by='cut'):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1461,7 +1484,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     (afterwards the game's own 1 to 4). sym: tau annealed SYM_TAU, beta ramped to BETA over the first half; each dev
     evaluation also takes the soft notes, the cut, the transplant, and the hard notes' letter share with example
     notes; lam 0 up to letters_from (OUT/pre.pt: the weights at its last dev), then LETTERS[1], and after each dev
-    times LAM_RULE[1] while the gap (cut minus hard dev NLL) is at least LAM_RULE[0] of its value at the last dev
+    times LAM_RULE[1] while the gap (cut minus hard dev NLL, or swap minus hard: gap_by) is at least LAM_RULE[0] of its value at the last dev
     before the penalty, else times LAM_RULE[2]; once the letter share is under PRIV_LETTERS with the gap held
     (OUT/gate.pt: the weights then) the privacy terms ramp in. A continuation (sym, from a run's trained.pt) passes
     letters_from 0, the weight to start from (lam0), the reference gap (gap0: the first run's last dev before the
@@ -1484,7 +1507,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     PRIV_LETTERS); until then only the follower, the letter weight, the entropy terms and the contrastive term train.
     lam_min: the weight never falls below it (a weight halved after missed devs lets words back into the notes);
     ref_letters (gap_ref max): only a dev whose decoded notes are under this share of letters can raise the reference
-    gap (a dev of words would set a bar no letterless code holds);
+    gap (a dev of words would set a bar no letterless code holds); gap_by: the gap the controller and the privacy gate
+    use, cut (the cut, or cut0, minus the hard dev NLL: a note that is the same for every episode can win it, as the
+    reader may do better with any note than with none) or swap (the same reader's NLL with another episode of the same
+    game's notes minus with its own: only notes that tell episodes apart win it); both are logged, gap_cut and
+    gap_swap;
     letters (the first rule) and letters_exact (the penalty's, per token) are logged beside it. detach_until: up to
     that step (the warm-up) writers write with the adapter off, so the notes are the base model's and only the readers
     learn them, the entropy terms are off, and the letter controller only takes the reference gap; from the next
@@ -1512,7 +1539,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     log = open(out / 'log.jsonl', 'a') if out else None
     if sym and dev0:                                   # the notes before any training
         rec = dict(step=0, dev_nll=round(dev_nll(net, device, dev), 4), **sym_dev(net, device, dev))
-        rec['gap'] = round(rec['dev_cut'] - rec['dev_nll'], 4)
+        rec.update(gap_cut=round(rec['dev_cut'] - rec['dev_nll'], 4), gap_swap=round(rec['dev_swap'] - rec['dev_nll'], 4))
+        rec['gap'] = rec['gap_swap' if gap_by == 'swap' else 'gap_cut']
         print(json.dumps(rec), flush=True)
         if log:
             log.write(json.dumps(rec) + '\n')
@@ -1581,8 +1609,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             if sym:
                 rec.update(sym_dev(net, device, dev))
                 letters = rec['letters_text']
-                gap = (rec['dev_cut'] if cut0 is None else cut0) - v
-                rec['gap'] = round(gap, 4)
+                gap_cut, gap_swap = (rec['dev_cut'] if cut0 is None else cut0) - v, rec['dev_swap'] - v
+                gap = gap_swap if gap_by == 'swap' else gap_cut
+                rec.update(gap=round(gap, 4), gap_cut=round(gap_cut, 4), gap_swap=round(gap_swap, 4))
                 if cut0 is not None:
                     rec['gap_now'] = round(rec['dev_cut'] - v, 4)
                 keep, (up, down) = LAM_RULE[0], lam_rule
@@ -1700,6 +1729,8 @@ def main():
     ap.add_argument('--gap_ref', default='first', choices=('first', 'max'),
                     help='sym arm: the reference gap: the last dev before the penalty, or the largest so far')
     ap.add_argument('--dev0', action='store_true', help='sym arm: a dev before training (the untrained notes)')
+    ap.add_argument('--gap_by', default='swap', choices=('swap', 'cut'),
+                    help='sym arm: the gap the controller and the privacy gate use (see train); both are logged')
     ap.add_argument('--note_hint', default='', help='sym arm: a line added to every writer\'s system prompt')
     ap.add_argument('--note_pass', default='soft', choices=('soft', 'greedy', 'one'),
                     help='sym arm: what a note token sees of the note so far in training (soft tokens, or the argmax '
@@ -1791,7 +1822,7 @@ def main():
                             every=args.every, letters_from=args.letters_from, lam0=args.lam0, gap0=args.gap0,
                             lam_rule=tuple(float(x) for x in args.lam_rule.split(',')), lost=args.lost,
                             private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full, lr=args.lr,
-                            cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0,
+                            cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0, gap_by=args.gap_by,
                             detach_until=args.detach_until, gate_held=args.gate_held,
                             gate_distinct=args.gate_distinct, gate_letters=args.gate_letters, lam_min=args.lam_min,
                             ref_letters=args.ref_letters)

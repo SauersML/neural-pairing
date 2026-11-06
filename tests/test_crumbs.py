@@ -568,6 +568,42 @@ def test_sym_privacy_gate(tok, tmp_path):
     assert all(r['gap_ref'] > 1e5 for r in recs)
     recs = run('ref_letters', gap_ref='max', ref_letters=0.5)
     assert all(r['gap_ref'] == 0. for r in recs) and all(r['letters_text'] > 0.5 for r in recs)
+    # gap_by: both gaps logged, the controller's gap is the chosen one (cut by default, cut0 minus the hard NLL here)
+    for r in recs:
+        assert r['gap'] == r['gap_cut'] and r['gap_cut'] > 1e5
+        assert r['gap_swap'] == pytest.approx(r['dev_swap'] - r['dev_nll'], abs=2e-4)
+    recs = run('swap', gap_by='swap')
+    for r in recs:
+        assert r['gap'] == r['gap_swap'] == pytest.approx(r['dev_swap'] - r['dev_nll'], abs=2e-4)
+        assert r['gap_cut'] > 1e5
+        if abs(r['gap_swap']) > 1e-3:                  # held against gap0 1e-9: the swap gap's sign
+            assert r['held'] == (r['gap_swap'] > 0)
+
+
+def test_swap_reads_its_own_game():
+    """The within-game swap: forced gets each game's episodes as one transplant chunk (a lone tail joins the chunk
+    before it; a lone game reads its own notes), so no episode reads another game's notes."""
+    eps = [dict(game=g, i=i) for i, g in enumerate('abacbbd')]
+    chunks = C.swap_chunks(eps, bs=2)
+    assert [[e['i'] for e in c] for c in chunks] == [[0, 2], [1, 4, 5], [3], [6]]
+
+    class Net:
+        def eval(self):
+            pass
+
+        def train(self):
+            pass
+
+        def forced(self, chunk, device, mode='on', choose=True):
+            seen.append((mode, [e['game'] for e in chunk]))
+            return [1.] * len(chunk), None
+
+    seen = []
+    C.dev_nll(Net(), 'cpu', eps, bs=2, mode='swap')
+    assert all(m == 'transplant' and len(set(gs)) == 1 for m, gs in seen) and sum(len(gs) for _, gs in seen) == 7
+    seen.clear()
+    C.dev_nll(Net(), 'cpu', eps, bs=50, mode='transplant')
+    assert seen == [('transplant', list('abacbbd'))]
 
 
 def test_sym_contrast_and_letter_rule(tok, tmp_path):
