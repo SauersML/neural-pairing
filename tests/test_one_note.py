@@ -170,6 +170,28 @@ def test_penalty_stays_out_of_the_loss_and_its_gradient_is_bounded(tok):
     assert p[0].grad.tolist() == pytest.approx([.1, 1.]) and p[1].grad.tolist() == [0.]
 
 
+def test_digits_are_charged_in_their_games_in_place_of_the_reader(tok):
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    V = net.model.config.vocab_size
+    net.digit = C.digit_table(tok, V)
+    for text, is_digit in (('7', True), ('42', True), ('!', False), ('cat', False)):
+        assert all(bool(net.digit[i]) == is_digit for i in tok.encode(text, add_special_tokens=False))
+    net.train()
+    net.adv, net.one_note, net.tau = 1., True, .5
+    params = [q for q in net.model.parameters() if q.requires_grad]
+    eps = episodes('count', 3, False)
+    net.digits_on = True
+    net.loss(eps, 'cpu')
+    assert net.sums['n_dig'] > 0 and net.sums['n_adv'] == 0 and net.penalty.requires_grad
+    assert 0. <= float(net.sums['dig'].detach()) <= net.sums['n_dig']
+    grads = torch.autograd.grad(net.penalty, params, allow_unused=True)
+    assert any(g is not None and float(g.abs().sum()) > 0 for g in grads)
+    net.digits_on = False
+    net.loss(eps, 'cpu')
+    assert net.sums['n_dig'] == 0 and net.sums['n_adv'] > 0
+
+
 def test_weight_holds_while_the_penalty_bites():
     assert C.next_weight(None, 3., 20., None) == 3.
     assert C.next_weight(3., 3., 20., None) == 4.5

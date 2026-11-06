@@ -172,6 +172,7 @@ class Crumbs(nn.Module):
         self.one_note = False                          # sym: the frozen-reader penalty reads one note at a time
         self.warm = None                               # sym, one_note: the writer's last notes as the penalty reads them
         self.penalty = None                            # sym, one_note: loss's weighted penalty, not in its value (bounded)
+        self.digit_games, self.digits_on, self.digit = frozenset(), False, None    # sym, one_note: digit_table's charge
         self.charged = 0                               # sym, one_note: which notes the next penalty charges
         if arm == 'sym':
             self.banned = letter_table(tok, model.config.vocab_size)[1]
@@ -576,7 +577,11 @@ class Crumbs(nn.Module):
             e = (p.to(E.dtype) @ E).to(cue.dtype) if soft else E[hard].to(cue.dtype)
             sent.append(e.detach() if train and self.detach_notes else e)
             if train and self.one_note and self.adv:
-                q = self._warm(logits).to(E.dtype) @ E
+                w = self._warm(logits)
+                if self.digits_on:             # warm, as a sure writer's softmax has no slope; a share of the first
+                    self.sums['dig'] = self.sums['dig'] + w[valid][:, self.digit.to(device)].sum()    # choice until it leaves
+                    self.sums['n_dig'] += int(valid.sum())
+                q = w.to(E.dtype) @ E
                 warm.append((q + (E[hard] - q).detach()).to(cue.dtype))
             if mode == 'soft':
                 embs.append(e)
@@ -696,7 +701,7 @@ class Crumbs(nn.Module):
                     bank = self._append(bank, rows_t, streams, got, a, x)
             elif writes:
                 bank = self._append(bank, rows_t, streams, got, a, x)
-        if self.arm == 'sym' and self.one_note and self.adv and need_loss and torch.is_grad_enabled():
+        if self.arm == 'sym' and self.one_note and self.adv and need_loss and torch.is_grad_enabled() and not self.digits_on:
             self.one_note_penalty(eps, bank, device)
         return total, count, bank
 
@@ -713,7 +718,8 @@ class Crumbs(nn.Module):
             s = self.sums
             if s['n_tok']:
                 out = out + self.lam * s['let'] / s['n_tok'] + self.beta * (s['ent'] / s['n_tok'] - s['div'] / s['n_div'])
-            self.penalty = self.adv * s['adv'] / s['n_adv'] if self.one_note and s['n_adv'] else None
+            terms = [s[k] / s[f'n_{k}'] for k in ('adv', 'dig') if s[f'n_{k}']] if self.one_note else []
+            self.penalty = self.adv * sum(terms) if terms else None
             for k in ('adv', 'eav'):
                 if s[f'n_{k}'] and self.penalty is None:
                     out = out + self.adv * s[k] / s[f'n_{k}']
@@ -1250,7 +1256,8 @@ def sym_dev(net, device, dev):
                dev_swap=round(dev_nll(net, device, dev, mode='swap'), 4))
     ns = note_stats(net, device, dev)
     out.update({k: round(ns[k], 4) for k in ('letters', 'letters_exact', 'letters_text', 'letters_max')},
-               letters_by_game={g: round(v, 4) for g, v in ns['letters_by_game'].items()}, examples=ns['examples'],
+               letters_by_game={g: round(v, 4) for g, v in ns['letters_by_game'].items()},
+               digits_by_game=ns['digits_by_game'], examples=ns['examples'],
                distinct=ns['distinct'])
     return out
 
@@ -1465,7 +1472,7 @@ def note_stats(net, device, eps, show=2, bs=50):
     import unicodedata
     net.eval()
     n_tok, n_let, n_exact, n_chr, n_ltr, examples, shown, notes = 0, 0, 0, 0, 0, [], 0, []
-    per = collections.defaultdict(lambda: [0, 0])          # game: [characters, letters]
+    per = collections.defaultdict(lambda: [0, 0, 0])       # game: [characters, letters, digits]
     first = net.letter_first.to(device)
     for s0 in range(0, len(eps), bs):
         chunk = eps[s0:s0 + bs]
@@ -1482,6 +1489,7 @@ def note_stats(net, device, eps, show=2, bs=50):
             n_chr, n_ltr = n_chr + len(got), n_ltr + k
             g = per[chunk[b].get('game', '?')]
             g[0], g[1] = g[0] + len(got), g[1] + k
+            g[2] += sum(unicodedata.category(c).startswith('N') for c in got)
         for b, ep in enumerate(chunk):
             if 'trail' not in ep or shown >= show:
                 continue
@@ -1492,9 +1500,10 @@ def note_stats(net, device, eps, show=2, bs=50):
                 examples.append(f'{ep["trail"]["objects"][r]}: {note}')
                 notes.append(note)
     net.train()
-    by_game = {g: l / c for g, (c, l) in sorted(per.items()) if c}
+    by_game = {g: l / c for g, (c, l, _) in sorted(per.items()) if c}
     return dict(letters=n_let / max(1, n_tok), letters_exact=n_exact / max(1, n_tok), letters_text=n_ltr / max(1, n_chr),
                 letters_by_game=by_game, letters_max=max(by_game.values(), default=0.), examples=examples,
+                digits_by_game={g: round(d / c, 4) for g, (c, _, d) in sorted(per.items()) if c},
                 distinct=len(set(notes)))
 
 
@@ -1876,6 +1885,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 charged = adv_from and (not net.one_note or game in hot_games)
                 most = adv_game.get(game, net.adv_max) if net.one_note else net.adv_max
                 net.adv = most * min(1., (step - adv_from) / 100) if charged else 0.
+                net.digits_on = bool(net.adv and game in net.digit_games)
                 net.eaves_on = False
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
         loss, stat, eloss, charge, split = 0., collections.Counter(), [], None, {}
@@ -1906,7 +1916,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 step=step, game=game, loss=round(loss.item(), 4), grad=round(float(grad), 4), adv_w=round(net.adv, 3),
                 ent=round(stat['ent'] / n, 4), div=round(stat['div'] / max(1, stat['n_div']), 4),
                 codes=[len(set(q)) for q in net.codes], **split,
-                **{k: round(stat[k] / stat[f'n_{k}'], 4) for k in ('adv', 'eav', 'con', 'choice') if stat[f'n_{k}']})) + '\n')
+                **{k: round(stat[k] / stat[f'n_{k}'], 4) for k in ('adv', 'dig', 'eav', 'con', 'choice') if stat[f'n_{k}']})) + '\n')
             fine.flush()
         rec = None
         if step % 25 == 0 or step == steps:
@@ -2061,6 +2071,17 @@ def right_by_game(net, device, by_game, readers=('follower', 'base'), bs=48):
         out[g] = r
     if was:
         net.train()
+    return out
+
+
+def digit_table(tok, V):
+    """[V] bool: the tokens whose text has a character of Unicode category N*. --digit_games charges these in place of the
+    reader in those games: plain digits are where count's and work's writers went back to whenever the reader's penalty
+    let go (count's 11.1 nats at dev 1600 was its dev 1100 read to the digit), so this takes the option away."""
+    import unicodedata
+    out = torch.zeros(V, dtype=torch.bool)
+    for i in range(min(V, len(tok))):
+        out[i] = any(unicodedata.category(c).startswith('N') for c in tok.decode([i]))
     return out
 
 
@@ -2225,6 +2246,8 @@ def main():
                     'the best weights kept and gone back to when the code is lost, letter weights per game (train)')
     ap.add_argument('--frozen_adv', type=float, default=0., help='sym arm, --protect: the penalty on the untrained base '
                     'model alone, only once it reads the notes above noise (train)')
+    ap.add_argument('--digit_games', default='', help='sym arm, --one_note: comma list of games whose writers are charged for '
+                    'digit tokens (digit_table) in place of the reader, at the same weights and bound')
     ap.add_argument('--one_note', action='store_true', help='sym arm, --protect: the privacy bar is the untrained base model '
                     'reading one note at a time in every game, logged at every dev, counted against the best weights\' '
                     'score, and what --frozen_adv charges, per game once it reads above noise; no game\'s follower may '
@@ -2286,6 +2309,9 @@ def main():
         net.contrast, net.con_negatives = args.contrast, args.con_negatives
         net.choice = args.choice
         net.one_note = args.one_note
+        if args.digit_games:
+            net.digit_games = frozenset(args.digit_games.split(','))
+            net.digit = digit_table(net.tok, net.model.config.vocab_size)
         net.hint = args.note_hint
         net.note_pass = args.note_pass
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]
