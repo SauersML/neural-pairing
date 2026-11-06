@@ -8,10 +8,11 @@ each of its task turns' requests, and the teacher's answer to each. Every answer
 the teacher never runs here) by KL(teacher || reader) on the teacher's top-32 plus one bucket for every other token.
 Fill-in turns (no teacher, real text) use the text itself as a one-hot teacher, so the KL there is the cross-entropy.
 The reader is the side named B unless B has no task turn. Crumbs come from the kv arm of swarm/crumbs.py: m slot tokens
-per visit (--source slots), or the keys and values of the visit's own part (sentence). Training: LoRA with gradient
-checkpointing, batches of episodes of similar length (sorted pools of POOL batches; when a pass over the training
-records ends before --steps, the next starts in a new order), a dev of 32 training episodes (KL with the crumbs on and
-cut) every 200 steps, and the GPU's utilization logged at step 20 and every 100 steps (OUT/gpu.jsonl).
+per visit (--source slots), or the keys and values of the visit's own part (sentence); --rerope re-rotates them to sit
+just before the reader. Training: LoRA with gradient checkpointing, batches of episodes of similar length (sorted pools
+of POOL batches; when a pass over the training records ends before --steps, the next starts in a new order), a dev of 32
+training episodes (KL with the crumbs on and cut) every 200 steps, and the GPU's utilization logged at step 20 and every
+100 steps (OUT/gpu.jsonl).
 
 Evaluation, per split (eval_seen, eval_heldout): the reader's KL per answer token with the crumbs on, cut and
 transplanted (each record reads the next record's crumbs), and the share of the cut KL that the crumbs close, (cut - on)
@@ -344,6 +345,9 @@ def main():
     ap.add_argument('--base', default='Qwen/Qwen3-1.7B')
     ap.add_argument('--source', default='slots', choices=('slots', 'sentence'))
     ap.add_argument('--m', type=int, default=16, help='slot crumbs per visit (--source slots)')
+    ap.add_argument('--rerope', action='store_true',
+                    help="the crumbs' keys re-rotated to sit just before the reader's first token (else they keep "
+                         "the walker's positions, about SPAN before the reader)")
     ap.add_argument('--steps', type=int, default=1500)
     ap.add_argument('--batch', type=int, default=4)
     ap.add_argument('--micro', type=int, default=2)
@@ -362,7 +366,7 @@ def main():
     (out / 'args.json').write_text(json.dumps(vars(args), indent=1))
     C.SPAN, C.CHUNK = args.span, 2
     net = C.build(args.device, 'kv', args.m, base=args.base, ckpt=not args.no_ckpt)
-    net.source = args.source
+    net.source, net.rerope = args.source, args.rerope
     train_recs = records(args.data, 'train', args.seed)
     dev = []
     for rec in train_recs:

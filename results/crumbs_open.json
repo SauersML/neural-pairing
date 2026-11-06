@@ -1,0 +1,270 @@
+{
+ "about": "swarm/crumb_open.py on opendata's Qwen3-1.7B build (magic-opentalk4: 5,922 train records, eval_seen 600, eval_heldout 400): the reader's KL per answer token to the teacher with the crumbs on and cut, and the share of the cut KL the crumbs close, on the run's 32 dev episodes every 200 steps",
+ "sentence": {
+  "role": "the full-copy ceiling: the reader gets the keys and values of every token the walker read, 525.2 positions per episode on average, 1.0164 of the walker's material (516.7 tokens on average; 32 dev and 100 eval_seen episodes); stopped at step 425 since its devs give that number",
+  "run": "magic-crumbs23",
+  "commit": "f8745b7",
+  "micro": 1,
+  "dev": [
+   {
+    "step": 200,
+    "on": 0.0592,
+    "cut": 0.4745,
+    "closed": 0.8753
+   },
+   {
+    "step": 400,
+    "on": 0.0468,
+    "cut": 0.478,
+    "closed": 0.9022
+   }
+  ]
+ },
+ "slots": {
+  "role": "16 slot tokens per visit (31.2 positions per episode on average, 16.86 times fewer than sentence)",
+  "run": "magic-crumbs22",
+  "commit": "f8745b7",
+  "micro": 1,
+  "dev": [
+   {
+    "step": 200,
+    "on": 0.4204,
+    "cut": 0.4206,
+    "closed": 0.0004
+   },
+   {
+    "step": 400,
+    "on": 0.3812,
+    "cut": 0.4056,
+    "closed": 0.0602
+   }
+  ]
+ },
+ "slot_diagnosis": {
+  "about": "swarm/crumb_open.py's slot path with a fresh LoRA on the 2 shortest dev episodes, before training and after 25 and 50 steps on that batch alone: gradient norms (slot embeddings, slot keys and values, the LoRA in all, through the reader alone and through the walker's path), the attention mass of the reader's answer queries on the slot columns per layer, the slot columns they may see, the position ids, the largest |logit on - logit cut| and the batch's KL on and cut; then the crumb positions per source",
+  "checks": [
+   {
+    "batch": [
+     {
+      "id": "f4999589b602c455",
+      "family": "fill",
+      "visits": 1,
+      "tokens": 335
+     },
+     {
+      "id": "a77c3ff1d168c840",
+      "family": "fill",
+      "visits": 1,
+      "tokens": 376
+     }
+    ],
+    "source": "slots"
+   },
+   {
+    "step": 0,
+    "grads": {
+     "loss": 8.7998,
+     "crumb_grad": 49.735202,
+     "crumb": 6.263245,
+     "slot_kv_grad": 2.382412,
+     "slot_kv": 9566.350231,
+     "slot_kv_grad_tensors": 56,
+     "slot_kv_tensors": 56,
+     "lora_grad_full": 25.073007,
+     "lora_grad_reader_only": 24.431677,
+     "lora_grad_walker_path": 4.846052
+    },
+    "attn_mass_by_layer": {
+     "0": 0.15947,
+     "1": 0.0162,
+     "2": 0.00613,
+     "3": 0.0088,
+     "4": 0.00289,
+     "5": 0.00045,
+     "6": 0.0047,
+     "7": 0.00158,
+     "8": 0.00673,
+     "9": 0.00382,
+     "10": 0.00323,
+     "11": 0.00316,
+     "12": 0.00171,
+     "13": 0.00456,
+     "14": 0.00337,
+     "15": 0.00141,
+     "16": 0.00431,
+     "17": 0.00381,
+     "18": 0.00682,
+     "19": 0.00374,
+     "20": 0.00318,
+     "21": 0.0041,
+     "22": 0.00376,
+     "23": 0.00225,
+     "24": 0.00418,
+     "25": 0.00621,
+     "26": 0.00711,
+     "27": 0.00023
+    },
+    "attn_mass_mean": 0.00993,
+    "mask": {
+     "S": 16,
+     "share_with_any": 0.9999999403953552,
+     "mean_allowed": 15.999999046325684
+    },
+    "crumb_pos": [
+     162,
+     203
+    ],
+    "reader_answer_pos": [
+     6238,
+     6313
+    ],
+    "answer_tokens": 82,
+    "logit_diff_max": 15.5625,
+    "logit_diff_mean": 1.255633,
+    "kl_on": 7.74985,
+    "kl_cut": 7.81738
+   },
+   {
+    "step": 25,
+    "grads": {
+     "loss": 0.0019,
+     "crumb_grad": 0.111559,
+     "crumb": 6.346311,
+     "slot_kv_grad": 0.005006,
+     "slot_kv": 10331.552778,
+     "slot_kv_grad_tensors": 56,
+     "slot_kv_tensors": 56,
+     "lora_grad_full": 0.071671,
+     "lora_grad_reader_only": 0.068328,
+     "lora_grad_walker_path": 0.021011
+    },
+    "attn_mass_by_layer": {
+     "0": 0.14782,
+     "1": 0.01972,
+     "2": 0.00718,
+     "3": 0.01733,
+     "4": 0.00311,
+     "5": 0.00092,
+     "6": 0.00537,
+     "7": 0.00301,
+     "8": 0.01136,
+     "9": 0.00904,
+     "10": 0.01418,
+     "11": 0.01185,
+     "12": 0.00913,
+     "13": 0.02331,
+     "14": 0.01118,
+     "15": 0.00774,
+     "16": 0.01395,
+     "17": 0.0203,
+     "18": 0.03074,
+     "19": 0.01565,
+     "20": 0.01373,
+     "21": 0.02417,
+     "22": 0.02305,
+     "23": 0.01271,
+     "24": 0.02157,
+     "25": 0.02391,
+     "26": 0.04023,
+     "27": 0.00283
+    },
+    "attn_mass_mean": 0.01947,
+    "mask": {
+     "S": 16,
+     "share_with_any": 0.9999999403953552,
+     "mean_allowed": 15.999999046325684
+    },
+    "crumb_pos": [
+     162,
+     203
+    ],
+    "reader_answer_pos": [
+     6238,
+     6313
+    ],
+    "answer_tokens": 82,
+    "logit_diff_max": 19.15625,
+    "logit_diff_mean": 1.556635,
+    "kl_on": 0.00181,
+    "kl_cut": 0.20623
+   },
+   {
+    "step": 50,
+    "grads": {
+     "loss": 0.0001,
+     "crumb_grad": 0.008636,
+     "crumb": 6.370054,
+     "slot_kv_grad": 0.000303,
+     "slot_kv": 10879.42279,
+     "slot_kv_grad_tensors": 56,
+     "slot_kv_tensors": 56,
+     "lora_grad_full": 0.004473,
+     "lora_grad_reader_only": 0.004236,
+     "lora_grad_walker_path": 0.001222
+    },
+    "attn_mass_by_layer": {
+     "0": 0.13965,
+     "1": 0.01858,
+     "2": 0.00682,
+     "3": 0.01559,
+     "4": 0.00277,
+     "5": 0.00075,
+     "6": 0.00374,
+     "7": 0.00195,
+     "8": 0.00936,
+     "9": 0.00738,
+     "10": 0.01298,
+     "11": 0.00684,
+     "12": 0.0062,
+     "13": 0.01532,
+     "14": 0.00917,
+     "15": 0.00674,
+     "16": 0.01269,
+     "17": 0.01774,
+     "18": 0.03084,
+     "19": 0.01391,
+     "20": 0.01118,
+     "21": 0.02202,
+     "22": 0.02368,
+     "23": 0.0139,
+     "24": 0.02384,
+     "25": 0.02851,
+     "26": 0.03835,
+     "27": 0.00228
+    },
+    "attn_mass_mean": 0.01796,
+    "mask": {
+     "S": 16,
+     "share_with_any": 0.9999999403953552,
+     "mean_allowed": 15.999999046325684
+    },
+    "crumb_pos": [
+     162,
+     203
+    ],
+    "reader_answer_pos": [
+     6238,
+     6313
+    ],
+    "answer_tokens": 82,
+    "logit_diff_max": 19.1875,
+    "logit_diff_mean": 1.371867,
+    "kl_on": 0.00012,
+    "kl_cut": 0.26746
+   },
+   {
+    "episodes": 132,
+    "material_tokens_mean": 516.7,
+    "material_tokens_max": 1764,
+    "reader_stream_mean": 802.9,
+    "visits_mean": 1.9,
+    "slots_positions_mean": 31.2,
+    "sentence_positions_mean": 525.2,
+    "slots_positions_max": 96,
+    "sentence_positions_max": 1789,
+    "sentence_share_of_material": 1.0164,
+    "sentence_over_slots": 16.86
+   }
+  ]
+ }
+}

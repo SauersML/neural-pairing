@@ -221,3 +221,23 @@ def test_passes_go_round():
     assert [next(got) for _ in range(9)] == ['r1', 'r3', 'r4', 'r4', 'r3', 'r1', 'r1', 'r3', 'r4']
     assert new == [2, 3]
     assert list(CO.passes(iter(recs), order, {'r0'}, lambda r: None)) == []
+
+
+def test_rerope_reaches_the_reader(tok):
+    """--rerope: the slot keys re-rotated next to the reader change what it reads (on differs from the walker's own
+    positions; cut is the same) and the loss still reaches the slots."""
+    torch.manual_seed(0)
+    net = tiny(tok, 'kv', 2)
+    recs = [attach(net, tok, record(tok, i, 'doc')) for i in range(2)]
+    eps = [CO.episode(net, r, 64, 3) for r in recs]
+    got = {}
+    for rerope in (False, True):
+        net.rerope = rerope
+        with torch.no_grad():
+            got[rerope] = CO.kl_pass(net, eps, 'cpu', ('on', 'cut'))
+    tot = lambda g: sum(a for d in g for a, _ in d.values())
+    assert abs(tot(got[False]['cut']) - tot(got[True]['cut'])) < 1e-6
+    assert abs(tot(got[False]['on']) - tot(got[True]['on'])) > 1e-3 * tot(got[False]['on'])
+    loss = net.loss(eps, 'cpu')
+    loss.backward()
+    assert net.crumb.grad is not None and net.crumb.grad.abs().sum() > 0
