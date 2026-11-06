@@ -712,6 +712,65 @@ def test_a_dev_whose_score_fell_keeps_the_target_shut():
     assert not OT.target_open(full, deque([.5], maxlen=1), deque([.9], maxlen=1), .5, a, .4, True)
 
 
+def test_a_non_finite_step_is_skipped_and_leaves_weights_and_optimizer_alone(tmp_path, monkeypatch):
+    calls, seen, stepped = [], {}, []
+    loss = OT.Talk.loss
+    adam = torch.optim.AdamW.step
+
+    def copy(net):
+        return [p.detach().clone() for p in net.model.parameters() if p.requires_grad]
+
+    def bad_second_call(self, eps, *a, **k):
+        calls.append(1)
+        out = loss(self, eps, *a, **k)
+        if len(calls) == 2:
+            seen['before'] = copy(self)
+            return out[0] * float('nan'), out[1]
+        if len(calls) == 3:
+            seen['after'] = copy(self)
+        seen['net'] = self
+        return out
+
+    def count(self, *a, **k):
+        stepped.append(1)
+        return adam(self, *a, **k)
+    monkeypatch.setattr(OT.Talk, 'loss', bad_second_call)
+    monkeypatch.setattr(torch.optim.AdamW, 'step', count)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.)] * 3, 4, *target_args('--micro', '2'))
+    assert [r['skips'] for r in rows if r.get('nonfinite')] == [1]
+    assert len(calls) == 5 and len(stepped) == 4                         # the step counter did not move on the bad one
+    assert all(torch.equal(a, b) for a, b in zip(seen['before'], seen['after']))
+    assert all(torch.isfinite(p).all() for p in seen['net'].model.parameters())
+
+
+def test_steps_stop_after_too_many_non_finite_in_a_row(tmp_path, monkeypatch):
+    loss = OT.Talk.loss
+    monkeypatch.setattr(OT.Talk, 'loss', lambda self, *a, **k: (lambda o: (o[0] * float('nan'), o[1]))(loss(self, *a, **k)))
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.)] * 3, 4, *target_args('--micro', '2', '--max_skips', '3'))
+    assert [r['skips'] for r in rows if r.get('nonfinite')] == [1, 2, 3]
+    assert any(r.get('too_many_nonfinite') for r in rows)
+
+
+def test_a_non_finite_dev_is_lost_and_rolls_back(tmp_path, monkeypatch):
+    from types import SimpleNamespace as NS
+    nan = float('nan')
+    a = NS(collapse_tokens=8, min_alive=2, value_keep=.8)
+    assert OT.dev_trouble(nan, .2, 100., a, alive=8, value=.5, peak=.5) == 'nonfinite'
+    assert OT.dev_trouble(.3, .2, 100., a, alive=8, value=nan, peak=.5) == 'nonfinite'
+    monkeypatch.setattr(OT, 'target_open', lambda *a: False)
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.), (nan, .4, 100., 0.), (.5, .4, 100., 0.)], 4, *target_args())
+    back = next(r for r in rows if r.get('rollback'))
+    assert back['why'] == 'nonfinite' and back['to'] == 0
+    assert [r['step'] for r in rows if 'new_level_best' in r] == [0]     # nothing saved from the lost dev
+
+
+def test_a_non_finite_first_dev_saves_no_file(tmp_path, monkeypatch):
+    nan = float('nan')
+    monkeypatch.setattr(OT, 'target_open', lambda *a: False)
+    rows = scripted_run(tmp_path, monkeypatch, [(nan, .4, 100., 0.), (.5, .4, 100., 0.), (.5, .4, 100., 0.)], 4, *target_args())
+    assert 0 not in [r['step'] for r in rows if 'new_level_best' in r or r.get('new_best')]
+
+
 def test_a_lower_share_counts_as_fell_only_when_on_rose():
     assert not OT.score_fell(.4638, .5029, .1766, .184, .01)             # dev 1200: none improved, on did not rise
     assert OT.score_fell(.1595, .4819, .2632, .1875, .01)                # dev 1000: the messages really collapsed
@@ -740,6 +799,20 @@ def test_the_letter_push_reads_letterless_tokens_that_are_not_filler():
     assert away.exp().tolist() == pytest.approx(((z / net.tau).softmax(-1) * keep).sum(-1).tolist(), rel=1e-3)
     nl = net.tok.encode('\n')[-1]
     assert net.filler_keep(z.shape[-1], z.device)[nl] == 0
+
+
+def test_a_position_with_no_letterless_token_is_not_pushed():
+    net, rng = net_of(m=3), random.Random(19)
+    net.nonsat = .5
+    eps = [OT.fit(episode(rng, 0, 'doc'), net, 4000)]
+    hs, _, toks = net.own_hidden(eps, net.decode(eps))
+    rows = net.rows([q for g in range(0, len(toks), net.m) for q in net.masks.walk(toks[g:g + net.m])[1]])
+    net._table = torch.ones_like(net._table)                             # every token a letter, as inside a character
+    *_, away = net._soft(hs, rows)
+    assert torch.isfinite(away).all() and away.abs().max() < 1e-4
+    away.sum().backward()
+    grads = [p.grad for p in net.model.parameters() if p.grad is not None]
+    assert grads and all(torch.isfinite(g).all() for g in grads)
 
 
 def test_the_letter_push_joins_the_writers_gradient_at_its_scale(tmp_path, monkeypatch):

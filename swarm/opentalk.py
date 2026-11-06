@@ -661,6 +661,10 @@ class Talk:
             return out
         # log P(a letterless token that is not filler), from the logits: its gradient does not vanish on a sure letter
         keep = (1 - self._table[rows]).clamp(min=0) * self.filler_keep(z.shape[-1], z.device)
+        # Inside an unfinished letter (the first bytes of a Chinese character, say) every token may be a letter. No
+        # letterless token exists there, its log P would be -inf and its gradient NaN: all count, so nothing pushes.
+        none = ~((keep > 0) & self.allowed).any(-1, keepdim=True)
+        keep = torch.where(none, torch.ones_like(keep), keep)
         return (*out, ((z / self.tau).log_softmax(-1) + keep.log()).logsumexp(-1))
 
     def chunked(self, fn, h, *rest):
@@ -1249,7 +1253,7 @@ def target_open(value, margin, distinct, dev_value, args, copy_value=None, fell=
     the last --target_window steps both reach --value_bar, and the dev's beats a literal copy's (copy_value). Messages
     are not constant: the steps' mean share of distinct messages reaches --min_msgs, and at least half of the help goes
     when another episode's messages are read. fell: the last dev's share fell, so it was not a good dev."""
-    if fell or len(value) < value.maxlen or dev_value is None or dev_value < args.value_bar:
+    if fell or len(value) < value.maxlen or dev_value is None or not math.isfinite(dev_value) or dev_value < args.value_bar:
         return False
     if copy_value is not None and dev_value <= copy_value:
         return False
@@ -1293,10 +1297,13 @@ def families_alive(d, z):
 
 
 def dev_trouble(gap, ref, eff_tokens, args, alive=None, value=None, peak=None):
-    """Why a dev should go back to the best weights ('' if it should not): the messages collapsed onto under
+    """Why a dev should go back to the best weights ('' if it should not): a score is not a finite number; the messages
+    collapsed onto under
     --collapse_tokens effective tokens; with alive (a target run), fewer than --min_alive families read above noise,
     or the closed share outside fill (value) fell under --value_keep of its best so far (peak); otherwise the gap fell
     under --gap_floor or --lost_keep of the reference."""
+    if any(x is not None and not math.isfinite(x) for x in (gap, eff_tokens, value)):
+        return 'nonfinite'
     if eff_tokens is not None and eff_tokens < args.collapse_tokens:
         return 'collapsed'
     if alive is not None:
@@ -1368,6 +1375,7 @@ def train(net, args, log):
     target_mode = args.letter_charge == 'target'
     target, half, dev_value, copy_value = args.target0, args.target_half, None, None   # target and its halving time
     prev_value, prev_on, fell = None, None, False    # the last dev's share and on outside fill, and whether it fell
+    skips = 0                                        # steps in a row skipped on a non-finite loss or gradient
     levels, misses, miss_level = {}, 0, 0            # letter level -> its best file; devs at this level without a good one
     gate_v, gate_m, gate_d, gate_l = (deque(maxlen=args.target_window) for _ in range(4))
     copies = ('head', 'best', 'target') if args.dev_copy else ()
@@ -1485,7 +1493,8 @@ def train(net, args, log):
             dev_value = value_outside_fill(d, 'closed_fair' if fair else 'closed')
             on_value = value_outside_fill(d, 'on')
             fell = bool(target_mode and score_fell(dev_value, prev_value, on_value, prev_on, args.value_noise))
-            prev_value, prev_on = dev_value, on_value
+            if dev_value is not None and math.isfinite(dev_value):
+                prev_value, prev_on = dev_value, on_value
             copy_value = value_outside_fill(d, 'copy_head_fair' if fair else 'copy_head_closed')
             alive = families_alive(d, args.read_z)
             d['_all'].update(value_nf=dev_value, copy_head_nf=copy_value, alive=alive,
@@ -1549,7 +1558,7 @@ def train(net, args, log):
                 up = levels.get(str(max((int(k) for k in levels if int(k) < level), default=-1)))
                 why = '' if switched or stage != 'full' else dev_trouble(gap, ref, eff, args, alive, dev_value,
                                                                          cur and cur.get('dev_value'))
-                good = dev_value is not None and not why and not fell and (
+                good = dev_value is not None and math.isfinite(dev_value) and not why and not fell and (
                     dev_value > cur['dev_value'] if cur else up is None or dev_value >= args.value_keep * up['dev_value'])
                 if cur is None and up is not None and not good:
                     misses += 1
@@ -1603,6 +1612,7 @@ def train(net, args, log):
         parts_all, n_eps = [], 0
         dec0 = net.stats['decode_tokens']
         util.on = True
+        loss_ok = True
         for micro_i in range(micros):
             eps = next(feed, None)
             if eps is None:
@@ -1617,6 +1627,7 @@ def train(net, args, log):
                 else:
                     loss, parts = net.loss(eps, lam_now, args.contrast, args.contrast_target, lam_p)
                 kept = net.charge_grads(len(eps) / args.batch) if net.keep_charge else None
+                loss_ok = loss_ok and bool(torch.isfinite(loss))
                 (loss * len(eps) / args.batch).backward()
                 if kept is not None:
                     parts.update(net.grad_split(kept, args.nonsat))
@@ -1634,8 +1645,16 @@ def train(net, args, log):
         util.on = False
         if not parts_all:
             continue
-        for g in opt.param_groups:
-            torch.nn.utils.clip_grad_norm_(g['params'], 1.0)
+        norms = [torch.nn.utils.clip_grad_norm_(g['params'], 1.0) for g in opt.param_groups]
+        if not loss_ok or not all(torch.isfinite(n) for n in norms):     # weights and optimizer state stay as they are
+            opt.zero_grad(set_to_none=True)
+            skips += 1
+            log(dict(step=step, nonfinite=True, loss_ok=loss_ok, norms=[float(n) for n in norms], skips=skips))
+            if skips >= args.max_skips:
+                log(dict(step=step, too_many_nonfinite=True))
+                out_of_data = True
+            continue
+        skips = 0
         opt.step()
         sched.step()
         opt.zero_grad(set_to_none=True)
@@ -1755,6 +1774,8 @@ def main():
     ap.add_argument('--warm_reader', type=int, default=0, help='warm: 1 also trains the reader on the literal copies')
     ap.add_argument('--warm_margin', type=float, default=0.02, help='warm: how near the head copy the writer must score')
     ap.add_argument('--dev_first', type=int, default=0, help='1: a resumed run starts with a dev')
+    ap.add_argument('--max_skips', type=int, default=10, help='steps in a row skipped on a non-finite loss or gradient '
+                    'before training stops and the run reads its saved files')
     ap.add_argument('--nonsat', type=float, default=0.0, help='a letter push that does not vanish on a sure letter: -log '
                     'P(a letterless token that is not filler) at letter positions of messages over the target, its '
                     'gradient scaled each step to this times the norm of the rest of the writer gradient')
