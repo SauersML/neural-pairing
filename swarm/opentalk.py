@@ -35,6 +35,15 @@ reader with the received messages of the next batch episode (a third pass); once
 the gap held, privacy: lam_p * relu(KL_none - KL_on) of the untrained model (adapter off) in the reader's seat, so the
 messages must not help a reader that was not trained with them.
 
+--letter_charge target: a message pays only for its letter share above a target, so a message at the target owes nothing
+and filling it earns nothing (under the other charges a message of filler costs less than one that carries little). The
+target falls only while messages really help: outside fill, the last dev's closed share and the training steps' (a
+no-message pass under no_grad gives each step's none) are at least --value_bar, and the messages are not constant. The
+weight follows the letters (target_step); the bias stays where it is. --family_norm 1: every family's KL counts in shares
+of its own none (its none KL at the last dev), so fill's cross-entropy does not swamp small-KL families.
+--contrast_ref none: the contrast hinge compares the reader with no messages, not with wrong ones: it only ever lowers
+KL_on, so wrong messages earn nothing by hurting; the swap pass stays as a no_grad check.
+
 Dev (every --dev_every steps; --dev_n episodes per family, carved from the training records and never trained on),
 hard messages only, per family: KL per answer token with the messages (on), with the received messages of another
 dev episode of the family (swap) and with no conversation at all (none); the share the messages close,
@@ -73,6 +82,7 @@ SYSTEM = ('You are agent {x}. You and agent {y} are two assistants who serve one
           'request comes to you, answer the user directly.')
 SYMBOLS = 'From now on, write your messages to your partner in emoji, symbols and digits only, with no letters.'
 CHUNK = 512                                            # positions per checkpointed vocabulary chunk
+SCALE_FLOOR = 0.05                                     # family_norm: the smallest none KL a family is divided by
 CHARGE_EPS = 1e-3                                      # letter_charge sqrt: 3% of one token's share of a 32-token message
 LEAKY = ('doc', 'pair', 'code', 'chat_doc')            # families whose simulated requests can name hidden details
 CLEAN = ('chat_alt', 'fill', 'debug', 'plan')
@@ -279,6 +289,9 @@ class Talk:
         self.stats = dict(decode_tokens=0, grad_tokens=0)
         self._filler = {}                              # token id -> is_filler of its text
         self.charge = 'linear'                         # the letter penalty's shape (letter_charge)
+        self.letter_target = 0.0                       # charge target: the letter share a message owes nothing for
+        self.family_scale = {}                         # family_norm: family -> the none KL its KL is divided by
+        self.contrast_ref = 'swap'                     # what the contrast hinge compares KL_on with
         self.base_lm = None                            # the untrained model as a separate frozen copy (privacy)
         self.dec = None                                # a plain copy holding base + LoRA merged, for decoding
         self.fast_eps, self.fast_T, self._fast = 0, 0, {}   # the fast decode cache (off: 0 episodes)
@@ -575,9 +588,12 @@ class Talk:
         """The letter penalty from the soft letter mass per message position [messages * m]. linear: the mean, each
         letter token priced the same however few remain, so a message's first words keep paying long after the average
         one stopped. sqrt: the mean over messages of sqrt(letter share + CHARGE_EPS), so the last letters cost the most
-        (8 of 32 cost 0.5, not 0.25; 1 costs 0.18, not 0.03); the epsilon bounds the gradient at no letters."""
+        (8 of 32 cost 0.5, not 0.25; 1 costs 0.18, not 0.03); the epsilon bounds the gradient at no letters. target:
+        the mean over messages of the share above letter_target, so going below it earns nothing."""
         if self.charge == 'linear':
             return mass.mean()
+        if self.charge == 'target':
+            return (mass.view(-1, self.m).mean(1) - self.letter_target).clamp(min=0).mean()
         return (mass.view(-1, self.m).mean(1) + CHARGE_EPS).sqrt().mean()
 
     def reader(self, eps, msgs, soft=None, perm=None, mode='on', lm=None):
@@ -644,28 +660,49 @@ class Talk:
             cnt = cnt.index_add(0, qq, torch.ones_like(per))
         return tot, cnt, keys
 
+    def answer_weights(self, eps, keys):
+        """Per (episode, turn, agent): 1 over its family's none KL (family_scale; 1 when unset)."""
+        return torch.tensor([1 / max(SCALE_FLOOR, self.family_scale.get(eps[i]['family'], 1.0)) for i, _, _ in keys],
+                            device=self.device)
+
     def loss(self, eps, lam=0.0, contrast=0.0, target=0.2, lam_p=0.0):
         """One micro-batch's loss and its parts (see the module docstring)."""
         msgs = self.decode(eps)
         soft, mass, fixed, toks = self.writer(eps, msgs)
         tot, cnt, keys = self.reader(eps, msgs, soft)
         on = tot / cnt.clamp(min=1)
-        loss = on.mean() + lam * self.letter_charge(mass)
+        w = self.answer_weights(eps, keys)
+        loss = (on * w).mean() + lam * self.letter_charge(mass)
+        rows = toks.view(-1, self.m)
         parts = dict(kl=float(on.detach().mean()), letters_soft=float(mass.detach().mean()), fixed=fixed,
-                     letters=mean(self.letters_of(toks.view(-1, self.m).tolist())),
-                     distinct=len(torch.unique(toks)))
-        if contrast and len(eps) > 1:
-            perm = list(range(1, len(eps))) + [0]
+                     letters=mean(self.letters_of(rows.tolist())), distinct=len(torch.unique(toks)),
+                     distinct_msgs=len(torch.unique(rows, dim=0)) / max(1, rows.shape[0]))
+        perm = list(range(1, len(eps))) + [0]
+        if contrast and self.contrast_ref == 'none':
+            with torch.no_grad():
+                tn, cn, _ = self.reader(eps, msgs, mode='none')
+                none = tn / cn.clamp(min=1)
+                if len(eps) > 1:
+                    ts, cs, _ = self.reader(eps, msgs, soft, perm=perm)
+                    margin = ts / cs.clamp(min=1) - on
+                    parts.update(margin=float(margin.mean()), margin_n=float((margin * w).mean()))
+            value = (none - on) * w
+            loss = loss + contrast * (target - value).clamp(min=0).mean()
+            parts['value'] = float(value.detach().mean())
+            keep = torch.tensor([eps[i]['family'] != 'fill' for i, _, _ in keys], device=self.device)
+            if keep.any():
+                parts['value_nf'] = float(value.detach()[keep].mean())
+        elif contrast and len(eps) > 1:
             ts, cs, _ = self.reader(eps, msgs, soft, perm=perm)
             margin = ts / cs.clamp(min=1) - on
-            loss = loss + contrast * (target - margin).clamp(min=0).mean()
+            loss = loss + contrast * (target - margin * w).clamp(min=0).mean()
             parts['margin'] = float(margin.detach().mean())
         if lam_p:                       # a frozen copy: checkpoint recomputation never sees an adapter switch
             tb, cb, _ = self.reader(eps, msgs, soft, lm=self.base_lm)
             with torch.no_grad():
                 tn, cn, _ = self.reader(eps, msgs, mode='none', lm=self.base_lm)
             gain = tn / cn.clamp(min=1) - tb / cb.clamp(min=1)
-            loss = loss + lam_p * gain.clamp(min=0).mean()
+            loss = loss + lam_p * (gain * w).clamp(min=0).mean()
             parts['gain_base'] = float(gain.detach().mean())
         return loss, parts
 
@@ -950,11 +987,46 @@ def ramped(lam, lam_from, t0, step, ramp):
     return lam_from + (lam - lam_from) * min(1.0, (step - t0) / ramp)
 
 
-def dev_trouble(gap, ref, eff_tokens, args):
+def target_step(target, lam, letters, opened, half, args):
+    """One training step's letter target and weight: while open the target halves every half steps down to
+    --target_end and the weight moves by --lam_rate times the letters above (or under) the target, within --lam_min and
+    --lam_max; while shut both stay."""
+    if not opened:
+        return target, lam
+    lam = min(args.lam_max, max(args.lam_min, lam + args.lam_rate * (letters - target)))
+    return max(args.target_end, target * 0.5 ** (1 / half)), lam
+
+
+def target_open(value, margin, distinct, dev_value, args):
+    """Whether the letter target may fall. Messages help outside fill: the last dev's closed share and the mean over
+    the last --target_window steps both reach --value_bar. Messages are not constant: the steps' mean share of distinct
+    messages reaches --min_msgs, and at least half of the help goes when another episode's messages are read."""
+    if len(value) < value.maxlen or (dev_value is not None and dev_value < args.value_bar):
+        return False
+    help_ = mean(value)
+    return help_ >= args.value_bar and mean(distinct) >= args.min_msgs and mean(margin) >= 0.5 * help_
+
+
+def value_outside_fill(d):
+    """A dev's mean closed share over its families other than fill (None without any)."""
+    vals = [v['closed'] for f, v in d.items() if not f.startswith('_') and f != 'fill' and 'closed' in v]
+    return round(mean(vals), 4) if vals else None
+
+
+def families_alive(d, z):
+    """How many of a dev's families have a gap above z standard errors."""
+    return sum(v['gap'] > z * v['gap_se'] for f, v in d.items()
+               if not f.startswith('_') and 'gap' in v and v.get('gap_se') is not None)
+
+
+def dev_trouble(gap, ref, eff_tokens, args, alive=None):
     """Why a dev should go back to the best weights ('' if it should not): the messages collapsed onto under
-    --collapse_tokens effective tokens, or the gap fell under --gap_floor or --lost_keep of the reference."""
+    --collapse_tokens effective tokens; with alive (a target run), fewer than --min_alive families read above noise;
+    otherwise the gap fell under --gap_floor or --lost_keep of the reference."""
     if eff_tokens is not None and eff_tokens < args.collapse_tokens:
         return 'collapsed'
+    if alive is not None:
+        return 'dead' if alive < args.min_alive else ''
     if ref is not None and gap < max(args.gap_floor, args.lost_keep * ref):
         return 'gap'
     return ''
@@ -1003,6 +1075,9 @@ def train(net, args, log):
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
     anchored = None
+    target_mode = args.letter_charge == 'target'
+    target, half, dev_value = args.target0, args.target_half, None        # the letter target and its halving time
+    gate_v, gate_m, gate_d = (deque(maxlen=args.target_window) for _ in range(3))
     lam_from, ramp_t0, lam_now = 0.0, None, 0.0      # the weight in force moves from lam_from to lam from ramp_t0
     best, rollbacks, last_dev, force_dev, watch_on = None, 0, None, False, True
     roll_d, roll_m = deque(maxlen=args.watch_steps), deque(maxlen=args.watch_steps)
@@ -1024,6 +1099,8 @@ def train(net, args, log):
         anchored = st.get('anchored')
         lam_from, ramp_t0 = st.get('lam_from', lam), st.get('ramp_t0')
         best, rollbacks, lr_scale[0] = st.get('best'), st.get('rollbacks', 0), st.get('lr_scale', 1.0)
+        target, half, dev_value = st.get('target', target), st.get('half', half), st.get('dev_value')
+        net.family_scale = st.get('family_scale', net.family_scale)
         optimizer = (R / 'optim.pt').exists()
         if optimizer:
             opt.load_state_dict(torch.load(R / 'optim.pt', map_location=net.device))
@@ -1038,11 +1115,12 @@ def train(net, args, log):
     def ckpt_state():
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
                     anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
-                    lr_scale=lr_scale[0])
+                    lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value,
+                    family_scale=net.family_scale)
 
-    def go_back():
+    def go_back(slower=True):
         """The best weights and optimizer state, and the weight, bias and tau they were measured at."""
-        nonlocal lam, lam_from, ramp_t0, lam_now
+        nonlocal lam, lam_from, ramp_t0, lam_now, target, half, dev_value
         from peft import set_peft_model_state_dict
         from safetensors.torch import load_file
         B = Path(best['path'])
@@ -1052,12 +1130,17 @@ def train(net, args, log):
         lam = lam_now = lam_from = best['lam']
         ramp_t0 = None
         net.bias = best['bias']
+        if target_mode:                              # letters fell too fast for the messages: half the pace from there
+            target, half, dev_value = best['target'], half * 2 if slower else half, best.get('dev_value')
+            for q in (gate_v, gate_m, gate_d):
+                q.clear()
     net.model.train()
     while True:
         frac = min(1.0, step / args.steps)
         net.tau = args.tau0 * (args.tau1 / args.tau0) ** frac
         lam_now = ramped(lam, lam_from, ramp_t0, step, args.ramp)
-        if ref is not None:
+        net.letter_target = target
+        if ref is not None and not target_mode:
             net.bias = args.bias_k * lam_now
         stop = step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes or out_of_data \
             or rollbacks > args.max_rollbacks
@@ -1073,6 +1156,11 @@ def train(net, args, log):
             d = evaluate(net, dev, bs=args.dev_bs, base='read' if args.dev_base else False)
             gap = d['_all']['gap']
             gap0 = gap if gap0 is None else gap0
+            dev_value = value_outside_fill(d)
+            alive = families_alive(d, args.read_z)
+            d['_all'].update(value_nf=dev_value, alive=alive)
+            if args.family_norm:
+                net.family_scale = {f: v['none'] for f, v in d.items() if not f.startswith('_') and 'none' in v}
             letters = d['_all']['letters']
             lam_dev, bias_dev = lam_now, net.bias
             eff = d['_all'].get('eff_tokens')
@@ -1085,18 +1173,23 @@ def train(net, args, log):
                     if ref is None:
                         ref, lam, ok = gap, args.lam0, True
                         net.symbols = bool(args.symbols_line)            # the prior moves onto the symbols
+                        if target_mode:                                  # the bias stays here from now on
+                            net.bias = args.bias_k * lam
                     else:
                         lam, ok, ref, anchored = ctrl_update(lam, gap, ref, letters, anchored, step, args)
+                        if target_mode:                                  # the weight follows the letters (target_step)
+                            lam = lam_old
                     if lam != lam_old:
                         lam_from, ramp_t0 = lam_now, step
                     lam_now = ramped(lam, lam_from, ramp_t0, step, args.ramp)
-                    net.bias = args.bias_k * lam_now
+                    if not target_mode:
+                        net.bias = args.bias_k * lam_now
                     log(dict(step=step, ctrl=True, gap=gap, ref=ref, held=ok, lam=round(lam, 5),
                              bias=round(args.bias_k * lam, 4), bias_now=round(net.bias, 4), letters=letters,
                              symbols_line=net.symbols, anchored=anchored))
             read, read_se = d['_all'].get('base_gap'), d['_all'].get('base_gap_se')
             reading = read is None or read > args.read_z * read_se    # the frozen reader reads above noise
-            if priv is None and args.lam_p and ref is not None and letters < args.priv_letters and ok:
+            if priv is None and args.lam_p and ref is not None and letters < args.priv_letters and (ok or target_mode):
                 if reading:
                     priv, base_gap = step, gap
                     log(dict(step=step, privacy_starts=True, letters=letters, gap=gap, base_gap=read, base_se=read_se))
@@ -1108,7 +1201,7 @@ def train(net, args, log):
             log(dict(step=step, tau=round(net.tau, 3), lam=lam, lam_now=round(lam_now, 5), dev=d,
                      dev_s=round(time.monotonic() - t0), s=round(time.monotonic() - started)))
             if args.protect:
-                why = dev_trouble(gap, ref, eff, args)
+                why = dev_trouble(gap, ref, eff, args, alive if target_mode else None)
                 if why and best is not None:
                     go_back()
                     rollbacks += 1
@@ -1117,19 +1210,21 @@ def train(net, args, log):
                     for g in opt.param_groups:
                         g['lr'] = args.lr * lr_scale[0]
                     log(dict(step=step, rollback=True, why=why, to=best['step'], gap=gap, eff_tokens=eff, lam=lam,
-                             bias=net.bias, lr=args.lr * lr_scale[0], rollbacks=rollbacks))
+                             bias=net.bias, lr=args.lr * lr_scale[0], rollbacks=rollbacks, target=target, half=half,
+                             alive=alive))
                 elif not why:
                     charge = d['_all'].get('charge', letters)
-                    if best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
+                    if target_mode or best is None or gap - lam_dev * charge > best['gap'] - lam_dev * best['charge']:
                         path = str(Path(args.ckpt).parent / (Path(args.ckpt).name + '_best'))
-                        best = dict(step=step, gap=gap, charge=charge, lam=lam_dev, bias=bias_dev, path=path)
+                        best = dict(step=step, gap=gap, charge=charge, lam=lam_dev, bias=bias_dev, path=path,
+                                    target=target, dev_value=dev_value)
                         save(net, path, dict(step=step, lam=lam_dev, bias=bias_dev), opt, ckpt_state())
                         log(dict(step=step, new_best=True, gap=gap, charge=charge, lam=lam_dev, letters=letters))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
         if stop or step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
             if args.protect and best is not None and best['step'] != step:    # the run ends on its best weights
-                go_back()
+                go_back(slower=False)
                 log(dict(step=step, ends_on_best=best['step'], gap=best['gap']))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             log(dict(step=step, done=True, s=round(time.monotonic() - started), rollbacks=rollbacks,
@@ -1175,14 +1270,24 @@ def train(net, args, log):
             roll_d.append(mean(p['distinct'] for p in parts_all))
             roll_m.append(mean(p.get('margin', 1e9) for p in parts_all))
             if len(roll_d) == args.watch_steps and (mean(roll_d) < args.watch_distinct or (
-                    ref is not None and mean(roll_m) < args.watch_margin * ref)):
+                    ref is not None and not target_mode and mean(roll_m) < args.watch_margin * ref)):
                 force_dev = True
                 log(dict(step=step, forced_dev=True, distinct=round(mean(roll_d), 1), margin=round(mean(roll_m), 4)))
+        opened = False
+        if target_mode and ref is not None:          # letters fall only while messages help and are not constant
+            for q, k in ((gate_v, 'value_nf'), (gate_m, 'margin_n'), (gate_d, 'distinct_msgs')):
+                vals = [p[k] for p in parts_all if k in p]
+                if vals:
+                    q.append(mean(vals))
+            opened = target_open(gate_v, gate_m, gate_d, dev_value, args)
+            target, lam = target_step(target, lam, mean(p['letters_soft'] for p in parts_all), opened, half, args)
         if step % args.log_every == 0 or step == first + 20:
             rec = dict(step=step, tau=round(net.tau, 3), lam=round(lam_now, 5), lam_p=round(lam_p, 4), eps=n_eps,
                        s_step=round(time.monotonic() - t_step, 2), s=round(time.monotonic() - started))
-            for k in parts_all[0]:
-                rec[k] = round(mean(p[k] for p in parts_all), 4)
+            if target_mode:
+                rec.update(target=round(target, 4), open=opened, help=round(mean(gate_v), 4) if gate_v else None)
+            for k in {k for p in parts_all for k in p}:
+                rec[k] = round(mean(p[k] for p in parts_all if k in p), 4)
             if torch.cuda.is_available():
                 rec['gb'] = round(torch.cuda.max_memory_allocated() / 2 ** 30, 1)
             if step == first + 20:                 # throughput over this part's training steps (devs left out)
@@ -1242,8 +1347,21 @@ def main():
                     'tokens per step fall under this')
     ap.add_argument('--watch_margin', type=float, default=0.25, help='protect: or if the mean training margin falls '
                     'under this share of the reference gap')
-    ap.add_argument('--letter_charge', default='linear', choices=('linear', 'sqrt'),
-                    help='the letter penalty: mean letter mass, or the mean over messages of its square root')
+    ap.add_argument('--letter_charge', default='linear', choices=('linear', 'sqrt', 'target'),
+                    help='the letter penalty: mean letter mass, the mean over messages of its square root, or of its '
+                    'share above a falling target')
+    ap.add_argument('--target0', type=float, default=0.44, help='target: the first letter target')
+    ap.add_argument('--target_half', type=float, default=112.0, help='target: steps per halving while open; doubled by '
+                    'each go-back')
+    ap.add_argument('--target_end', type=float, default=0.01, help='target: the lowest target')
+    ap.add_argument('--target_window', type=int, default=30, help='target: the steps the training help is averaged over')
+    ap.add_argument('--value_bar', type=float, default=0.15, help='target: the closed share outside fill that opens it')
+    ap.add_argument('--min_msgs', type=float, default=0.5, help='target: the share of distinct messages per step needed')
+    ap.add_argument('--min_alive', type=int, default=4, help='target: fewer families reading above noise goes back')
+    ap.add_argument('--lam_rate', type=float, default=0.2, help='target: the weight moves by this times letters - target')
+    ap.add_argument('--family_norm', type=int, default=0, help='1: each family\'s KL in shares of its none KL')
+    ap.add_argument('--contrast_ref', default='swap', choices=('swap', 'none'),
+                    help='what the contrast hinge compares KL_on with (none: wrong messages earn nothing by hurting)')
     ap.add_argument('--gap_ref', default='first', choices=('first', 'max', 'anchor'),
                     help="the reference gap: the controller start's, the largest since (see next_ref), or re-anchored "
                     "once on the first letterless dev that misses it (see ctrl_update)")
@@ -1284,6 +1402,7 @@ def main():
     net = build(device, args.base, args.rank, args.ckpt if 'train' not in args.parts else None, args.m,
                 base_copy='train' in args.parts and args.lam_p > 0)
     net.charge = args.letter_charge
+    net.contrast_ref = args.contrast_ref
     if args.fast_decode and device == 'cuda':
         net.fast_eps, net.fast_T = args.micro, 64 * ((args.max_len + 1024) // 64)
     state = {}

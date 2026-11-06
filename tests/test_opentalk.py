@@ -2,6 +2,7 @@
 that are the writer pass's fixed point, the answer's gradient reaching the writer through the soft tokens, the
 contrast and privacy terms, the hard evaluation, and a short end-to-end run on opendata-format shards."""
 import json
+from collections import deque
 from pathlib import Path
 import random
 import shutil
@@ -470,8 +471,9 @@ def scripted_run(tmp_path, monkeypatch, devs, steps, *extra):
 
     def fake(net, eps, bs=8, base=False, examples=3, readers=()):
         gap, letters, eff, read = next(script)
+        fams = {f: dict(gap=gap, gap_se=0.01, none=0.5, on=0.5 - gap, closed=gap) for f in ('doc', 'pair', 'fill', 'chat_alt')}
         return dict(_all=dict(gap=gap, letters=letters, eff_tokens=eff, charge=letters ** 0.5, base_gap=read,
-                              base_gap_se=0.01, closed=0.0, distinct=100))
+                              base_gap_se=0.01, closed=0.0, distinct=100), **fams)
     monkeypatch.setattr(OT, 'evaluate', fake)
     monkeypatch.setattr(sys, 'argv', ['opentalk.py', '--data', str(tmp_path / 'data'), '--out', str(tmp_path / 'out'),
                                       '--ckpt', str(tmp_path / 'ckpt'), '--steps', str(steps), '--batch', '2',
@@ -539,3 +541,88 @@ def test_frozen_readers_report_on_and_swapped():
         assert k in res['doc'], k
     assert 'base_none' not in res['doc'] and {'base_gap', 'base_gap_se', 'other_gap', 'gap_se'} <= set(res['_all'])
     assert res['doc']['other_gap'] == round(res['doc']['other_swap'] - res['doc']['other_on'], 4)
+
+
+def test_target_charge_pays_only_above_the_target():
+    net = net_of(m=32)
+    net.charge, net.letter_target = 'target', 0.25
+    share = lambda k: torch.cat([torch.ones(k), torch.zeros(32 - k)])    # noqa: E731
+    assert float(net.letter_charge(share(8))) == 0 and float(net.letter_charge(share(4))) == 0
+    assert float(net.letter_charge(share(16))) == pytest.approx(0.25)
+    two = torch.cat([share(32), share(0)])                               # each message pays for its own letters
+    assert float(net.letter_charge(two)) == pytest.approx(0.375)
+    below = share(4).clone().requires_grad_(True)                        # below the target nothing pulls
+    net.letter_charge(below).backward()
+    assert float(below.grad.abs().sum()) == 0
+
+
+def test_target_falls_only_while_messages_help_and_differ():
+    from types import SimpleNamespace as NS
+    args = NS(target_end=0.01, lam_min=0.5, lam_max=2.0, lam_rate=0.2, value_bar=0.15, min_msgs=0.5)
+    assert OT.target_step(0.4, 1.0, 0.5, False, 100, args) == (0.4, 1.0)
+    t, lam = OT.target_step(0.4, 1.0, 0.5, True, 1, args)
+    assert t == pytest.approx(0.2) and lam == pytest.approx(1.02)
+    assert OT.target_step(0.011, 1.99, 0.9, True, 1, args) == (0.01, 2.0)
+    assert OT.target_step(0.4, 0.5, 0.1, True, 1, args)[1] == 0.5
+    q = lambda *x: deque(x, maxlen=len(x))                               # noqa: E731
+    v, m, d = q(.2, .2), q(.2, .2), q(.9, .9)
+    assert OT.target_open(v, m, d, 0.2, args)
+    assert not OT.target_open(deque([.2], maxlen=2), m, d, 0.2, args)    # the window is not full yet
+    assert not OT.target_open(q(.1, .1), m, d, 0.2, args)                # no real help in training
+    assert not OT.target_open(v, m, d, 0.1, args)                        # no real help at the last dev
+    assert not OT.target_open(v, m, q(.25, .25), 0.2, args)              # the same messages everywhere
+    assert not OT.target_open(v, q(.05, .05), d, 0.2, args)              # help that wrong messages give as well
+    dev = dict(fill=dict(closed=.9), doc=dict(closed=.1), pair=dict(closed=.3), _all=dict(closed=.5))
+    assert OT.value_outside_fill(dev) == pytest.approx(0.2)
+    alive = dict(a=dict(gap=.1, gap_se=.01), b=dict(gap=.02, gap_se=.01), c=dict(gap=.1), _all=dict(gap=1, gap_se=.01))
+    assert OT.families_alive(alive, 3) == 1
+
+
+def test_family_norm_and_contrast_against_none():
+    net, rng = net_of(m=3), random.Random(11)
+    eps = [episode(rng, i, f, teacher=f != 'fill') for i, f in enumerate(['doc', 'pair', 'fill'])]
+    base, _ = net.loss(eps)
+    net.family_scale = dict(doc=2.0, pair=2.0, fill=2.0)
+    halved, _ = net.loss(eps)
+    assert float(halved) == pytest.approx(float(base) / 2, rel=1e-4)
+    net.contrast_ref = 'none'
+    loss, parts = net.loss(eps, contrast=1.0, target=0.2)
+    assert {'value', 'value_nf', 'margin', 'margin_n', 'distinct_msgs'} <= set(parts)
+    assert 0 < parts['distinct_msgs'] <= 1
+    loss.backward()
+    assert sum(float(p.grad.abs().sum()) for n, p in net.model.named_parameters() if 'lora_A' in n) > 0
+
+
+def test_messages_cannot_carry_later_turns():
+    net, rng = net_of(m=3), random.Random(12)
+    for f in ('chat_alt', 'doc'):
+        ep = episode(rng, 0, f, turns=3)
+        later = dict(ep, turns=[dict(t) for t in ep['turns']])
+        for t in later['turns'][1:]:
+            t['user'] = 'Something else entirely, about twelve kinds of cheese.'
+            t['response_ids'] = list(reversed(t['response_ids']))
+        one, two = net.decode([ep])[0], net.decode([later])[0]
+        assert one[0] == two[0]                                          # turn 0's messages never see turn 1
+        b = net.build(ep, ep['turns'][1]['who'], one)
+        first_later = min(pos for k, pos, _ in b['ans'] if k >= 1)       # and sit before any later answer
+        assert all(pos < first_later for pos, g in b['recv'] if g < len(one[0]))
+
+
+def test_a_target_run_holds_and_goes_back_to_the_latest_good_dev(tmp_path, monkeypatch):
+    monkeypatch.setattr(OT, 'target_open', lambda *a: True)
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .4, 100., 0.), (.3, .3, 100., 0.), (.0, .01, 100., 0.)], 4,
+                        '--dev_every', '2', '--protect', '1', '--lam_p', '0', '--letter_charge', 'target',
+                        '--contrast_ref', 'none', '--family_norm', '1', '--target0', '0.4', '--target_half', '2',
+                        '--target_window', '1', '--value_bar', '-10', '--min_msgs', '0', '--min_alive', '2',
+                        '--bias_k', '2', '--lam0', '1', '--lam_min', '0.5', '--log_every', '1')
+    steps = [r for r in rows if 'target' in r and 'kl' in r]
+    assert [r['step'] for r in rows if r.get('new_best')] == [0, 2]      # the latest good dev, whatever its letters
+    back = next(r for r in rows if r.get('rollback'))
+    assert back['why'] == 'dead' and back['to'] == 2 and back['half'] == 4
+    assert steps[-1]['target'] < 0.4 and steps[-1]['open'] is True
+    st = json.loads((tmp_path / 'ckpt' / 'state.json').read_text())
+    assert st['family_scale'] == dict(doc=0.5, pair=0.5, fill=0.5, chat_alt=0.5) and st['best']['step'] == 2
+    assert st['target'] == pytest.approx(st['best']['target'])           # the target is restored with the weights
+    assert st['best']['target'] < 0.4
+    assert st['half'] == 4                                               # the run's end is no second go-back
+    assert json.loads((tmp_path / 'ckpt' / 'talk.json').read_text())['bias'] == 2.0   # 2 * lam0, fixed
