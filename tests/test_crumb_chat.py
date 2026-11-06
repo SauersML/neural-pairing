@@ -59,7 +59,8 @@ def test_stages(setup):
     assert kl['alone'][1] > 100 * abs(kl['with_b'][1])  # A's second turn was read without B's first
     for st in ('alone_future', 'alone_span', 'alone_system'):  # B's first turn reads more, or the same at other places
         assert kl[st][0] > 100 * abs(kl['alone'][0])
-    for st in ('framed', 'ordered', 'no_system', 'true_pos', 'parts', 'cut_agent'):
+    for st in ('framed', 'ordered', 'no_system', 'true_pos', 'parts', 'cut_agent', 'marked', 'marked_no_system',
+               'marked_true_pos', 'chat_walker', 'chat_walker_no_b_system', 'alone_both_system'):
         assert kl[st][0] > 1e-8 and kl[st][1] > 1e-8
     assert kl['framed'] != kl['ordered'] and kl['ordered'] != kl['no_system'] and kl['no_system'] != kl['true_pos']
     got = CC.summary([r, r])
@@ -72,8 +73,10 @@ def test_stages(setup):
 
 def test_streams(setup, tok):
     net, rec, _ = setup
-    ids, spans = CC.framed_stream(net, rec, 'A')
+    ids, spans, marks = CC.framed_stream(net, rec, 'A')
     assert [k for k, _, _ in spans] == [0, 2, 4]
+    assert all(m[1] < s[1] and s[2] < m[2] for s, m in zip(spans, marks))
+    assert tok.decode(ids[marks[1][1]:marks[1][2]]).endswith('<|im_end|>\n')
     assert tok.decode(ids[spans[1][1]:spans[1][2]]).startswith('Part 2:\nA user asked you:\nrequest 2')
     chat, turn, starts = CC.chat_tokens(rec)
     assert all(turn[i] == k for k, s in starts.items() for i in [s])
@@ -83,3 +86,28 @@ def test_streams(setup, tok):
         assert sum(i < 0 for i in index) == (len(net._ids(f'<|im_start|>system\n{CO.READER}<|im_end|>\n')) if system else 0)
         assert all(got[at[k]] == rec['turns'][k]['response_ids'][0] for k in reader)
         assert all(t in reader for t, i in zip(turns, index) if i >= 0)
+
+
+def test_split_episode_is_alone(setup, tok):
+    """crumb_open's --split, adapter off, is the ladder's alone: the same tokens at the same places read in the same
+    order; and the two streams put back by position are the whole chat."""
+    net, rec, _ = setup
+    ladder = CC.row(net, rec, CO.episode(net, rec, 64, 8), 'cpu', 6144)
+    alone, cut = ladder['alone'], ladder['cut_plain']
+    net.remember = net.split = True
+    try:
+        ep = CO.episode(net, rec, 64, 8)
+        assert [s['place'] for s in ep['agents'][0]['segments']] == [0, 1]      # A's last turn: no B turn reads it
+        assert [s['place'] for s in ep['agents'][1]['segments']] == [0, 1]
+        got = CO.kl_pass(net, [ep], 'cpu', ('on',), zero=True)['on'][0]
+        a, b = net.stream(ep, 0), net.stream(ep, 1)
+    finally:
+        net.remember = net.split = False
+    for t in (0, 1):
+        assert got[t][1] == alone[t][1]
+        assert abs(got[t][0] - alone[t][0]) < .01 * cut[t][0]   # float32 rounding of the rest of the vocabulary aside
+    chat, turn, _ = CC.chat_tokens(rec)
+    placed = dict(zip(a['pos'] + b['pos'], a['ids'] + b['ids']))
+    kept = max(placed) + 1
+    assert sorted(placed) == list(range(kept)) and [placed[i] for i in range(kept)] == chat[:kept]
+    assert len(a['slots']) == len(a['ids']) and not any(a['target'])

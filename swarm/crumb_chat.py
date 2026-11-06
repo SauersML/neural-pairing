@@ -15,8 +15,12 @@ reader as it is now to the teacher, one change at a time:
   with_b      ... and A's keys and values come from one pass over the whole chat, B's turns included: the teacher's own
               keys and values, which must give a KL of about 0
 and to one side, each one change from alone: alone_future (B reads A's later turns too), alone_span (B's tokens SPAN
-positions after A's, A's at their own count) and alone_system (B has its system line back). cut_agent and cut_plain are
-B alone with and without its system line, whole_chat the whole chat in one pass (the check on the cached teacher).
+positions after A's, A's at their own count) and alone_system (B has its system line back). From ordered, why the framed
+text gets worse without B's system line: marked, marked_no_system and marked_true_pos are ordered, no_system and true_pos
+with each part's chat markers among the crumbs. The split as it could run: chat_walker (A's own turns in the chat's format
+under its system line, B under its own, SPAN after), chat_walker_no_b_system, and alone_both_system (both system lines,
+true positions). cut_agent and cut_plain are B alone with and without its system line, whole_chat the whole chat in one
+pass (the check on the cached teacher).
 Writes one JSON: per stage the KL per answer token, the cut it is measured against, the closed share with a 95% interval
 over episodes, and the same per B turn index.
 Usage: python swarm/crumb_chat.py --data DIR --out OUT.json [--family chat_alt --split eval_seen --n_eval 600]"""
@@ -33,8 +37,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from swarm import crumb_open as CO                      # noqa: E402
 from swarm import crumbs as C                           # noqa: E402
 
-AGENT_STAGES = ('parts', 'framed', 'ordered', 'alone_system')   # against cut_agent; the rest against cut_plain
-PLAIN_STAGES = ('no_system', 'true_pos', 'alone', 'with_b', 'alone_future', 'alone_span', 'whole_chat')
+AGENT_STAGES = ('parts', 'framed', 'ordered', 'alone_system', 'marked', 'chat_walker', 'alone_both_system')   # against cut_agent
+PLAIN_STAGES = ('no_system', 'true_pos', 'alone', 'with_b', 'alone_future', 'alone_span', 'whole_chat', 'marked_no_system',
+                'marked_true_pos', 'chat_walker_no_b_system')          # against cut_plain
 
 
 def chat_tokens(rec):
@@ -92,9 +97,9 @@ def score(net, h, rec, starts, device):
 
 def framed_stream(net, rec, walker):
     """A's framed text, one part per A turn as crumb_open's material: its ids, and per part (turn, first and last + 1
-    index of its text in ids)."""
+    index of its text in ids), and the same with its chat markers."""
     ids = net._ids(f'<|im_start|>system\n{CO.WALKER}<|im_end|>\n')
-    spans, i = [], 0
+    spans, marks, i = [], [], 0
     head = net._ids('<|im_start|>user\n')
     for k, t in enumerate(rec['turns']):
         if t['who'] != walker:
@@ -104,7 +109,8 @@ def framed_stream(net, rec, walker):
         start = len(ids)
         ids = ids + net._ids(f'<|im_start|>user\n{user}<|im_end|>\n')
         spans.append((k, start + len(head), start + len(net._ids(f'<|im_start|>user\n{user}'))))
-    return ids, spans
+        marks.append((k, start, len(ids)))
+    return ids, spans, marks
 
 
 def reader_stream(net, chat, turn, starts, reader, system):
@@ -138,7 +144,7 @@ def stages(net, rec, device, span):
 
     out['cut_plain'] = forward_cut(net, device, chat, turn, starts, reader, rec, False)
     # A's framed text
-    fids, spans = framed_stream(net, rec, walker)
+    fids, spans, marks = framed_stream(net, rec, walker)
     idx = [i for _, a, b in spans for i in range(a, b)]
     ent = [k for k, a, b in spans for _ in range(a, b)]
     _, fkv = forward(net, device, fids, list(range(len(fids))), capture=True)
@@ -162,6 +168,12 @@ def stages(net, rec, device, span):
         placed[i] = placed[i] if placed[i] is not None else placed[i - 1] + 1
     _, tkv = forward(net, device, fids, placed, capture=True)
     out['true_pos'] = reading(False, taken(tkv, idx, device), ent)
+    # the same three with the parts' chat markers among the crumbs
+    midx = [i for _, a, b in marks for i in range(a, b)]
+    ment = [k for k, a, b in marks for _ in range(a, b)]
+    out['marked'] = reading(True, taken(fkv, midx, device), ment, positions=counted(True))
+    out['marked_no_system'] = reading(False, taken(fkv, midx, device), ment, positions=counted(False))
+    out['marked_true_pos'] = reading(False, taken(tkv, midx, device), ment)
     # A's own turns in the chat's format, without B's
     mine = [i for i, k in enumerate(turn) if k not in reader]
     a_ids, a_turn = [chat[i] for i in mine], [turn[i] for i in mine]
@@ -173,6 +185,15 @@ def stages(net, rec, device, span):
     out['alone_system'] = reading(True, abank, a_turn)
     _, ckv = forward(net, device, a_ids, every, capture=True)
     out['alone_span'] = reading(False, taken(ckv, every, device), a_turn, positions=counted(False))
+    # the split as it could run: A's turns in the chat's format under its system line, not itself among the crumbs
+    line = net._ids(f'<|im_start|>system\n{CO.WALKER}<|im_end|>\n')
+    n = len(line)
+    _, wkv = forward(net, device, line + a_ids, list(range(n + len(a_ids))), capture=True)
+    wbank = taken(wkv, [n + i for i in every], device)
+    out['chat_walker'] = reading(True, wbank, a_turn, positions=counted(True))
+    out['chat_walker_no_b_system'] = reading(False, wbank, a_turn, positions=counted(False))
+    _, bkv = forward(net, device, line + a_ids, list(range(-n, 0)) + mine, capture=True)
+    out['alone_both_system'] = reading(True, taken(bkv, [n + i for i in every], device), a_turn)
     # A's keys and values from the whole chat: B reading them is the teacher again
     out['with_b'] = reading(False, taken(full_kv, mine, device), a_turn)
     return out

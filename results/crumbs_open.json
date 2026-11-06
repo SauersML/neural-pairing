@@ -2612,5 +2612,305 @@
     }
    }
   }
+ },
+ "even64": {
+  "role": "a record, not followed up (plain full KV is the direction now): the trained adapter's crumbs are the keys and values of 64 evenly spaced tokens per walker visit",
+  "run": "magic-crumbs36",
+  "commit": "06c6656",
+  "m": null,
+  "micro": 1,
+  "dev": [
+   {
+    "step": 200,
+    "on": 0.2039,
+    "cut": 0.4683,
+    "closed": 0.5647
+   },
+   {
+    "step": 400,
+    "on": 0.1548,
+    "cut": 0.4789,
+    "closed": 0.6767
+   },
+   {
+    "step": 600,
+    "on": 0.1409,
+    "cut": 0.5108,
+    "closed": 0.7242
+   },
+   {
+    "step": 800,
+    "on": 0.1308,
+    "cut": 0.5164,
+    "closed": 0.7467
+   },
+   {
+    "step": 1000,
+    "on": 0.1235,
+    "cut": 0.5396,
+    "closed": 0.7711
+   },
+   {
+    "step": 1200,
+    "on": 0.1178,
+    "cut": 0.5472,
+    "closed": 0.7846
+   },
+   {
+    "step": 1400,
+    "on": 0.1155,
+    "cut": 0.5498,
+    "closed": 0.7899
+   }
+  ],
+  "steps_run": 1500,
+  "epochs": 2,
+  "cost_usd": 0.8957,
+  "headline": {
+   "chat_alt eval_seen": {
+    "on": 0.1366,
+    "cut": 0.2237,
+    "closed_on": 0.3895,
+    "closed_transplant": -0.0818,
+    "closed_zero": 0.1576
+   },
+   "fill eval_seen": {
+    "on": 0.2797,
+    "cut": 3.7169,
+    "closed_on": 0.9248,
+    "closed_transplant": -0.078,
+    "closed_zero": 0.8477
+   },
+   "fill eval_heldout": {
+    "on": 0.357,
+    "cut": 4.5806,
+    "closed_on": 0.9221,
+    "closed_transplant": -0.1516,
+    "closed_zero": 0.8797
+   },
+   "chat_doc eval_seen": {
+    "on": 0.0846,
+    "cut": 0.22,
+    "closed_on": 0.6154,
+    "closed_transplant": -0.0679,
+    "closed_zero": 0.7505
+   },
+   "code eval_seen": {
+    "on": 0.1645,
+    "cut": 0.4515,
+    "closed_on": 0.6355,
+    "closed_transplant": -0.0755,
+    "closed_zero": 0.863
+   },
+   "debug eval_seen": {
+    "on": 0.0377,
+    "cut": 0.157,
+    "closed_on": 0.7599,
+    "closed_transplant": -0.1031,
+    "closed_zero": 0.8226
+   },
+   "doc eval_seen": {
+    "on": 0.1748,
+    "cut": 0.458,
+    "closed_on": 0.6183,
+    "closed_transplant": -0.0695,
+    "closed_zero": 0.8233
+   },
+   "pair eval_seen": {
+    "on": 0.259,
+    "cut": 0.6788,
+    "closed_on": 0.6185,
+    "closed_transplant": 0.034,
+    "closed_zero": 0.7075
+   },
+   "plan eval_seen": {
+    "on": 0.2199,
+    "cut": 0.3242,
+    "closed_on": 0.3218,
+    "closed_transplant": -0.0823,
+    "closed_zero": 0.2776
+   },
+   "doc eval_heldout": {
+    "on": 0.2461,
+    "cut": 0.5705,
+    "closed_on": 0.5686,
+    "closed_transplant": -0.0384,
+    "closed_zero": 0.8222
+   },
+   "pair eval_heldout": {
+    "on": 0.2872,
+    "cut": 0.6055,
+    "closed_on": 0.5256,
+    "closed_transplant": 0.0604,
+    "closed_zero": 0.6385
+   }
+  },
+  "all": {
+   "eval_seen": {
+    "on": 0.1488,
+    "cut": 0.4808,
+    "closed_on": 0.6905,
+    "closed_transplant": -0.067,
+    "closed_zero": 0.7146
+   },
+   "eval_heldout": {
+    "on": 0.2727,
+    "cut": 1.2506,
+    "closed_on": 0.782,
+    "closed_transplant": -0.0988,
+    "closed_zero": 0.8362
+   }
+  },
+  "even": 64
+ },
+ "mix48": {
+  "role": "a record, not followed up: 16 trained slots and 48 evenly spaced tokens per walker visit",
+  "run": "magic-crumbs37",
+  "commit": "06c6656",
+  "m": 16,
+  "micro": 1,
+  "dev": [
+   {
+    "step": 200,
+    "on": 0.243,
+    "cut": 0.4565,
+    "closed": 0.4678
+   },
+   {
+    "step": 400,
+    "on": 0.1905,
+    "cut": 0.4601,
+    "closed": 0.5859
+   },
+   {
+    "step": 600,
+    "on": 0.1779,
+    "cut": 0.5061,
+    "closed": 0.6486
+   },
+   {
+    "step": 800,
+    "on": 0.1648,
+    "cut": 0.4947,
+    "closed": 0.6669
+   },
+   {
+    "step": 1000,
+    "on": 0.1565,
+    "cut": 0.5007,
+    "closed": 0.6874
+   },
+   {
+    "step": 1200,
+    "on": 0.1487,
+    "cut": 0.5151,
+    "closed": 0.7113
+   },
+   {
+    "step": 1400,
+    "on": 0.1478,
+    "cut": 0.5211,
+    "closed": 0.7164
+   }
+  ],
+  "steps_run": 1500,
+  "epochs": 2,
+  "cost_usd": 0.9025,
+  "headline": {
+   "chat_alt eval_seen": {
+    "on": 0.1466,
+    "cut": 0.2234,
+    "closed_on": 0.344,
+    "closed_transplant": -0.0789,
+    "closed_zero": 0.1579
+   },
+   "fill eval_seen": {
+    "on": 0.452,
+    "cut": 3.3824,
+    "closed_on": 0.8664,
+    "closed_transplant": -0.0896,
+    "closed_zero": 0.8478
+   },
+   "fill eval_heldout": {
+    "on": 0.6023,
+    "cut": 4.2717,
+    "closed_on": 0.859,
+    "closed_transplant": -0.1353,
+    "closed_zero": 0.8797
+   },
+   "chat_doc eval_seen": {
+    "on": 0.0952,
+    "cut": 0.2163,
+    "closed_on": 0.5598,
+    "closed_transplant": -0.0693,
+    "closed_zero": 0.7508
+   },
+   "code eval_seen": {
+    "on": 0.1969,
+    "cut": 0.4384,
+    "closed_on": 0.5509,
+    "closed_transplant": -0.0923,
+    "closed_zero": 0.8632
+   },
+   "debug eval_seen": {
+    "on": 0.0422,
+    "cut": 0.153,
+    "closed_on": 0.7244,
+    "closed_transplant": -0.1428,
+    "closed_zero": 0.8222
+   },
+   "doc eval_seen": {
+    "on": 0.2003,
+    "cut": 0.4505,
+    "closed_on": 0.5555,
+    "closed_transplant": -0.0681,
+    "closed_zero": 0.8234
+   },
+   "pair eval_seen": {
+    "on": 0.2846,
+    "cut": 0.672,
+    "closed_on": 0.5765,
+    "closed_transplant": 0.0224,
+    "closed_zero": 0.7077
+   },
+   "plan eval_seen": {
+    "on": 0.2262,
+    "cut": 0.3195,
+    "closed_on": 0.2919,
+    "closed_transplant": -0.1194,
+    "closed_zero": 0.2794
+   },
+   "doc eval_heldout": {
+    "on": 0.2745,
+    "cut": 0.5615,
+    "closed_on": 0.5111,
+    "closed_transplant": -0.038,
+    "closed_zero": 0.8222
+   },
+   "pair eval_heldout": {
+    "on": 0.312,
+    "cut": 0.598,
+    "closed_on": 0.4782,
+    "closed_transplant": 0.0562,
+    "closed_zero": 0.6385
+   }
+  },
+  "all": {
+   "eval_seen": {
+    "on": 0.1722,
+    "cut": 0.4609,
+    "closed_on": 0.6264,
+    "closed_transplant": -0.0745,
+    "closed_zero": 0.7148
+   },
+   "eval_heldout": {
+    "on": 0.3368,
+    "cut": 1.1915,
+    "closed_on": 0.7174,
+    "closed_transplant": -0.0875,
+    "closed_zero": 0.8362
+   }
+  },
+  "even": 48
  }
 }

@@ -288,3 +288,29 @@ def test_even_and_mix_sources(tok):
     for bad in ('even', 'mix0', 'evens', 'last-1'):
         with pytest.raises(ValueError):
             C.kv_source(bad)
+
+
+def test_true_order(tok):
+    """net.remember: each reader turn reads only what the walker wrote before it, and no reader turn reads what comes
+    after the last one. Changing A's second turn leaves B's first turn alone and moves its second."""
+    net = tiny(tok, 'kv', 16)
+    net.source, net.remember = 'sentence', True
+    net.eval()
+    rec = record(tok, 0, 'chat_alt')                   # A B A B A
+    attach(net, tok, rec)
+    ep = CO.episode(net, rec, 64, 8)
+    assert [s['place'] for s in ep['agents'][0]['segments']] == [0, 1]
+    assert [s['place'] for s in ep['agents'][1]['segments']] == [0, 1]
+    assert 'request 4' not in ''.join(s['user'] for s in ep['agents'][0]['segments'])
+    base = CO.kl_pass(net, [ep], 'cpu', ('on', 'cut'), zero=True)
+    rec2 = dict(rec, turns=[dict(t) for t in rec['turns']])
+    rec2['turns'][2]['response'] = 'something else altogether, with other words in it'
+    more = CO.kl_pass(net, [CO.episode(net, rec2, 64, 8)], 'cpu', ('on', 'cut'), zero=True)
+    assert more['on'][0][0][0] == pytest.approx(base['on'][0][0][0], rel=1e-5, abs=1e-9)
+    assert abs(more['on'][0][1][0] - base['on'][0][1][0]) > 1e-8
+    rec3 = dict(rec, turns=[dict(t, who=w) for t, w in zip(rec['turns'], 'BABAB')])
+    attach(net, tok, rec3)
+    first = CO.episode(net, rec3, 64, 8)
+    assert [s['place'] for s in first['agents'][0]['segments']] == [1, 2]       # B speaks first: nothing to read yet
+    got = CO.kl_pass(net, [first], 'cpu', ('on', 'cut'), zero=True)
+    assert got['on'][0][0][0] == pytest.approx(got['cut'][0][0][0], rel=1e-5, abs=1e-9)

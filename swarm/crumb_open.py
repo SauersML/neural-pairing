@@ -112,17 +112,62 @@ def targets(rec, k):
     return ids[:, None].expand(-1, K).contiguous(), lp
 
 
+def in_order(net, rec, w, part_tokens, most):
+    """[(place, part)]: the walker's framed material in the chat's order, its place the number of reader turns before
+    it, so reader turn i (at place i, with net.remember) reads only what was written by then. Its view comes first, and
+    what comes after the reader's last turn is left out: no reader turn reads it."""
+    view, seen, pieces = rec['views'].get(w, '').strip(), 0, []
+    if view:
+        pieces.append((0, view))
+    for t in rec['turns']:
+        if t['who'] == w:
+            pieces.append((seen, f'A user asked you:\n{t["user"]}\n\nYou answered:\n{t["response"]}'))
+        else:
+            seen += 1
+    return [(p, x) for p, text in pieces if p < seen for x in parts(net, text, part_tokens, most)][:most]
+
+
+def split_chat(net, rec, w, part_tokens, most):
+    """The walker's segments when the chat is split into two agents' own chats: its view, cut to most parts, and each
+    turn it answered before the reader's last, in the chat's own format, with its turn index (the view's None)."""
+    view = ''.join(parts(net, rec['views'].get(w, '').strip(), part_tokens, most))
+    out = [(None, dict(place=0, user=view.strip(), say=None, values=None, context=True))] if view.strip() else []
+    total, seen = sum(t['who'] != w for t in rec['turns']), 0
+    for k, t in enumerate(rec['turns']):
+        if t['who'] != w:
+            seen += 1
+        elif seen < total:
+            say = list(t['response_ids'])
+            say = say[:-1] if say and say[-1] == net.end else say
+            out.append((k, dict(place=seen, user=t['user'], say=t['response'], say_ids=say, values=None, context=True)))
+    return out
+
+
+def seg_tokens(net, seg):
+    """The tokens a segment takes in a stream."""
+    n = len(net._ids(f'<|im_start|>user\n{seg["user"]}<|im_end|>\n'))
+    return n + (len(net.head) + len(seg['say_ids']) + 1 + len(net.nl) if seg['say'] is not None else 0)
+
+
 def episode(net, rec, part_tokens, most, teacher=True):
     """A crumbs.py episode of one opendata record: the walker's visits to the desk, then the reader's conversation
     there (the teacher's top-k on every answer token when teacher). None when a side is empty or a stream is longer
-    than SPAN."""
+    than SPAN. net.remember: the reader reads only what the walker wrote before each of its turns. net.split: also, no
+    system lines, the walker's own turns in the chat's format, and every token at its position in the whole chat."""
     w, r = sides(rec)
-    ps = parts(net, material(rec, w), part_tokens, most)
     mine = [k for k, t in enumerate(rec['turns']) if t['who'] == r]
+    if net.split:
+        written = split_chat(net, rec, w, part_tokens, most)
+        ps = [s for _, s in written]
+    elif net.remember:
+        ps = [dict(place=p, user=f'Part {k + 1}:\n{x}', say=None, values=None)
+              for k, (p, x) in enumerate(in_order(net, rec, w, part_tokens, most))]
+    else:
+        ps = [dict(place=0, user=f'Part {k + 1}:\n{p}', say=None, values=None)
+              for k, p in enumerate(parts(net, material(rec, w), part_tokens, most))]
     if not ps or not mine:
         return None
-    walker = dict(name='agent A', system=WALKER, write=True,
-                  segments=[dict(place=0, user=f'Part {k + 1}:\n{p}', say=None, values=None) for k, p in enumerate(ps)])
+    walker = dict(name='agent A', system=None if net.split else WALKER, write=True, segments=ps)
     view, segs = rec['views'].get(r, '').strip(), []
     for i, k in enumerate(mine):
         turn = rec['turns'][k]
@@ -136,10 +181,17 @@ def episode(net, rec, part_tokens, most, teacher=True):
         if teacher and (tg is None or len(tg[0]) < n):
             return None
         user = f'{view}\n\n{turn["user"]}' if i == 0 and view else turn['user']
-        segs.append(dict(place=0, user=user, say=turn['response'], say_ids=say, values=None,
+        segs.append(dict(place=i if net.remember else 0, user=user, say=turn['response'], say_ids=say, values=None,
                          teacher=None if tg is None else (tg[0][:n], tg[1][:n])))
+    if net.split:                                      # every token where it sits in the whole chat
+        at, by_turn = 0, dict(written)
+        by_turn.update(zip(mine, segs))
+        for k in (None, *range(len(rec['turns']))):
+            if k in by_turn:
+                by_turn[k]['at'] = at
+                at += seg_tokens(net, by_turn[k])
     ep = dict(game='open', places=['the desk'],
-              agents=[walker, dict(name='agent B', system=READER, write=False, segments=segs)],
+              agents=[walker, dict(name='agent B', system=None if net.split else READER, write=False, segments=segs)],
               open=dict(id=rec['id'], source=rec['source'], family=rec.get('family'), split=rec['split'],
                         visits=len(ps)))
     try:
@@ -351,6 +403,11 @@ def main():
     ap.add_argument('--rerope', action='store_true',
                     help="the crumbs' keys re-rotated to sit just before the reader's first token (else they keep "
                          "the walker's positions, about SPAN before the reader)")
+    ap.add_argument('--order', action='store_true',
+                    help='each reader turn reads only what the walker wrote before it in the chat')
+    ap.add_argument('--split', action='store_true',
+                    help="--order, and the chat split into two agents' own real chats: no system lines, the walker's "
+                         'turns in the chat format, chat markers among the crumbs, every token at its true position')
     ap.add_argument('--steps', type=int, default=1500)
     ap.add_argument('--batch', type=int, default=4)
     ap.add_argument('--micro', type=int, default=2)
@@ -370,6 +427,7 @@ def main():
     C.SPAN, C.CHUNK = args.span, 2
     net = C.build(args.device, 'kv', args.m, base=args.base, ckpt=not args.no_ckpt)
     net.source, net.rerope = args.source, args.rerope
+    net.remember, net.split = args.order or args.split, args.split
     train_recs = records(args.data, 'train', args.seed)
     dev = []
     for rec in train_recs:

@@ -160,6 +160,7 @@ class Crumbs(nn.Module):
         # first token at the place (else they keep the writer's positions); remember lets each reader token see the
         # crumbs of every place it has been at (else only the place it is at)
         self.source, self.rerope, self.remember = 'slots', False, False
+        self.split = False                             # crumb_open: the chat split into two agents' own real chats
         if arm == 'sym':
             self.banned = letter_table(tok, model.config.vocab_size)[1]
             self.masks = LT.LetterMasks(tok, model.config.vocab_size)   # letters by the bytes pending before a token
@@ -222,10 +223,15 @@ class Crumbs(nn.Module):
         slot index)]: the note tokens it reads. A segment may give its say as token ids (say_ids) and a teacher's
         top-k for them (teacher: (ids [T, k], log-probs [T, k]) per say token, and one more row for the closing
         <|im_end|> when the teacher ended there): then tk holds, per token, its row in the stream's tk_ids and tk_lp
-        (-1: none, cross-entropy)."""
+        (-1: none, cross-entropy). An agent's system may be None: no system line. A segment with context: a writer's own
+        past turn, its say no target and all its tokens, chat markers too, the crumbs. A segment with at: its first
+        token's position in the whole chat; the stream then has pos, every token's position."""
         agent, remap = ep['agents'][a], remap or {}
-        system = agent['system'] + (f'\n{self.hint}' if self.arm == 'sym' and agent['write'] and self.hint else '')
-        ids = self._ids(f'<|im_start|>system\n{system}<|im_end|>\n')
+        system = agent['system']
+        if system is not None and self.arm == 'sym' and agent['write'] and self.hint:
+            system = f'{system}\n{self.hint}'
+        ids = [] if system is None else self._ids(f'<|im_start|>system\n{system}<|im_end|>\n')
+        true = list(range(-len(ids), 0))
         place, target, seg_of, kind = [-1] * len(ids), [False] * len(ids), [-1] * len(ids), [-1] * len(ids)
         slots, asks, reads, tk, tk_ids, tk_lp = [], [], [], [-1] * len(ids), [], []
 
@@ -240,6 +246,7 @@ class Crumbs(nn.Module):
         for s, seg in enumerate(agent['segments']):
             p = -1 if seg['place'] is None else seg['place']
             user = seg['user']
+            seg0 = len(ids)
             if self.arm == 'text' and p >= 0:
                 notes = [f'A note left here: {w["user"]}' + ('' if w['say'] is None else f' {w["say"]}')
                          for b in ep['agents'][:a] if b['write'] for w in b['segments'] if w['place'] == p]
@@ -277,20 +284,24 @@ class Crumbs(nn.Module):
                     tk_lp.append(seg['teacher'][1])
                     end = n0 + len(say) if len(seg['teacher'][0]) > len(say) else -1
                     rows = [n0 + i for i in range(len(say))] + [end]
-                add(say + [self.end], rp, True, sg=s, rows=rows)
+                add(say + [self.end], rp, not seg.get('context'), sg=s, rows=rows)
                 add(self.nl, rp)
             if agent['write'] and p >= 0 and self.arm == 'kv':
-                slots.extend((t, p) for t in taken(span, self.source))
+                slots.extend((t, p) for t in taken(range(seg0, len(ids)) if seg.get('context') else span, self.source))
             if (agent['write'] and p >= 0 and self.arm in CRUMB_ARMS
                     and (self.arm != 'kv' or self.source == 'slots' or self.source.startswith('mix'))):
                 for j in range(self.m):
                     slots.append((len(ids), p))
                     if self.arm != 'sym':
                         add([self.tok.pad_token_id], rp, k=j)
+            if 'at' in seg:
+                true.extend(range(seg['at'], seg['at'] + len(ids) - seg0))
         if len(ids) > SPAN:
             raise ValueError(f'agent stream of {len(ids)} tokens is longer than SPAN')
         out = dict(ids=ids, place=place, target=target, seg=seg_of, kind=kind, slots=slots, asks=asks, reads=reads,
                    tk=tk)
+        if len(true) == len(ids) and any('at' in seg for seg in agent['segments']):
+            out['pos'] = true
         if tk_ids:
             out['tk_ids'], out['tk_lp'] = torch.cat(tk_ids), torch.cat(tk_lp)
         return out
@@ -301,6 +312,9 @@ class Crumbs(nn.Module):
         fill = dict(ids=self.tok.pad_token_id, place=-1, target=False, seg=-1, kind=-1, tk=-1)
         out = {k: torch.full((len(rows), T), v, dtype=torch.bool if k == 'target' else torch.long)
                for k, v in fill.items()}
+        if all('pos' in r for r in rows):
+            fill['pos'] = 0
+            out['pos'] = torch.zeros((len(rows), T), dtype=torch.long)
         out['att'] = torch.zeros((len(rows), T), dtype=torch.long)
         for i, r in enumerate(rows):
             n = len(r['ids'])
@@ -369,7 +383,7 @@ class Crumbs(nn.Module):
             emb = torch.where((x['kind'] >= 0)[..., None], self.crumb.to(emb.dtype)[x['kind'].clamp(min=0)], emb)
         if self.arm == 'sym' and x.get('rpos') is not None and x['rpos'].shape[1]:
             emb, att = self._read_tokens(rows, x, emb, att, bank, on)
-        pos = (att.cumsum(-1) - 1).clamp(min=0) + (a * SPAN if self.arm == 'kv' else 0)
+        pos = x['pos'] if 'pos' in x else (att.cumsum(-1) - 1).clamp(min=0) + (a * SPAN if self.arm == 'kv' else 0)
         S = bank['place'].shape[1] if self.arm in ('resid', 'kv') else 0
         allow = None
         if S:
@@ -442,7 +456,7 @@ class Crumbs(nn.Module):
             ks, vs = [put(k) for k in ks], [put(v) for v in vs]
             out['k'] = ks if bank['k'] is None else [torch.cat([o, x], 2) for o, x in zip(bank['k'], ks)]
             out['v'] = vs if bank['v'] is None else [torch.cat([o, x], 2) for o, x in zip(bank['v'], vs)]
-            wpos = put(((x['att'].cumsum(-1) - 1).clamp(min=0) + a * SPAN).gather(1, idx))
+            wpos = put((x['pos'] if 'pos' in x else (x['att'].cumsum(-1) - 1).clamp(min=0) + a * SPAN).gather(1, idx))
             out['pos'] = [wpos] if bank.get('pos') is None else [torch.cat([bank['pos'][0], wpos], 1)]
         return out
 
