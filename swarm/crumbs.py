@@ -1427,6 +1427,19 @@ def load(out, device):
     return net
 
 
+CRUMB_PROBE = []    # eval only (crumb_select.py): f(layer, query, key, mask, S, scaling) sees each layer's attention
+CRUMB_KEEP = {}     # eval only: layer -> [N, kv heads, S] bool, the crumbs each key-value head may read
+
+
+def keep_heads(mask, keep, heads, S):
+    """mask [N, 1 or heads, T, S + T] (bool, or additive) with crumb s hidden from the query heads of each key-value
+    head whose keep [N, kv heads, S] is False."""
+    k = keep.repeat_interleave(heads // keep.shape[1], 1)[:, :, None, :]
+    m = mask.expand(-1, heads, -1, -1)
+    crumbs = m[..., :S] & k if m.dtype == torch.bool else torch.where(k, m[..., :S], torch.finfo(m.dtype).min)
+    return torch.cat([crumbs, m[..., S:]], -1)
+
+
 def crumb_attention(module, query, key, value, attention_mask, crumb_k=None, crumb_v=None, crumb_got=None, **kw):
     """kv arm: sdpa attention with the bank's crumb keys and values (crumb_k, crumb_v: per layer [N, kv heads, S, head
     dim]) in front of the stream's own; crumb_got collects each layer's keys and values, crumbs first (the first
@@ -1434,7 +1447,12 @@ def crumb_attention(module, query, key, value, attention_mask, crumb_k=None, cru
     from transformers.integrations.sdpa_attention import sdpa_attention_forward
     i = module.layer_idx
     if crumb_k is not None:
+        S = crumb_k[i].shape[2]
         key, value = torch.cat([crumb_k[i].to(key.dtype), key], 2), torch.cat([crumb_v[i].to(value.dtype), value], 2)
+        for f in CRUMB_PROBE:
+            f(i, query, key, attention_mask, S, module.scaling)
+        if i in CRUMB_KEEP:
+            attention_mask = keep_heads(attention_mask, CRUMB_KEEP[i], query.shape[1], S)
     if crumb_got is not None:
         crumb_got.setdefault(i, (key, value))
     return sdpa_attention_forward(module, query, key, value, attention_mask, **kw)
