@@ -120,30 +120,25 @@ def test_penalty_charges_what_the_note_gives_over_the_prior(tok, monkeypatch):
         assert net.sums['n_adv'] > 0 and float(net.sums['adv']) == pytest.approx(charged * net.sums['n_adv'])
 
 
-def test_penalty_reads_notes_warmed_token_by_token(tok, monkeypatch):
-    """However sure the writer, the first choice stands ONE_SURE nats over the second, and a token the writer is unsure of
-    stays as the run has it. The warm notes line up with the bank's, and the gradient reaches the writers through them."""
+def test_penalty_reads_the_real_tokens_with_the_gradient_through_warm_notes(tok):
+    """However sure the writer, its first choice keeps ONE_MASS, and a token the writer is unsure of stays as the run has it.
+    The penalty reads the argmax tokens themselves, and the gradient reaches the writers however sure they are."""
     net = tiny(tok, 'sym', 2)
     lora_effect(net)
     net.tau = .5
-    logits = torch.tensor([[900., 0., -5.], [1., 0., -5.], [50., 50., float('-inf')]])
+    logits = torch.tensor([[900., 0., -5.], [.1, 0., -.1], [50., 50., float('-inf')]])
     p = net._warm(logits)
-    assert float((p[0, 0] / p[0, 1]).log()) == pytest.approx(C.ONE_SURE, abs=1e-3)
+    assert float(p[0, 0]) == pytest.approx(C.ONE_MASS, abs=1e-3)
     assert torch.allclose(p[1], (logits[1] / net.tau).softmax(-1))
     assert p[2].tolist() == [.5, .5, 0.]
     net.train()
     net.adv, net.one_note = 1., True
     params = [q for q in net.model.parameters() if q.requires_grad]
-    eps = episodes('count', 3, False)
-    monkeypatch.setattr(C, 'ONE_SURE', 1e9)
     net.sums = collections.defaultdict(float)
-    bank = net.run(eps, 'cpu')[2]
-    assert bank['warm'][0].shape == bank['e'][0].shape and torch.allclose(bank['warm'][0], bank['e'][0])
-    monkeypatch.setattr(C, 'ONE_SURE', .01)
-    net.sums = collections.defaultdict(float)
-    bank = net.run(eps, 'cpu')[2]
-    hard = net.model.get_input_embeddings().weight[bank['ids'][0]]
-    assert (bank['warm'][0] - hard).norm() > (bank['e'][0] - hard).norm()
+    bank = net.run(episodes('count', 3, False), 'cpu')[2]
+    keep = bank['place'] >= 0
+    hard = net.model.get_input_embeddings().weight[bank['ids'][0]].to(bank['warm'][0].dtype)
+    assert torch.allclose(bank['warm'][0][keep], hard[keep], atol=1e-3)
     grads = torch.autograd.grad(net.sums['adv'], params, allow_unused=True)
     assert any(g is not None and float(g.abs().sum()) > 0 for g in grads)
 

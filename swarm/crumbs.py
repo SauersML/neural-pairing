@@ -91,7 +91,7 @@ RIGHT_EPS = 24                # sym, --protect: test-value episodes per game in 
 ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the untrained reader's one-note read
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
-ONE_SURE = 5.                  # sym, --one_note: the nats by which a token of the notes the penalty reads stands over its next
+ONE_MASS = .5                  # sym, --one_note: the share _warm leaves on a note token's first choice, for the penalty's gradient
 ONE_ADV_MOST = 8.              # sym, --one_note: the most a game's penalty weight grows to, by half each dev it stays read
 PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
@@ -574,7 +574,8 @@ class Crumbs(nn.Module):
             e = (p.to(E.dtype) @ E).to(cue.dtype) if soft else E[hard].to(cue.dtype)
             sent.append(e.detach() if train and self.detach_notes else e)
             if train and self.one_note and self.adv:
-                warm.append((self._warm(logits).to(E.dtype) @ E).to(cue.dtype))
+                q = self._warm(logits).to(E.dtype) @ E
+                warm.append((q + (E[hard] - q).detach()).to(cue.dtype))
             if mode == 'soft':
                 embs.append(e)
             elif mode == 'greedy':
@@ -583,11 +584,17 @@ class Crumbs(nn.Module):
         return torch.stack(sent, 2).reshape(N, Kn * m, -1), torch.stack(ids, 2).reshape(N, Kn * m)
 
     def _warm(self, logits):
-        """The note token's distribution for the penalty: softmax at the temperature, token by token, at which the writer's
-        first choice stands ONE_SURE nats over its second; never colder than the run's."""
-        two = logits.topk(2, -1).values.detach()
-        scale = (ONE_SURE / (two[..., 0] - two[..., 1]).clamp_min(1e-6)).clamp_max(1 / self.tau)
-        return ((logits - two[..., :1]) * scale[..., None]).softmax(-1)
+        """The note token's distribution for the penalty's gradient: softmax at the temperature, token by token, that
+        leaves ONE_MASS on the writer's first choice; never colder than the run's. A share and not a gap to the second
+        choice: with 150,000 tokens behind the first, the same gap left work's notes .9986 of the way to their token or
+        .27, with nothing useful between."""
+        with torch.no_grad():
+            low, high = logits.new_zeros(logits.shape[:-1]), logits.new_full(logits.shape[:-1], 1 / self.tau)
+            for _ in range(20):
+                mid = (low + high) / 2
+                over = (logits * mid[..., None]).softmax(-1).amax(-1) > ONE_MASS
+                low, high = low.where(over, mid), mid.where(over, high)
+        return (logits * high[..., None]).softmax(-1)
 
     def _track(self, p, hard, valid, j, pend):
         """Training, note token j: the sums of the letter mass (each note's letters after its pending bytes pend
@@ -803,11 +810,11 @@ class Crumbs(nn.Module):
         its log p had no slope to charge). No floor at chance: a reader whose prior says Safe stays under it on every note that says Trap,
         which is what one_note.moved reads. One way only: any two fixed strings move a reader by some amount, so charging
         moves either way asks trap's two-note code for the impossible (a run's follower fell to .73 with its read unchanged
-        at -.51). The notes it reads are _warm's: a code the writer is sure of has softmax(logits / tau) at one token and no
-        gradient at all. A run's count penalty of 2.5 nats at weight 3 had a median gradient norm of .011 (trail's whole
-        step had 6.3) and never moved those notes; on those weights its gradient was 0 at temperature 1. ONE_SURE 3 is too
-        warm: count's notes keep 4% of their mass on their token, the reader reads nothing and nothing is charged (.08
-        nats); at 5 they keep 51%, it is charged 2.4 nats with a gradient norm of 30; at 8, 99%, with .1."""
+        at -.51). The notes it reads are the argmax tokens readers will really see, with the gradient back through _warm: a
+        code the writer is sure of has softmax(logits / tau) at one token and no gradient at all. A run's count penalty of
+        2.5 nats at weight 3 had a median gradient norm of .011 (trail's whole step had 6.3) and never moved those notes.
+        Reading the warm notes themselves charges something else once they are warm enough to have a gradient: the reader
+        read nothing of count's at 4% of their mass on their token (.08 nats, against 11.1 on the real notes)."""
         items = [(b, ask) for b, ep in enumerate(eps) for ask in ON.asks(ep)]
         if not items:
             return
