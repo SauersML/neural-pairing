@@ -8,7 +8,8 @@ each of its task turns' requests, and the teacher's answer to each. Every answer
 the teacher never runs here) by KL(teacher || reader) on the teacher's top-32 plus one bucket for every other token.
 Fill-in turns (no teacher, real text) use the text itself as a one-hot teacher, so the KL there is the cross-entropy.
 The reader is the side named B unless B has no task turn. Crumbs come from the kv arm of swarm/crumbs.py: m slot tokens
-per visit (--source slots), or the keys and values of the visit's own part (sentence); --rerope re-rotates them to sit
+per visit (--source slots), or the keys and values of the visit's own part (sentence; evenN: N evenly spaced positions
+of it; mixN: those and the m slots); --rerope re-rotates them to sit
 just before the reader. Training: LoRA with gradient checkpointing, batches of episodes of similar length (sorted pools
 of POOL batches; when a pass over the training records ends before --steps, the next starts in a new order), a dev of 32
 training episodes (KL with the crumbs on and cut) every 200 steps, and the GPU's utilization logged at step 20 and every
@@ -343,8 +344,10 @@ def main():
     ap.add_argument('--data', required=True, help="opendata's folder for the teacher model (shards/ and teacher/)")
     ap.add_argument('--out', required=True)
     ap.add_argument('--base', default='Qwen/Qwen3-1.7B')
-    ap.add_argument('--source', default='slots', choices=('slots', 'sentence'))
-    ap.add_argument('--m', type=int, default=16, help='slot crumbs per visit (--source slots)')
+    ap.add_argument('--source', default='slots', type=C.kv_source,
+                    help='slots, sentence, lastN, evenN (N evenly spaced positions of the visit\'s part) or mixN (those '
+                         'N and the m slots)')
+    ap.add_argument('--m', type=int, default=16, help='slot crumbs per visit (--source slots or mixN)')
     ap.add_argument('--rerope', action='store_true',
                     help="the crumbs' keys re-rotated to sit just before the reader's first token (else they keep "
                          "the walker's positions, about SPAN before the reader)")

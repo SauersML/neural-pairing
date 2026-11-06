@@ -241,3 +241,50 @@ def test_rerope_reaches_the_reader(tok):
     loss = net.loss(eps, 'cpu')
     loss.backward()
     assert net.crumb.grad is not None and net.crumb.grad.abs().sum() > 0
+
+
+def test_even_and_mix_sources(tok):
+    """--source evenN keeps N evenly spaced tokens of each walker part (the positions crumb_select's even selection
+    keeps of the full copy) and adds no tokens; mixN keeps the same and adds the m slot tokens after each visit; both
+    train (the loss reaches the adapter, and for mix the slots), and the reader reads fewer crumbs than the full copy
+    (on differs, cut is the same)."""
+    from swarm import crumb_select as CS
+    torch.manual_seed(0)
+    net = tiny(tok, 'kv', 2)
+    recs = [attach(net, tok, record(tok, i, 'doc')) for i in range(2)]
+    eps = [CO.episode(net, r, 64, 3) for r in recs]
+    net.source = 'sentence'
+    full = [net.stream(ep, 0) for ep in eps]
+    for ep, st in zip(eps, full):
+        runs = CS.runs_of(net, ep)
+        assert len(runs) == 3 and all(b - a > 8 for a, b in runs)
+        keep = CS.even_keep(runs, len(st['slots']), 8)
+        want = [t for (t, _), k in zip(st['slots'], keep.tolist()) if k]
+        net.source = 'even8'
+        ev = net.stream(ep, 0)
+        assert [t for t, _ in ev['slots']] == want and ev['ids'] == st['ids'] and set(ev['kind']) == {-1}
+        net.source = 'mix8'
+        mx = net.stream(ep, 0)
+        slot_tokens = [t for t, k in enumerate(mx['kind']) if k >= 0]
+        assert len(slot_tokens) == 3 * net.m and len(mx['ids']) == len(st['ids']) + 3 * net.m
+        assert len(mx['slots']) == 3 * (8 + net.m) and {t for t, _ in mx['slots']} >= set(slot_tokens)
+        net.source = 'sentence'
+    got = {}
+    for source in ('sentence', 'even8', 'mix8'):
+        net.source = source
+        with torch.no_grad():
+            got[source] = CO.kl_pass(net, eps, 'cpu', ('on', 'cut'))
+        net.zero_grad(set_to_none=True)
+        loss = net.loss(eps, 'cpu')
+        loss.backward()
+        lora = [p.grad for n, p in net.named_parameters() if 'lora_' in n and p.grad is not None]
+        assert torch.isfinite(loss) and lora and sum(float(g.abs().sum()) for g in lora) > 0
+        crumb = net.crumb.grad
+        assert (crumb is not None and crumb.abs().sum() > 0) == (source == 'mix8')
+    tot = lambda g: sum(a for d in g for a, _ in d.values())
+    assert abs(tot(got['sentence']['cut']) - tot(got['even8']['cut'])) < 1e-5
+    assert abs(tot(got['sentence']['on']) - tot(got['even8']['on'])) > 1e-4 * tot(got['sentence']['on'])
+    assert C.kv_source('mix48') == 'mix48' and C.kv_source('even64') == 'even64'
+    for bad in ('even', 'mix0', 'evens', 'last-1'):
+        with pytest.raises(ValueError):
+            C.kv_source(bad)

@@ -56,6 +56,7 @@ import json
 import math
 from pathlib import Path
 import random
+import re
 import sys
 import time
 
@@ -85,6 +86,31 @@ ADV_RAMP = 300                # sym: steps over which the privacy terms ramp in 
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
 SPAN = 1024                                             # positions per agent (kv arm)
 MODES = ('on', 'off', 'swap', 'transplant')
+KV_SOURCES = ('slots', 'sentence', 'lastN', 'evenN', 'mixN')
+
+
+def kv_source(text):
+    """text if it names a kv crumb source (KV_SOURCES, N a positive whole number), else ValueError."""
+    if text in ('slots', 'sentence') or re.fullmatch(r'(last|even|mix)[1-9][0-9]*', text):
+        return text
+    raise ValueError(f'kv source {text!r} is none of {KV_SOURCES}')
+
+
+def taken(span, source):
+    """The positions of the writer's user text at a visit (span) that a kv source keeps as crumbs: all of them
+    (sentence), the last N (lastN), N evenly spaced over the text, its first and last token among them (evenN; mixN
+    adds the m slot tokens after the visit), all of a text of N or fewer, none (slots)."""
+    span = list(span)
+    if source == 'slots':
+        return []
+    if source == 'sentence':
+        return span
+    n = int(source[3:] if source.startswith('mix') else source[4:])
+    if source.startswith('last'):
+        return span[-n:]
+    if len(span) <= n:
+        return span
+    return [span[round(j * (len(span) - 1) / max(1, n - 1))] for j in range(n)]
 
 
 class Place(Bridge):
@@ -124,7 +150,8 @@ class Crumbs(nn.Module):
             std = float(model.get_input_embeddings().weight.float().std())
             self.crumb = nn.Parameter(torch.randn(m, d) * std)
         # kv arm: the crumbs are the K/V of m slot tokens after each segment (slots), or of the writer's own user text
-        # at that place (sentence; lastN: its last N tokens); rerope re-rotates them to sit just before the reader's
+        # at that place (sentence; lastN: its last N tokens; evenN: N evenly spaced; mixN: those N and the m slot
+        # tokens; taken); rerope re-rotates them to sit just before the reader's
         # first token at the place (else they keep the writer's positions); remember lets each reader token see the
         # crumbs of every place it has been at (else only the place it is at)
         self.source, self.rerope, self.remember = 'slots', False, False
@@ -246,10 +273,10 @@ class Crumbs(nn.Module):
                     rows = [n0 + i for i in range(len(say))] + [end]
                 add(say + [self.end], rp, True, sg=s, rows=rows)
                 add(self.nl, rp)
-            if agent['write'] and p >= 0 and self.arm == 'kv' and self.source != 'slots':
-                take = list(span) if self.source == 'sentence' else list(span)[-int(self.source[4:]):]
-                slots.extend((t, p) for t in take)
-            elif agent['write'] and p >= 0 and self.arm in CRUMB_ARMS:
+            if agent['write'] and p >= 0 and self.arm == 'kv':
+                slots.extend((t, p) for t in taken(span, self.source))
+            if (agent['write'] and p >= 0 and self.arm in CRUMB_ARMS
+                    and (self.arm != 'kv' or self.source == 'slots' or self.source.startswith('mix'))):
                 for j in range(self.m):
                     slots.append((len(ids), p))
                     if self.arm != 'sym':
