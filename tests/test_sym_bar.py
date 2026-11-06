@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from swarm import crumb_games as CG                    # noqa: E402
 from swarm import crumbs as C                           # noqa: E402
 from swarm import eavesdrop as E                        # noqa: E402
+from swarm import one_note as ON                        # noqa: E402
 from swarm import sym_bar as B                          # noqa: E402
 from swarm import sym_eaves as SE                       # noqa: E402
 
@@ -102,8 +103,8 @@ def test_right_answers_and_examples(tok):
 
 
 def test_one_note(tok, monkeypatch):
-    """Each scout's note alone: the gold is the number that scout saw; a reader that reads the digit after the note line
-    is right on every own note, and the plain English reads the same way; the examples come before the question."""
+    """Each note alone: the gold is the value its writer saw; a reader that reads the digit after the note line is right
+    on every own note, and the plain English reads the same way; the examples come before the question."""
     net = tiny(tok, 'sym', 2)
     (eps, notes), = notes_of(net, 'count', n=4)
     for ep, got in zip(eps, notes):
@@ -117,7 +118,7 @@ def test_one_note(tok, monkeypatch):
 
     def reads(model, tk, p, cands, device):
         seen.append(p)
-        assert list(cands) == [str(n) for n in range(1, 10)]
+        assert sorted(cands) == [str(n) for n in range(1, 10)]
         last = p.rsplit(C.NOTE, 1)[-1] if C.NOTE in p.rsplit('<|im_start|>user', 1)[-1] else ''
         last = last.split('there are ')[-1]
         digit = next((c for c in last if c.isdigit()), '9')
@@ -128,7 +129,8 @@ def test_one_note(tok, monkeypatch):
     assert got['notes'] == 12 and got['chance'] == round(1 / 9, 4)
     assert got['own'] == 1. and got['english_own'] == 1.
     assert abs(got['own_minus_swap'] - (got['own'] - got['swap'])) < 1e-3
-    assert len(got['examples']) == 12 and all(x['read'] == str(x['number']) for x in got['examples'])
+    assert len(got['examples']) == 12 and all(x['read'] == x['gold'] for x in got['examples'])
     seen.clear()
     B.one_note(None, tok, items, items, 2, 4, 'cpu')
-    assert seen[0].count('<|im_start|>assistant') == 3 and seen[0].count(B.ONE) == 3   # two examples and the question
+    question = ON.asks(eps[0])[0]['question']
+    assert seen[0].count('<|im_start|>assistant') == 3 and seen[0].count(question) == 3   # two examples and the question

@@ -69,13 +69,14 @@ from swarm import crumb_games as CG                    # noqa: E402
 from swarm import games as G                           # noqa: E402
 from swarm.link import LAYERS, Bridge, blocks           # noqa: E402
 from swarm import letters as LT                        # noqa: E402
+from swarm import one_note as ON                        # noqa: E402
 
 BASE = 'Qwen/Qwen3-0.6B'
 END = '<|im_end|>'
 CRUMB_ARMS = ('resid', 'kv', 'sym')
 SYM_TAU = (1.0, 0.3)          # sym arm: softmax temperature of the trained notes, start and end
 CUE = 'Leave a short note here for whoever comes next.'   # sym: the writer's user turn before each note
-NOTE = 'A note left here:'    # sym: what a reader's line starts with, before the note's tokens
+NOTE = ON.LINE                 # sym: what a reader's line starts with, before the note's tokens
 LETTERS = (300, 0.01)         # sym: letter penalty lam 0 up to step 300 (--letters_from), then 0.01, and after each
 LAM_RULE = (0.8, 1.5, 0.5)    # dev times 1.5 while the dev gap (cut minus hard NLL) holds 0.8 of its last value
                               # before the penalty, else times 0.5
@@ -87,6 +88,8 @@ ADV_RAMP = 300                # sym: steps over which the privacy terms ramp in 
 # weights' or its swap gap under this share of theirs; then back to the best weights at this times the learning rate
 PROTECT = (.5, .25, .5)
 RIGHT_EPS = 24                # sym, --protect: test-value episodes per game in a dev's right-answer numbers
+ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the untrained reader's one-note read
+ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
 SPAN = 1024                                             # positions per agent (kv arm)
@@ -161,6 +164,8 @@ class Crumbs(nn.Module):
         # crumbs of every place it has been at (else only the place it is at)
         self.source, self.rerope, self.remember = 'slots', False, False
         self.split = False                             # crumb_open: the chat split into two agents' own real chats
+        self.one_note = False                          # sym: the frozen-reader penalty reads one note at a time
+        self.charged = 0                               # sym, one_note: which notes the next penalty charges
         if arm == 'sym':
             self.banned = letter_table(tok, model.config.vocab_size)[1]
             self.masks = LT.LetterMasks(tok, model.config.vocab_size)   # letters by the bytes pending before a token
@@ -649,7 +654,7 @@ class Crumbs(nn.Module):
                 ce = self._with_kl(ce, logp, streams, sel, x)
                 total = total + ce.sum()
                 count += len(sel)
-                if self.arm == 'sym' and self.adv and torch.is_grad_enabled():
+                if self.arm == 'sym' and self.adv and torch.is_grad_enabled() and not self.one_note:
                     self._adversary(rows_t, x, a, bank, [(eps[b], st) for b, st in zip(rows, streams)])
                 if self.arm == 'sym' and self.contrast and torch.is_grad_enabled() and len(eps) > 1:
                     self._contrast(rows_t, x, a, bank, sel, ce)
@@ -665,6 +670,8 @@ class Crumbs(nn.Module):
                     bank = self._append(bank, rows_t, streams, got, a, x)
             elif writes:
                 bank = self._append(bank, rows_t, streams, got, a, x)
+        if self.arm == 'sym' and self.one_note and self.adv and need_loss and torch.is_grad_enabled():
+            self.one_note_penalty(eps, bank, device)
         return total, count, bank
 
     def loss(self, eps, device):
@@ -755,6 +762,48 @@ class Crumbs(nn.Module):
         W = self.model.get_output_embeddings().weight[cand.clamp(min=0)].float()
         lg = torch.einsum('gd,gcd->gc', h[at].float(), W).masked_fill(cand < 0, float('-inf'))
         return lg.log_softmax(-1)[:, 0], (cand >= 0).sum(-1).float()
+
+    def _one_stream(self, ask, gold):
+        """The untrained reader's prompt for one note (one_note.chat, the note's tokens read from the bank) with the
+        gold answer after it: a stream for _pad, and where the answer starts."""
+        ids = self._ids(f'<|im_start|>system\n{ask["system"]}<|im_end|>\n<|im_start|>user\n') + list(self.note)
+        reads = []
+        for j in range(self.m):
+            reads.append((len(ids), ask['w'], ask['k'] * self.m + j))
+            ids.append(self.tok.pad_token_id)
+        ids = ids + list(self.nl) + self._ids(f'{ask["question"]}<|im_end|>\n') + list(self.head)
+        cut = len(ids)
+        ids = ids + gold
+        n = len(ids)
+        return dict(ids=ids, place=[-1] * n, target=[False] * n, seg=[-1] * n, kind=[-1] * n, tk=[-1] * n, reads=reads), cut
+
+    def one_note_penalty(self, eps, bank, device):
+        """sym: the frozen reader's one-note read, charged: the base model with its adapter disabled reads up to
+        ONE_CHARGED notes of these episodes, one at a time with the soft notes, so the gradient reaches their writers; per
+        target relu(log p(gold) - max(log(1/C), log p(gold) with the note masked)) over its C candidates: only what the
+        note gives a reader beyond chance and its own prior counts (the same term as _adversary, on the bar's prompts)."""
+        items = [(b, ask) for b, ep in enumerate(eps) for ask in ON.asks(ep)]
+        if not items:
+            return
+        self.charged += 1
+        items = random.Random(self.charged).sample(items, min(ONE_CHARGED, len(items)))
+        streams, rows, aims = [], [], []
+        for i, (b, ask) in enumerate(items):
+            gold = self._ids(ask['gold'])
+            st, cut = self._one_stream(ask, gold)
+            streams.append(st)
+            rows.append(b)
+            aims += [(i, t) for t in ON.targets(cut, gold, [self._ids(x) for x in ask['alts']])]
+        if not aims:
+            return
+        x = self._pad(streams, device)
+        rows_t = torch.tensor(rows, device=device)
+        with self.model.disable_adapter():
+            lp, n = self._gold_logp(rows_t, x, 0, bank, aims, True)
+            with torch.no_grad():
+                lp0, _ = self._gold_logp(rows_t, x, 0, bank, aims, False)
+        self.sums['adv'] = self.sums['adv'] + F.relu(lp - torch.maximum(lp0, -n.log())).sum()
+        self.sums['n_adv'] += len(aims)
 
     def _adversary(self, rows_t, x, a, bank, items):
         """sym privacy terms: the base model with its adapter disabled (adv) and, once eaves_on, the eavesdropper adapter
@@ -1658,9 +1707,12 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     log = open(out / 'log.jsonl', 'a') if out else None
     fine = open(out / 'steps.jsonl', 'a') if out and protect else None
     top, lam_base, lam_game, adv_from, hot_devs = None, None, {}, None, 0   # protect: the best weights' dev and the rest
+    hot_games = set()                                  # --one_note: the games the frozen reader has read above noise
     weights0 = dict(weights or {})
     right_eps = {g: [CG.episode(g, r, True) for _ in range(RIGHT_EPS)]
                  for g, r in ((g, random.Random(f'right-{g}')) for g in games if g in CG.CHOICES)} if protect else {}
+    one_eps = {g: [CG.episode(g, r, True) for _ in range(RIGHT_EPS)]
+               for g, r in ((g, random.Random(f'one-{g}')) for g in games)} if protect and net.one_note else {}
     train_eps = {g: [e for e in dev if e['game'] == g] for g in right_eps} if protect else {}
 
     def best_weights():
@@ -1675,7 +1727,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
         right = rec['right'] = right_by_game(net, device, right_eps)
         rec['right_train'] = right_by_game(net, device, train_eps, ('follower',))
         total = sum(weights0.get(g, 1.) for g in right)
-        score = rec['score'] = round(sum(weights0.get(g, 1.) * (r['follower_own'] - r['follower_swap'])
+        one = rec['one_note'] = one_note_by_game(net, device, one_eps) if net.one_note else {}
+        score = rec['score'] = round(sum(weights0.get(g, 1.) * (r['follower_own'] - r['follower_swap'] -
+                                                                max(0., one[g]['own'] - one[g]['swap'] if g in one else 0.))
                                          for g, r in right.items()) / total, 4)
         gap = rec['gap_swap']
         lost = top is not None and (rec['distinct'] < PROTECT[0] * top['distinct'] or gap < PROTECT[1] * top['gap'])
@@ -1704,11 +1758,13 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             weights[g] = weights0.get(g, 1.) * max(.25, 1 - max(0., r['follower_own'] - r['follower_swap'])
                                                    / max(1e-6, 1 - r['chance']))
         rec['weights'] = {g: round(v, 3) for g, v in weights.items()}
-        hot = [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
+        hot = [g for g, r in (one if net.one_note else right).items()
+               if (r['ci'] if net.one_note else r['base_ci'])[0] > RIGHT_NOISE]
         hot_devs = hot_devs + 1 if hot else 0
+        hot_games.update(hot)
         if hot:
             rec['base_hot'] = hot
-        if frozen_adv and adv_from is None and hot_devs >= 2:
+        if frozen_adv and adv_from is None and hot_devs >= (1 if net.one_note else 2):
             adv_from, net.adv_max = step, frozen_adv
             rec['frozen_adv'] = frozen_adv
 
@@ -1761,7 +1817,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             if protect and lam_base is not None:
                 net.lam = lam_game.get(game, lam_base)
             if frozen_adv:                             # the frozen reader's penalty alone, no eavesdropper
-                net.adv = net.adv_max * min(1., (step - adv_from) / 100) if adv_from else 0.
+                charged = adv_from and (not net.one_note or game in hot_games)
+                net.adv = net.adv_max * min(1., (step - adv_from) / 100) if charged else 0.
                 net.eaves_on = False
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
         loss, stat, eloss = 0., collections.Counter(), []
@@ -1945,6 +2002,40 @@ def right_by_game(net, device, by_game, readers=('follower', 'base'), bs=48):
     return out
 
 
+@torch.no_grad()
+def one_note_by_game(net, device, by_game, bs=48, most=None):
+    """Per game of by_game {game: episodes}: the untrained base model (the adapter off) reading the trained writers'
+    notes one at a time as text (one_note.py), up to most notes: the share right on own notes and on another episode's
+    of the game (the next in its chunk), own minus swapped with its 95% interval over episodes, chance, the notes read."""
+    was = net.training
+    net.eval()
+    most = most or ONE_NOTES
+    out = {}
+    for g, eps in by_game.items():
+        per, n = [], 0
+        for c in swap_index(eps, bs):
+            part = [eps[i] for i in c]
+            bank = net.run(part, device, need_loss=False)[2]
+            notes = [ON.written(net, bank, b, ep) for b, ep in enumerate(part)]
+            for b, ep in enumerate(part):
+                pair = [[], []]
+                for ask in ON.asks(ep):
+                    if n >= most:
+                        break
+                    n += 1
+                    with net.model.disable_adapter():
+                        for got, note in zip(pair, (notes[b], notes[(b + 1) % len(part)])):
+                            got.append(float(ON.read(net.model, net.tok, ask, ON.note_of(note, ask), device) == ask['gold']))
+                if pair[0]:
+                    per.append((sum(pair[0]) / len(pair[0]), sum(pair[1]) / len(pair[1])))
+        if per:
+            out[g] = dict(own=round(sum(x for x, _ in per) / len(per), 4), swap=round(sum(y for _, y in per) / len(per), 4),
+                          ci=boot_interval([x - y for x, y in per]), chance=ON.chance(eps), notes=n)
+    if was:
+        net.train()
+    return out
+
+
 def kept(net):
     """The weights a run saves: every LoRA (the eavesdropper's too) and the crumb modules."""
     return {k: v for k, v in net.state_dict().items() if 'lora_' in k or not k.startswith('model.')}
@@ -2029,6 +2120,9 @@ def main():
                     'the best weights kept and gone back to when the code is lost, letter weights per game (train)')
     ap.add_argument('--frozen_adv', type=float, default=0., help='sym arm, --protect: the penalty on the untrained base '
                     'model alone, only once it reads the notes above noise (train)')
+    ap.add_argument('--one_note', action='store_true', help='sym arm, --protect: the privacy bar is the untrained base model '
+                    'reading one note at a time in every game, logged at every dev, counted against the best weights\' '
+                    'score, and what --frozen_adv charges, per game once it reads above noise (train, one_note.py)')
     ap.add_argument('--choice', type=float, default=0., help='sym arm: weight of -log p(gold among a say\'s candidates)')
     ap.add_argument('--gate_held', type=int, default=1, help='sym arm: devs in a row with the gap held before privacy')
     ap.add_argument('--lam_min', type=float, default=0., help='sym arm: the letter weight never falls below this')
@@ -2085,6 +2179,7 @@ def main():
         net.adv = net.adv_max = args.adv
         net.contrast, net.con_negatives = args.contrast, args.con_negatives
         net.choice = args.choice
+        net.one_note = args.one_note
         net.hint = args.note_hint
         net.note_pass = args.note_pass
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]
