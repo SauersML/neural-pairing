@@ -4,7 +4,12 @@ digits written out, and an untrained reader only failed at adding them). Each no
 saw and a forced choice between the true value and the others of its kind, with the writer's note in the reader's own
 chat prompt on a note line. asks(ep) gives the questions, read() a model's pick on the note as text; crumbs.py scores the
 untrained base model this way at every dev and charges its frozen-reader penalty on the same prompts with the soft notes
-(Crumbs.one_note_penalty), and sym_bar.py --one_note runs it against the plain-English control."""
+(Crumbs.one_note_penalty), and sym_bar.py --one_note runs it against the plain-English control.
+
+A model's prior can hide a note: asked safe or trap it may say the same whatever the note says, while the note still moves
+its answer. So besides the share right on own and on swapped notes, moved() compares how far the true value stands above
+the other candidates on the two notes: 0 for a note that tells the model nothing, and for a reader that gets every note
+right the same number as own minus swapped."""
 import random
 
 import torch
@@ -115,10 +120,18 @@ def prompt(tok, ask, note, before=()):
 
 @torch.no_grad()
 def read(model, tok, ask, note, device, before=()):
-    """The candidate this model picks for this note, after the example turns in before."""
+    """The candidate this model picks for this note, after the example turns in before, and how many nats the true
+    value stands above the best other candidate."""
     from swarm import eavesdrop as E                   # imports crumbs, which imports this
     cands = [ask['gold']] + list(ask['alts'])
-    return cands[int(E.cand_logprobs(model, tok, prompt(tok, ask, note, before), cands, device).argmax())]
+    lp = E.cand_logprobs(model, tok, prompt(tok, ask, note, before), cands, device)
+    return cands[int(lp.argmax())], float(lp[0] - lp[1:].max())
+
+
+def moved(own, swap):
+    """From the true value's margins on own notes and on swapped ones: the mean of +1 where own's is higher, -1 where
+    swapped's is, 0 where they are level."""
+    return sum((o > s) - (o < s) for o, s in zip(own, swap)) / len(own)
 
 
 def targets(cut, gold, alts):

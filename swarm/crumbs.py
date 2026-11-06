@@ -1728,8 +1728,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
         rec['right_train'] = right_by_game(net, device, train_eps, ('follower',))
         total = sum(weights0.get(g, 1.) for g in right)
         one = rec['one_note'] = one_note_by_game(net, device, one_eps) if net.one_note else {}
-        score = rec['score'] = round(sum(weights0.get(g, 1.) * (r['follower_own'] - r['follower_swap'] -
-                                                                max(0., one[g]['own'] - one[g]['swap'] if g in one else 0.))
+        score = rec['score'] = round(sum(weights0.get(g, 1.) * (r['follower_own'] - r['follower_swap'] - leak(one.get(g)))
                                          for g, r in right.items()) / total, 4)
         gap = rec['gap_swap']
         lost = top is not None and (rec['distinct'] < PROTECT[0] * top['distinct'] or gap < PROTECT[1] * top['gap'])
@@ -1758,8 +1757,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             weights[g] = weights0.get(g, 1.) * max(.25, 1 - max(0., r['follower_own'] - r['follower_swap'])
                                                    / max(1e-6, 1 - r['chance']))
         rec['weights'] = {g: round(v, 3) for g, v in weights.items()}
-        hot = [g for g, r in (one if net.one_note else right).items()
-               if (r['ci'] if net.one_note else r['base_ci'])[0] > RIGHT_NOISE]
+        hot = [g for g, r in one.items() if max(r['ci'][0], r['moved_ci'][0]) > RIGHT_NOISE] if net.one_note else \
+            [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
         hot_devs = hot_devs + 1 if hot else 0
         hot_games.update(hot)
         if hot:
@@ -2002,11 +2001,17 @@ def right_by_game(net, device, by_game, readers=('follower', 'base'), bs=48):
     return out
 
 
+def leak(one):
+    """What one game's one-note read (one_note_by_game) counts against the best weights' score."""
+    return max(0., one['own'] - one['swap'], one['moved']) if one else 0.
+
+
 @torch.no_grad()
 def one_note_by_game(net, device, by_game, bs=48, most=None):
     """Per game of by_game {game: episodes}: the untrained base model (the adapter off) reading the trained writers'
     notes one at a time as text (one_note.py), up to most notes: the share right on own notes and on another episode's
-    of the game (the next in its chunk), own minus swapped with its 95% interval over episodes, chance, the notes read."""
+    of the game (the next in its chunk), own minus swapped with its 95% interval over episodes (ci), one_note.moved with
+    its own (moved_ci), chance, the notes read."""
     was = net.training
     net.eval()
     most = most or ONE_NOTES
@@ -2018,19 +2023,23 @@ def one_note_by_game(net, device, by_game, bs=48, most=None):
             bank = net.run(part, device, need_loss=False)[2]
             notes = [ON.written(net, bank, b, ep) for b, ep in enumerate(part)]
             for b, ep in enumerate(part):
-                pair = [[], []]
+                right, margin = [[], []], [[], []]
                 for ask in ON.asks(ep):
                     if n >= most:
                         break
                     n += 1
                     with net.model.disable_adapter():
-                        for got, note in zip(pair, (notes[b], notes[(b + 1) % len(part)])):
-                            got.append(float(ON.read(net.model, net.tok, ask, ON.note_of(note, ask), device) == ask['gold']))
-                if pair[0]:
-                    per.append((sum(pair[0]) / len(pair[0]), sum(pair[1]) / len(pair[1])))
+                        for i, note in enumerate((notes[b], notes[(b + 1) % len(part)])):
+                            pick, m = ON.read(net.model, net.tok, ask, ON.note_of(note, ask), device)
+                            right[i].append(float(pick == ask['gold']))
+                            margin[i].append(m)
+                if right[0]:
+                    per.append((sum(right[0]) / len(right[0]), sum(right[1]) / len(right[1]), ON.moved(*margin)))
         if per:
-            out[g] = dict(own=round(sum(x for x, _ in per) / len(per), 4), swap=round(sum(y for _, y in per) / len(per), 4),
-                          ci=boot_interval([x - y for x, y in per]), chance=ON.chance(eps), notes=n)
+            own, swap, shift = zip(*per)
+            out[g] = dict(own=round(sum(own) / len(per), 4), swap=round(sum(swap) / len(per), 4),
+                          ci=boot_interval([x - y for x, y in zip(own, swap)]), moved=round(sum(shift) / len(per), 4),
+                          moved_ci=boot_interval(list(shift)), chance=ON.chance(eps), notes=n)
     if was:
         net.train()
     return out

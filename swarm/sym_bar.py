@@ -160,28 +160,33 @@ def read_all(model, tok, items, shot_items, forms, n_control, device):
 def one_note(model, tok, items, shot_items, shots, n_control, device):
     """Any game, a note at a time (one_note.py): {form: share of notes whose true value beats the others of its kind},
     the forms and episodes as read_all, per episode then the mean; shots: as many single notes of the example episodes
-    before it, with their answers; own minus swap with its 95% interval over episodes, and a dozen notes with what the
-    model read."""
-    got, rows, examples = dict(chance=ON.chance([ep for ep, _ in items])), {}, []
+    before it, with their answers; own minus swap and one_note.moved with their 95% intervals over episodes, and a dozen
+    notes with what the model read."""
+    got, rows, margins, examples = dict(chance=ON.chance([ep for ep, _ in items])), {}, {}, []
     for form in FORMS:
         part = items if form in ('own', 'swap') else items[:n_control]
         key = {'own': 'own', 'swap': 'own', 'off': None}.get(form, 'english_own')
         before = [t for ep, f in shot_items for ask in ON.asks(ep)
                   for t in ON.chat(ask, ON.note_of(f[key] if key else None, ask), True)][:2 * shots]
-        rows[form] = []
+        rows[form], margins[form] = [], []
         for ep, f in part:
-            row = []
+            row, over = [], []
             for ask in ON.asks(ep):
                 note = ON.note_of(f[form], ask)
-                pick = ON.read(model, tok, ask, note, device, before)
+                pick, m = ON.read(model, tok, ask, note, device, before)
                 row.append(float(pick == ask['gold']))
+                over.append(m)
                 if form == 'own' and len(examples) < SHOW:
                     examples.append(dict(note=note, gold=ask['gold'], read=pick))
             rows[form].append(row)
+            margins[form].append(over)
         got[form] = shares(rows[form])
     per = [sum(o) / len(o) - sum(x) / len(x) for o, x in zip(rows['own'], rows['swap'])]
     got['own_minus_swap'] = round(sum(per) / len(per), 4)
     got['own_minus_swap_ci'] = C.boot_interval(per)
+    shift = [ON.moved(o, x) for o, x in zip(margins['own'], margins['swap'])]
+    got['moved'] = round(sum(shift) / len(shift), 4)
+    got['moved_ci'] = C.boot_interval(shift)
     got['notes'] = sum(map(len, rows['own']))
     got['examples'] = examples
     return got

@@ -132,6 +132,35 @@ def test_dev_read(tok, monkeypatch):
     got = C.one_note_by_game(net, 'cpu', dict(count=eps), most=12)['count']
     assert got['own'] == 1. and got['swap'] < .75 and got['notes'] == 12 and got['chance'] == round(1 / 9, 4)
     assert got['ci'][0] > 0 and net.training and all(states) and len(states) == 24
+    assert got['moved'] > .5 and got['moved_ci'][0] > 0
+
+
+def test_prior_cannot_hide_a_note(tok, monkeypatch):
+    """A model that says Safe whatever the note says, while the note moves its answer: the shares right are level, and
+    moved still sees it; notes that tell it nothing move nothing."""
+    net = tiny(tok, 'sym', 2)
+    eps = episodes('trap', 12)
+    shown = {}
+
+    def says(net_, bank, b, ep):
+        return {(w, k): ('T' if ep['trap']['traps'][s['place']] else 'S') for w, ag in enumerate(ep['agents']) if ag['write']
+                for k, s in enumerate(ag['segments'])}
+
+    def reads(model, tk, p, cands, device):
+        note = p.rsplit(C.NOTE, 1)[-1][0]
+        return torch.tensor([(5. if c == 'Safe' else 0.) + shown['on'] * (c[0] == note) for c in cands])
+
+    monkeypatch.setattr(ON, 'written', says)
+    monkeypatch.setattr(E, 'cand_logprobs', reads)
+    shown['on'] = 1.
+    got = C.one_note_by_game(net, 'cpu', dict(trap=eps))['trap']
+    assert got['own'] == got['swap'] and got['ci'] == [0., 0.]
+    assert got['moved'] > .2 and got['moved_ci'][0] > 0
+    shown['on'] = 0.
+    got = C.one_note_by_game(net, 'cpu', dict(trap=eps))['trap']
+    assert got['moved'] == 0. and C.leak(got) == 0.
+    assert C.leak(dict(own=.5, swap=.1, moved=.2)) == pytest.approx(.4) and C.leak(dict(own=.5, swap=.5, moved=.3)) == .3
+    assert C.leak(None) == 0.
 
 
 def test_train_charges_the_games_read_above_noise(tok, tmp_path, monkeypatch):
@@ -151,8 +180,8 @@ def test_train_charges_the_games_read_above_noise(tok, tmp_path, monkeypatch):
     def planned_one(net, device, by_game, bs=48, most=None):
         v = next(plan)
         assert set(by_game) == {'count', 'trap'}
-        return dict(count=dict(own=v + .1, swap=.1, ci=[v - .1, v + .1], chance=.11, notes=9),
-                    trap=dict(own=.5, swap=.5, ci=[-.1, .1], chance=.5, notes=9))
+        return dict(count=dict(own=v + .1, swap=.1, ci=[v - .1, v + .1], moved=v, moved_ci=[v - .1, v + .1], chance=.11, notes=9),
+                    trap=dict(own=.5, swap=.5, ci=[-.1, .1], moved=0., moved_ci=[-.1, .1], chance=.5, notes=9))
 
     weights = []
     monkeypatch.setattr(C, 'sym_dev', planned_dev)

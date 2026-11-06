@@ -129,6 +129,7 @@ def test_one_note(tok, monkeypatch):
     assert got['notes'] == 12 and got['chance'] == round(1 / 9, 4)
     assert got['own'] == 1. and got['english_own'] == 1.
     assert abs(got['own_minus_swap'] - (got['own'] - got['swap'])) < 1e-3
+    assert got['moved'] == pytest.approx(got['own_minus_swap'], abs=.2) and got['moved_ci'][0] > 0
     assert len(got['examples']) == 12 and all(x['read'] == x['gold'] for x in got['examples'])
     seen.clear()
     B.one_note(None, tok, items, items, 2, 4, 'cpu')
