@@ -91,7 +91,7 @@ RIGHT_EPS = 24                # sym, --protect: test-value episodes per game in 
 ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the untrained reader's one-note read
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
-ONE_SURE = 3.                  # sym, --one_note: the nats by which a token of the notes the penalty reads stands over its next
+ONE_SURE = 5.                  # sym, --one_note: the nats by which a token of the notes the penalty reads stands over its next
 ONE_ADV_MOST = 8.              # sym, --one_note: the most a game's penalty weight grows to, by half each dev it stays read
 PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
@@ -803,7 +803,9 @@ class Crumbs(nn.Module):
         moves either way asks trap's two-note code for the impossible (a run's follower fell to .73 with its read unchanged
         at -.51). The notes it reads are _warm's: a code the writer is sure of has softmax(logits / tau) at one token and no
         gradient at all. A run's count penalty of 2.5 nats at weight 3 had a median gradient norm of .011 (trail's whole
-        step had 6.3) and never moved those notes; on those weights its gradient was 0 at temperature 1."""
+        step had 6.3) and never moved those notes; on those weights its gradient was 0 at temperature 1. ONE_SURE 3 is too
+        warm: count's notes keep 4% of their mass on their token, the reader reads nothing and nothing is charged (.08
+        nats); at 5 they keep 51%, it is charged 2.4 nats with a gradient norm of 30; at 8, 99%, with .1."""
         items = [(b, ask) for b, ep in enumerate(eps) for ask in ON.asks(ep)]
         if not items:
             return
