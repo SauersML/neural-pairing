@@ -614,5 +614,1321 @@
     "closed": 0.0829
    }
   ]
+ },
+ "selection": {
+  "role": "the bar for the trained slots at their budget, evaluation only (swarm/crumb_select.py): the full copy kept to 16 or 64 positions per walker visit, evenly spaced (even), by the base reader's first-question attention shared over layers and heads (snap) or per key-value head (snaphead); zero_* with the adapter off against the base reader's cut (zero_full is closed_zero), the rest with crumbs22's adapter as walker and reader against its own cut (the slots' closed_on); kept: positions kept per episode",
+  "run": "magic-crumbs31",
+  "commit": "e7474ab",
+  "ckpt": "magic-crumbs22 trained.pt",
+  "cost_usd": 0.2504,
+  "test": {
+   "eval_seen": {
+    "all": {
+     "closed": {
+      "zero_full": 0.7148,
+      "zero_even16": 0.0513,
+      "zero_snap16": 0.0634,
+      "zero_snaphead16": 0.1097,
+      "zero_even64": 0.2135,
+      "zero_snap64": 0.1872,
+      "zero_snaphead64": 0.261,
+      "full": 0.7375,
+      "even16": 0.101,
+      "snap16": 0.0925,
+      "even64": 0.3383,
+      "snap64": 0.2331
+     },
+     "kl": {
+      "zero_cut": 0.684,
+      "zero_full": 0.1951,
+      "zero_even16": 0.6488,
+      "zero_snap16": 0.6406,
+      "zero_snaphead16": 0.6089,
+      "zero_even64": 0.5379,
+      "zero_snap64": 0.5559,
+      "zero_snaphead64": 0.5055,
+      "cut": 0.3961,
+      "full": 0.104,
+      "even16": 0.3561,
+      "snap16": 0.3594,
+      "even64": 0.2621,
+      "snap64": 0.3038
+     },
+     "episodes": 596,
+     "positions": 559.0772,
+     "kept": {
+      "16": 32.6174,
+      "64": 127.9497
+     },
+     "by_turn": {
+      "1": {
+       "closed": {
+        "zero_full": 0.6862,
+        "zero_even16": 0.0618,
+        "zero_snap16": 0.0814,
+        "zero_snaphead16": 0.1416,
+        "zero_even64": 0.2389,
+        "zero_snap64": 0.2354,
+        "zero_snaphead64": 0.3241,
+        "full": 0.7163,
+        "even16": 0.114,
+        "snap16": 0.1153,
+        "even64": 0.3569,
+        "snap64": 0.2827
+       },
+       "episodes": 596
+      },
+      "2": {
+       "closed": {
+        "zero_full": 0.7704,
+        "zero_even16": 0.0319,
+        "zero_snap16": 0.0289,
+        "zero_snaphead16": 0.0482,
+        "zero_even64": 0.1735,
+        "zero_snap64": 0.096,
+        "zero_snaphead64": 0.1448,
+        "full": 0.7865,
+        "even16": 0.0816,
+        "snap16": 0.0498,
+        "even64": 0.3191,
+        "snap64": 0.146
+       },
+       "episodes": 382
+      },
+      "3": {
+       "closed": {
+        "zero_full": 0.777,
+        "zero_even16": 0.0263,
+        "zero_snap16": 0.022,
+        "zero_snaphead16": 0.0391,
+        "zero_even64": 0.1308,
+        "zero_snap64": 0.0728,
+        "zero_snaphead64": 0.1035,
+        "full": 0.7856,
+        "even16": 0.0631,
+        "snap16": 0.0473,
+        "even64": 0.2726,
+        "snap64": 0.1179
+       },
+       "episodes": 189
+      },
+      "4": {
+       "closed": {
+        "zero_full": 0.7126,
+        "zero_even16": 0.0603,
+        "zero_snap16": 0.0793,
+        "zero_snaphead16": 0.1253,
+        "zero_even64": 0.241,
+        "zero_snap64": 0.222,
+        "zero_snaphead64": 0.301,
+        "full": 0.539,
+        "even16": 0.0734,
+        "snap16": 0.0765,
+        "even64": 0.221,
+        "snap64": 0.1899
+       },
+       "episodes": 62
+      },
+      "5": {
+       "closed": {
+        "zero_full": 0.6815,
+        "zero_even16": 0.0476,
+        "zero_snap16": 0.1085,
+        "zero_snaphead16": 0.1268,
+        "zero_even64": 0.2156,
+        "zero_snap64": 0.2362,
+        "zero_snaphead64": 0.3288,
+        "full": 0.5119,
+        "even16": 0.063,
+        "snap16": 0.0758,
+        "even64": 0.1772,
+        "snap64": 0.1832
+       },
+       "episodes": 39
+      },
+      "6": {
+       "closed": {
+        "zero_full": 0.6736,
+        "zero_even16": 0.0537,
+        "zero_snap16": 0.0552,
+        "zero_snaphead16": 0.1183,
+        "zero_even64": 0.1608,
+        "zero_snap64": 0.2771,
+        "zero_snaphead64": 0.2903,
+        "full": 0.4971,
+        "even16": 0.0504,
+        "snap16": 0.0777,
+        "even64": 0.1549,
+        "snap64": 0.1922
+       },
+       "episodes": 25
+      }
+     }
+    },
+    "real": {
+     "closed": {
+      "zero_full": 0.6698,
+      "zero_even16": 0.0279,
+      "zero_snap16": 0.0162,
+      "zero_snaphead16": 0.0417,
+      "zero_even64": 0.151,
+      "zero_snap64": 0.0503,
+      "zero_snaphead64": 0.092,
+      "full": 0.7108,
+      "even16": 0.0905,
+      "snap16": 0.037,
+      "even64": 0.3375,
+      "snap64": 0.109
+     },
+     "kl": {
+      "zero_cut": 0.9472,
+      "zero_full": 0.3128,
+      "zero_even16": 0.9208,
+      "zero_snap16": 0.9319,
+      "zero_snaphead16": 0.9077,
+      "zero_even64": 0.8042,
+      "zero_snap64": 0.8996,
+      "zero_snaphead64": 0.8601,
+      "cut": 0.5389,
+      "full": 0.1559,
+      "even16": 0.4901,
+      "snap16": 0.5189,
+      "even64": 0.357,
+      "snap64": 0.4801
+     },
+     "episodes": 253,
+     "positions": 511.6324,
+     "kept": {
+      "16": 29.0474,
+      "64": 114.7273
+     },
+     "by_turn": {
+      "1": {
+       "closed": {
+        "zero_full": 0.5293,
+        "zero_even16": 0.0361,
+        "zero_snap16": 0.0227,
+        "zero_snaphead16": 0.062,
+        "zero_even64": 0.1631,
+        "zero_snap64": 0.0601,
+        "zero_snaphead64": 0.1087,
+        "full": 0.5704,
+        "even16": 0.1087,
+        "snap16": 0.0461,
+        "even64": 0.358,
+        "snap64": 0.124
+       },
+       "episodes": 253
+      },
+      "2": {
+       "closed": {
+        "zero_full": 0.78,
+        "zero_even16": 0.0228,
+        "zero_snap16": 0.0117,
+        "zero_snaphead16": 0.0274,
+        "zero_even64": 0.1547,
+        "zero_snap64": 0.046,
+        "zero_snaphead64": 0.0888,
+        "full": 0.8209,
+        "even16": 0.0818,
+        "snap16": 0.0285,
+        "even64": 0.3351,
+        "snap64": 0.1024
+       },
+       "episodes": 211
+      },
+      "3": {
+       "closed": {
+        "zero_full": 0.7706,
+        "zero_even16": 0.0179,
+        "zero_snap16": 0.0093,
+        "zero_snaphead16": 0.0226,
+        "zero_even64": 0.1039,
+        "zero_snap64": 0.0332,
+        "zero_snaphead64": 0.0509,
+        "full": 0.824,
+        "even16": 0.0589,
+        "snap16": 0.0339,
+        "even64": 0.2799,
+        "snap64": 0.081
+       },
+       "episodes": 88
+      }
+     }
+    },
+    "simulated": {
+     "closed": {
+      "zero_full": 0.7505,
+      "zero_even16": 0.07,
+      "zero_snap16": 0.1009,
+      "zero_snaphead16": 0.1635,
+      "zero_even64": 0.2631,
+      "zero_snap64": 0.2956,
+      "zero_snaphead64": 0.3949,
+      "full": 0.7581,
+      "even16": 0.109,
+      "snap16": 0.1351,
+      "even64": 0.3389,
+      "snap64": 0.3283
+     },
+     "kl": {
+      "zero_cut": 0.5605,
+      "zero_full": 0.1399,
+      "zero_even16": 0.5213,
+      "zero_snap16": 0.504,
+      "zero_snaphead16": 0.4689,
+      "zero_even64": 0.4131,
+      "zero_snap64": 0.3948,
+      "zero_snaphead64": 0.3392,
+      "cut": 0.3292,
+      "full": 0.0796,
+      "even16": 0.2933,
+      "snap16": 0.2847,
+      "even64": 0.2176,
+      "snap64": 0.2211
+     },
+     "episodes": 343,
+     "positions": 594.0729,
+     "kept": {
+      "16": 35.2507,
+      "64": 137.7026
+     },
+     "by_turn": {
+      "1": {
+       "closed": {
+        "zero_full": 0.7505,
+        "zero_even16": 0.0723,
+        "zero_snap16": 0.1055,
+        "zero_snaphead16": 0.1742,
+        "zero_even64": 0.27,
+        "zero_snap64": 0.3073,
+        "zero_snaphead64": 0.4124,
+        "full": 0.7771,
+        "even16": 0.1162,
+        "snap16": 0.1441,
+        "even64": 0.3565,
+        "snap64": 0.3489
+       },
+       "episodes": 343
+      },
+      "2": {
+       "closed": {
+        "zero_full": 0.7415,
+        "zero_even16": 0.0593,
+        "zero_snap16": 0.0808,
+        "zero_snaphead16": 0.1113,
+        "zero_even64": 0.2305,
+        "zero_snap64": 0.2473,
+        "zero_snaphead64": 0.3142,
+        "full": 0.6963,
+        "even16": 0.0813,
+        "snap16": 0.1058,
+        "even64": 0.2773,
+        "snap64": 0.2604
+       },
+       "episodes": 171
+      },
+      "3": {
+       "closed": {
+        "zero_full": 0.797,
+        "zero_even16": 0.0526,
+        "zero_snap16": 0.0622,
+        "zero_snaphead16": 0.0915,
+        "zero_even64": 0.2159,
+        "zero_snap64": 0.1979,
+        "zero_snaphead64": 0.2696,
+        "full": 0.6929,
+        "even16": 0.0735,
+        "snap16": 0.0796,
+        "even64": 0.255,
+        "snap64": 0.2069
+       },
+       "episodes": 101
+      },
+      "4": {
+       "closed": {
+        "zero_full": 0.7126,
+        "zero_even16": 0.0603,
+        "zero_snap16": 0.0793,
+        "zero_snaphead16": 0.1253,
+        "zero_even64": 0.241,
+        "zero_snap64": 0.222,
+        "zero_snaphead64": 0.301,
+        "full": 0.539,
+        "even16": 0.0734,
+        "snap16": 0.0765,
+        "even64": 0.221,
+        "snap64": 0.1899
+       },
+       "episodes": 62
+      },
+      "5": {
+       "closed": {
+        "zero_full": 0.6815,
+        "zero_even16": 0.0476,
+        "zero_snap16": 0.1085,
+        "zero_snaphead16": 0.1268,
+        "zero_even64": 0.2156,
+        "zero_snap64": 0.2362,
+        "zero_snaphead64": 0.3288,
+        "full": 0.5119,
+        "even16": 0.063,
+        "snap16": 0.0758,
+        "even64": 0.1772,
+        "snap64": 0.1832
+       },
+       "episodes": 39
+      },
+      "6": {
+       "closed": {
+        "zero_full": 0.6736,
+        "zero_even16": 0.0537,
+        "zero_snap16": 0.0552,
+        "zero_snaphead16": 0.1183,
+        "zero_even64": 0.1608,
+        "zero_snap64": 0.2771,
+        "zero_snaphead64": 0.2903,
+        "full": 0.4971,
+        "even16": 0.0504,
+        "snap16": 0.0777,
+        "even64": 0.1549,
+        "snap64": 0.1922
+       },
+       "episodes": 25
+      }
+     }
+    }
+   },
+   "eval_heldout": {
+    "all": {
+     "closed": {
+      "zero_full": 0.8362,
+      "zero_even16": 0.0368,
+      "zero_snap16": 0.043,
+      "zero_snaphead16": 0.0722,
+      "zero_even64": 0.1679,
+      "zero_snap64": 0.1197,
+      "zero_snaphead64": 0.1835,
+      "full": 0.8795,
+      "even16": 0.1088,
+      "snap16": 0.0764,
+      "even64": 0.3585,
+      "snap64": 0.1889
+     },
+     "kl": {
+      "zero_cut": 1.59,
+      "zero_full": 0.2604,
+      "zero_even16": 1.5315,
+      "zero_snap16": 1.5217,
+      "zero_snaphead16": 1.4752,
+      "zero_even64": 1.323,
+      "zero_snap64": 1.3997,
+      "zero_snaphead64": 1.2983,
+      "cut": 0.9507,
+      "full": 0.1146,
+      "even16": 0.8472,
+      "snap16": 0.8781,
+      "even64": 0.6098,
+      "snap64": 0.7711
+     },
+     "episodes": 400,
+     "positions": 622.6225,
+     "kept": {
+      "16": 35.8925,
+      "64": 135.72
+     },
+     "by_turn": {
+      "1": {
+       "closed": {
+        "zero_full": 0.8109,
+        "zero_even16": 0.045,
+        "zero_snap16": 0.0589,
+        "zero_snaphead16": 0.1005,
+        "zero_even64": 0.1816,
+        "zero_snap64": 0.1625,
+        "zero_snaphead64": 0.2397,
+        "full": 0.8556,
+        "even16": 0.1184,
+        "snap16": 0.0973,
+        "even64": 0.3599,
+        "snap64": 0.2312
+       },
+       "episodes": 400
+      },
+      "2": {
+       "closed": {
+        "zero_full": 0.881,
+        "zero_even16": 0.0242,
+        "zero_snap16": 0.013,
+        "zero_snaphead16": 0.0227,
+        "zero_even64": 0.1463,
+        "zero_snap64": 0.0437,
+        "zero_snaphead64": 0.0837,
+        "full": 0.9229,
+        "even16": 0.0954,
+        "snap16": 0.0331,
+        "even64": 0.3639,
+        "snap64": 0.1129
+       },
+       "episodes": 217
+      },
+      "3": {
+       "closed": {
+        "zero_full": 0.8882,
+        "zero_even16": 0.014,
+        "zero_snap16": 0.0161,
+        "zero_snaphead16": 0.0125,
+        "zero_even64": 0.1313,
+        "zero_snap64": 0.0288,
+        "zero_snaphead64": 0.0648,
+        "full": 0.9328,
+        "even16": 0.0781,
+        "snap16": 0.0506,
+        "even64": 0.334,
+        "snap64": 0.0976
+       },
+       "episodes": 79
+      },
+      "4": {
+       "closed": {
+        "zero_full": 0.8466,
+        "zero_even16": 0.0192,
+        "zero_snap16": 0.0413,
+        "zero_snaphead16": 0.1064,
+        "zero_even64": 0.1558,
+        "zero_snap64": 0.357,
+        "zero_snaphead64": 0.4361,
+        "full": 0.6902,
+        "even16": 0.0323,
+        "snap16": 0.0563,
+        "even64": 0.2104,
+        "snap64": 0.2792
+       },
+       "episodes": 9
+      },
+      "5": {
+       "closed": {
+        "zero_full": 0.7331,
+        "zero_even16": 0.0358,
+        "zero_snap16": 0.1213,
+        "zero_snaphead16": 0.1253,
+        "zero_even64": 0.2439,
+        "zero_snap64": 0.2749,
+        "zero_snaphead64": 0.3264,
+        "full": 0.4451,
+        "even16": 0.0534,
+        "snap16": 0.1072,
+        "even64": 0.2592,
+        "snap64": 0.269
+       },
+       "episodes": 2
+      }
+     }
+    },
+    "real": {
+     "closed": {
+      "zero_full": 0.8797,
+      "zero_even16": 0.0168,
+      "zero_snap16": -0.0009,
+      "zero_snaphead16": 0.0074,
+      "zero_even64": 0.1193,
+      "zero_snap64": -0.003,
+      "zero_snaphead64": 0.0301,
+      "full": 0.968,
+      "even16": 0.1051,
+      "snap16": 0.0286,
+      "even64": 0.3965,
+      "snap64": 0.094
+     },
+     "kl": {
+      "zero_cut": 5.2819,
+      "zero_full": 0.6355,
+      "zero_even16": 5.1933,
+      "zero_snap16": 5.2867,
+      "zero_snaphead16": 5.2426,
+      "zero_even64": 4.6518,
+      "zero_snap64": 5.2979,
+      "zero_snaphead64": 5.1228,
+      "cut": 3.1111,
+      "full": 0.0997,
+      "even16": 2.784,
+      "snap16": 3.0223,
+      "even64": 1.8776,
+      "snap64": 2.8187
+     },
+     "episodes": 150,
+     "positions": 301.5733,
+     "kept": {
+      "16": 19.9267,
+      "64": 78.04
+     },
+     "by_turn": {
+      "1": {
+       "closed": {
+        "zero_full": 0.8685,
+        "zero_even16": 0.0171,
+        "zero_snap16": -0.0055,
+        "zero_snaphead16": 0.0073,
+        "zero_even64": 0.1138,
+        "zero_snap64": -0.0085,
+        "zero_snaphead64": 0.0255,
+        "full": 0.9758,
+        "even16": 0.1199,
+        "snap16": 0.0363,
+        "even64": 0.4249,
+        "snap64": 0.1158
+       },
+       "episodes": 150
+      },
+      "2": {
+       "closed": {
+        "zero_full": 0.8883,
+        "zero_even16": 0.0184,
+        "zero_snap16": 0.0014,
+        "zero_snaphead16": 0.0082,
+        "zero_even64": 0.1276,
+        "zero_snap64": 0.0016,
+        "zero_snaphead64": 0.0341,
+        "full": 0.9621,
+        "even16": 0.0967,
+        "snap16": 0.014,
+        "even64": 0.382,
+        "snap64": 0.0727
+       },
+       "episodes": 138
+      },
+      "3": {
+       "closed": {
+        "zero_full": 0.8943,
+        "zero_even16": 0.011,
+        "zero_snap16": 0.0088,
+        "zero_snaphead16": 0.0058,
+        "zero_even64": 0.1149,
+        "zero_snap64": 0.003,
+        "zero_snaphead64": 0.0349,
+        "full": 0.9558,
+        "even16": 0.0747,
+        "snap16": 0.0409,
+        "even64": 0.3328,
+        "snap64": 0.0737
+       },
+       "episodes": 54
+      }
+     }
+    },
+    "simulated": {
+     "closed": {
+      "zero_full": 0.7813,
+      "zero_even16": 0.062,
+      "zero_snap16": 0.0983,
+      "zero_snaphead16": 0.1539,
+      "zero_even64": 0.2292,
+      "zero_snap64": 0.2745,
+      "zero_snaphead64": 0.3769,
+      "full": 0.7715,
+      "even16": 0.1133,
+      "snap16": 0.1347,
+      "even64": 0.3123,
+      "snap64": 0.3045
+     },
+     "kl": {
+      "zero_cut": 0.845,
+      "zero_full": 0.1848,
+      "zero_even16": 0.7926,
+      "zero_snap16": 0.7619,
+      "zero_snaphead16": 0.7149,
+      "zero_even64": 0.6513,
+      "zero_snap64": 0.613,
+      "zero_snaphead64": 0.5265,
+      "cut": 0.5147,
+      "full": 0.1176,
+      "even16": 0.4564,
+      "snap16": 0.4453,
+      "even64": 0.354,
+      "snap64": 0.3579
+     },
+     "episodes": 250,
+     "positions": 815.252,
+     "kept": {
+      "16": 45.472,
+      "64": 170.328
+     },
+     "by_turn": {
+      "1": {
+       "closed": {
+        "zero_full": 0.7706,
+        "zero_even16": 0.0645,
+        "zero_snap16": 0.1038,
+        "zero_snaphead16": 0.1655,
+        "zero_even64": 0.229,
+        "zero_snap64": 0.2819,
+        "zero_snaphead64": 0.3893,
+        "full": 0.7705,
+        "even16": 0.1173,
+        "snap16": 0.1405,
+        "even64": 0.3139,
+        "snap64": 0.3128
+       },
+       "episodes": 250
+      },
+      "2": {
+       "closed": {
+        "zero_full": 0.8501,
+        "zero_even16": 0.0488,
+        "zero_snap16": 0.0622,
+        "zero_snaphead16": 0.0839,
+        "zero_even64": 0.2256,
+        "zero_snap64": 0.222,
+        "zero_snaphead64": 0.2938,
+        "full": 0.7825,
+        "even16": 0.0908,
+        "snap16": 0.1013,
+        "even64": 0.299,
+        "snap64": 0.2568
+       },
+       "episodes": 79
+      },
+      "3": {
+       "closed": {
+        "zero_full": 0.8366,
+        "zero_even16": 0.0397,
+        "zero_snap16": 0.0779,
+        "zero_snaphead16": 0.0692,
+        "zero_even64": 0.27,
+        "zero_snap64": 0.2472,
+        "zero_snaphead64": 0.3191,
+        "full": 0.7675,
+        "even16": 0.1026,
+        "snap16": 0.1206,
+        "even64": 0.3421,
+        "snap64": 0.2701
+       },
+       "episodes": 25
+      },
+      "4": {
+       "closed": {
+        "zero_full": 0.8466,
+        "zero_even16": 0.0192,
+        "zero_snap16": 0.0413,
+        "zero_snaphead16": 0.1064,
+        "zero_even64": 0.1558,
+        "zero_snap64": 0.357,
+        "zero_snaphead64": 0.4361,
+        "full": 0.6902,
+        "even16": 0.0323,
+        "snap16": 0.0563,
+        "even64": 0.2104,
+        "snap64": 0.2792
+       },
+       "episodes": 9
+      },
+      "5": {
+       "closed": {
+        "zero_full": 0.7331,
+        "zero_even16": 0.0358,
+        "zero_snap16": 0.1213,
+        "zero_snaphead16": 0.1253,
+        "zero_even64": 0.2439,
+        "zero_snap64": 0.2749,
+        "zero_snaphead64": 0.3264,
+        "full": 0.4451,
+        "even16": 0.0534,
+        "snap16": 0.1072,
+        "even64": 0.2592,
+        "snap64": 0.269
+       },
+       "episodes": 2
+      }
+     }
+    }
+   }
+  }
+ },
+ "slots64": {
+  "role": "the slot capacity arm: crumbs22's config from scratch with 64 slots per walker visit instead of 16 (micro 1)",
+  "run": "magic-crumbs29",
+  "commit": "5bd46a2",
+  "m": 64,
+  "micro": 1,
+  "dev": [
+   {
+    "step": 200,
+    "on": 0.4192,
+    "cut": 0.4189,
+    "closed": -0.0007
+   },
+   {
+    "step": 400,
+    "on": 0.3892,
+    "cut": 0.402,
+    "closed": 0.0318
+   },
+   {
+    "step": 600,
+    "on": 0.3518,
+    "cut": 0.4029,
+    "closed": 0.127
+   },
+   {
+    "step": 800,
+    "on": 0.2968,
+    "cut": 0.4114,
+    "closed": 0.2786
+   },
+   {
+    "step": 1000,
+    "on": 0.2665,
+    "cut": 0.4175,
+    "closed": 0.3618
+   },
+   {
+    "step": 1200,
+    "on": 0.2562,
+    "cut": 0.4194,
+    "closed": 0.389
+   },
+   {
+    "step": 1400,
+    "on": 0.247,
+    "cut": 0.4188,
+    "closed": 0.4102
+   }
+  ],
+  "steps_run": 1500,
+  "epochs": 2,
+  "cost_usd": 0.9573,
+  "test": {
+   "eval_seen": {
+    "all": {
+     "on": 0.2589,
+     "cut": 0.3977,
+     "transplant": 0.4447,
+     "zero_on": 0.195,
+     "zero_cut": 0.6839,
+     "tokens": 274241.0,
+     "closed_on": 0.3491,
+     "closed_transplant": -0.1182,
+     "closed_zero": 0.7148,
+     "episodes": 596,
+     "by_turn": {
+      "1": {
+       "on": 0.3503,
+       "cut": 0.5569,
+       "closed": 0.3711,
+       "episodes": 596
+      },
+      "2": {
+       "on": 0.2412,
+       "cut": 0.3552,
+       "closed": 0.3209,
+       "episodes": 382
+      },
+      "3": {
+       "on": 0.1748,
+       "cut": 0.2439,
+       "closed": 0.2832,
+       "episodes": 189
+      },
+      "4": {
+       "on": 0.041,
+       "cut": 0.0532,
+       "closed": 0.2298,
+       "episodes": 62
+      },
+      "5": {
+       "on": 0.0295,
+       "cut": 0.0386,
+       "closed": 0.2352,
+       "episodes": 39
+      },
+      "6": {
+       "on": 0.0201,
+       "cut": 0.0242,
+       "closed": 0.1684,
+       "episodes": 25
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 0.28,
+       "cut": 0.3977,
+       "closed": 0.2961,
+       "episodes": 596
+      },
+      "2": {
+       "on": 0.2748,
+       "cut": 0.4006,
+       "closed": 0.314,
+       "episodes": 394
+      },
+      "4": {
+       "on": 0.2121,
+       "cut": 0.2724,
+       "closed": 0.2211,
+       "episodes": 23
+      },
+      "all": {
+       "on": 0.2589,
+       "cut": 0.3977,
+       "closed": 0.3491,
+       "episodes": 596
+      }
+     }
+    },
+    "real": {
+     "on": 0.3491,
+     "cut": 0.5443,
+     "transplant": 0.6315,
+     "zero_on": 0.3127,
+     "zero_cut": 0.9469,
+     "tokens": 87533.0,
+     "closed_on": 0.3586,
+     "closed_transplant": -0.1603,
+     "closed_zero": 0.6697,
+     "episodes": 253,
+     "by_turn": {
+      "1": {
+       "on": 0.3179,
+       "cut": 0.5166,
+       "closed": 0.3847,
+       "episodes": 253
+      },
+      "2": {
+       "on": 0.3844,
+       "cut": 0.5906,
+       "closed": 0.3491,
+       "episodes": 211
+      },
+      "3": {
+       "on": 0.3555,
+       "cut": 0.5114,
+       "closed": 0.3048,
+       "episodes": 88
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 0.3635,
+       "cut": 0.5443,
+       "closed": 0.3322,
+       "episodes": 253
+      },
+      "2": {
+       "on": 0.2734,
+       "cut": 0.3902,
+       "closed": 0.2993,
+       "episodes": 137
+      },
+      "4": {
+       "on": 0.1832,
+       "cut": 0.2117,
+       "closed": 0.1345,
+       "episodes": 14
+      },
+      "all": {
+       "on": 0.3491,
+       "cut": 0.5443,
+       "closed": 0.3586,
+       "episodes": 253
+      }
+     }
+    },
+    "simulated": {
+     "on": 0.2166,
+     "cut": 0.329,
+     "transplant": 0.3572,
+     "zero_on": 0.1399,
+     "zero_cut": 0.5606,
+     "tokens": 186708.0,
+     "closed_on": 0.3417,
+     "closed_transplant": -0.0855,
+     "closed_zero": 0.7505,
+     "episodes": 343,
+     "by_turn": {
+      "1": {
+       "on": 0.3655,
+       "cut": 0.5759,
+       "closed": 0.3653,
+       "episodes": 343
+      },
+      "2": {
+       "on": 0.1306,
+       "cut": 0.1734,
+       "closed": 0.2468,
+       "episodes": 171
+      },
+      "3": {
+       "on": 0.0824,
+       "cut": 0.107,
+       "closed": 0.2303,
+       "episodes": 101
+      },
+      "4": {
+       "on": 0.041,
+       "cut": 0.0532,
+       "closed": 0.2298,
+       "episodes": 62
+      },
+      "5": {
+       "on": 0.0295,
+       "cut": 0.0386,
+       "closed": 0.2352,
+       "episodes": 39
+      },
+      "6": {
+       "on": 0.0201,
+       "cut": 0.0242,
+       "closed": 0.1684,
+       "episodes": 25
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 0.2408,
+       "cut": 0.329,
+       "closed": 0.2681,
+       "episodes": 343
+      },
+      "2": {
+       "on": 0.2756,
+       "cut": 0.4063,
+       "closed": 0.3217,
+       "episodes": 257
+      },
+      "4": {
+       "on": 0.2964,
+       "cut": 0.449,
+       "closed": 0.3399,
+       "episodes": 9
+      },
+      "all": {
+       "on": 0.2166,
+       "cut": 0.329,
+       "closed": 0.3417,
+       "episodes": 343
+      }
+     }
+    },
+    "by_family": {
+     "chat_alt": {
+      "on": 0.1715,
+      "cut": 0.21,
+      "transplant": 0.2323,
+      "zero_on": 0.2404,
+      "zero_cut": 0.2856,
+      "tokens": 74926.0,
+      "closed_on": 0.1833,
+      "closed_transplant": -0.1058,
+      "closed_zero": 0.1582
+     },
+     "chat_doc": {
+      "on": 0.1266,
+      "cut": 0.204,
+      "transplant": 0.2228,
+      "zero_on": 0.0798,
+      "zero_cut": 0.3206,
+      "tokens": 65831.0,
+      "closed_on": 0.3793,
+      "closed_transplant": -0.0924,
+      "closed_zero": 0.7511
+     },
+     "code": {
+      "on": 0.2475,
+      "cut": 0.394,
+      "transplant": 0.4388,
+      "zero_on": 0.1028,
+      "zero_cut": 0.7512,
+      "tokens": 28476.0,
+      "closed_on": 0.3718,
+      "closed_transplant": -0.1137,
+      "closed_zero": 0.8631
+     },
+     "debug": {
+      "on": 0.0779,
+      "cut": 0.1317,
+      "transplant": 0.1495,
+      "zero_on": 0.0574,
+      "zero_cut": 0.3242,
+      "tokens": 9728.0,
+      "closed_on": 0.4085,
+      "closed_transplant": -0.1351,
+      "closed_zero": 0.8229
+     },
+     "doc": {
+      "on": 0.2811,
+      "cut": 0.4141,
+      "transplant": 0.4426,
+      "zero_on": 0.1163,
+      "zero_cut": 0.6586,
+      "tokens": 52406.0,
+      "closed_on": 0.3211,
+      "closed_transplant": -0.0687,
+      "closed_zero": 0.8235
+     },
+     "fill": {
+      "on": 1.4043,
+      "cut": 2.5306,
+      "transplant": 3.0042,
+      "zero_on": 0.7424,
+      "zero_cut": 4.8773,
+      "tokens": 12607.0,
+      "closed_on": 0.4451,
+      "closed_transplant": -0.1871,
+      "closed_zero": 0.8478
+     },
+     "pair": {
+      "on": 0.3813,
+      "cut": 0.5983,
+      "transplant": 0.6327,
+      "zero_on": 0.2773,
+      "zero_cut": 0.9491,
+      "tokens": 15691.0,
+      "closed_on": 0.3627,
+      "closed_transplant": -0.0574,
+      "closed_zero": 0.7079
+     },
+     "plan": {
+      "on": 0.2459,
+      "cut": 0.3026,
+      "transplant": 0.3393,
+      "zero_on": 0.4756,
+      "zero_cut": 0.6591,
+      "tokens": 14576.0,
+      "closed_on": 0.1874,
+      "closed_transplant": -0.1212,
+      "closed_zero": 0.2784
+     }
+    }
+   },
+   "eval_heldout": {
+    "all": {
+     "on": 0.58,
+     "cut": 0.9555,
+     "transplant": 1.1354,
+     "zero_on": 0.2603,
+     "zero_cut": 1.5901,
+     "tokens": 108348.0,
+     "closed_on": 0.393,
+     "closed_transplant": -0.1883,
+     "closed_zero": 0.8363,
+     "episodes": 400,
+     "by_turn": {
+      "1": {
+       "on": 0.5736,
+       "cut": 0.9554,
+       "closed": 0.3996,
+       "episodes": 400
+      },
+      "2": {
+       "on": 0.6333,
+       "cut": 1.0345,
+       "closed": 0.3878,
+       "episodes": 217
+      },
+      "3": {
+       "on": 0.6392,
+       "cut": 1.0025,
+       "closed": 0.3624,
+       "episodes": 79
+      },
+      "4": {
+       "on": 0.0571,
+       "cut": 0.0711,
+       "closed": 0.1974,
+       "episodes": 9
+      },
+      "5": {
+       "on": 0.0504,
+       "cut": 0.055,
+       "closed": 0.0838,
+       "episodes": 2
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 0.6364,
+       "cut": 0.9555,
+       "closed": 0.3339,
+       "episodes": 400
+      },
+      "2": {
+       "on": 0.4594,
+       "cut": 0.6876,
+       "closed": 0.3319,
+       "episodes": 286
+      },
+      "4": {
+       "on": 0.3399,
+       "cut": 0.4948,
+       "closed": 0.313,
+       "episodes": 12
+      },
+      "all": {
+       "on": 0.58,
+       "cut": 0.9555,
+       "closed": 0.393,
+       "episodes": 400
+      }
+     }
+    },
+    "real": {
+     "on": 1.714,
+     "cut": 3.1608,
+     "transplant": 3.9795,
+     "zero_on": 0.6353,
+     "zero_cut": 5.2832,
+     "tokens": 18193.0,
+     "closed_on": 0.4577,
+     "closed_transplant": -0.259,
+     "closed_zero": 0.8797,
+     "episodes": 150,
+     "by_turn": {
+      "1": {
+       "on": 1.6339,
+       "cut": 3.2661,
+       "closed": 0.4997,
+       "episodes": 150
+      },
+      "2": {
+       "on": 1.7555,
+       "cut": 3.0577,
+       "closed": 0.4259,
+       "episodes": 138
+      },
+      "3": {
+       "on": 1.8768,
+       "cut": 3.0857,
+       "closed": 0.3918,
+       "episodes": 54
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 1.7953,
+       "cut": 3.1608,
+       "closed": 0.432,
+       "episodes": 150
+      },
+      "2": {
+       "on": 1.7553,
+       "cut": 3.0335,
+       "closed": 0.4214,
+       "episodes": 36
+      },
+      "all": {
+       "on": 1.714,
+       "cut": 3.1608,
+       "closed": 0.4577,
+       "episodes": 150
+      }
+     }
+    },
+    "simulated": {
+     "on": 0.3512,
+     "cut": 0.5105,
+     "transplant": 0.5615,
+     "zero_on": 0.1846,
+     "zero_cut": 0.8448,
+     "tokens": 90155.0,
+     "closed_on": 0.312,
+     "closed_transplant": -0.0999,
+     "closed_zero": 0.7815,
+     "episodes": 250,
+     "by_turn": {
+      "1": {
+       "on": 0.4245,
+       "cut": 0.6304,
+       "closed": 0.3267,
+       "episodes": 250
+      },
+      "2": {
+       "on": 0.2277,
+       "cut": 0.3033,
+       "closed": 0.2491,
+       "episodes": 79
+      },
+      "3": {
+       "on": 0.1446,
+       "cut": 0.17,
+       "closed": 0.1495,
+       "episodes": 25
+      },
+      "4": {
+       "on": 0.0571,
+       "cut": 0.0711,
+       "closed": 0.1974,
+       "episodes": 9
+      },
+      "5": {
+       "on": 0.0504,
+       "cut": 0.055,
+       "closed": 0.0838,
+       "episodes": 2
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 0.4026,
+       "cut": 0.5105,
+       "closed": 0.2113,
+       "episodes": 250
+      },
+      "2": {
+       "on": 0.3615,
+       "cut": 0.5105,
+       "closed": 0.2918,
+       "episodes": 250
+      },
+      "4": {
+       "on": 0.3399,
+       "cut": 0.4948,
+       "closed": 0.313,
+       "episodes": 12
+      },
+      "all": {
+       "on": 0.3512,
+       "cut": 0.5105,
+       "closed": 0.312,
+       "episodes": 250
+      }
+     }
+    },
+    "by_family": {
+     "doc": {
+      "on": 0.3471,
+      "cut": 0.5074,
+      "transplant": 0.562,
+      "zero_on": 0.1519,
+      "zero_cut": 0.8553,
+      "tokens": 69255.0,
+      "closed_on": 0.3159,
+      "closed_transplant": -0.1078,
+      "closed_zero": 0.8224
+     },
+     "fill": {
+      "on": 1.714,
+      "cut": 3.1608,
+      "transplant": 3.9795,
+      "zero_on": 0.6353,
+      "zero_cut": 5.2832,
+      "tokens": 18193.0,
+      "closed_on": 0.4577,
+      "closed_transplant": -0.259,
+      "closed_zero": 0.8797
+     },
+     "pair": {
+      "on": 0.3648,
+      "cut": 0.5208,
+      "transplant": 0.5595,
+      "zero_on": 0.2927,
+      "zero_cut": 0.8101,
+      "tokens": 20900.0,
+      "closed_on": 0.2995,
+      "closed_transplant": -0.0745,
+      "closed_zero": 0.6386
+     }
+    }
+   }
+  }
  }
 }
