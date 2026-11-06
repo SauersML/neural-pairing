@@ -143,6 +143,31 @@ def test_penalty_reads_the_real_tokens_with_the_gradient_through_warm_notes(tok)
     assert any(g is not None and float(g.abs().sum()) > 0 for g in grads)
 
 
+def test_penalty_stays_out_of_the_loss_and_its_gradient_is_bounded(tok):
+    """The loss's value and gradient are the task's. The penalty's gradient is added at most at the task's size, or whole
+    if it is smaller, so no writer's step can be all penalty."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.train()
+    eps = episodes('count', 3, False)
+    net.adv, net.one_note = 1., True
+    loss = net.loss(eps, 'cpu')
+    assert net.penalty is not None and net.penalty.requires_grad
+    assert float(loss) < float(loss + net.penalty) or float(net.penalty) == 0.
+    net.adv = 0.
+    net.loss(eps, 'cpu')
+    assert net.penalty is None
+    p = [torch.nn.Parameter(torch.zeros(2)), torch.nn.Parameter(torch.zeros(1))]
+    p[0].grad = torch.tensor([3., 4.])
+    got = C.bounded(p, [torch.tensor([0., 100.]), None])
+    assert got == dict(task=5., penalty=100., kept=.05) and p[0].grad.tolist() == [3., 9.]
+    p[0].grad = torch.tensor([3., 4.])
+    assert C.bounded(p, [torch.tensor([0., 1.]), None])['kept'] == 1. and p[0].grad.tolist() == [3., 5.]
+    p[0].grad, p[1].grad = torch.tensor([.1, 0.]), None
+    assert C.bounded(p, [torch.tensor([0., 10.]), torch.tensor([0.])])['kept'] == .1    # a task near done still leaves it the clip's size
+    assert p[0].grad.tolist() == pytest.approx([.1, 1.]) and p[1].grad.tolist() == [0.]
+
+
 def test_log_odds_keep_a_slope_when_the_reader_is_sure(tok):
     net = tiny(tok, 'sym', 2)
     W = net.model.get_output_embeddings().weight.detach()

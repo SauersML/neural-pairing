@@ -92,6 +92,7 @@ ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the 
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
 ONE_MASS = .5                  # sym, --one_note: the share _warm leaves on a note token's first choice, for the penalty's gradient
+ONE_SHARE = 1.                 # sym, --one_note: the penalty's gradient against the task's, at most (bounded(): the step stays half the task)
 ONE_ADV_MOST = 8.              # sym, --one_note: the most a game's penalty weight grows to, by half each dev it stays read
 PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
@@ -170,6 +171,7 @@ class Crumbs(nn.Module):
         self.split = False                             # crumb_open: the chat split into two agents' own real chats
         self.one_note = False                          # sym: the frozen-reader penalty reads one note at a time
         self.warm = None                               # sym, one_note: the writer's last notes as the penalty reads them
+        self.penalty = None                            # sym, one_note: loss's weighted penalty, not in its value (bounded)
         self.charged = 0                               # sym, one_note: which notes the next penalty charges
         if arm == 'sym':
             self.banned = letter_table(tok, model.config.vocab_size)[1]
@@ -711,8 +713,9 @@ class Crumbs(nn.Module):
             s = self.sums
             if s['n_tok']:
                 out = out + self.lam * s['let'] / s['n_tok'] + self.beta * (s['ent'] / s['n_tok'] - s['div'] / s['n_div'])
+            self.penalty = self.adv * s['adv'] / s['n_adv'] if self.one_note and s['n_adv'] else None
             for k in ('adv', 'eav'):
-                if s[f'n_{k}']:
+                if s[f'n_{k}'] and self.penalty is None:
                     out = out + self.adv * s[k] / s[f'n_{k}']
             if s['n_con']:
                 out = out + self.contrast * s['con'] / s['n_con']
@@ -1871,15 +1874,20 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 net.adv = most * min(1., (step - adv_from) / 100) if charged else 0.
                 net.eaves_on = False
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
-        loss, stat, eloss = 0., collections.Counter(), []
+        loss, stat, eloss, charge, split = 0., collections.Counter(), [], None, {}
         for part in parts:
             part_loss = net.loss(part, device) / len(parts)
+            if net.penalty is not None:
+                got = torch.autograd.grad(net.penalty / len(parts), lora + link, retain_graph=True, allow_unused=True)
+                charge = got if charge is None else [b if a is None else a if b is None else a + b for a, b in zip(charge, got)]
             part_loss.backward()
             loss += part_loss.detach()
             if sym:
                 stat.update({k: float(v.detach()) if torch.is_tensor(v) else float(v) for k, v in net.sums.items()})
                 if net.stash:
                     eloss.append(net.eaves_step(1 / len(parts)))
+        if charge is not None:
+            split = bounded(lora + link, charge)
         grad = torch.nn.utils.clip_grad_norm_(lora + link, 1.0)
         opt.step()
         sched.step()
@@ -1893,7 +1901,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             fine.write(json.dumps(dict(
                 step=step, game=game, loss=round(loss.item(), 4), grad=round(float(grad), 4), adv_w=round(net.adv, 3),
                 ent=round(stat['ent'] / n, 4), div=round(stat['div'] / max(1, stat['n_div']), 4),
-                codes=[len(set(q)) for q in net.codes],
+                codes=[len(set(q)) for q in net.codes], **split,
                 **{k: round(stat[k] / stat[f'n_{k}'], 4) for k in ('adv', 'eav', 'con', 'choice') if stat[f'n_{k}']})) + '\n')
             fine.flush()
         rec = None
@@ -2050,6 +2058,23 @@ def right_by_game(net, device, by_game, readers=('follower', 'base'), bs=48):
     if was:
         net.train()
     return out
+
+
+def bounded(params, penalty):
+    """Add the penalty's gradient to the task's already in params' .grad, scaled down to at most ONE_SHARE of the task's
+    norm (of 1, the clip, if that is less). The penalty's gradient grows as the writer nears a code the reader stops
+    reading: a run's work and count steps went from 3 to 187 and 1,517 inside 100 steps, so the clip left the step almost
+    all penalty, the follower stopped learning and its code was lost with the reader's (work .97 to .29 at weight 2.25).
+    Returns the two norms and the share of the penalty kept."""
+    def norm(gs):
+        return sum(float(g.pow(2).sum()) for g in gs if g is not None) ** .5
+
+    task, size = norm(p.grad for p in params), norm(penalty)
+    keep = min(1., ONE_SHARE * max(1., task) / max(size, 1e-9))
+    for p, g in zip(params, penalty):
+        if g is not None:
+            p.grad = keep * g if p.grad is None else p.grad + keep * g
+    return dict(task=round(task, 3), penalty=round(size, 3), kept=round(keep, 4))
 
 
 def leak(one):
