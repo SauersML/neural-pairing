@@ -728,6 +728,27 @@ def test_the_gradient_probe_splits_the_writers_gradient(tmp_path, monkeypatch):
                                                   + 2 * r['g_cos'] * r['g_charge'] * r['g_answer'], rel=.02) for r in got)
 
 
+def test_the_letter_push_reads_letterless_tokens_that_are_not_filler():
+    net, rng = net_of(m=3), random.Random(19)
+    net.nonsat = .5
+    eps = [OT.fit(episode(rng, 0, 'doc'), net, 4000)]
+    hs, _, toks = net.own_hidden(eps, net.decode(eps))
+    rows = net.rows([q for g in range(0, len(toks), net.m) for q in net.masks.walk(toks[g:g + net.m])[1]])
+    *_, away = net._soft(hs, rows)
+    z = net.hard_logits(hs, rows=rows)
+    keep = (1 - net._table[rows]).clamp(min=0) * net.filler_keep(z.shape[-1], z.device)
+    assert away.exp().tolist() == pytest.approx(((z / net.tau).softmax(-1) * keep).sum(-1).tolist(), rel=1e-3)
+    nl = net.tok.encode('\n')[-1]
+    assert net.filler_keep(z.shape[-1], z.device)[nl] == 0
+
+
+def test_the_letter_push_joins_the_writers_gradient_at_its_scale(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.5, .4, 100., 0.)] * 3, 4, *target_args('--nonsat', '.5', '--target0', '0.001'))
+    got = [r for r in rows if 'g_answer' in r]
+    assert got and all(r['g_charge'] > 0 and r['g_answer'] > 0 for r in got)
+    assert all(r['g_total'] ** 2 == pytest.approx(r['g_answer'] ** 2 * (1 + .25 + r['g_cos']), rel=.05) for r in got)
+
+
 def test_the_warm_stage_saves_new_bests_and_ends_on_them(tmp_path, monkeypatch):
     rows = scripted_run(tmp_path, monkeypatch, [(.3, .4, 100., 0.), (.4, .4, 100., 0.), (.2, .4, 100., 0.)], 4,
                         *target_args('--warm', '1', '--warm_reader', '1', '--warm_margin', '-1'))

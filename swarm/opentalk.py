@@ -324,6 +324,7 @@ class Talk:
         self.charge = 'linear'                         # the letter penalty's shape (letter_charge)
         self.letter_target = 0.0                       # charge target: the letter share a message owes nothing for
         self.keep_charge, self.kept_charge = False, None   # --grad_probe: this micro-batch's weighted letter charge
+        self.nonsat, self.away, self._keep = 0.0, None, None   # --nonsat: the letter push away from saturated letters
         self.family_scale = {}                         # family_norm: family -> the none KL its KL is divided by
         self.contrast_ref = 'swap'                     # what the contrast hinge compares KL_on with
         self.chat = False                              # --format chat: plain chat transcripts (no system line, no frame)
@@ -530,9 +531,11 @@ class Talk:
         return [f for ids in msgs for f in self.masks.walk(ids)[0]]
 
     def message_stats(self, msgs):
-        """Over messages (token id lists): letter tokens per message, the share of messages with no letter token, and
-        the share of tokens that are filler (is_filler: whitespace and ellipsis only)."""
-        counts = [sum(self.masks.walk(ids)[0]) for ids in msgs]
+        """Over messages (token id lists): letter tokens per message, the share of messages with no letter token, the
+        share of tokens that are filler (is_filler: whitespace and ellipsis only), and the share that are neither, with
+        the commonest of those: what stands where letters would."""
+        flags = [self.masks.walk(ids)[0] for ids in msgs]
+        counts = [sum(f) for f in flags]
         toks = [t for ids in msgs for t in ids]
         for t in set(toks) - self._filler.keys():
             self._filler[t] = is_filler(self.tok.decode([t]))
@@ -540,8 +543,11 @@ class Talk:
         charge = mean(math.sqrt(x + CHARGE_EPS) for x in shares) if self.charge == 'sqrt' else mean(shares)
         n = len(toks)
         entropy = -sum(v / n * math.log(v / n) for v in Counter(toks).values())
+        other = Counter(t for ids, f in zip(msgs, flags) for t, x in zip(ids, f) if not x and not self._filler[t])
         return dict(letters_per_msg=round(mean(counts), 3), no_letter_msgs=round(mean(c == 0 for c in counts), 4),
                     filler=round(mean(self._filler[t] for t in toks), 4), charge=round(charge, 4),
+                    symbols=round(sum(other.values()) / n, 4),
+                    top_symbols=[[self.tok.decode([t]), round(v / n, 4)] for t, v in other.most_common(12)],
                     eff_tokens=round(math.exp(entropy), 1),
                     distinct_msgs=round(len({tuple(ids) for ids in msgs}) / len(msgs), 4))
 
@@ -640,10 +646,22 @@ class Talk:
 
     # ---------------------------------------------------------------------------------------------------- passes
 
+    def filler_keep(self, n, device):
+        """1 per token that is not filler (is_filler), over the n-token vocabulary, built once."""
+        if self._keep is None:
+            self._keep = torch.tensor([not is_filler(self.tok.decode([t])) for t in range(n)], dtype=torch.float32,
+                                      device=device)
+        return self._keep
+
     def _soft(self, h, rows):
         z = self.hard_logits(h, rows=rows)
         p = (z / self.tau).softmax(-1)
-        return p.to(self.E.dtype) @ self.E, (p * self._table[rows]).sum(-1), z.argmax(-1)
+        out = p.to(self.E.dtype) @ self.E, (p * self._table[rows]).sum(-1), z.argmax(-1)
+        if not self.nonsat:
+            return out
+        # log P(a letterless token that is not filler), from the logits: its gradient does not vanish on a sure letter
+        keep = (1 - self._table[rows]).clamp(min=0) * self.filler_keep(z.shape[-1], z.device)
+        return (*out, ((z / self.tau).log_softmax(-1) + keep.log()).logsumexp(-1))
 
     def chunked(self, fn, h, *rest):
         """fn over h (and rest) in CHUNK-row pieces, each under activation checkpointing when grad is on: the
@@ -683,7 +701,8 @@ class Talk:
         position [messages * m] and the share of positions whose argmax is the decoded token (1 at the fixed point)."""
         hs, G, toks = self.own_hidden(eps, msgs)
         pends = [q for g in range(0, len(toks), self.m) for q in self.masks.walk(toks[g:g + self.m])[1]]
-        vec, mass, arg = self.chunked(self._soft, hs, self.rows(pends))
+        vec, mass, arg, *away = self.chunked(self._soft, hs, self.rows(pends))
+        self.away = away[0] if away else None
         fixed = float((arg == torch.tensor(toks, device=self.device)).float().mean())
         soft = [dict() for _ in eps]
         for q, (i, g) in enumerate(G):
@@ -743,13 +762,19 @@ class Talk:
         self.kept_charge = None
         return got
 
-    def grad_split(self, charge):
+    def grad_split(self, charge, push=0.0):
         """After the whole loss's backward: the writer's gradient norms from the letter charge and from everything else
-        (the answer loss and the contrast), and the cosine between the two. Both are clipped and stepped together."""
+        (the answer loss and the contrast), and the cosine between the two. Both are clipped and stepped together.
+        push (--nonsat): charge is not in the loss; it joins the gradient here, scaled to push times the loss's norm."""
         ps = [p for p in self.model.parameters() if p.requires_grad]
         total = torch.cat([(p.grad if p.grad is not None else torch.zeros_like(p)).view(-1) for p in ps])
         c = torch.cat([g.view(-1) for g in charge])
-        a = total - c
+        a = total if push else total - c
+        if push:
+            k = push * a.norm() / c.norm().clamp(min=1e-12)
+            for p, g in zip(ps, charge):
+                p.grad = (p.grad if p.grad is not None else torch.zeros_like(p)) + k * g
+            total = a + k * c
         return dict(g_charge=float(c.norm()), g_answer=float(a.norm()), g_total=float(total.norm()),
                     g_cos=float(torch.nn.functional.cosine_similarity(c, a, dim=0)))
 
@@ -848,7 +873,10 @@ class Talk:
                      letters=mean(self.letters_of(rows.tolist())), distinct=len(torch.unique(toks)),
                      distinct_msgs=len(torch.unique(rows, dim=0)) / max(1, rows.shape[0]))
         if self.keep_charge:
-            self.kept_charge = charge
+            # --nonsat: what the push descends, at the positions holding a letter, in messages over the target
+            over = (mass.detach().view(-1, self.m).mean(1) > self.letter_target).float()
+            self.kept_charge = (((mass.detach() * -self.away).view(-1, self.m).mean(1) * over).mean()
+                                if self.nonsat else charge)
             parts.update(g_charge_value=float(charge.detach()),
                          g_over=float((mass.detach().view(-1, self.m).mean(1) > self.letter_target).float().mean()))
         perm = list(range(1, len(eps))) + [0]
@@ -1582,8 +1610,8 @@ def train(net, args, log):
                 out_of_data, parts_all = True, []
                 break
             try:
-                net.keep_charge = bool(args.grad_probe and stage == 'full' and micro_i == 0
-                                       and (step + 1) % args.grad_probe == 0)
+                net.keep_charge = bool(stage == 'full' and micro_i == 0 and (
+                    args.nonsat or (args.grad_probe and (step + 1) % args.grad_probe == 0)))
                 if stage == 'warm':
                     loss, parts = net.warm_loss(eps)
                 else:
@@ -1591,7 +1619,7 @@ def train(net, args, log):
                 kept = net.charge_grads(len(eps) / args.batch) if net.keep_charge else None
                 (loss * len(eps) / args.batch).backward()
                 if kept is not None:
-                    parts.update(net.grad_split(kept))
+                    parts.update(net.grad_split(kept, args.nonsat))
                 parts_all.append(parts)
                 n_eps += len(eps)
             except torch.cuda.OutOfMemoryError:
@@ -1727,6 +1755,9 @@ def main():
     ap.add_argument('--warm_reader', type=int, default=0, help='warm: 1 also trains the reader on the literal copies')
     ap.add_argument('--warm_margin', type=float, default=0.02, help='warm: how near the head copy the writer must score')
     ap.add_argument('--dev_first', type=int, default=0, help='1: a resumed run starts with a dev')
+    ap.add_argument('--nonsat', type=float, default=0.0, help='a letter push that does not vanish on a sure letter: -log '
+                    'P(a letterless token that is not filler) at letter positions of messages over the target, its '
+                    'gradient scaled each step to this times the norm of the rest of the writer gradient')
     ap.add_argument('--grad_probe', type=int, default=0, help='every N steps: log the writer gradient from the letter '
                     'charge against the rest (g_charge, g_answer, g_cos); one extra backward through the writer')
     ap.add_argument('--dev_copy', type=int, default=0, help='1: each dev also reads literal copies, the bar for the target')
@@ -1773,6 +1804,7 @@ def main():
     net = build(device, args.base, args.rank, args.ckpt if 'train' not in args.parts else None, args.m,
                 base_copy='train' in args.parts and args.lam_p > 0, two=bool(args.two))
     net.charge = args.letter_charge
+    net.nonsat = args.nonsat
     net.contrast_ref = args.contrast_ref
     net.chat, net.talk_max, net.warm_reader = args.format == 'chat', args.talk_max, bool(args.warm_reader)
     if args.fast_decode and device == 'cuda':
