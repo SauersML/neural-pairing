@@ -818,9 +818,11 @@ def test_letters_per_game(tok, tmp_path, monkeypatch):
     assert set(ns['letters_by_game']) == set(want) and all(abs(ns['letters_by_game'][g] - v) < 1e-9
                                                            for g, v in want.items())
     assert ns['letters_max'] == max(want.values())
+    assert set(ns['digits_by_game']) == set(want) and all(0. <= v <= 1. for v in ns['digits_by_game'].values())
     assert min(want.values()) - 1e-9 <= ns['letters_text'] <= ns['letters_max'] + 1e-9
     # one game writing words among others writing none: pooled 0.1, that game 0.9
     fake = dict(letters=.1, letters_exact=.1, letters_text=.1, letters_max=.9, letters_by_game=dict(trail=.9, count=0.),
+                digits_by_game=dict(trail=0., count=0.),
                 examples=['brick: 1'], distinct=1)
     monkeypatch.setattr(C, 'note_stats', lambda *a, **k: dict(fake))
     net.train()
