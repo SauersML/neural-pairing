@@ -37,8 +37,329 @@
     "on": 0.3812,
     "cut": 0.4056,
     "closed": 0.0602
+   },
+   {
+    "step": 600,
+    "on": 0.3538,
+    "cut": 0.4091,
+    "closed": 0.135
+   },
+   {
+    "step": 800,
+    "on": 0.3343,
+    "cut": 0.4083,
+    "closed": 0.1812
+   },
+   {
+    "step": 1000,
+    "on": 0.3135,
+    "cut": 0.4107,
+    "closed": 0.2367
+   },
+   {
+    "step": 1200,
+    "on": 0.3047,
+    "cut": 0.4125,
+    "closed": 0.2613
+   },
+   {
+    "step": 1400,
+    "on": 0.2993,
+    "cut": 0.413,
+    "closed": 0.2752
    }
-  ]
+  ],
+  "steps_run": 1500,
+  "epochs": 2,
+  "cost_usd": 0.8606,
+  "test": {
+   "eval_seen": {
+    "all": {
+     "on": 0.2961,
+     "cut": 0.396,
+     "transplant": 0.4279,
+     "closed_on": 0.2524,
+     "closed_transplant": -0.0806,
+     "zero_on": 0.1951,
+     "zero_cut": 0.684,
+     "closed_zero": 0.7148,
+     "tokens": 274241.0,
+     "episodes": 596
+    },
+    "real": {
+     "on": 0.4132,
+     "cut": 0.5389,
+     "transplant": 0.5929,
+     "closed_on": 0.2333,
+     "closed_transplant": -0.1002,
+     "zero_on": 0.3128,
+     "zero_cut": 0.9472,
+     "closed_zero": 0.6698,
+     "tokens": 87533.0,
+     "episodes": 253,
+     "by_turn": {
+      "1": {
+       "on": 0.3712,
+       "cut": 0.5101,
+       "closed": 0.2723,
+       "episodes": 253
+      },
+      "2": {
+       "on": 0.4618,
+       "cut": 0.5882,
+       "closed": 0.2148,
+       "episodes": 211
+      },
+      "3": {
+       "on": 0.4191,
+       "cut": 0.502,
+       "closed": 0.1651,
+       "episodes": 88
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 0.4254,
+       "cut": 0.5389,
+       "closed": 0.2106,
+       "episodes": 253
+      },
+      "2": {
+       "on": 0.3066,
+       "cut": 0.3874,
+       "closed": 0.2084,
+       "episodes": 137
+      },
+      "4": {
+       "on": 0.1817,
+       "cut": 0.2086,
+       "closed": 0.1286,
+       "episodes": 14
+      },
+      "all": {
+       "on": 0.4132,
+       "cut": 0.5389,
+       "closed": 0.2333,
+       "episodes": 253
+      }
+     }
+    },
+    "simulated": {
+     "on": 0.2412,
+     "cut": 0.329,
+     "transplant": 0.3506,
+     "zero_on": 0.1399,
+     "zero_cut": 0.5605,
+     "closed_on": 0.2671,
+     "closed_transplant": -0.0655,
+     "closed_zero": 0.7505,
+     "tokens": 186708.0
+    },
+    "by_family": {
+     "chat_alt": {
+      "on": 0.1774,
+      "cut": 0.2094,
+      "transplant": 0.2293,
+      "closed_on": 0.1527,
+      "closed_transplant": -0.0952,
+      "zero_on": 0.2405,
+      "zero_cut": 0.2856,
+      "closed_zero": 0.1579,
+      "tokens": 74926.0
+     },
+     "chat_doc": {
+      "on": 0.1416,
+      "cut": 0.2035,
+      "transplant": 0.2171,
+      "closed_on": 0.304,
+      "closed_transplant": -0.0672,
+      "zero_on": 0.0799,
+      "zero_cut": 0.3205,
+      "closed_zero": 0.7508,
+      "tokens": 65831.0
+     },
+     "code": {
+      "on": 0.2825,
+      "cut": 0.3926,
+      "transplant": 0.4274,
+      "closed_on": 0.2805,
+      "closed_transplant": -0.0887,
+      "zero_on": 0.1028,
+      "zero_cut": 0.7515,
+      "closed_zero": 0.8632,
+      "tokens": 28476.0
+     },
+     "debug": {
+      "on": 0.092,
+      "cut": 0.1305,
+      "transplant": 0.1429,
+      "closed_on": 0.295,
+      "closed_transplant": -0.0949,
+      "zero_on": 0.0577,
+      "zero_cut": 0.3246,
+      "closed_zero": 0.8222,
+      "tokens": 9728.0
+     },
+     "doc": {
+      "on": 0.3102,
+      "cut": 0.4152,
+      "transplant": 0.4371,
+      "closed_on": 0.2529,
+      "closed_transplant": -0.0526,
+      "zero_on": 0.1163,
+      "zero_cut": 0.6585,
+      "closed_zero": 0.8234,
+      "tokens": 52406.0
+     },
+     "fill": {
+      "on": 1.8146,
+      "cut": 2.4974,
+      "transplant": 2.7537,
+      "closed_on": 0.2734,
+      "closed_transplant": -0.1027,
+      "zero_on": 0.7428,
+      "zero_cut": 4.8797,
+      "closed_zero": 0.8478,
+      "tokens": 12607.0
+     },
+     "pair": {
+      "on": 0.4279,
+      "cut": 0.5974,
+      "transplant": 0.6179,
+      "closed_on": 0.2838,
+      "closed_transplant": -0.0343,
+      "zero_on": 0.2773,
+      "zero_cut": 0.9487,
+      "closed_zero": 0.7077,
+      "tokens": 15691.0
+     },
+     "plan": {
+      "on": 0.2605,
+      "cut": 0.3058,
+      "transplant": 0.3434,
+      "closed_on": 0.1482,
+      "closed_transplant": -0.1228,
+      "zero_on": 0.4749,
+      "zero_cut": 0.659,
+      "closed_zero": 0.2794,
+      "tokens": 14576.0
+     }
+    }
+   },
+   "eval_heldout": {
+    "all": {
+     "on": 0.691,
+     "cut": 0.9507,
+     "transplant": 1.0508,
+     "closed_on": 0.2732,
+     "closed_transplant": -0.1052,
+     "zero_on": 0.2604,
+     "zero_cut": 1.59,
+     "closed_zero": 0.8362,
+     "tokens": 108348.0,
+     "episodes": 400
+    },
+    "real": {
+     "on": 2.239,
+     "cut": 3.1116,
+     "transplant": 3.5295,
+     "closed_on": 0.2804,
+     "closed_transplant": -0.1343,
+     "zero_on": 0.6355,
+     "zero_cut": 5.2819,
+     "closed_zero": 0.8797,
+     "tokens": 18193.0,
+     "episodes": 150,
+     "by_turn": {
+      "1": {
+       "on": 2.1581,
+       "cut": 3.2042,
+       "closed": 0.3265,
+       "episodes": 150
+      },
+      "2": {
+       "on": 2.2738,
+       "cut": 3.0207,
+       "closed": 0.2473,
+       "episodes": 138
+      },
+      "3": {
+       "on": 2.4233,
+       "cut": 3.0457,
+       "closed": 0.2043,
+       "episodes": 54
+      }
+     },
+     "by_visit": {
+      "1": {
+       "on": 2.3075,
+       "cut": 3.1116,
+       "closed": 0.2584,
+       "episodes": 150
+      },
+      "2": {
+       "on": 2.2298,
+       "cut": 2.9823,
+       "closed": 0.2523,
+       "episodes": 36
+      },
+      "all": {
+       "on": 2.239,
+       "cut": 3.1116,
+       "closed": 0.2804,
+       "episodes": 150
+      }
+     }
+    },
+    "simulated": {
+     "on": 0.3786,
+     "cut": 0.5147,
+     "transplant": 0.5506,
+     "zero_on": 0.1848,
+     "zero_cut": 0.845,
+     "closed_on": 0.2645,
+     "closed_transplant": -0.0698,
+     "closed_zero": 0.7813,
+     "tokens": 90155.0
+    },
+    "by_family": {
+     "doc": {
+      "on": 0.3743,
+      "cut": 0.5123,
+      "transplant": 0.5509,
+      "closed_on": 0.2693,
+      "closed_transplant": -0.0754,
+      "zero_on": 0.1521,
+      "zero_cut": 0.8555,
+      "closed_zero": 0.8222,
+      "tokens": 69255.0
+     },
+     "fill": {
+      "on": 2.239,
+      "cut": 3.1116,
+      "transplant": 3.5295,
+      "closed_on": 0.2804,
+      "closed_transplant": -0.1343,
+      "zero_on": 0.6355,
+      "zero_cut": 5.2819,
+      "closed_zero": 0.8797,
+      "tokens": 18193.0
+     },
+     "pair": {
+      "on": 0.3926,
+      "cut": 0.5227,
+      "transplant": 0.5496,
+      "closed_on": 0.2489,
+      "closed_transplant": -0.0515,
+      "zero_on": 0.2929,
+      "zero_cut": 0.8102,
+      "closed_zero": 0.6385,
+      "tokens": 20900.0
+     }
+    }
+   }
+  },
+  "test_about": "closed_on: the share of the cut KL the trained slots close; closed_transplant: with the next episode's slots (below 0: wrong slots hurt more than none); closed_zero: the untrained full copy (adapter off, the hidden part's own keys and values) against cut with the adapter off; real: chat_alt and fill (no simulated user); simulated: every family with a simulated user, pooled from by_family"
  },
  "slot_diagnosis": {
   "about": "swarm/crumb_open.py's slot path with a fresh LoRA on the 2 shortest dev episodes, before training and after 25 and 50 steps on that batch alone: gradient norms (slot embeddings, slot keys and values, the LoRA in all, through the reader alone and through the walker's path), the attention mass of the reader's answer queries on the slot columns per layer, the slot columns they may see, the position ids, the largest |logit on - logit cut| and the batch's KL on and cut; then the crumb positions per source",
@@ -264,6 +585,33 @@
     "sentence_positions_max": 1789,
     "sentence_share_of_material": 1.0164,
     "sentence_over_slots": 16.86
+   }
+  ]
+ },
+ "rerope": {
+  "role": "crumbs22's config (16 slots per visit, micro 1) from scratch with the slot keys re-rotated to sit just before the reader's first token at the place (--rerope); stopped after dev 600 since it trailed crumbs22 at every dev (distance is not the bottleneck)",
+  "run": "magic-crumbs25",
+  "commit": "da7a7cb",
+  "micro": 1,
+  "cost_usd": 0.3353,
+  "dev": [
+   {
+    "step": 200,
+    "on": 0.4175,
+    "cut": 0.4202,
+    "closed": 0.0065
+   },
+   {
+    "step": 400,
+    "on": 0.3881,
+    "cut": 0.4037,
+    "closed": 0.0388
+   },
+   {
+    "step": 600,
+    "on": 0.3679,
+    "cut": 0.4011,
+    "closed": 0.0829
    }
   ]
  }
