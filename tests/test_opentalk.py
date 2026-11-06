@@ -470,8 +470,10 @@ def scripted_run(tmp_path, monkeypatch, devs, steps, *extra):
     script = iter(devs)
 
     def fake(net, eps, bs=8, base=False, examples=3, readers=(), copies=()):
-        gap, letters, eff, read = next(script)
+        gap, letters, eff, read, *bar = next(script)
         fams = {f: dict(gap=gap, gap_se=0.01, none=0.5, on=0.5 - gap, closed=gap) for f in ('doc', 'pair', 'fill', 'chat_alt')}
+        for v in fams.values():
+            v.update(copy_head_closed=bar[0]) if bar else None
         return dict(_all=dict(gap=gap, letters=letters, eff_tokens=eff, charge=letters ** 0.5, base_gap=read,
                               base_gap_se=0.01, closed=0.0, distinct=100), **fams)
     monkeypatch.setattr(OT, 'evaluate', fake)
@@ -735,3 +737,50 @@ def test_a_chat_target_run_trains_with_no_letters_pull_while_shut(tmp_path, monk
     assert steps and all(r['target'] == 1.0 for r in steps)              # no copy measured in the fake: dev value decides
     st = json.loads((tmp_path / 'ckpt' / 'talk.json').read_text())
     assert st['bias'] == 0.0 and st['symbols'] is False
+
+
+def test_a_resumed_part_can_start_with_a_dev_and_never_goes_back_from_it(tmp_path, monkeypatch):
+    common = ('--protect', '1', '--lam_p', '0', '--letter_charge', 'target', '--contrast_ref', 'none', '--family_norm', '1',
+              '--format', 'chat', '--target0', '1', '--min_alive', '2', '--bias_k', '0', '--lam0', '1', '--dev_every', '2')
+    scripted_run(tmp_path, monkeypatch, [(.3, .9, 100., 0.), (.3, .9, 100., 0.)], 2, *common)
+    (tmp_path / 'out' / 'log.jsonl').rename(tmp_path / 'first.jsonl')
+    rows = scripted_run(tmp_path, monkeypatch, [(.0, .9, 100., 0.), (.3, .9, 100., 0.)], 4, *common, '--resume',
+                        str(tmp_path / 'ckpt'), '--dev_first', '1')
+    assert [r['step'] for r in rows if isinstance(r.get('dev'), dict)] == [2, 4]
+    assert not any(r.get('rollback') for r in rows)                      # dead at its first dev: nothing to go back from
+    assert [r['step'] for r in rows if r.get('new_best')] == [4]
+
+
+def test_warm_targets_are_exactly_m_allowed_tokens_and_the_writer_learns_them():
+    net, rng = chat_net(m=4), random.Random(17)
+    big_adapter(net)
+    eps = [OT.fit(episode(rng, i, f), net, 4000) for i, f in enumerate(['doc', 'pair', 'chat_alt', 'fill'])]
+    msgs = net.copy_messages(eps[1], 'target')
+    assert all(len(m) == 4 and all(net.allowed[v] for v in m) for turn in msgs for _, m in turn)
+    nl = net.ids('\n')[0]
+    short = dict(eps[1], views=dict(A='', B=''))                         # nothing to send: all padding
+    first = net.copy_messages(short, 'target')[0]
+    assert first[1][1] == [nl] * 4
+    best = net.copy_messages(eps[1], 'best')
+    assert all(p[1][:len(b[1])] == b[1][:4] for tp, tb in zip(msgs, best) for p, b in zip(tp, tb) if b[1])
+    loss, parts = net.warm_loss(eps)
+    assert {'ce', 'acc', 'distinct', 'letters'} <= set(parts) and parts['ce'] > 0
+    loss.backward()
+    assert sum(float(p.grad.abs().sum()) for n, p in net.model.named_parameters() if 'lora_A' in n) > 0
+    hs, G, toks = net.own_hidden(eps[:1], [net.copy_messages(eps[0], 'target')])
+    assert hs.shape[0] == len(toks) == len(G) * 4
+
+
+def test_the_writer_warm_starts_until_it_nears_the_copy_then_trains_in_full(tmp_path, monkeypatch):
+    rows = scripted_run(tmp_path, monkeypatch, [(.3, .9, 100., 0., .5), (.49, .9, 100., 0., .5), (.5, .9, 100., 0., .5)], 4,
+                        '--dev_every', '2', '--protect', '1', '--lam_p', '0', '--letter_charge', 'target',
+                        '--contrast_ref', 'none', '--family_norm', '1', '--format', 'chat', '--target0', '1',
+                        '--min_alive', '2', '--bias_k', '0', '--lam0', '1', '--dev_copy', '1', '--symbols_line', '0',
+                        '--warm', '1', '--log_every', '1')
+    assert [r['step'] for r in rows if r.get('warm_done')] == [2]         # 0.49 is within 0.02 of the head copy's 0.5
+    steps = [r for r in rows if 'stage' in r]
+    assert [r['stage'] for r in steps] == ['warm', 'warm', 'full', 'full']
+    assert 'ce' in steps[0] and 'ce' not in steps[-1] and 'kl' in steps[-1]
+    assert not any(r.get('rollback') for r in rows)
+    assert [r['step'] for r in rows if r.get('new_best')][0] == 2        # the dev that ends the warm start is the fallback
+    assert json.loads((tmp_path / 'ckpt' / 'state.json').read_text())['stage'] == 'full'

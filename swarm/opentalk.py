@@ -50,6 +50,11 @@ partner's are user turns. mode none is then just the answerer's own turns in the
 the same reader on literal copies of the partner's text (Talk.copy_messages) as the bar the writer has to beat; the
 target stays shut until it does, outside fill.
 
+--warm 1: the writer's warm start, before any of the above. It learns by plain cross-entropy to write literal copies
+(Talk.warm_loss: policy target), teacher-forced in one pass, with no decode and no reader; the teacher's answer only picks
+the targets and the writer never sees it. When a dev finds the writer within --warm_margin of the head copy's closed
+share outside fill, the run goes on with the full loss.
+
 Dev (every --dev_every steps; --dev_n episodes per family, carved from the training records and never trained on),
 hard messages only, per family: KL per answer token with the messages (on), with the received messages of another
 dev episode of the family (swap) and with no conversation at all (none); the share the messages close,
@@ -419,14 +424,15 @@ class Talk:
         """Literal messages in the episode's talk slots: the asker's first slot is its request's first L tokens (its later
         slots empty), and each partner slot takes from what the partner holds by then: head walks L tokens at a time from
         the start, never repeating; best takes the windows covering most of this turn's answer (an oracle: the teacher's
-        answer picks them); whole sends all that is new, with no length limit (later slots empty)."""
+        answer picks them); whole sends all that is new, with no length limit (later slots empty); target is best made
+        writable: every message m tokens, padded with newlines, anything outside the allowed vocabulary a newline."""
         L = L or self.m
         res, sent = [], dict(A=0, B=0)
         for k, t in enumerate(ep['turns']):
             who, y = t['who'], other(t['who'])
             src = self.held(ep, y, k)
             slots = [j for j in range(t['talk']) if self.speaker(ep, k, j) == y]
-            windows = best_windows(src, t['response_ids'], L, len(slots)) if policy == 'best' else None
+            windows = best_windows(src, t['response_ids'], L, len(slots)) if policy in ('best', 'target') else None
             msgs = []
             for j in range(t['talk']):
                 if j % 2 == 0:
@@ -436,14 +442,20 @@ class Talk:
                 if policy == 'head':
                     m = src[sent[y]:sent[y] + L]
                     sent[y] += L
-                elif policy == 'best':
+                elif policy in ('best', 'target'):
                     m = windows[slots.index(j)]
                 else:
                     m = src[sent[y]:]
                     sent[y] = len(src)
                 msgs.append((y, list(m)))
-            res.append(msgs)
+            res.append([(s_, self.padded(m)) for s_, m in msgs] if policy == 'target' else msgs)
         return res
+
+    def padded(self, m):
+        """A literal message as exactly m allowed tokens."""
+        nl = self.ids('\n')[0]
+        keep = [v if self.allowed[v] else nl for v in m[:self.m]]
+        return keep + [nl] * (self.m - len(keep))
 
     @staticmethod
     def speaker(ep, k, j):
@@ -642,6 +654,18 @@ class Talk:
     def writer(self, eps, msgs):
         """The writer pass: per episode a dict {g: soft vectors [m, d]} of its messages, the letter mass at each message
         position [messages * m] and the share of positions whose argmax is the decoded token (1 at the fixed point)."""
+        hs, G, toks = self.own_hidden(eps, msgs)
+        pends = [q for g in range(0, len(toks), self.m) for q in self.masks.walk(toks[g:g + self.m])[1]]
+        vec, mass, arg = self.chunked(self._soft, hs, self.rows(pends))
+        fixed = float((arg == torch.tensor(toks, device=self.device)).float().mean())
+        soft = [dict() for _ in eps]
+        for q, (i, g) in enumerate(G):
+            soft[i][g] = vec[q * self.m:(q + 1) * self.m]
+        return soft, mass, fixed, torch.tensor(toks)
+
+    def own_hidden(self, eps, msgs):
+        """One gradient pass over each agent's transcript up to its last message: the hidden states before each of its
+        message tokens [messages * m, d], per message (episode, g), and those tokens."""
         rows, seqs = [], []
         for i, ep in enumerate(eps):
             for x in 'AB':
@@ -658,14 +682,19 @@ class Talk:
                 P += list(range(pos - 1, pos - 1 + self.m))
                 G.append((i, g))
                 toks += b['ids'][pos:pos + self.m]
-        hs = h[torch.tensor(R, device=self.device), torch.tensor(P, device=self.device)]
-        pends = [q for g in range(0, len(toks), self.m) for q in self.masks.walk(toks[g:g + self.m])[1]]
-        vec, mass, arg = self.chunked(self._soft, hs, self.rows(pends))
-        fixed = float((arg == torch.tensor(toks, device=self.device)).float().mean())
-        soft = [dict() for _ in eps]
-        for q, (i, g) in enumerate(G):
-            soft[i][g] = vec[q * self.m:(q + 1) * self.m]
-        return soft, mass, fixed, torch.tensor(toks)
+        return h[torch.tensor(R, device=self.device), torch.tensor(P, device=self.device)], G, toks
+
+    def warm_loss(self, eps):
+        """The writer's warm start: the cross-entropy of its message positions against literal copies, teacher-forced."""
+        hs, _, toks = self.own_hidden(eps, [self.copy_messages(e, 'target') for e in eps])
+        t = torch.tensor(toks, device=self.device)
+
+        def fn(h_, t_):
+            z = self.hard_logits(h_)
+            return F.cross_entropy(z, t_, reduction='none'), (z.argmax(-1) == t_).float()
+        per, hit = self.chunked(fn, hs, t)
+        return per.mean(), dict(ce=float(per.detach().mean()), acc=float(hit.mean()), distinct=len(torch.unique(t)),
+                                letters=mean(self.letters_of(t.view(-1, self.m).tolist())))
 
     def letter_charge(self, mass):
         """The letter penalty from the soft letter mass per message position [messages * m]. linear: the mean, each
@@ -1193,7 +1222,8 @@ def train(net, args, log):
     target_mode = args.letter_charge == 'target'
     target, half, dev_value, copy_value = args.target0, args.target_half, None, None   # target and its halving time
     gate_v, gate_m, gate_d, gate_l = (deque(maxlen=args.target_window) for _ in range(4))
-    copies = ('head', 'best') if args.dev_copy else ()
+    copies = ('head', 'best', 'target') if args.dev_copy else ()
+    stage = 'warm' if args.warm else 'full'          # warm: the writer learns to copy; full: the whole loss
     lam_from, ramp_t0, lam_now = 0.0, None, 0.0      # the weight in force moves from lam_from to lam from ramp_t0
     best, rollbacks, last_dev, force_dev, watch_on = None, 0, None, False, True
     roll_d, roll_m = deque(maxlen=args.watch_steps), deque(maxlen=args.watch_steps)
@@ -1216,7 +1246,7 @@ def train(net, args, log):
         lam_from, ramp_t0 = st.get('lam_from', lam), st.get('ramp_t0')
         best, rollbacks, lr_scale[0] = st.get('best'), st.get('rollbacks', 0), st.get('lr_scale', 1.0)
         target, half, dev_value = st.get('target', target), st.get('half', half), st.get('dev_value')
-        copy_value = st.get('copy_value')
+        copy_value, stage = st.get('copy_value'), st.get('stage', stage)
         net.family_scale = st.get('family_scale', net.family_scale)
         optimizer = (R / 'optim.pt').exists()
         if optimizer:
@@ -1225,7 +1255,8 @@ def train(net, args, log):
         sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_at)
         for _ in range(step * micros):               # the micro-batches the first part trained on
             next(feed)
-        skip_dev = first = step                      # its dev at this step has run and set the controller
+        first = step                                 # its dev at this step has run and set the controller
+        skip_dev = None if args.dev_first else step  # (--dev_first: measure again here, say in a new format)
         log(dict(resumed=str(R), step=step, lam=lam, bias=net.bias, symbols=net.symbols, ref=ref, gap0=gap0,
                  optimizer=optimizer, held_shards=hold, data_pos=data.pos))
 
@@ -1233,7 +1264,7 @@ def train(net, args, log):
         return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
                     anchored=anchored, lam_from=lam_from, ramp_t0=ramp_t0, best=best, rollbacks=rollbacks,
                     lr_scale=lr_scale[0], target=target, half=half, dev_value=dev_value, copy_value=copy_value,
-                    family_scale=net.family_scale)
+                    family_scale=net.family_scale, stage=stage)
 
     def go_back(slower=True):
         """The best weights and optimizer state, and the weight, bias and tau they were measured at."""
@@ -1278,7 +1309,13 @@ def train(net, args, log):
             copy_value = value_outside_fill(d, 'copy_head_closed')
             alive = families_alive(d, args.read_z)
             d['_all'].update(value_nf=dev_value, copy_head_nf=copy_value, alive=alive,
-                             copy_best_nf=value_outside_fill(d, 'copy_best_closed'))
+                             copy_best_nf=value_outside_fill(d, 'copy_best_closed'),
+                             copy_target_nf=value_outside_fill(d, 'copy_target_closed'))
+            switched = (stage == 'warm' and dev_value is not None and copy_value is not None
+                        and dev_value >= copy_value - args.warm_margin)
+            if switched:
+                stage = 'full'
+                log(dict(step=step, warm_done=True, value_nf=dev_value, copy_head_nf=copy_value))
             if args.family_norm:
                 net.family_scale = {f: v['none'] for f, v in d.items() if not f.startswith('_') and 'none' in v}
             letters = d['_all']['letters']
@@ -1320,9 +1357,9 @@ def train(net, args, log):
                 log(dict(step=step, lam_p_halved=round(lam_p_max, 5), gap=gap))
             log(dict(step=step, tau=round(net.tau, 3), lam=lam, lam_now=round(lam_now, 5), dev=d,
                      dev_s=round(time.monotonic() - t0), s=round(time.monotonic() - started)))
-            if args.protect:
-                why = dev_trouble(gap, ref, eff, args, alive if target_mode else None)
-                if why and best is not None:
+            if args.protect and stage == 'full':
+                why = '' if switched else dev_trouble(gap, ref, eff, args, alive if target_mode else None)
+                if why and best is not None and step != first:   # a part's first dev has trained nothing to undo
                     go_back()
                     rollbacks += 1
                     ok, watch_on = False, True
@@ -1343,7 +1380,7 @@ def train(net, args, log):
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
         if stop or step >= args.steps or (time.monotonic() - started) / 60 > args.max_minutes:
-            if args.protect and best is not None and best['step'] != step:    # the run ends on its best weights
+            if args.protect and stage == 'full' and best is not None and best['step'] != step:   # ends on its best weights
                 go_back(slower=False)
                 log(dict(step=step, ends_on_best=best['step'], gap=best['gap']))
             save(net, args.ckpt, dict(step=step, lam=lam), opt, ckpt_state())
@@ -1362,7 +1399,10 @@ def train(net, args, log):
                 out_of_data, parts_all = True, []
                 break
             try:
-                loss, parts = net.loss(eps, lam_now, args.contrast, args.contrast_target, lam_p)
+                if stage == 'warm':
+                    loss, parts = net.warm_loss(eps)
+                else:
+                    loss, parts = net.loss(eps, lam_now, args.contrast, args.contrast_target, lam_p)
                 (loss * len(eps) / args.batch).backward()
                 parts_all.append(parts)
                 n_eps += len(eps)
@@ -1386,7 +1426,7 @@ def train(net, args, log):
         step += 1
         t_train += time.monotonic() - t_step
         dec_train += net.stats['decode_tokens'] - dec0
-        if args.protect and watch_on:                # a collapse takes ~30 steps: the batches can call a dev early
+        if args.protect and watch_on and stage == 'full':   # a collapse takes ~30 steps: the batches can call a dev early
             roll_d.append(mean(p['distinct'] for p in parts_all))
             roll_m.append(mean(p.get('margin', 1e9) for p in parts_all))
             if len(roll_d) == args.watch_steps and (mean(roll_d) < args.watch_distinct or (
@@ -1394,7 +1434,7 @@ def train(net, args, log):
                 force_dev = True
                 log(dict(step=step, forced_dev=True, distinct=round(mean(roll_d), 1), margin=round(mean(roll_m), 4)))
         opened = False
-        if target_mode and ref is not None:          # letters fall only while messages help and are not constant
+        if target_mode and ref is not None and stage == 'full':   # letters fall only while messages help and differ
             for q, k in ((gate_v, 'value_nf'), (gate_m, 'margin_n'), (gate_d, 'distinct_msgs'), (gate_l, 'letters_soft')):
                 vals = [p[k] for p in parts_all if k in p]
                 if vals:
@@ -1407,7 +1447,7 @@ def train(net, args, log):
             rec = dict(step=step, tau=round(net.tau, 3), lam=round(lam_now, 5), lam_p=round(lam_p, 4), eps=n_eps,
                        s_step=round(time.monotonic() - t_step, 2), s=round(time.monotonic() - started))
             if target_mode:
-                rec.update(target=round(target, 4), open=opened, help=round(mean(gate_v), 4) if gate_v else None)
+                rec.update(target=round(target, 4), open=opened, help=round(mean(gate_v), 4) if gate_v else None, stage=stage)
             for k in {k for p in parts_all for k in p}:
                 rec[k] = round(mean(p[k] for p in parts_all if k in p), 4)
             if torch.cuda.is_available():
@@ -1484,6 +1524,9 @@ def main():
     ap.add_argument('--format', default='agent', choices=('agent', 'chat'),
                     help='chat: plain chat transcripts with no system line (see the module docstring)')
     ap.add_argument('--talk_max', type=int, default=0, help='message turns per task turn at most (0: as the data says)')
+    ap.add_argument('--warm', type=int, default=0, help='1: start with the writer\'s warm start (see the module docstring)')
+    ap.add_argument('--warm_margin', type=float, default=0.02, help='warm: how near the head copy the writer must score')
+    ap.add_argument('--dev_first', type=int, default=0, help='1: a resumed run starts with a dev')
     ap.add_argument('--dev_copy', type=int, default=0, help='1: each dev also reads literal copies, the bar for the target')
     ap.add_argument('--family_norm', type=int, default=0, help='1: each family\'s KL in shares of its none KL')
     ap.add_argument('--contrast_ref', default='swap', choices=('swap', 'none'),
@@ -1548,7 +1591,8 @@ def main():
             if args.eval_n:
                 eps = eps[:args.eval_n]
             sets[split] = eps
-            scores[split] = evaluate(net, eps, bs=args.dev_bs, base=True)
+            scores[split] = evaluate(net, eps, bs=args.dev_bs, base=True,
+                                     copies=('head', 'best', 'target') if args.dev_copy else ())
             log(dict(eval=split, res=scores[split]))
             (out / 'scores.json').write_text(json.dumps(scores, indent=1, ensure_ascii=False))
         for spec in filter(None, args.readers.split(',')):        # written after each, so a failure here loses no score
