@@ -1102,7 +1102,8 @@ def sym_dev(net, device, dev):
                dev_cut=round(dev_nll(net, device, dev, mode='off'), 4),
                dev_transplant=round(dev_nll(net, device, dev, mode='transplant'), 4))
     ns = note_stats(net, device, dev)
-    out.update({k: round(ns[k], 4) for k in ('letters', 'letters_exact', 'letters_text')}, examples=ns['examples'])
+    out.update({k: round(ns[k], 4) for k in ('letters', 'letters_exact', 'letters_text')}, examples=ns['examples'],
+               distinct=ns['distinct'])
     return out
 
 
@@ -1277,10 +1278,10 @@ def note_stats(net, device, eps, show=2, bs=50):
     token that is not complete UTF-8 a letter); letters_exact, by the penalty's rule (swarm/letters.py, each note
     read from its start with the bytes pending before each token); letters_text,
     the share of the decoded notes' characters other than spaces that are of category L*; and the first show trail
-    episodes' explorer notes as 'object: text'."""
+    episodes' explorer notes as 'object: text', and distinct, how many different notes those are."""
     import unicodedata
     net.eval()
-    n_tok, n_let, n_exact, n_chr, n_ltr, examples, shown = 0, 0, 0, 0, 0, [], 0
+    n_tok, n_let, n_exact, n_chr, n_ltr, examples, shown, notes = 0, 0, 0, 0, 0, [], 0, []
     first = net.letter_first.to(device)
     for s0 in range(0, len(eps), bs):
         chunk = eps[s0:s0 + bs]
@@ -1302,9 +1303,10 @@ def note_stats(net, device, eps, show=2, bs=50):
             for k, r in enumerate(ep['trail']['order']):
                 note = net.tok.decode(ids[b, cols[k * net.m:(k + 1) * net.m]].tolist())
                 examples.append(f'{ep["trail"]["objects"][r]}: {note}')
+                notes.append(note)
     net.train()
     return dict(letters=n_let / max(1, n_tok), letters_exact=n_exact / max(1, n_tok), letters_text=n_ltr / max(1, n_chr),
-                examples=examples)
+                examples=examples, distinct=len(set(notes)))
 
 
 def letter_bytes(_cache=[]):
@@ -1450,7 +1452,7 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
-          detach_until=0,
+          detach_until=0, gate_held=1, gate_distinct=0, gate_letters=PRIV_LETTERS,
           dev_fn=None, cut0=None, gap_ref='first', dev0=False):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
@@ -1476,7 +1478,10 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     one sym dev before the first step (the untrained notes). Until the reference gap is positive (the notes help
     the reader) no dev holds it, the weight stays, no dev counts as missed and each dev's gap is the next reference.
     The letter share that gates privacy and the weight's
-    rise is letters_text (the share of the decoded notes' characters that are letters: one token " pillow" is six);
+    rise is letters_text (the share of the decoded notes' characters that are letters: one token " pillow" is six).
+    The privacy gate can be stricter: gate_held devs in a row with the gap held, at least gate_distinct different
+    notes among the dev's example notes (note_stats' distinct) and letters_text under gate_letters (default
+    PRIV_LETTERS); until then only the follower, the letter weight, the entropy terms and the contrastive term train;
     letters (the first rule) and letters_exact (the penalty's, per token) are logged beside it. detach_until: up to
     that step (the warm-up) writers write with the adapter off, so the notes are the base model's and only the readers
     learn them, the entropy terms are off, and the letter controller only takes the reference gap; from the next
@@ -1510,7 +1515,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             log.write(json.dumps(rec) + '\n')
             log.flush()
     started = time.monotonic()
-    best, best_step, record, work, letters, misses = float('inf'), 0, [], None, None, 0
+    best, best_step, record, work, letters, misses, run_held = float('inf'), 0, [], None, None, 0, 0
     for step in range(1, steps + 1):
         game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
         gmax = next((g for until, g in curriculum or () if step <= until), None) if game == 'oldgrowth' else None
@@ -1579,6 +1584,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                     rec['gap_now'] = round(rec['dev_cut'] - v, 4)
                 keep, (up, down) = LAM_RULE[0], lam_rule
                 held = gap0 is not None and gap0 > 0 and gap >= keep * gap0
+                run_held = 0 if gap0 is None or step <= max(letters_from, detach_until) or gap0 <= 0 or not held \
+                    else run_held + 1                  # devs in a row with the gap held, the controller's
                 if gap0 is None or step <= max(letters_from, detach_until):
                     gap0 = gap
                     if out and step <= letters_from:
@@ -1596,7 +1603,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 if gap_ref == 'max':
                     gap0 = max(gap0, gap)
                     rec['gap_ref'] = round(gap0, 4)
-                if work is None and held and step > max(letters_from, detach_until) and letters < PRIV_LETTERS:
+                if work is None and held and run_held >= gate_held and rec['distinct'] >= gate_distinct and \
+                        step > max(letters_from, detach_until) and letters < gate_letters:
                     work = rec['private'] = step
                     if out:
                         torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'gate.pt')
@@ -1696,6 +1704,11 @@ def main():
                     help='sym arm: up,down: the letter weight\'s factor after a dev with the gap held, and without')
     ap.add_argument('--lost', type=int, default=0, help='sym arm: stop after this many devs in a row without the gap')
     ap.add_argument('--private_steps', type=int, default=0, help='sym arm: stop this many steps after privacy starts')
+    ap.add_argument('--gate_held', type=int, default=1, help='sym arm: devs in a row with the gap held before privacy')
+    ap.add_argument('--gate_distinct', type=int, default=0,
+                    help="sym arm: privacy waits for at least this many different notes among a dev's example notes")
+    ap.add_argument('--gate_letters', type=float, default=PRIV_LETTERS,
+                    help='sym arm: privacy waits for the decoded notes to be under this share of letters')
     ap.add_argument('--tau0', type=float, default=SYM_TAU[0], help='sym arm: the notes\' starting temperature')
     ap.add_argument('--beta_full', action='store_true', help='sym arm: the entropy terms at full weight from step 1')
     ap.add_argument('--detach_until', type=int, default=0,
@@ -1772,7 +1785,8 @@ def main():
                             lam_rule=tuple(float(x) for x in args.lam_rule.split(',')), lost=args.lost,
                             private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full, lr=args.lr,
                             cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0,
-                            detach_until=args.detach_until)
+                            detach_until=args.detach_until, gate_held=args.gate_held,
+                            gate_distinct=args.gate_distinct, gate_letters=args.gate_letters)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))

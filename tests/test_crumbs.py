@@ -534,6 +534,34 @@ def test_sym_contrast_negatives(tok):
     net.con_negatives = 1
 
 
+def test_sym_privacy_gate(tok, tmp_path):
+    """The stricter privacy gate: gate_held devs in a row with the gap held, at least gate_distinct different notes
+    among the dev's examples (logged as distinct) and letters under gate_letters; with gate_held 1 and gate_distinct 0
+    it gates at the first held dev under the letter share, as before (the tiny model's notes are all letters)."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.train()
+
+    def run(name, **kw):
+        out = tmp_path / name
+        out.mkdir()
+        C.train(net, 'cpu', 3, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=1e-9,
+                cut0=1e6, tau0=.3, beta_full=True, min_steps=100, **kw)
+        return [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
+
+    recs = run('default')
+    assert all(r['held'] for r in recs) and all(r['letters_text'] > C.PRIV_LETTERS for r in recs)
+    assert not any('private' in r for r in recs)
+    for r in recs:
+        assert r['distinct'] == len({e.split(': ', 1)[1] for e in r['examples']})
+    recs = run('one', gate_letters=1.01)
+    assert [('private' in r) for r in recs] == [True, False, False]
+    recs = run('two', gate_held=2, gate_letters=1.01)
+    assert [('private' in r) for r in recs] == [False, True, False]
+    recs = run('distinct', gate_held=2, gate_letters=1.01, gate_distinct=99)
+    assert not any('private' in r for r in recs)
+
+
 def test_sym_contrast_and_letter_rule(tok, tmp_path):
     """The contrastive term: one per follower row with notes, its gradient reaching both episodes' notes (its own and
     the next episode's, which it reads instead), none with --contrast 0; the letter weight: 0 up to letters_from,
