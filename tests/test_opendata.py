@@ -287,6 +287,35 @@ def test_degenerate_turns():
     assert O.first_degenerate(rec) == (2, 'repeat')
 
 
+def test_real_turns_are_never_cut(cache, monkeypatch):
+    monkeypatch.setattr(O, '_CHAT_USERS', {})
+    rng = random.Random(5)
+    code = 'def f(x):\n' + '\n'.join(f'    x = x + {j}  # {prose(rng, 4)}' for j in range(12)) + '\n    return x'
+    users = [f'Why does this function fail on the second test case?\n```python\n{code}\n```', 'Create 200 more',
+             'Now explain the third loop of it in plain words for a beginner please']
+    item = dict(id='p-multi', source='stackexchange', kind='chat',
+                turns=[m for u in users for m in (dict(role='user', content=u), dict(role='assistant', content='ok'))])
+    with open(O.item_path('stackexchange', 'train'), 'a') as f:
+        f.write(json.dumps(item) + '\n')
+    doc = next(sk for i in range(50) if (sk := O.skeleton('chat_doc', item, random.Random(i))) and
+               len(sk['turns']) > len(users))
+    doc.update(id='doc-multi', split='train')
+    alt = next(s for s in O.skeletons('train', 60, seed=3) if s['family'] == 'chat_alt')
+    alt['turns'][1]['user'] = alt['turns'][1]['teacher_user'] = '10 more!'          # short, but a person wrote it
+    recs = {r['id']: r for r in O.generate([alt, doc], fake_gen()[0], random.Random(0), log=lambda *_: None)}
+    ra, rd = recs[alt['id']], recs['doc-multi']
+    n = len(users)
+    assert len(ra['turns']) == len(alt['turns']) and not any(t['sim'] for t in ra['turns'])
+    assert [t['sim'] for t in rd['turns']] == [k >= n for k in range(len(rd['turns']))]
+    assert O.first_degenerate(ra) == (len(ra['turns']), '') and O.first_degenerate(rd) == (len(rd['turns']), '')
+    rd['turns'][n]['user'] = rd['turns'][2]['user']                              # a simulated repeat: cut
+    assert O.first_degenerate(rd) == (n, 'repeat')
+    for t in rd['turns'] + ra['turns']:                                          # older records, without marks
+        del t['sim']
+    assert O.real_turns(rd) == [k < n for k in range(len(rd['turns']))]       # from the item cache
+    assert O.first_degenerate(rd) == (n, 'repeat') and O.first_degenerate(ra) == (len(ra['turns']), '')
+
+
 def test_simulated_turns_are_resampled_then_end_the_episode(cache):
     sks = [s for s in O.skeletons('train', 80, seed=7) if s['family'] == 'doc'][:6]
     calls = []

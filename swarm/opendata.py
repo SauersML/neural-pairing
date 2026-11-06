@@ -10,9 +10,9 @@ record (one JSON line in OUT/shards/SPLIT-NNNN.jsonl.gz; OUT is per teacher mode
 answers):
   id, source, family, split (train, eval_seen or eval_heldout), kind (the source item's: chat, doc, code, pair, plan
   or tests), views {A, B} (each agent's private material, shown at the start), teacher (False: fill-in, whose
-  targets are real text), turns: [{who, user, teacher_user, talk, response, response_ids}]. response_ids ends with
-  <|im_end|> when the teacher ended its answer (the answer's last token, also a target), not when it was cut at
-  RESP_TOK.
+  targets are real text), turns: [{who, user, teacher_user, talk, sim, response, response_ids}] (sim: the
+  simulated user wrote the turn, not a person). response_ids ends with <|im_end|> when the teacher ended its answer
+  (the answer's last token, also a target), not when it was cut at RESP_TOK.
 The teacher's top-32 next-token log-probabilities at every answer token are stored beside each shard, from the vLLM
 pass that generated the answer (raw log-probabilities: temperature 1, no top-p), so training never runs the teacher:
 OUT/teacher/SPLIT-NNNN.parquet, one row per (record, teacher turn): id (string), turn (int16), n (int32, the
@@ -396,10 +396,50 @@ def degenerate(user, prior_users=(), prior_responses=(), fill=False):
     return ''
 
 
+_CHAT_USERS = {}
+
+
+def chat_users(source):
+    """{item id: number of user turns} over a chat source's cached items (train and test), read once."""
+    if source not in _CHAT_USERS:
+        got = {}
+        for split in ('train', 'test'):
+            p = item_path(source, split)
+            if p.exists():
+                with open(p) as f:
+                    for line in f:
+                        x = json.loads(line)
+                        got[x['id']] = sum(m['role'] == 'user' for m in x.get('turns', ()))
+        _CHAT_USERS[source] = got
+    return _CHAT_USERS[source]
+
+
+def real_turns(rec):
+    """Which of a record's task turns a person wrote (True) and which the simulated user did (False). Records mark
+    it per turn (sim); older ones without the mark go by family: chat_alt and fill are all real, chat_doc's first
+    min(user turns, MAX_TURNS) turns are its chat's own (counted from the item cache; all real when the item is
+    missing), every other family is simulated."""
+    ts, fam = rec['turns'], rec['family']
+    if ts and 'sim' in ts[0]:
+        return [not t['sim'] for t in ts]
+    if fam in ('chat_alt', 'fill'):
+        return [True] * len(ts)
+    if fam != 'chat_doc':
+        return [False] * len(ts)
+    n = chat_users(rec['source']).get(rec['item'])
+    n = len(ts) if n is None else min(n, MAX_TURNS)
+    return [k < n for k in range(len(ts))]
+
+
 def first_degenerate(rec):
-    """(k, why): the first task turn whose user turn is degenerate (degenerate()), or (len(turns), '')."""
+    """(k, why): the first simulated task turn whose user turn is degenerate (degenerate()), or (len(turns), '').
+    Real turns (real_turns) are never cut: a person's "10 more!" is a real request; they still count as earlier
+    turns."""
     fill = rec['family'] == 'fill'
+    real = real_turns(rec)
     for k, t in enumerate(rec['turns']):
+        if real[k]:
+            continue
         why = degenerate(t['user'], [u['user'] for u in rec['turns'][:k]],
                          [u['response'] for u in rec['turns'][:k]], fill)
         if why:
@@ -775,18 +815,13 @@ def generate(sks, gen, rng, log=print, sim=None, stats=None, judge=None, samples
     live += [s for s in sks if s['family'] != 'plan']
     for s in live:
         s['done'] = 0
+        for t in s['turns']:                             # simulated: the user turns generate writes
+            t['sim'] = 'ask' in t
     def count(s, key):
-        st = stats.setdefault(s['family'], dict(asked=0, first_failed=0, ended=0, real_ended=0, judged=0,
-                                                 judge_yes=0))
+        st = stats.setdefault(s['family'], dict(asked=0, first_failed=0, ended=0, judged=0, judge_yes=0))
         st[key] += 1
 
-    for k in range(MAX_TURNS):
-        for s in live:                                   # a real user turn that is degenerate ends the episode there
-            if s['done'] == k and k < len(s['turns']) and 'user' in s['turns'][k]:
-                if degenerate(s['turns'][k]['user'], [t['user'] for t in s['turns'][:k]],
-                              [t['response'] for t in s['turns'][:k]], s['family'] == 'fill'):
-                    count(s, 'real_ended')
-                    s['turns'] = s['turns'][:k]
+    for k in range(MAX_TURNS):                           # real user turns are kept as they are
         need = [s for s in live if s['done'] == k and k < len(s['turns']) and s['turns'][k].get('ask')]
         asked = len(need)
         for s in need:
@@ -1049,7 +1084,7 @@ def build(out, counts, gen, seed=0, batch=1000, log=print, max_minutes=None, sim
             shard = write_shards(recs, out, split, shard, tag=tag)
             done += len(recs)
             rates = {f: dict(asked=v['asked'], first_failed=round(v['first_failed'] / max(1, v['asked']), 3),
-                             ended=v['ended'], real_ended=v['real_ended'], judged=v['judged'],
+                             ended=v['ended'], judged=v['judged'],
                              judge_yes=round(v['judge_yes'] / max(1, v['judged']), 3)) for f, v in sorted(stats.items())}
             log(json.dumps(dict(split=split, records=done, of=n, s=round(time.monotonic() - t0),
                                 per_min=round(len(recs) / max(1e-9, (time.monotonic() - t1) / 60), 1), user_turns=rates)))
@@ -1072,8 +1107,8 @@ class Episodes:
         self.refresh()
 
     def load(self, p):
-        """One shard's records, each cut at its first degenerate user turn (first_degenerate; counts in self.cuts),
-        those left with no turns dropped, with their top-k when teacher."""
+        """One shard's records, each cut at its first degenerate simulated user turn (first_degenerate; counts in
+        self.cuts), those left with no turns dropped, with their top-k when teacher."""
         with gzip.open(p, 'rt') as f:
             recs = [r for line in f if (r := json.loads(line)) and (not self.families or r['family'] in self.families)]
         for r in recs:
