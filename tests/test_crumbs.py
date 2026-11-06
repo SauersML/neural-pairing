@@ -643,42 +643,88 @@ def test_sym_resume(tok, tmp_path):
         C.resumed(b / 'odd.pt')
 
 
-def test_sym_rollback(tok, tmp_path, monkeypatch):
-    """--rollback once private: a dev that holds a good code saves private.pt and raises the privacy weight up to its
-    top, a dev whose code is lost restores those weights and halves the weight with fresh optimizers, and training ends
-    on the last good weights; steps.jsonl logs every private step."""
-    real = C.sym_dev
-    plan = iter([(3, .5), (3, .5), (1, .5), (3, .5), (3, .9)])  # distinct and letters of each dev
+def test_sym_protect(tok, tmp_path, monkeypatch):
+    """--protect past the gate: right-answer numbers at every dev, best.pt at each dev with the best score that is good,
+    a lost code goes back to those weights with fresh optimizers and half the learning rate, the letter weights go per
+    game, the games are drawn by what the follower lacks, no eavesdropper trains, training ends on the best weights,
+    and the frozen reader's penalty comes on only after two devs above noise."""
+    real_dev, real_right = C.sym_dev, C.right_by_game
+    plan = iter([(3, 0.), (3, .9), (1, 0.), (3, 0.), (3, 0.), (3, .9)])   # distinct and hotpot letters of each dev
+    scores = iter([.1, .3, .05, .2, .4, .9])                              # the follower's own minus swapped
 
-    def planned(net, device, dev):
+    def planned_dev(net, device, dev):
         distinct, letters = next(plan)
-        return dict(real(net, device, dev), distinct=distinct, letters_max=letters, letters_text=letters)
+        return dict(real_dev(net, device, dev), distinct=distinct, letters_max=letters, letters_text=letters,
+                    letters_by_game=dict(trail=0., hotpot=letters), dev_swap=1e3)     # a swap gap that stays put
 
-    monkeypatch.setattr(C, 'sym_dev', planned)
+    def planned_right(net, device, by_game, readers=('follower', 'base'), bs=48):
+        got = real_right(net, device, by_game, readers, bs)
+        if 'base' in readers:
+            v = next(scores)
+            for r in got.values():
+                r.update(follower_own=v, follower_swap=0., chance=.2, base_ci=[.1, .2] if v > .3 else [-.1, .1])
+        return got
+
+    monkeypatch.setattr(C, 'sym_dev', planned_dev)
+    monkeypatch.setattr(C, 'right_by_game', planned_right)
+    monkeypatch.setattr(C, 'RIGHT_EPS', 2)
     net = tiny(tok, 'sym', 2)
     lora_effect(net)
-    net.adv = net.adv_max = 1.
+    net.choice = 1.
+    eaves0 = {k: v.clone() for k, v in net.state_dict().items() if '.eaves.' in k}
     net.train()
     out = tmp_path / 'r'
     out.mkdir()
-    C.train(net, 'cpu', 5, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=1e-9, cut0=1e6,
-            tau0=.3, beta_full=True, min_steps=100, gate_letters=.8, gate_distinct=2, gap_ref='max', rollback=True)
+    C.train(net, 'cpu', 6, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=2., gap0=1e-9, cut0=1e6,
+            tau0=.3, beta_full=True, min_steps=100, gate_letters=.8, gate_distinct=2, gap_ref='max', gap_by='cut',
+            protect=True, frozen_adv=.5)
     recs = [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
     devs = [r for r in recs if 'dev_nll' in r]
-    assert devs[0]['private'] == 1 and devs[1]['good'] and devs[1]['adv_max'] == 1.
-    assert devs[2]['rollback'] == 2 and devs[2]['adv_max'] == .5
-    assert devs[3]['good'] and devs[3]['adv_max'] == .625
-    assert 'good' not in devs[4] and 'rollback' not in devs[4]         # letters over the gate, the gap fine
-    assert recs[-1] == dict(step=5, final_weights=4)
-    saved = torch.load(out / 'private.pt')
-    assert saved['steps_run'] == 4
+    assert devs[0]['private'] == 1 and devs[0]['best'] and set(devs[0]['right']) == {'trail'}
+    assert set(devs[0]['right_train']['trail']) >= {'follower_own', 'follower_swap', 'chance'}
+    assert 'base_own' not in devs[0]['right_train']['trail']
+    assert 'best' not in devs[1]                                       # letters over the gate's
+    assert devs[1]['lam_games']['hotpot'] == pytest.approx(4.5) and devs[1]['lam_games']['trail'] == pytest.approx(3.)
+    assert devs[2]['back_to'] == 1 and devs[2]['lr_scale'] == .5       # distinct 1 of 3
+    assert devs[2]['lam_games']['hotpot'] == pytest.approx(3.375)      # back down with no letters
+    assert devs[3]['best'] and devs[4]['best'] and 'best' not in devs[5]
+    assert devs[0]['weights']['trail'] == pytest.approx(1 - .1 / .8, abs=1e-3)
+    assert devs[5]['weights']['trail'] == .25
+    assert 'frozen_adv' not in devs[3] and 'base_hot' in devs[4] and devs[5]['frozen_adv'] == .5   # 2 devs above noise
+    assert recs[-1] == dict(step=6, final_weights=5)
+    saved = torch.load(out / 'best.pt')
+    assert saved['steps_run'] == 5
     state = net.state_dict()
-    assert saved['weights'] and all(torch.equal(v, state[k]) for k, v in saved['weights'].items())
-    assert any('.eaves.' in k for k in saved['weights'])
+    assert all(torch.equal(v, state[k]) for k, v in saved['weights'].items())
+    assert all(torch.equal(state[k], v) for k, v in eaves0.items())    # no learner: the eavesdropper never trained
     fine = [json.loads(line) for line in (out / 'steps.jsonl').read_text().splitlines()]
-    assert [r['step'] for r in fine] == [2, 3, 4, 5] and all({'grad', 'ent', 'div', 'adv'} <= set(r) for r in fine)
-    assert fine[1]['adv_w'] == pytest.approx(2 / C.ADV_RAMP, abs=1e-3)
-    assert fine[2]['adv_w'] == pytest.approx(.5 * 3 / C.ADV_RAMP, abs=1e-3)   # the rollback's halved weight
+    assert [r['step'] for r in fine] == list(range(1, 7)) and all({'grad', 'ent', 'div', 'choice'} <= set(r) for r in fine)
+    assert all('eav' not in r and 'adv' not in r for r in fine)
+
+
+def test_right_by_game_and_choice_term(tok):
+    """right_by_game's numbers are forced's on the same notes, per reader, own and swapped; the choice term's gradient
+    reaches the notes the reader reads."""
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.eval()
+    eps = trails(3, test=True)
+    got = C.right_by_game(net, 'cpu', dict(trail=eps))['trail']
+    with torch.no_grad():
+        bank = net.run(eps, 'cpu', need_loss=False)[2]
+        for reader, mode in (('follower', 'on'), ('base', 'base')):
+            own = net.forced(eps, 'cpu', mode, bank=bank)[1]
+            swap = net.forced(eps, 'cpu', mode, bank=C.shifted(bank))[1]
+            assert got[f'{reader}_own'] == pytest.approx(sum(own) / 3, abs=1e-4)
+            assert got[f'{reader}_swap'] == pytest.approx(sum(swap) / 3, abs=1e-4)
+    assert got['chance'] == pytest.approx(1 / 6, abs=1e-4) and got['episodes'] == 3
+    net.train()
+    net.tau, net.lam, net.beta, net.choice = 1., 0., 0., 1.
+    net.zero_grad()
+    net.loss(eps, 'cpu').backward()
+    assert net.sums['n_choice'] == 3 * (CG.N_VISIT + 1) and float(net.sums['choice']) > 0
+    assert any(p.grad is not None and float(p.grad.abs().sum()) > 0 for p in net.link_params() or
+               [q for q in net.model.parameters() if q.requires_grad])
 
 
 def test_sym_contrast_and_letter_rule(tok, tmp_path):

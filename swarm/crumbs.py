@@ -83,10 +83,11 @@ PRIV_LETTERS = 0.05           # sym: privacy starts once the dev notes are under
 CONTRAST = 1.0                # sym: the contrastive term's weight (own notes against other episodes')
 BETA = 0.1                    # sym: entropy penalty and batch-diversity bonus, ramped from 0 over the first half
 ADV_RAMP = 300                # sym: steps over which the privacy terms ramp in once the notes are letterless
-# sym, --rollback, on a dev once private: a good code holds this share of the reference gap (and the gate's distinct and
-# letters); a lost one has fewer distinct notes than the gate asks or holds under this share; a lost code goes back to
-# the last good weights with the privacy weight times this; each good dev raises it by this, up to --adv
-ROLLBACK = (.5, .25, .5, 1.25)
+# sym, --protect, at a dev once past the gate: the code is lost when its distinct notes fall under this share of the best
+# weights' or its swap gap under this share of theirs; then back to the best weights at this times the learning rate
+PROTECT = (.5, .25, .5)
+RIGHT_EPS = 24                # sym, --protect: test-value episodes per game in a dev's right-answer numbers
+RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
 SPAN = 1024                                             # positions per agent (kv arm)
 MODES = ('on', 'off', 'swap', 'transplant')
@@ -170,6 +171,7 @@ class Crumbs(nn.Module):
             self.note = self._ids(NOTE)
             self.tau, self.lam, self.beta, self.adv, self.adv_max = SYM_TAU[0], 0., 0., 0., 0.
             self.contrast = 0.
+            self.choice = 0.                   # training: weight of -log p(gold among a say's candidates) (--choice)
             self.con_negatives = 1                 # other episodes per contrastive row (0: all in the pass)
             self.soft, self.eaves_on, self.stash = False, False, []
             self.note_pass = 'soft'            # what a note token sees of the note so far (_notes; --note_pass)
@@ -637,6 +639,12 @@ class Crumbs(nn.Module):
                     self._adversary(rows_t, x, a, bank, [(eps[b], st) for b, st in zip(rows, streams)])
                 if self.arm == 'sym' and self.contrast and torch.is_grad_enabled() and len(eps) > 1:
                     self._contrast(rows_t, x, a, bank, sel, ce)
+                if self.arm == 'sym' and self.choice and torch.is_grad_enabled():
+                    targets = [(i, t) for i, (b, st) in enumerate(zip(rows, streams)) if st['reads']
+                               for t in self.adv_targets(eps[b], a, st)]
+                    if targets:                        # the says' own forward pass: no extra one
+                        self.sums['choice'] = self.sums['choice'] - self._among(h, targets)[0].sum()
+                        self.sums['n_choice'] += len(targets)
             if writes and base:                       # the warm-up: the base model's notes, without gradient
                 with torch.no_grad(), self.model.disable_adapter():
                     _, got = self._forward(rows_t, x, a, bank, 1, True)
@@ -647,8 +655,9 @@ class Crumbs(nn.Module):
 
     def loss(self, eps, device):
         """The says' mean cross-entropy; sym also lam * letter mass + beta * (entropy - batch-mean entropy) per note
-        token, contrast * the contrastive term per reader row and adv * the two privacy terms' mean per choice group
-        (sums: the terms, kept for the log)."""
+        token, contrast * the contrastive term per reader row, adv * the privacy terms' mean per choice group and
+        choice * the mean per choice group of -log p(gold among its candidates' first differing token), what the notes
+        are for (sums: the terms, kept for the log)."""
         if self.arm == 'sym':
             self.sums = collections.defaultdict(float)
         total, count, _ = self.run(eps, device)
@@ -662,6 +671,8 @@ class Crumbs(nn.Module):
                     out = out + self.adv * s[k] / s[f'n_{k}']
             if s['n_con']:
                 out = out + self.contrast * s['con'] / s['n_con']
+            if s['n_choice']:
+                out = out + self.choice * s['choice'] / s['n_choice']
         return out
 
     def _contrast(self, rows_t, x, a, bank, sel, own):
@@ -719,6 +730,10 @@ class Crumbs(nn.Module):
             h = self.last
         finally:
             self.grab, self.last = False, None
+        return self._among(h, targets)
+
+    def _among(self, h, targets):
+        """log p(gold) among each target's candidates, from the final norm's output h; and the candidates' count."""
         dev = h.device
         at = (torch.tensor([i for i, _ in targets], device=dev), torch.tensor([t[0] for _, t in targets], device=dev))
         C = max(1 + len(t[2]) for _, t in targets)
@@ -1547,7 +1562,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
           detach_until=0, gate_held=1, gate_distinct=0, gate_letters=PRIV_LETTERS, lam_min=0., ref_letters=None,
           dev_fn=None, cut0=None, gap_ref='first', dev0=False, gap_by='cut', resume=None, letters_by='max',
-          rollback=False):
+          protect=False, frozen_adv=0.):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1592,12 +1607,19 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     its step with its letter weight, reference gap, privacy start and the devs held and missed in a row, the episode
     stream replayed to that step and a fresh optimizer whose learning rate warms up again over 50 steps toward the
     cosine at the true step; a dev at that step first (resumed: True) checks the weights, and changes nothing.
-    rollback (sym): a note writer whose soft notes saturate on one token has no gradient left, so a code lost under
-    privacy does not come back. Once private, each dev that holds a good code (ROLLBACK) saves OUT/private.pt and raises
-    the privacy weight; a dev whose code is lost restores the last good weights (private.pt, else gate.pt, the
-    eavesdropper's too) and the letter weight they had, halves the privacy weight, and starts both optimizers afresh with
-    the learning rate warming up again. Training ends on the last good weights. Once private, OUT/steps.jsonl logs every
-    step's terms and gradient norm."""
+    protect (sym, past the gate): every dev logs right (right_by_game on RIGHT_EPS fresh test-value episodes per game:
+    the follower's and the untrained base model's right-answer share with own and swapped notes) and right_train (the
+    follower's on the dev's training-value episodes). A dev with letters under gate_letters, at least gate_distinct
+    distinct notes and the best score so far (own minus swapped for the follower, over the games, by their --weight)
+    saves OUT/best.pt. A dev that has lost the code (PROTECT) goes back to those weights, with fresh optimizers and the
+    learning rate halved and warming up again: a writer whose soft notes saturate on one token has no gradient left, so
+    a lost code does not come back by itself. Training ends on the best weights. The letter weight goes per game: from
+    the weight at the gate, times 1.5 at a dev where that game's notes are over PRIV_LETTERS letters, back down by 0.75
+    where under 1%, so one game's words squeeze no other game's code. Games are drawn by --weight times what their
+    follower still lacks (1 minus own minus swapped as a share of the room above chance, at least 1/4). OUT/steps.jsonl
+    logs every step's terms and gradient norm. frozen_adv: if at two devs in a row the untrained base model's own minus
+    swapped share has its 95% interval over RIGHT_NOISE in some game, adv (with no eavesdropper, which never trains)
+    ramps to this over 100 steps: a penalty on that frozen reader alone."""
     games = games or CG.GAMES
     if net.arm == 'sym' and net.contrast and (micro or batch) < 2:
         raise ValueError('the contrastive term reads the next episode\'s notes: it needs 2 or more episodes per backward '
@@ -1616,20 +1638,65 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                             weight_decay=0.0)
     opt_e = torch.optim.AdamW(net.eaves_params(), lr=lr, weight_decay=0.0) if sym else None
     warm, start = min(50, steps), resume['step'] if resume else 0
-    warm_from = 0                                      # a rollback warms the learning rate up again from its step
-    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s - warm_from + 1) / warm) * 0.5 *
+    warm_from, lr_scale = 0, 1.                        # going back to the best weights: warm up again, at a lower rate
+    sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s - warm_from + 1) / warm) * lr_scale * 0.5 *
                                               (1 + math.cos(math.pi * min(1, (s + start) / steps))))
     log = open(out / 'log.jsonl', 'a') if out else None
-    fine = open(out / 'steps.jsonl', 'a') if out and sym else None
-    adv_top, good_step = net.adv_max if sym else 0., None
+    fine = open(out / 'steps.jsonl', 'a') if out and protect else None
+    top, lam_base, lam_game, adv_from, hot_devs = None, None, {}, None, 0   # protect: the best weights' dev and the rest
+    weights0 = dict(weights or {})
+    right_eps = {g: [CG.episode(g, r, True) for _ in range(RIGHT_EPS)]
+                 for g, r in ((g, random.Random(f'right-{g}')) for g in games if g in CG.CHOICES)} if protect else {}
+    train_eps = {g: [e for e in dev if e['game'] == g] for g in right_eps} if protect else {}
 
-    def good_weights():
-        """Back to the last good code's weights; its checkpoint."""
-        saved = torch.load(out / ('private.pt' if good_step else 'gate.pt'), map_location=device)
-        got = net.load_state_dict(saved['weights'], strict=False)
+    def best_weights():
+        got = net.load_state_dict(torch.load(out / 'best.pt', map_location=device)['weights'], strict=False)
         if got.unexpected_keys:
-            raise RuntimeError(f'rollback: weights not in the net: {got.unexpected_keys[:5]}')
-        return saved
+            raise RuntimeError(f'best.pt: weights not in the net: {got.unexpected_keys[:5]}')
+
+    def guard(step, rec):
+        """protect's dev: the right-answer numbers, then the best weights kept or gone back to, the letter weights and
+        the game weights (train's docstring). Adds to rec."""
+        nonlocal top, weights, warm_from, lr_scale, misses, run_held, adv_from, hot_devs
+        right = rec['right'] = right_by_game(net, device, right_eps)
+        rec['right_train'] = right_by_game(net, device, train_eps, ('follower',))
+        total = sum(weights0.get(g, 1.) for g in right)
+        score = rec['score'] = round(sum(weights0.get(g, 1.) * (r['follower_own'] - r['follower_swap'])
+                                         for g, r in right.items()) / total, 4)
+        gap = rec['gap_swap']
+        lost = top is not None and (rec['distinct'] < PROTECT[0] * top['distinct'] or gap < PROTECT[1] * top['gap'])
+        if lost:
+            best_weights()
+            lr_scale *= PROTECT[2]
+            opt.state.clear()
+            opt_e.state.clear()
+            warm_from = sched.last_epoch
+            for g, base in zip(opt.param_groups, sched.base_lrs):
+                g['lr'] = base * sched.lr_lambdas[0](warm_from)
+            misses = run_held = 0
+            rec.update(back_to=top['step'], lr_scale=lr_scale)
+        elif rec['letters_max'] < gate_letters and rec['distinct'] >= gate_distinct and \
+                (top is None or score > top['score']):
+            top = dict(step=step, score=score, distinct=rec['distinct'], gap=gap)
+            rec['best'] = True
+            torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net), lam=lam_game, lam_base=lam_base),
+                       out / 'best.pt')
+        for g, v in rec['letters_by_game'].items():    # the letter weight of each game
+            lam = lam_game.get(g, lam_base)
+            lam_game[g] = lam * 1.5 if v >= PRIV_LETTERS else max(lam_base, lam * .75) if v < .01 else lam
+        rec['lam_games'] = {g: round(v, 3) for g, v in lam_game.items()}
+        weights = dict(weights0)                       # the games drawn: more of what the follower still lacks
+        for g, r in right.items():
+            weights[g] = weights0.get(g, 1.) * max(.25, 1 - max(0., r['follower_own'] - r['follower_swap'])
+                                                   / max(1e-6, 1 - r['chance']))
+        rec['weights'] = {g: round(v, 3) for g, v in weights.items()}
+        hot = [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
+        hot_devs = hot_devs + 1 if hot else 0
+        if hot:
+            rec['base_hot'] = hot
+        if frozen_adv and adv_from is None and hot_devs >= 2:
+            adv_from, net.adv_max = step, frozen_adv
+            rec['frozen_adv'] = frozen_adv
 
     for done in range(1, start + 1):                   # resume: the episode stream as it was at that step
         game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
@@ -1641,6 +1708,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
         rec = dict(step=start, resumed=True, dev_nll=round(dev_nll(net, device, dev), 4), **sym_dev(net, device, dev))
         rec.update(gap_cut=round(rec['dev_cut'] - rec['dev_nll'], 4),
                    gap_swap=round(rec['dev_swap'] - rec['dev_nll'], 4))
+        if protect:
+            lam_base, record = resume['lam'], list(resume['record'])
+            guard(start, rec)
         print(json.dumps(rec), flush=True)
         if log:
             log.write(json.dumps(rec) + '\n')
@@ -1674,6 +1744,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 net.lam = lam0
             net.adv = net.adv_max * min(1., (step - work) / ADV_RAMP) if work else 0.
             net.eaves_on = bool(work and net.adv_max)
+            if protect and lam_base is not None:
+                net.lam = lam_game.get(game, lam_base)
+            if frozen_adv:                             # the frozen reader's penalty alone, no eavesdropper
+                net.adv = net.adv_max * min(1., (step - adv_from) / 100) if adv_from else 0.
+                net.eaves_on = False
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
         loss, stat, eloss = 0., collections.Counter(), []
         for part in parts:
@@ -1692,13 +1767,13 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             torch.nn.utils.clip_grad_norm_(net.eaves_params(), 1.0)
             opt_e.step()
             opt_e.zero_grad(set_to_none=True)
-        if fine and work:
+        if fine:
             n = max(1, stat['n_tok'])
             fine.write(json.dumps(dict(
                 step=step, game=game, loss=round(loss.item(), 4), grad=round(float(grad), 4), adv_w=round(net.adv, 3),
                 ent=round(stat['ent'] / n, 4), div=round(stat['div'] / max(1, stat['n_div']), 4),
                 codes=[len(set(q)) for q in net.codes],
-                **{k: round(stat[k] / stat[f'n_{k}'], 4) for k in ('adv', 'eav', 'con') if stat[f'n_{k}']})) + '\n')
+                **{k: round(stat[k] / stat[f'n_{k}'], 4) for k in ('adv', 'eav', 'con', 'choice') if stat[f'n_{k}']})) + '\n')
             fine.flush()
         rec = None
         if step % 25 == 0 or step == steps:
@@ -1713,7 +1788,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                            let=round(stat['let'] / n, 4), hard_let=round(stat['hard_let'] / n, 4),
                            ent=round(stat['ent'] / n, 3), div=round(stat['div'] / max(1, stat['n_div']), 3),
                            codes=[len(set(q)) for q in net.codes])
-                for k in ('adv', 'eav', 'con'):
+                for k in ('adv', 'eav', 'con', 'choice'):
                     if stat[f'n_{k}']:
                         rec[k] = round(stat[k] / stat[f'n_{k}'], 4)
                 if stat['n_con']:
@@ -1747,7 +1822,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                     rec.update(held=False, lam_next=net.lam)
                 else:
                     misses = 0 if held else misses + 1
-                    if not held:
+                    if protect and work is not None:   # guard's letter weights per game
+                        pass
+                    elif not held:
                         net.lam = max(lam_min, net.lam * down)
                     elif work is None or letters >= PRIV_LETTERS:
                         net.lam *= up
@@ -1761,24 +1838,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                     work = rec['private'] = step
                     if out:
                         torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'gate.pt')
-                elif rollback and work is not None and gap0 > 0:
-                    if gap >= ROLLBACK[0] * gap0 and rec['distinct'] >= gate_distinct and letters < gate_letters:
-                        good_step = step
-                        torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net), lam=net.lam),
-                                   out / 'private.pt')
-                        net.adv_max = min(adv_top, net.adv_max * ROLLBACK[3])
-                        rec.update(good=True, adv_max=net.adv_max)
-                    elif rec['distinct'] < gate_distinct or gap < ROLLBACK[1] * gap0:
-                        saved = good_weights()
-                        net.lam = saved.get('lam', net.lam)
-                        net.adv_max *= ROLLBACK[2]
-                        opt.state.clear()
-                        opt_e.state.clear()
-                        warm_from = sched.last_epoch
-                        for g, base in zip(opt.param_groups, sched.base_lrs):
-                            g['lr'] = base * sched.lr_lambdas[0](warm_from)
-                        misses = run_held = 0
-                        rec.update(rollback=saved['steps_run'], adv_max=net.adv_max, lam_next=net.lam)
+                if protect and work is not None:
+                    lam_base = net.lam if lam_base is None else lam_base
+                    guard(step, rec)
             if v < best * 0.99:
                 best, best_step = v, step
             hold = sym and net.adv_max and work and step < work + ADV_RAMP + 300
@@ -1798,9 +1860,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     else:
         step = steps
     net.detach_notes = net.writer_base = False
-    if rollback and good_step and good_step != step:
-        good_weights()
-        rec = dict(step=step, final_weights=good_step)
+    if protect and top and top['step'] != step:
+        best_weights()
+        rec = dict(step=step, final_weights=top['step'])
         print(json.dumps(rec), flush=True)
         log.write(json.dumps(rec) + '\n')
         log.flush()
@@ -1830,6 +1892,43 @@ def resumed(path):
         run_held += 1
     return dict(step=step, lam=last['lam_next'], gap0=last['gap_ref'], work=work, misses=misses, run_held=run_held,
                 record=[(r['step'], r['dev_nll']) for r in devs if r['step'] > 0])
+
+
+def boot_interval(xs, n=1000, seed=0):
+    """The 95% bootstrap interval of the mean of xs."""
+    rng = random.Random(seed)
+    means = sorted(sum(rng.choices(xs, k=len(xs))) / len(xs) for _ in range(n))
+    return [round(means[int(.025 * n)], 4), round(means[int(.975 * n) - 1], 4)]
+
+
+@torch.no_grad()
+def right_by_game(net, device, by_game, readers=('follower', 'base'), bs=48):
+    """Per game of by_game {game: episodes}: the right-answer share (forced's choice groups, per episode then the mean)
+    of the trained writers' notes read by the follower and the untrained base model with the adapter off, with own
+    notes and another episode's of the game (the next in its chunk); the base model's own minus swapped with its 95%
+    interval over episodes; chance."""
+    was = net.training
+    net.eval()
+    out = {}
+    for g, eps in by_game.items():
+        got = collections.defaultdict(list)
+        for c in swap_index(eps, bs):
+            part = [eps[i] for i in c]
+            bank = net.run(part, device, need_loss=False)[2]
+            for reader in readers:
+                mode = 'on' if reader == 'follower' else 'base'
+                got[f'{reader}_own'] += net.forced(part, device, mode, bank=bank)[1]
+                got[f'{reader}_swap'] += net.forced(part, device, mode, bank=shifted(bank))[1]
+        r = {k: round(sum(v) / len(v), 4) for k, v in got.items()}
+        odds = [1 / len(group) for ep in eps for a, ag in enumerate(ep['agents']) for s in range(len(ag['segments']))
+                for group in CG.choices(ep, a, s)]
+        r.update(chance=round(sum(odds) / len(odds), 4), episodes=len(eps))
+        if 'base' in readers:
+            r['base_ci'] = boot_interval([x - y for x, y in zip(got['base_own'], got['base_swap'])])
+        out[g] = r
+    if was:
+        net.train()
+    return out
 
 
 def kept(net):
@@ -1912,8 +2011,11 @@ def main():
                     help='sym arm: up,down: the letter weight\'s factor after a dev with the gap held, and without')
     ap.add_argument('--lost', type=int, default=0, help='sym arm: stop after this many devs in a row without the gap')
     ap.add_argument('--private_steps', type=int, default=0, help='sym arm: stop this many steps after privacy starts')
-    ap.add_argument('--rollback', action='store_true', help='sym arm: a code lost under privacy goes back to the last '
-                    'good weights at half the privacy weight (train)')
+    ap.add_argument('--protect', action='store_true', help='sym arm: past the gate, right-answer numbers at every dev, '
+                    'the best weights kept and gone back to when the code is lost, letter weights per game (train)')
+    ap.add_argument('--frozen_adv', type=float, default=0., help='sym arm, --protect: the penalty on the untrained base '
+                    'model alone, only once it reads the notes above noise (train)')
+    ap.add_argument('--choice', type=float, default=0., help='sym arm: weight of -log p(gold among a say\'s candidates)')
     ap.add_argument('--gate_held', type=int, default=1, help='sym arm: devs in a row with the gap held before privacy')
     ap.add_argument('--lam_min', type=float, default=0., help='sym arm: the letter weight never falls below this')
     ap.add_argument('--ref_letters', type=float, default=None,
@@ -1968,6 +2070,7 @@ def main():
     if args.arm == 'sym':
         net.adv = net.adv_max = args.adv
         net.contrast, net.con_negatives = args.contrast, args.con_negatives
+        net.choice = args.choice
         net.hint = args.note_hint
         net.note_pass = args.note_pass
     curriculum = [tuple(int(x) for x in c.split(':')) for c in args.curriculum.split(',') if c]
@@ -2011,7 +2114,7 @@ def main():
                             detach_until=args.detach_until, gate_held=args.gate_held,
                             gate_distinct=args.gate_distinct, gate_letters=args.gate_letters, lam_min=args.lam_min,
                             ref_letters=args.ref_letters, resume=state, letters_by=args.letters_by,
-                            rollback=args.rollback)
+                            protect=args.protect, frozen_adv=args.frozen_adv)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))

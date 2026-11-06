@@ -79,7 +79,7 @@ def snapshot():
                   by_game=r.get('letters_by_game')) for r in rows]
     eaves = json.loads((RUNS / 'magic-crumbs40/results/eaves_crumbs30.json').read_text())['ckpts']['gate.pt']
     readers = {}
-    for game in ('trail', 'count'):
+    for game in ('trail', 'count', 'relay', 'maze'):
         got = eaves.get(game, {})
         row = {k: got[k] for k in ('trained', 'base') if k in got}
         row.update({f'crack{n}': v for n, v in got.get('crack', {}).items()})
@@ -260,8 +260,8 @@ def letter_cell(r):
 def letter_figure(d, name='crumbs_letterfree_status'):
     W = 2600
     s = canvas(W)
-    y = title(s, 'Qwen3-1.7B’s breadcrumb notes now contain no letters and still help the trained follower, but a fresh '
-                 'adapter can learn to read them', W)
+    y = title(s, 'Letter-free notes help the trained follower and untrained Qwen3-1.7B cannot read them, but a fresh '
+                 'adapter learns them and full privacy training erases them', W)
 
     # the method as a picture, with one real note
     cw = 900

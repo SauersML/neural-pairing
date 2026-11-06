@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2400" height="1979" viewBox="0 0 2400 1979">
+<rect width="2400" height="1979" fill="#000000"/>
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<text x="70.0" y="141.4" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Notes with no letters: in the apple game the trained</text>
+<text x="70.0" y="242.2" font-family="Inter, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">partner gets 70% right, an untrained model 7%</text>
+<rect x="70.0" y="304.8" width="800.0" height="170.0" rx="22" fill="#141418" stroke="none" stroke-width="2" />
+<text x="100.0" y="376.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Three models each count apples</text>
+<text x="100.0" y="438.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">at a stall and leave a note</text>
+<rect x="1530.0" y="304.8" width="800.0" height="170.0" rx="22" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1560.0" y="376.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">A fourth model reads the notes</text>
+<text x="1560.0" y="438.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">and says the total</text>
+<line x1="884.0" y1="409.8" x2="1498.0" y2="409.8" stroke="#FFD23F" stroke-width="9" stroke-linecap="round"/>
+<path d="M1486,389.8 L1516,409.8 L1486,429.8" fill="none" stroke="#FFD23F" stroke-width="9" stroke-linejoin="round" stroke-linecap="round" />
+<text x="1200.0" y="377.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#FFD23F" text-anchor="middle" xml:space="preserve">notes</text>
+<text x="70.0" y="574.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Real notes from the rooms game, written for each object</text>
+<rect x="70.0" y="610.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="92.0" y="670.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">brick</text>
+<text x="367.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="395.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">7</text>
+<text x="422.8" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="450.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="478.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">7</text>
+<text x="505.9" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="533.6" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="561.3" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">7</text>
+<rect x="635.0" y="610.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="657.0" y="670.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">pillow</text>
+<text x="932.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<text x="960.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="987.8" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1015.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<text x="1043.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="1070.9" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1098.6" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<text x="1126.3" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<rect x="1200.0" y="610.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1222.0" y="670.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">wagon</text>
+<text x="1497.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">6</text>
+<text x="1525.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="1552.8" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1580.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">6</text>
+<text x="1608.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="1635.9" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1663.6" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">6</text>
+<text x="1691.3" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<rect x="1765.0" y="610.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1787.0" y="670.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">ring</text>
+<text x="2062.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="2090.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="2117.8" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="2145.5" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="2173.2" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="2200.9" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="2228.6" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="2256.3" y="670.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<rect x="70.0" y="714.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="92.0" y="774.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">sock</text>
+<text x="367.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="395.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">8</text>
+<text x="422.8" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="450.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="478.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">8</text>
+<text x="505.9" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="533.6" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="561.3" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">8</text>
+<rect x="635.0" y="714.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="657.0" y="774.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">valley</text>
+<text x="932.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="960.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">7</text>
+<text x="987.8" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1015.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="1043.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">7</text>
+<text x="1070.9" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1098.6" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="1126.3" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">7</text>
+<rect x="1200.0" y="714.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1222.0" y="774.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">scarf</text>
+<text x="1497.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1525.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1552.8" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1580.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1608.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1635.9" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1663.6" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1691.3" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<rect x="1765.0" y="714.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1787.0" y="774.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">onion</text>
+<text x="2062.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="2090.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="2117.8" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<text x="2145.5" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="2173.2" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="2200.9" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="2228.6" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<text x="2256.3" y="774.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<rect x="70.0" y="818.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="92.0" y="878.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">island</text>
+<text x="367.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">4</text>
+<text x="395.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<text x="422.8" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="450.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">4</text>
+<text x="478.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<text x="505.9" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="533.6" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">4</text>
+<text x="561.3" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">2</text>
+<rect x="635.0" y="818.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="657.0" y="878.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">tomato</text>
+<text x="932.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="960.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="987.8" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="1015.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1043.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="1070.9" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1098.6" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="1126.3" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<rect x="1200.0" y="818.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1222.0" y="878.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">bottle</text>
+<text x="1497.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1525.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="1552.8" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1580.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1608.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<text x="1635.9" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="1663.6" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="1691.3" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">1</text>
+<rect x="1765.0" y="818.8" width="541.0" height="88.0" rx="14" fill="#141418" stroke="none" stroke-width="2" />
+<text x="1787.0" y="878.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" text-anchor="start" xml:space="preserve">daisy</text>
+<text x="2062.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="2090.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="2117.8" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="2145.5" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="2173.2" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="2200.9" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">.</text>
+<text x="2228.6" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">5</text>
+<text x="2256.3" y="878.8" font-family="Menlo, monospace" font-size="46" font-weight="700" fill="#FFD23F" text-anchor="start" xml:space="preserve">3</text>
+<text x="70.0" y="1012.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" text-anchor="start" xml:space="preserve"><tspan fill="#FFFFFF" font-weight="700">Right answers using the notes: </tspan><tspan fill="#2FE3A0" font-weight="700">trained partner</tspan><tspan fill="#FFFFFF" font-weight="700">, </tspan><tspan fill="#FF8A3D" font-weight="700">untrained model</tspan><tspan fill="#FFFFFF" font-weight="700">, white line = chance</tspan></text>
+<text x="840.0" y="1106.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="end" xml:space="preserve">Apples: the total</text>
+<text x="840.0" y="1158.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">from 7 choices</text>
+<rect x="870.0" y="1056.8" width="1142.8" height="56.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1102.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">70%</text>
+<rect x="870.0" y="1120.8" width="119.4" height="56.0" rx="6" fill="#FF8A3D" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1166.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FF8A3D" text-anchor="end" xml:space="preserve">7%</text>
+<line x1="1103.9" y1="1048.8" x2="1103.9" y2="1184.8" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<text x="840.0" y="1268.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="end" xml:space="preserve">Rooms: the object in a room</text>
+<text x="840.0" y="1320.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">from 6 choices</text>
+<rect x="870.0" y="1218.8" width="332.6" height="56.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1264.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">20%</text>
+<rect x="870.0" y="1282.8" width="230.2" height="56.0" rx="6" fill="#FF8A3D" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1328.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FF8A3D" text-anchor="end" xml:space="preserve">14%</text>
+<line x1="1142.9" y1="1210.8" x2="1142.9" y2="1346.8" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<text x="840.0" y="1430.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="end" xml:space="preserve">Key: the room with the key</text>
+<text x="840.0" y="1482.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">from 6 choices</text>
+<rect x="870.0" y="1380.8" width="238.7" height="56.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1426.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">15%</text>
+<rect x="870.0" y="1444.8" width="51.1" height="56.0" rx="6" fill="#FF8A3D" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1490.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FF8A3D" text-anchor="end" xml:space="preserve">3%</text>
+<line x1="1142.9" y1="1372.8" x2="1142.9" y2="1508.8" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<text x="840.0" y="1592.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF" text-anchor="end" xml:space="preserve">Maze: the door to take</text>
+<text x="840.0" y="1644.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#FFFFFF" text-anchor="end" xml:space="preserve">from 3 choices</text>
+<rect x="870.0" y="1542.8" width="545.1" height="56.0" rx="6" fill="#2FE3A0" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1588.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#2FE3A0" text-anchor="end" xml:space="preserve">33%</text>
+<rect x="870.0" y="1606.8" width="528.9" height="56.0" rx="6" fill="#FF8A3D" stroke="none" stroke-width="2" />
+<text x="2330.0" y="1652.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#FF8A3D" text-anchor="end" xml:space="preserve">32%</text>
+<line x1="1415.8" y1="1534.8" x2="1415.8" y2="1670.8" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<text x="70.0" y="1734.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Trained partner: Qwen3-1.7B after training. Untrained model: the same Qwen3-1.7B before training. 96 test</text>
+<text x="70.0" y="1792.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">games per row. Two more games, where a note also helps the partner, have not been scored this way yet.</text>
+<text x="70.0" y="1850.8" font-family="Inter, Helvetica, Arial, sans-serif" font-size="44" font-weight="400" fill="#FFFFFF" text-anchor="start" xml:space="preserve">Untrained Qwen3-8B and AFM-4.5B come next.</text>
+</svg>
