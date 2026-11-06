@@ -396,3 +396,13 @@ def test_controller_floor_and_reference():
     assert OT.next_ref(0.23, 0.5, 0.7, args) == 0.23
     assert OT.next_ref(0.23, 0.5, 0.01, args) == 0.5
     assert OT.next_ref(0.23, 0.1, 0.01, args) == 0.23
+
+
+def test_controller_reanchors_once_on_a_letterless_miss():
+    from types import SimpleNamespace as NS
+    args = NS(ctrl_keep=0.8, ctrl_up=2.0, ctrl_down=0.5, lam_max=4.0, lam_min=0.4, gap_ref='anchor', ref_letters=0.05)
+    assert OT.ctrl_update(0.4, 0.1, 0.23, 0.30, None, 400, args) == (0.4, False, 0.23, None)   # words: no anchor
+    assert OT.ctrl_update(0.4, -0.01, 0.23, 0.01, None, 400, args) == (0.4, False, 0.23, None)  # no gap to hold
+    assert OT.ctrl_update(0.4, 0.1, 0.23, 0.01, None, 400, args) == (0.4, False, 0.1, 400)     # a miss, the new ref
+    assert OT.ctrl_update(0.4, 0.09, 0.1, 0.01, 400, 600, args) == (0.8, True, 0.1, 400)       # holds against it
+    assert OT.ctrl_update(0.8, 0.05, 0.1, 0.01, 400, 800, args) == (0.4, False, 0.1, 400)      # once only

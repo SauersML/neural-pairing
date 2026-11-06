@@ -859,6 +859,18 @@ def next_ref(ref, gap, letters, args):
     return ref
 
 
+def ctrl_update(lam, gap, ref, letters, anchored, step, args):
+    """One controller dev after its start: (lam, held, ref, anchored). letter_ctrl sets the weight, next_ref the
+    reference. --gap_ref anchor: the first dev under --ref_letters letters that misses the reference (set by a dev of
+    words) with a positive gap becomes the reference, once (anchored: its step); it stays a miss, so privacy waits
+    for a dev that holds against the new reference."""
+    lam, ok = letter_ctrl(lam, gap, ref, args)
+    if (args.gap_ref == 'anchor' and anchored is None and not ok and gap > 0 and args.ref_letters is not None
+            and letters < args.ref_letters):
+        return lam, ok, gap, step
+    return lam, ok, next_ref(ref, gap, letters, args), anchored
+
+
 def ctrl_ready(gap, gap0, args):
     """The controller starts once the gap is positive and at least --ctrl_start of its step-0 value."""
     return gap > 0 and gap >= args.ctrl_start * gap0
@@ -899,6 +911,7 @@ def train(net, args, log):
     feed = batches(data, net, args, rng)
     micros = max(1, args.batch // args.micro)
     lam, ref, ok, gap0, priv, base_gap, lam_p_max = 0.0, None, False, None, None, None, args.lam_p
+    anchored = None
     started, step, util, t_train = time.monotonic(), 0, Util(), 0.0
     first = 0                                        # the step this part of the run started at
     skip_dev = None
@@ -912,6 +925,7 @@ def train(net, args, log):
         net.bias, net.symbols = float(talk.get('bias', 0.0)), bool(talk.get('symbols', False))
         ref, ok, gap0 = st.get('ref'), bool(st.get('ok', False)), st.get('gap0')
         priv, base_gap, lam_p_max = st.get('priv'), st.get('base_gap'), st.get('lam_p_max', args.lam_p)
+        anchored = st.get('anchored')
         optimizer = (R / 'optim.pt').exists()
         if optimizer:
             opt.load_state_dict(torch.load(R / 'optim.pt', map_location=net.device))
@@ -924,7 +938,8 @@ def train(net, args, log):
                  optimizer=optimizer, held_shards=hold, data_pos=data.pos))
 
     def ckpt_state():
-        return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files)
+        return dict(ref=ref, ok=ok, gap0=gap0, priv=priv, base_gap=base_gap, lam_p_max=lam_p_max, files=files,
+                    anchored=anchored)
     net.model.train()
     while True:
         frac = min(1.0, step / args.steps)
@@ -944,11 +959,10 @@ def train(net, args, log):
                         ref, lam, ok = gap, args.lam0, True
                         net.symbols = bool(args.symbols_line)            # the prior moves onto the symbols
                     else:
-                        lam, ok = letter_ctrl(lam, gap, ref, args)
-                        ref = next_ref(ref, gap, letters, args)
+                        lam, ok, ref, anchored = ctrl_update(lam, gap, ref, letters, anchored, step, args)
                     net.bias = args.bias_k * lam
                     log(dict(step=step, ctrl=True, gap=gap, ref=ref, held=ok, lam=round(lam, 5),
-                             bias=round(net.bias, 4), letters=letters, symbols_line=net.symbols))
+                             bias=round(net.bias, 4), letters=letters, symbols_line=net.symbols, anchored=anchored))
             if priv is None and args.lam_p and ref is not None and letters < args.priv_letters and ok:
                 priv, base_gap = step, gap
                 log(dict(step=step, privacy_starts=True, letters=letters, gap=gap))
@@ -1037,8 +1051,9 @@ def main():
     ap.add_argument('--ctrl_start', type=float, default=0.5)
     ap.add_argument('--bias_k', type=float, default=40.0)
     ap.add_argument('--lam_min', type=float, default=0.0, help='the letter weight never falls below this')
-    ap.add_argument('--gap_ref', default='first', choices=('first', 'max'),
-                    help="the reference gap: the controller start's, or the largest since (see next_ref)")
+    ap.add_argument('--gap_ref', default='first', choices=('first', 'max', 'anchor'),
+                    help="the reference gap: the controller start's, the largest since (see next_ref), or re-anchored "
+                    "once on the first letterless dev that misses it (see ctrl_update)")
     ap.add_argument('--ref_letters', type=float, default=None,
                     help='gap_ref max: only devs under this share of letters raise the reference gap')
     ap.add_argument('--contrast', type=float, default=1.0)
