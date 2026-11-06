@@ -545,8 +545,8 @@ def test_sym_privacy_gate(tok, tmp_path):
     def run(name, **kw):
         out = tmp_path / name
         out.mkdir()
-        C.train(net, 'cpu', 3, 2, 0, games=('trail',), out=out, every=1, letters_from=0, lam0=0.5, gap0=1e-9,
-                cut0=1e6, tau0=.3, beta_full=True, min_steps=100, **kw)
+        C.train(net, 'cpu', 3, 2, 0, games=('trail',), out=out, **dict(dict(
+            every=1, letters_from=0, lam0=0.5, gap0=1e-9, cut0=1e6, tau0=.3, beta_full=True, min_steps=100), **kw))
         return [json.loads(line) for line in (out / 'log.jsonl').read_text().splitlines()]
 
     recs = run('default')
@@ -560,6 +560,14 @@ def test_sym_privacy_gate(tok, tmp_path):
     assert [('private' in r) for r in recs] == [False, True, False]
     recs = run('distinct', gate_held=2, gate_letters=1.01, gate_distinct=99)
     assert not any('private' in r for r in recs)
+    # lam_min: a weight halved after each missed dev stops at the floor
+    recs = run('floor', gap0=1e9, cut0=None, lam_min=0.2)
+    assert [r['held'] for r in recs] == [False] * 3 and [r['lam_next'] for r in recs] == pytest.approx([.25, .2, .2])
+    # ref_letters: a dev of letters (the tiny model's notes) does not raise the max reference gap
+    recs = run('ref', gap_ref='max')
+    assert all(r['gap_ref'] > 1e5 for r in recs)
+    recs = run('ref_letters', gap_ref='max', ref_letters=0.5)
+    assert all(r['gap_ref'] == 0. for r in recs) and all(r['letters_text'] > 0.5 for r in recs)
 
 
 def test_sym_contrast_and_letter_rule(tok, tmp_path):

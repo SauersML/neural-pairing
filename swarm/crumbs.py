@@ -1452,7 +1452,7 @@ def build(device, arm, m, base=BASE, rank=16, model=None, tok=None, layers=LAYER
 def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_lr=1e-3, every=100, patience=300,
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
-          detach_until=0, gate_held=1, gate_distinct=0, gate_letters=PRIV_LETTERS,
+          detach_until=0, gate_held=1, gate_distinct=0, gate_letters=PRIV_LETTERS, lam_min=0., ref_letters=None,
           dev_fn=None, cut0=None, gap_ref='first', dev0=False):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
@@ -1481,7 +1481,10 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     rise is letters_text (the share of the decoded notes' characters that are letters: one token " pillow" is six).
     The privacy gate can be stricter: gate_held devs in a row with the gap held, at least gate_distinct different
     notes among the dev's example notes (note_stats' distinct) and letters_text under gate_letters (default
-    PRIV_LETTERS); until then only the follower, the letter weight, the entropy terms and the contrastive term train;
+    PRIV_LETTERS); until then only the follower, the letter weight, the entropy terms and the contrastive term train.
+    lam_min: the weight never falls below it (a weight halved after missed devs lets words back into the notes);
+    ref_letters (gap_ref max): only a dev whose decoded notes are under this share of letters can raise the reference
+    gap (a dev of words would set a bar no letterless code holds);
     letters (the first rule) and letters_exact (the penalty's, per token) are logged beside it. detach_until: up to
     that step (the warm-up) writers write with the adapter off, so the notes are the base model's and only the readers
     learn them, the entropy terms are off, and the letter controller only takes the reference gap; from the next
@@ -1596,12 +1599,13 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 else:
                     misses = 0 if held else misses + 1
                     if not held:
-                        net.lam *= down
+                        net.lam = max(lam_min, net.lam * down)
                     elif work is None or letters >= PRIV_LETTERS:
                         net.lam *= up
                     rec.update(held=held, lam_next=net.lam)
                 if gap_ref == 'max':
-                    gap0 = max(gap0, gap)
+                    if ref_letters is None or letters < ref_letters:
+                        gap0 = max(gap0, gap)
                     rec['gap_ref'] = round(gap0, 4)
                 if work is None and held and run_held >= gate_held and rec['distinct'] >= gate_distinct and \
                         step > max(letters_from, detach_until) and letters < gate_letters:
@@ -1705,6 +1709,9 @@ def main():
     ap.add_argument('--lost', type=int, default=0, help='sym arm: stop after this many devs in a row without the gap')
     ap.add_argument('--private_steps', type=int, default=0, help='sym arm: stop this many steps after privacy starts')
     ap.add_argument('--gate_held', type=int, default=1, help='sym arm: devs in a row with the gap held before privacy')
+    ap.add_argument('--lam_min', type=float, default=0., help='sym arm: the letter weight never falls below this')
+    ap.add_argument('--ref_letters', type=float, default=None,
+                    help='sym arm, gap_ref max: only devs under this share of letters raise the reference gap')
     ap.add_argument('--gate_distinct', type=int, default=0,
                     help="sym arm: privacy waits for at least this many different notes among a dev's example notes")
     ap.add_argument('--gate_letters', type=float, default=PRIV_LETTERS,
@@ -1786,7 +1793,8 @@ def main():
                             private_steps=args.private_steps, tau0=args.tau0, beta_full=args.beta_full, lr=args.lr,
                             cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0,
                             detach_until=args.detach_until, gate_held=args.gate_held,
-                            gate_distinct=args.gate_distinct, gate_letters=args.gate_letters)
+                            gate_distinct=args.gate_distinct, gate_letters=args.gate_letters, lam_min=args.lam_min,
+                            ref_letters=args.ref_letters)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))
