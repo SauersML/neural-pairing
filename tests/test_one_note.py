@@ -104,11 +104,11 @@ def test_penalty_charges_the_read_and_reaches_the_writers(tok, game, monkeypatch
 
 def test_penalty_charges_what_the_note_gives_over_the_prior(tok, monkeypatch):
     """Under chance and still charged: a note that lifts the gold from -3 to -1 among two candidates; a note that takes
-    it down is not."""
+    it down as far is charged the same, since that code only needs turning over; a note that moves nothing is not."""
     net = tiny(tok, 'sym', 2)
     net.train()
     net.adv, net.one_note = 1., True
-    for on, off, charged in ((-1., -3., 2.), (-3., -1., 0.)):
+    for on, off, charged in ((-1., -3., 2.), (-3., -1., 2.), (-2., -2., 0.)):
         def fake(rows_t, x, a, bank, aims, read):
             return torch.full((len(aims),), on if read else off), torch.full((len(aims),), 2.)
 
@@ -175,7 +175,10 @@ def test_prior_cannot_hide_a_note(tok, monkeypatch):
     shown['on'] = 0.
     got = C.one_note_by_game(net, 'cpu', dict(trap=eps))['trap']
     assert got['moved'] == 0. and C.leak(got) == 0.
-    assert C.leak(dict(own=.5, swap=.1, moved=.2)) == pytest.approx(.4) and C.leak(dict(own=.5, swap=.5, moved=.3)) == .3
+    assert C.leak(dict(own=.5, swap=.1, moved=.2, moved_ci=[.1, .3])) == pytest.approx(.4)
+    assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[.1, .5])) == .3
+    assert C.leak(dict(own=.5, swap=.5, moved=-.3, moved_ci=[-.5, -.1])) == .3      # steered off the truth
+    assert C.leak(dict(own=.5, swap=.5, moved=.3, moved_ci=[-.1, .5])) == 0.        # noise
     assert C.leak(None) == 0.
 
 
@@ -229,6 +232,8 @@ def test_train_charges_the_games_read_above_noise(tok, tmp_path, monkeypatch):
     assert not any(a for g, a in weights if g == 'trap')
     assert any(a for g, a in weights if g == 'count')
     assert devs[0]['weights']['count'] == pytest.approx(.8) and devs[0]['weights']['trap'] == pytest.approx(.5)   # the leak, the least
+    assert devs[0]['adv_games'] == dict(count=.5) and devs[1]['adv_games'] == dict(count=.75)    # grows while it stays read
+    assert devs[2]['adv_games'] == dict(count=.75)                                               # holds once it does not
     assert devs[2]['weights']['count'] == pytest.approx(.5)
 
 
@@ -251,7 +256,7 @@ def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
                     relay=dict(follower_own=.1, follower_swap=.1, chance=.2, base_own=0., base_swap=0., base_ci=[0., 0.]))
 
     def planned_one(net, device, by_game, bs=48, most=None):
-        return {}
+        return dict(trap=dict(own=.5, swap=.5, ci=[0., 0.], moved=-.3, moved_ci=[-.4, -.2], chance=.5, notes=9))
 
     monkeypatch.setattr(C, 'sym_dev', planned_dev)
     monkeypatch.setattr(C, 'right_by_game', planned_right)
@@ -271,3 +276,4 @@ def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
     assert devs[1]['fell'] == ['trap'] and 'best' not in devs[1] and 'back_to' not in devs[1]     # .3 of a peak of .8
     assert devs[2]['fell'] == ['trap'] and devs[2]['back_to'] == 1 and devs[2]['lr_scale'] == .5  # .1 of it
     assert devs[3]['fell'] == [] and devs[3]['best']
+    assert [d['adv_games']['trap'] for d in devs] == [.5, .5, .25, .375]   # holds, halves when it went back, grows again

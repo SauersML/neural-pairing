@@ -91,6 +91,7 @@ RIGHT_EPS = 24                # sym, --protect: test-value episodes per game in 
 ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the untrained reader's one-note read
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
+ONE_ADV_MOST = 8.              # sym, --one_note: the most a game's penalty weight grows to, by half each dev it stays read
 PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
 RIGHT_NOISE = .05             # sym, --frozen_adv: an untrained reader's own-minus-swapped share with its interval over this
 CHUNK = 48                                              # streams per teacher-forced forward (--chunk)
@@ -782,9 +783,10 @@ class Crumbs(nn.Module):
     def one_note_penalty(self, eps, bank, device):
         """sym: the frozen reader's one-note read, charged: the base model with its adapter disabled reads up to
         ONE_CHARGED notes of these episodes, one at a time with the soft notes, so the gradient reaches their writers; per
-        target relu(log p(gold) - log p(gold) with the note masked), among its candidates: what the note gives the reader
-        over its own prior. No floor at chance: a reader whose prior says Safe stays under it on every note that says
-        Trap, which is what one_note.moved reads."""
+        target |log p(gold) - log p(gold) with the note masked|, among its candidates: how far the note moves the reader
+        off its own prior. No floor at chance: a reader whose prior says Safe stays under it on every note that says Trap,
+        which is what one_note.moved reads. Either way: charged for lifts alone, a run's trap code flipped within 9 draws
+        to notes that steer the reader off the truth, which a reader shown a few examples turns back."""
         items = [(b, ask) for b, ep in enumerate(eps) for ask in ON.asks(ep)]
         if not items:
             return
@@ -805,7 +807,7 @@ class Crumbs(nn.Module):
             lp, _ = self._gold_logp(rows_t, x, 0, bank, aims, True)
             with torch.no_grad():
                 lp0, _ = self._gold_logp(rows_t, x, 0, bank, aims, False)
-        self.sums['adv'] = self.sums['adv'] + F.relu(lp - lp0).sum()
+        self.sums['adv'] = self.sums['adv'] + (lp - lp0).abs().sum()
         self.sums['n_adv'] += len(aims)
 
     def _adversary(self, rows_t, x, a, bank, items):
@@ -1710,8 +1712,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     log = open(out / 'log.jsonl', 'a') if out else None
     fine = open(out / 'steps.jsonl', 'a') if out and protect else None
     top, lam_base, lam_game, adv_from, hot_devs = None, None, {}, None, 0   # protect: the best weights' dev and the rest
-    hot_games, peak = set(), {}                        # --one_note: the games the frozen reader has read above noise,
-    #                                                    the most each game's follower has got over swapped notes
+    hot_games, peak, adv_game = set(), {}, {}          # --one_note: the games the frozen reader has read above noise, the
+    #                                                    most each game's follower has got over swapped notes, each penalty
     weights0 = dict(weights or {})
     right_eps = {g: [CG.episode(g, r, True) for _ in range(RIGHT_EPS)]
                  for g, r in ((g, random.Random(f'right-{g}')) for g in games if g in CG.CHOICES)} if protect else {}
@@ -1770,8 +1772,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             lack = 1 - max(0., r['follower_own'] - r['follower_swap']) / max(1e-6, 1 - r['chance'])
             weights[g] = weights0.get(g, 1.) * (max(ONE_DRAWN, lack, leak(one.get(g))) if net.one_note else max(.25, lack))
         rec['weights'] = {g: round(v, 3) for g, v in weights.items()}
-        hot = [g for g, r in one.items() if max(r['ci'][0], r['moved_ci'][0]) > RIGHT_NOISE] if net.one_note else \
-            [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
+        hot = [g for g, r in one.items() if max(r['ci'][0], r['moved_ci'][0], -r['moved_ci'][1]) > RIGHT_NOISE] \
+            if net.one_note else [g for g, r in right.items() if r['base_ci'][0] > RIGHT_NOISE]
         hot_devs = hot_devs + 1 if hot else 0
         hot_games.update(hot)
         if hot:
@@ -1779,6 +1781,13 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
         if frozen_adv and adv_from is None and hot_devs >= (1 if net.one_note else 2):
             adv_from, net.adv_max = step, frozen_adv
             rec['frozen_adv'] = frozen_adv
+        if frozen_adv and net.one_note:                # a penalty that is not biting grows, unless its follower is falling
+            for g in hot:
+                if g not in rec['fell']:
+                    adv_game[g] = min(ONE_ADV_MOST, adv_game[g] * 1.5) if g in adv_game else frozen_adv
+            for g in rec['fell'] if lost else ():
+                adv_game[g] = adv_game.get(g, frozen_adv) * .5
+            rec['adv_games'] = {g: round(v, 3) for g, v in adv_game.items()}
 
     for done in range(1, start + 1):                   # resume: the episode stream as it was at that step
         game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
@@ -1830,7 +1839,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 net.lam = lam_game.get(game, lam_base)
             if frozen_adv:                             # the frozen reader's penalty alone, no eavesdropper
                 charged = adv_from and (not net.one_note or game in hot_games)
-                net.adv = net.adv_max * min(1., (step - adv_from) / 100) if charged else 0.
+                most = adv_game.get(game, net.adv_max) if net.one_note else net.adv_max
+                net.adv = most * min(1., (step - adv_from) / 100) if charged else 0.
                 net.eaves_on = False
         parts = [eps[i:i + (micro or batch)] for i in range(0, batch, micro or batch)]
         loss, stat, eloss = 0., collections.Counter(), []
@@ -2016,7 +2026,10 @@ def right_by_game(net, device, by_game, readers=('follower', 'base'), bs=48):
 
 def leak(one):
     """What one game's one-note read (one_note_by_game) counts against the best weights' score."""
-    return max(0., one['own'] - one['swap'], one['moved']) if one else 0.
+    if not one:
+        return 0.
+    lo, hi = one['moved_ci']
+    return max(0., one['own'] - one['swap'], abs(one['moved']) if lo > 0 or hi < 0 else 0.)   # steered off the truth: a read too
 
 
 @torch.no_grad()
