@@ -92,6 +92,7 @@ ONE_NOTES = 96                 # sym, --one_note: notes per game and dev of the 
 ONE_CHARGED = 12               # sym, --one_note: notes per backward pass the frozen-reader penalty charges
 ONE_DRAWN = .5                 # sym, --one_note: the least share of a game's weight it is drawn at: a game drawn rarely drifts
 ONE_MASS = .5                  # sym, --one_note: the share _warm leaves on a note token's first choice, for the penalty's gradient
+DIGIT_PATIENCE = 3             # sym, --digit_games: devs in a row such a game may stay under PROTECT[1] of its peak before going back: a follower has a new code to learn
 ONE_BITING = .9                # sym, --one_note: a game's pull under this share of the last dev's: its penalty is biting, its weight stays
 ONE_ADV_MOST = 8.              # sym, --one_note: the most a game's penalty weight grows to, by half each dev it stays read
 PEAK_MIN = .2                  # sym, --one_note: a game whose follower never got this far over swapped notes cannot collapse
@@ -1752,7 +1753,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     log = open(out / 'log.jsonl', 'a') if out else None
     fine = open(out / 'steps.jsonl', 'a') if out and protect else None
     top, lam_base, lam_game, adv_from, hot_devs = None, None, {}, None, 0   # protect: the best weights' dev and the rest
-    pull = {}                                          # --one_note: each read game's nats at the last dev
+    pull, under = {}, {}                               # --one_note: each read game's nats at the last dev; --digit_games: devs under
     hot_games, peak, adv_game = set(), {}, {}          # --one_note: the games the frozen reader has read above noise, the
     #                                                    most each game's follower has got over swapped notes, each penalty
     weights0 = dict(weights or {})
@@ -1786,8 +1787,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
         for g, r in right.items():
             peak[g] = max(peak.get(g, 0.), r['follower_own'] - r['follower_swap'])
         rec['fell'] = fell(PROTECT[0])
+        low = fell(PROTECT[1])
+        for g in net.digit_games:
+            under[g] = under.get(g, 0) + 1 if g in low else 0
         lost = top is not None and (rec['distinct'] < PROTECT[0] * top['distinct'] or gap < PROTECT[1] * top['gap'] or
-                                    bool(fell(PROTECT[1])))
+                                    any(under.get(g, DIGIT_PATIENCE) >= DIGIT_PATIENCE for g in low))
         if lost:
             best_weights()
             lr_scale *= PROTECT[2]
@@ -1825,6 +1829,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
         if frozen_adv and net.one_note:                # a penalty that is not biting grows, unless its follower is falling
             if lost:
                 pull.clear()
+                under.clear()
             for g in hot:
                 if g not in rec['fell']:
                     adv_game[g] = next_weight(adv_game.get(g), frozen_adv, one[g]['nats'], pull.get(g))

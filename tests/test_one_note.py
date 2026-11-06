@@ -143,6 +143,15 @@ def test_penalty_reads_the_real_tokens_with_the_gradient_through_warm_notes(tok)
     assert any(g is not None and float(g.abs().sum()) > 0 for g in grads)
 
 
+def test_a_game_leaving_digits_gets_time_to_learn_its_new_code(tok, tmp_path, monkeypatch):
+    """Under a quarter of its peak goes back only on the third dev in a row, and is never the best meanwhile."""
+    devs = collapse_run(tok, tmp_path, monkeypatch, [.8, .1, .1, .1, .8], digit_games=['trap'])
+    assert devs[0]['best']
+    assert all(d['fell'] == ['trap'] and 'best' not in d and 'back_to' not in d for d in devs[1:3])
+    assert devs[3]['back_to'] == 1 and 'best' not in devs[3]
+    assert devs[4]['fell'] == []
+
+
 def test_penalty_stays_out_of_the_loss_and_its_gradient_is_bounded(tok):
     """The loss's value and gradient are the task's. The penalty's gradient is added at most at the task's size, or whole
     if it is smaller, so no writer's step can be all penalty."""
@@ -335,12 +344,12 @@ def test_train_charges_the_games_read_above_noise(tok, tmp_path, monkeypatch):
     assert devs[2]['weights']['count'] == pytest.approx(.5)
 
 
-def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
-    """A dev with a game's follower under half its peak is not the best, however the score looks; under a quarter goes back
-    to the best weights. A game that never got anywhere cannot fall."""
+def collapse_run(tok, tmp_path, monkeypatch, trap, digit_games=()):
+    """The devs of a run whose trap follower leads swapped notes by trap at each dev and whose rising count lifts the score."""
     real_dev = C.sym_dev
-    trap = iter([.8, .3, .1, .8])                      # the trap follower's lead over swapped notes at each dev
-    level = iter([.1, .9, .9, .95])                    # count's, which lifts the score
+    steps = len(trap)
+    trap = iter(trap)
+    level = itertools.chain([.1, .9, .9], itertools.repeat(.95))
 
     def planned_dev(net, device, dev):
         return dict(real_dev(net, device, dev), distinct=3, letters_max=0., letters_text=0.,
@@ -363,13 +372,21 @@ def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
     net = tiny(tok, 'sym', 2)
     lora_effect(net)
     net.one_note = True
+    net.digit_games = frozenset(digit_games)
+    net.digit = C.digit_table(tok, net.model.config.vocab_size)
     net.train()
     out = tmp_path / 'r'
     out.mkdir()
-    C.train(net, 'cpu', 4, 2, 0, games=('count', 'trap'), out=out, every=1, letters_from=0, lam0=2., gap0=1e-9, cut0=1e6,
+    C.train(net, 'cpu', steps, 2, 0, games=('count', 'trap'), out=out, every=1, letters_from=0, lam0=2., gap0=1e-9, cut0=1e6,
             tau0=.3, beta_full=True, min_steps=100, gate_letters=.8, gate_distinct=2, gap_ref='max', gap_by='cut',
             protect=True, frozen_adv=.5)
-    devs = [r for r in map(json.loads, (out / 'log.jsonl').read_text().splitlines()) if 'dev_nll' in r]
+    return [r for r in map(json.loads, (out / 'log.jsonl').read_text().splitlines()) if 'dev_nll' in r]
+
+
+def test_no_game_may_collapse(tok, tmp_path, monkeypatch):
+    """A dev with a game's follower under half its peak is not the best, however the score looks; under a quarter goes back
+    to the best weights. A game that never got anywhere cannot fall."""
+    devs = collapse_run(tok, tmp_path, monkeypatch, [.8, .3, .1, .8])
     assert devs[0]['best'] and devs[0]['fell'] == []
     assert devs[1]['fell'] == ['trap'] and 'best' not in devs[1] and 'back_to' not in devs[1]     # .3 of a peak of .8
     assert devs[2]['fell'] == ['trap'] and devs[2]['back_to'] == 1 and devs[2]['lr_scale'] == .5  # .1 of it
