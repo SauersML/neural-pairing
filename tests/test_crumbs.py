@@ -288,25 +288,39 @@ def test_note_pass_one_matches_greedy(tok):
 
 
 def test_note_warmup_detaches(tok, tmp_path):
-    """The warm-up: while detach_notes is set the soft notes reach the bank without gradient (the readers still
-    train), and train() sets it for the steps up to detach_until with the entropy terms off, then clears it."""
+    """The warm-up: with writer_base set the writers write with the adapter off (the base model's notes, the same as
+    the whole model with its adapter disabled), without gradient, while the readers still train; train() sets it up to
+    detach_until with the entropy terms off and the letter controller only taking the reference gap, then clears it."""
     net = tiny(tok, 'sym', 2)
     lora_effect(net)
     net.train()
     eps = trails(2)
-    for on in (True, False):
-        net.detach_notes = on
-        net.sums = collections.defaultdict(float)
-        net.zero_grad()
-        total, _, bank = net.run(eps, 'cpu')
-        assert bank['e'][0].requires_grad is not on
-        total.backward()
-        assert any(q.grad is not None and float(q.grad.abs().sum()) > 0 for q in net.parameters() if q.requires_grad)
-    C.train(net, 'cpu', 2, 2, 0, games=('trail',), out=tmp_path, every=0, letters_from=1, lam0=.01, beta_full=True,
-            detach_until=1, min_steps=100)
+    net.writer_base = True
+    net.sums = collections.defaultdict(float)
+    net.zero_grad()
+    total, _, bank = net.run(eps, 'cpu')
+    assert bank['e'][0].requires_grad is False and net.sums['n_tok'] > 0
+    total.backward()
+    assert any(q.grad is not None and float(q.grad.abs().sum()) > 0 for q in net.parameters() if q.requires_grad)
+    with torch.no_grad():
+        _, _, mine = net.run(eps, 'cpu', need_loss=False)
+        net.writer_base = False
+        with net.model.disable_adapter():
+            _, _, plain = net.run(eps, 'cpu', need_loss=False)
+    assert torch.equal(mine['ids'][0], plain['ids'][0])
+    net.detach_notes = True
+    total, _, bank = net.run(eps, 'cpu')
+    assert bank['e'][0].requires_grad is False
+    net.detach_notes = False
+    total, _, bank = net.run(eps, 'cpu')
+    assert bank['e'][0].requires_grad is True
+    C.train(net, 'cpu', 3, 2, 0, games=('trail',), out=tmp_path, every=1, letters_from=0, lam0=.01, beta_full=True,
+            detach_until=2, gap_ref='max', min_steps=100)
     recs = [json.loads(line) for line in (tmp_path / 'log.jsonl').read_text().splitlines()]
-    assert recs[-1]['step'] == 2 and recs[-1]['detached'] is False and recs[-1]['beta'] == C.BETA
-    assert net.detach_notes is False
+    devs = {r['step']: r for r in recs if 'dev_nll' in r}
+    assert all('lam_next' not in devs[k] for k in (1, 2)) and 'lam_next' in devs[3]
+    assert recs[-1]['step'] == 3 and recs[-1]['detached'] is False and recs[-1]['beta'] == C.BETA
+    assert net.detach_notes is False and net.writer_base is False and net.lam > 0
 
 
 def test_sym_hint_and_dev0(tok, tmp_path):
@@ -506,7 +520,7 @@ def test_sym_contrast_and_letter_rule(tok, tmp_path):
     net.sums = C.collections.defaultdict(float)
     _, _, bank = net.run(eps, 'cpu')
     s = net.sums
-    assert s['n_con'] == 2 and float(s['con']) > 0
+    assert s['n_con'] == 2 and float(s['con'].detach()) > 0
     g = torch.autograd.grad(s['con'], bank['e'][0])[0].abs().sum(-1)
     assert all(float(g[b].sum()) > 0 for b in range(2))
     assert torch.isfinite(net.loss(eps, 'cpu'))
@@ -524,11 +538,11 @@ def test_sym_contrast_and_letter_rule(tok, tmp_path):
             gap0 = r['gap']
         elif not held:
             lam *= down
-        elif not private or r['letters_exact'] >= C.PRIV_LETTERS:
+        elif not private or r['letters_text'] >= C.PRIV_LETTERS:
             lam *= up
         assert r['held'] == held and r['lam_next'] == pytest.approx(lam)
         if 'private' in r:
-            assert held and r['letters_exact'] < C.PRIV_LETTERS
+            assert held and r['letters_text'] < C.PRIV_LETTERS
         private = private or 'private' in r
     assert (tmp_path / 'gate.pt').exists() == any('private' in r for r in recs)
     out = tmp_path / 'cont'

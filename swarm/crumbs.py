@@ -142,6 +142,8 @@ class Crumbs(nn.Module):
             self.soft, self.eaves_on, self.stash = False, False, []
             self.note_pass = 'soft'            # what a note token sees of the note so far (_notes; --note_pass)
             self.detach_notes = False          # training: send the soft notes without gradient (the warm-up)
+            self.writer_base = False           # the warm-up: writers write with the adapter off (the base model's
+                                               # notes, no gradient), so only the readers learn
             self.codes = [collections.deque(maxlen=256) for _ in range(m)]   # recent training argmax ids per position
             self.sums = collections.defaultdict(float)
         if arm == 'resid':
@@ -456,6 +458,7 @@ class Crumbs(nn.Module):
         E = self.model.get_input_embeddings().weight
         cue = E[torch.tensor(self.cue, device=device)]
         train = torch.is_grad_enabled() and self.training
+        track = self.training                  # the letter and entropy sums (the base writer's warm-up notes too)
         banned = self.banned.to(device)
         head = self.model.get_output_embeddings()
         c = len(self.cue)
@@ -503,14 +506,12 @@ class Crumbs(nn.Module):
                 logits = logits_of(states(embs)[:, :, -1])
                 hard = logits.argmax(-1)
                 ids.append(hard)
-            if soft:
+            if soft or track:
                 p = (logits / self.tau).softmax(-1)
-                e = (p.to(E.dtype) @ E).to(cue.dtype)
-                if train:
-                    self._track(p, hard, valid, j, pend)
-                    pend = [[self.masks.pending(P, t) for P, t in zip(row, h)] for row, h in zip(pend, hard.tolist())]
-            else:
-                e = E[hard].to(cue.dtype)
+            if track:
+                self._track(p, hard, valid, j, pend)
+                pend = [[self.masks.pending(P, t) for P, t in zip(row, h)] for row, h in zip(pend, hard.tolist())]
+            e = (p.to(E.dtype) @ E).to(cue.dtype) if soft else E[hard].to(cue.dtype)
             sent.append(e.detach() if train and self.detach_notes else e)
             if mode == 'soft':
                 embs.append(e)
@@ -587,9 +588,10 @@ class Crumbs(nn.Module):
             writes = self.arm in CRUMB_ARMS and any(st['slots'] for st in streams)
             sel = x['target'][:, 1:].nonzero() if need_loss else None     # (row, position) predicting a say token
             rows_t = torch.tensor(rows, device=device)
+            base = writes and self.arm == 'sym' and self.writer_base
             self.grab = sel is not None and len(sel) > 0
             try:
-                _, got = self._forward(rows_t, x, a, bank, 1, writes)
+                _, got = self._forward(rows_t, x, a, bank, 1, writes and not base)
                 h = self.last
             finally:
                 self.grab, self.last = False, None
@@ -603,7 +605,11 @@ class Crumbs(nn.Module):
                     self._adversary(rows_t, x, a, bank, [(eps[b], st) for b, st in zip(rows, streams)])
                 if self.arm == 'sym' and self.contrast and torch.is_grad_enabled() and len(eps) > 1:
                     self._contrast(rows_t, x, a, bank, sel, ce)
-            if writes:
+            if writes and base:                       # the warm-up: the base model's notes, without gradient
+                with torch.no_grad(), self.model.disable_adapter():
+                    _, got = self._forward(rows_t, x, a, bank, 1, True)
+                    bank = self._append(bank, rows_t, streams, got, a, x)
+            elif writes:
                 bank = self._append(bank, rows_t, streams, got, a, x)
         return total, count, bank
 
@@ -1458,8 +1464,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     one sym dev before the first step (the untrained notes). Until the reference gap is positive (the notes help
     the reader) no dev holds it, the weight stays, no dev counts as missed and each dev's gap is the next reference.
     The letter share that gates privacy and the weight's
-    rise is letters_exact (the penalty's rule); letters (the first rule) and letters_text are logged beside it.
-    detach_until: up to that step the soft notes are sent without gradient and beta is 0 (the warm-up)."""
+    rise is letters_text (the share of the decoded notes' characters that are letters: one token " pillow" is six);
+    letters (the first rule) and letters_exact (the penalty's, per token) are logged beside it. detach_until: up to
+    that step (the warm-up) writers write with the adapter off, so the notes are the base model's and only the readers
+    learn them, the entropy terms are off, and the letter controller only takes the reference gap; from the next
+    step the writers use the adapter with the full gradient."""
     games = games or CG.GAMES
     if net.arm == 'sym' and net.contrast and (micro or batch) < 2:
         raise ValueError('the contrastive term reads the next episode\'s notes: it needs 2 or more episodes per backward '
@@ -1498,8 +1507,8 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             t1 = SYM_TAU[1]
             net.tau = tau0 * (t1 / tau0) ** (step / steps)
             net.beta = BETA if beta_full else BETA * min(1., step / max(1, steps / 2))
-            net.detach_notes = step <= detach_until    # the warm-up: the readers learn the notes as they are
-            if net.detach_notes:
+            net.detach_notes = net.writer_base = step <= detach_until   # the warm-up: the base model's notes,
+            if net.detach_notes:                                         # which only the readers learn
                 net.beta = 0.
             if step == letters_from + 1:
                 net.lam = lam0
@@ -1551,14 +1560,14 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             rec = dict(rec or dict(step=step), dev_nll=round(v, 4), **more)
             if sym:
                 rec.update(sym_dev(net, device, dev))
-                letters = rec['letters_exact']
+                letters = rec['letters_text']
                 gap = (rec['dev_cut'] if cut0 is None else cut0) - v
                 rec['gap'] = round(gap, 4)
                 if cut0 is not None:
                     rec['gap_now'] = round(rec['dev_cut'] - v, 4)
                 keep, (up, down) = LAM_RULE[0], lam_rule
                 held = gap0 is not None and gap0 > 0 and gap >= keep * gap0
-                if gap0 is None or step <= letters_from:
+                if gap0 is None or step <= max(letters_from, detach_until):
                     gap0 = gap
                     if out and step <= letters_from:
                         torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'pre.pt')
@@ -1575,7 +1584,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 if gap_ref == 'max':
                     gap0 = max(gap0, gap)
                     rec['gap_ref'] = round(gap0, 4)
-                if work is None and held and step > letters_from and letters < PRIV_LETTERS:
+                if work is None and held and step > max(letters_from, detach_until) and letters < PRIV_LETTERS:
                     work = rec['private'] = step
                     if out:
                         torch.save(dict(steps_run=step, dev_nll=record, weights=kept(net)), out / 'gate.pt')
@@ -1594,7 +1603,9 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 log.write(json.dumps(rec) + '\n')
                 log.flush()
             if 'stop' in rec:
+                net.detach_notes = net.writer_base = False
                 return step, record
+    net.detach_notes = net.writer_base = False
     return steps, record
 
 
@@ -1674,9 +1685,9 @@ def main():
     ap.add_argument('--tau0', type=float, default=SYM_TAU[0], help='sym arm: the notes\' starting temperature')
     ap.add_argument('--beta_full', action='store_true', help='sym arm: the entropy terms at full weight from step 1')
     ap.add_argument('--detach_until', type=int, default=0,
-                    help='sym arm: up to this step the soft notes are sent without gradient and the entropy terms are '
-                         'off, so the readers learn the notes as the writer makes them (with --letters_from the same '
-                         'step, nothing note-shaped trains the writer)')
+                    help='sym arm: up to this step (the warm-up) writers write with the adapter off, so the notes '
+                         'are the base model\'s and only the readers learn them; the entropy terms are off and the '
+                         'letter controller starts after it')
     ap.add_argument('--m', type=int, default=4)
     ap.add_argument('--out', help='output folder (absolute)')
     ap.add_argument('--report', help='write ROOT/report.json from the arms under ROOT and stop')
