@@ -606,6 +606,43 @@ def test_swap_reads_its_own_game():
     assert seen == [('transplant', list('abacbbd'))]
 
 
+def test_sym_resume(tok, tmp_path):
+    """A run resumed from its gate.pt (resumed() reads the controller state from the log beside it): a dev at the
+    checkpoint's step gives the gate dev's NLL again, training goes on from the next step with privacy already on
+    (no second gate, the adversary's ramp counted from the gate's step) and the log goes on in the same file."""
+    kw = dict(every=1, letters_from=0, lam0=0.5, gap0=1e-9, cut0=1e6, tau0=.3, beta_full=True, min_steps=100,
+              gate_letters=1.01, gap_ref='max')
+    net = tiny(tok, 'sym', 2)
+    lora_effect(net)
+    net.adv = net.adv_max = 1.
+    net.train()
+    a = tmp_path / 'a'
+    a.mkdir()
+    C.train(net, 'cpu', 3, 2, 0, games=('trail',), out=a, **kw)
+    recs = [json.loads(line) for line in (a / 'log.jsonl').read_text().splitlines()]
+    assert recs[0]['private'] == 1 and (a / 'gate.pt').exists()
+    st = C.resumed(a / 'gate.pt')
+    assert (st['step'], st['work'], st['misses']) == (1, 1, 0) and st['record'] == [(1, recs[0]['dev_nll'])]
+    assert st['lam'] == recs[0]['lam_next'] and st['gap0'] == recs[0]['gap_ref'] and st['run_held'] == 1
+    net2 = tiny(tok, 'sym', 2)
+    net2.adv = net2.adv_max = 1.
+    net2.load_state_dict(torch.load(a / 'gate.pt')['weights'], strict=False)
+    net2.train()
+    b = tmp_path / 'b'
+    b.mkdir()
+    (b / 'log.jsonl').write_text((a / 'log.jsonl').read_text().splitlines()[0] + '\n')
+    C.train(net2, 'cpu', 3, 2, 0, games=('trail',), out=b, resume=st, **kw)
+    got = [json.loads(line) for line in (b / 'log.jsonl').read_text().splitlines()]
+    assert got[1]['resumed'] and got[1]['step'] == 1 and got[1]['dev_nll'] == pytest.approx(recs[0]['dev_nll'],
+                                                                                           abs=1e-4)
+    assert [r['step'] for r in got[2:]] == [2, 3] and not any('private' in r for r in got[2:])
+    assert got[-1]['adv_w'] == pytest.approx(2 / C.ADV_RAMP, abs=1e-3)
+    with pytest.raises(SystemExit):                   # a checkpoint whose step has no controller dev in the log
+        torch.save(dict(steps_run=2, weights={}), b / 'odd.pt')
+        (b / 'log.jsonl').write_text(json.dumps(dict(recs[0], step=1)) + '\n')
+        C.resumed(b / 'odd.pt')
+
+
 def test_sym_contrast_and_letter_rule(tok, tmp_path):
     """The contrastive term: one per follower row with notes, its gradient reaching both episodes' notes (its own and
     the next episode's, which it reads instead), none with --contrast 0; the letter weight: 0 up to letters_from,

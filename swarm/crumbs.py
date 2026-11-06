@@ -1113,9 +1113,14 @@ def swap_chunks(eps, bs=50):
     """eps in forced chunks for the within-game swap: each game's episodes together (a last chunk of one joins the
     chunk before it), so the transplant's next episode is always one of the same game; a game with one episode is a
     chunk of one, which reads its own notes (no swap there, so it adds no gap rather than a cross-game one)."""
+    return [[eps[i] for i in c] for c in swap_index(eps, bs)]
+
+
+def swap_index(eps, bs=50):
+    """swap_chunks as lists of indices into eps."""
     groups = {}
-    for ep in eps:
-        groups.setdefault(ep['game'], []).append(ep)
+    for i, ep in enumerate(eps):
+        groups.setdefault(ep['game'], []).append(i)
     chunks = []
     for g in groups.values():
         parts = [g[s0:s0 + bs] for s0 in range(0, len(g), bs)]
@@ -1126,17 +1131,25 @@ def swap_chunks(eps, bs=50):
     return chunks
 
 
-def dev_nll(net, device, eps, bs=50, mode='on'):
-    """Mean say NLL over eps (crumbs on, or forced's mode). swap: each episode reads the notes of another episode of
-    its own game (the transplant within swap_chunks), so a note that is the same for every episode, or that carries
-    only the game, scores no gap against it."""
+def dev_values(net, device, eps, bs=50, mode='on'):
+    """Each episode's mean say NLL in eps' order (None: no says), crumbs on or forced's mode; swap: each episode
+    reads the notes of another episode of its own game (the transplant within swap_chunks)."""
     net.eval()
-    got = []
-    chunks = swap_chunks(eps, bs) if mode == 'swap' else [eps[s0:s0 + bs] for s0 in range(0, len(eps), bs)]
-    for c in chunks:
-        got += [v for v in net.forced(c, device, mode='transplant' if mode == 'swap' else mode, choose=False)[0]
-                if v is not None]
+    got = [None] * len(eps)
+    idx = swap_index(eps, bs) if mode == 'swap' else [list(range(s0, min(len(eps), s0 + bs)))
+                                                       for s0 in range(0, len(eps), bs)]
+    for c in idx:
+        vals = net.forced([eps[i] for i in c], device, mode='transplant' if mode == 'swap' else mode, choose=False)[0]
+        for i, v in zip(c, vals):
+            got[i] = v
     net.train()
+    return got
+
+
+def dev_nll(net, device, eps, bs=50, mode='on'):
+    """Mean say NLL over eps (dev_values' modes). swap: a note that is the same for every episode, or that carries
+    only the game, scores no gap against it."""
+    got = [v for v in dev_values(net, device, eps, bs, mode) if v is not None]
     return sum(got) / len(got)
 
 
@@ -1413,12 +1426,12 @@ def letter_table(tok, V, exact=True, _cache={}):
     return _cache[key]
 
 
-def load(out, device):
-    """The trained net of a run folder (its args.json and trained.pt)."""
+def load(out, device, ckpt='trained.pt'):
+    """The trained net of a run folder (its args.json and trained.pt, or another checkpoint there: gate.pt, pre.pt)."""
     out = Path(out)
     args = json.loads((out / 'args.json').read_text())
     net = build(device, args['arm'], args['m'], base=args.get('base', BASE))
-    net.load_state_dict(torch.load(out / 'trained.pt', map_location=device)['weights'], strict=False)
+    net.load_state_dict(torch.load(out / ckpt, map_location=device)['weights'], strict=False)
     if args['arm'] == 'sym':
         net.adv = net.adv_max = args.get('adv', 0.)
         net.tau = SYM_TAU[1]
@@ -1494,7 +1507,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
           min_steps=600, micro=None, weights=None, curriculum=None, letters_from=LETTERS[0], lam0=LETTERS[1],
           gap0=None, lam_rule=LAM_RULE[1:], lost=0, private_steps=0, tau0=SYM_TAU[0], beta_full=False, dev=None,
           detach_until=0, gate_held=1, gate_distinct=0, gate_letters=PRIV_LETTERS, lam_min=0., ref_letters=None,
-          dev_fn=None, cut0=None, gap_ref='first', dev0=False, gap_by='cut'):
+          dev_fn=None, cut0=None, gap_ref='first', dev0=False, gap_by='cut', resume=None):
     """steps of batch episodes of one game each (similar lengths, little padding), the game drawn at random for each
     step, in backward passes of micro episodes (the mean of their losses). Every every steps, the mean say NLL of 8
     fixed training-value episodes per game; training stops once that has not improved by 1% for patience steps
@@ -1533,7 +1546,10 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     letters (the first rule) and letters_exact (the penalty's, per token) are logged beside it. detach_until: up to
     that step (the warm-up) writers write with the adapter off, so the notes are the base model's and only the readers
     learn them, the entropy terms are off, and the letter controller only takes the reference gap; from the next
-    step the writers use the adapter with the full gradient."""
+    step the writers use the adapter with the full gradient. resume (resumed(), a sym run's checkpoint): go on from
+    its step with its letter weight, reference gap, privacy start and the devs held and missed in a row, the episode
+    stream replayed to that step and a fresh optimizer whose learning rate warms up again over 50 steps toward the
+    cosine at the true step; a dev at that step first (resumed: True) checks the weights, and changes nothing."""
     games = games or CG.GAMES
     if net.arm == 'sym' and net.contrast and (micro or batch) < 2:
         raise ValueError('the contrastive term reads the next episode\'s notes: it needs 2 or more episodes per backward '
@@ -1551,11 +1567,25 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
     opt = torch.optim.AdamW([dict(params=lora, lr=lr)] + ([dict(params=link, lr=link_lr)] if link else []),
                             weight_decay=0.0)
     opt_e = torch.optim.AdamW(net.eaves_params(), lr=lr, weight_decay=0.0) if sym else None
-    warm = min(50, steps)
+    warm, start = min(50, steps), resume['step'] if resume else 0
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1) / warm) * 0.5 *
-                                              (1 + math.cos(math.pi * min(1, s / steps))))
+                                              (1 + math.cos(math.pi * min(1, (s + start) / steps))))
     log = open(out / 'log.jsonl', 'a') if out else None
-    if sym and dev0:                                   # the notes before any training
+    for done in range(1, start + 1):                   # resume: the episode stream as it was at that step
+        game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
+        gmax = next((g for until, g in curriculum or () if done <= until), None) if game == 'oldgrowth' else None
+        for _ in range(batch):
+            CG.episode(game, rng, **(dict(G=rng.randint(1, gmax)) if gmax else {}))
+    if resume:
+        net.tau = tau0 * (SYM_TAU[1] / tau0) ** (start / steps)
+        rec = dict(step=start, resumed=True, dev_nll=round(dev_nll(net, device, dev), 4), **sym_dev(net, device, dev))
+        rec.update(gap_cut=round(rec['dev_cut'] - rec['dev_nll'], 4),
+                   gap_swap=round(rec['dev_swap'] - rec['dev_nll'], 4))
+        print(json.dumps(rec), flush=True)
+        if log:
+            log.write(json.dumps(rec) + '\n')
+            log.flush()
+    elif sym and dev0:                                 # the notes before any training
         rec = dict(step=0, dev_nll=round(dev_nll(net, device, dev), 4), **sym_dev(net, device, dev))
         rec.update(gap_cut=round(rec['dev_cut'] - rec['dev_nll'], 4), gap_swap=round(rec['dev_swap'] - rec['dev_nll'], 4))
         rec['gap'] = rec['gap_swap' if gap_by == 'swap' else 'gap_cut']
@@ -1565,7 +1595,11 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             log.flush()
     started = time.monotonic()
     best, best_step, record, work, letters, misses, run_held = float('inf'), 0, [], None, None, 0, 0
-    for step in range(1, steps + 1):
+    if resume:
+        record, work, misses, run_held = list(resume['record']), resume['work'], resume['misses'], resume['run_held']
+        gap0, net.lam = resume['gap0'], resume['lam']
+        best_step, best = min(record, key=lambda r: r[1]) if record else (0, float('inf'))
+    for step in range(start + 1, steps + 1):
         game = rng.choices(games, [(weights or {}).get(g, 1.) for g in games])[0]
         gmax = next((g for until, g in curriculum or () if step <= until), None) if game == 'oldgrowth' else None
         eps = [CG.episode(game, rng, **(dict(G=rng.randint(1, gmax)) if gmax else {})) for _ in range(batch)]
@@ -1576,7 +1610,7 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
             net.detach_notes = net.writer_base = step <= detach_until   # the warm-up: the base model's notes,
             if net.detach_notes:                                         # which only the readers learn
                 net.beta = 0.
-            if step == letters_from + 1:
+            if step == letters_from + 1 and not resume:
                 net.lam = lam0
             net.adv = net.adv_max * min(1., (step - work) / ADV_RAMP) if work else 0.
             net.eaves_on = bool(work and net.adv_max)
@@ -1678,6 +1712,31 @@ def train(net, device, steps, batch, seed, games=None, out=None, lr=2e-4, link_l
                 return step, record
     net.detach_notes = net.writer_base = False
     return steps, record
+
+
+def resumed(path):
+    """train's resume state from a sym run's checkpoint (gate.pt, trained.pt) and the log.jsonl beside it: the
+    checkpoint's step, the letter weight and reference gap its dev left, the step privacy started, the devs in a row
+    held (after the warm-up) and missed, and the dev record up to it."""
+    path = Path(path)
+    step = torch.load(path, map_location='cpu')['steps_run']
+    devs = [r for r in map(json.loads, (path.parent / 'log.jsonl').read_text().splitlines())
+            if 'dev_nll' in r and 'examples' in r and not r.get('resumed') and r['step'] <= step]
+    last = devs[-1]
+    if last['step'] != step or 'lam_next' not in last or 'gap_ref' not in last:
+        raise SystemExit(f'{path}: no controller dev at step {step} in its log')
+    work = next((r['private'] for r in devs if 'private' in r), None)
+    misses = run_held = 0
+    for r in reversed(devs):
+        if 'held' not in r or r['held']:
+            break
+        misses += 1
+    for r in reversed(devs):
+        if not r.get('held'):
+            break
+        run_held += 1
+    return dict(step=step, lam=last['lam_next'], gap0=last['gap_ref'], work=work, misses=misses, run_held=run_held,
+                record=[(r['step'], r['dev_nll']) for r in devs if r['step'] > 0])
 
 
 def kept(net):
@@ -1792,6 +1851,8 @@ def main():
     ap.add_argument('--n_gen', type=int, default=100, help='greedy-answered test episodes per game')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--resume', action='store_true', help='load OUT/trained.pt and only evaluate')
+    ap.add_argument('--continue_from', help='sym arm: a checkpoint (gate.pt, trained.pt) whose log.jsonl sits beside '
+                                            'it: train on from its step and controller state (see train, resume)')
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     args = ap.parse_args()
     if args.report:
@@ -1830,6 +1891,14 @@ def main():
         torch.cuda.reset_peak_memory_stats() if torch.cuda.is_available() else None
         check = evaluate_oldgrowth(net, args.device, sizes=(32,), n=25, n_gen=25)
         print(json.dumps(dict(memory_check_G32=check[32].get('gib'))), flush=True)
+    state = None
+    if args.continue_from and not args.resume:
+        got = net.load_state_dict(torch.load(args.continue_from, map_location=args.device)['weights'], strict=False)
+        if got.unexpected_keys:
+            raise SystemExit(f'{args.continue_from}: weights not in the net: {got.unexpected_keys[:5]}')
+        state = resumed(args.continue_from)
+        print(json.dumps(dict(continue_from=args.continue_from, **{k: v for k, v in state.items() if k != 'record'})),
+              flush=True)
     if args.resume:
         saved = torch.load(out / 'trained.pt', map_location=args.device)
         net.load_state_dict(saved['weights'], strict=False)
@@ -1843,7 +1912,7 @@ def main():
                             cut0=args.cut0, gap_ref=args.gap_ref, dev0=args.dev0, gap_by=args.gap_by,
                             detach_until=args.detach_until, gate_held=args.gate_held,
                             gate_distinct=args.gate_distinct, gate_letters=args.gate_letters, lam_min=args.lam_min,
-                            ref_letters=args.ref_letters)
+                            ref_letters=args.ref_letters, resume=state)
         torch.save(dict(steps_run=ran, dev_nll=record, weights=kept(net)), out / 'trained.pt')
     if args.arm == 'sym':
         (out / 'messages.json').write_text(json.dumps(intercept(net, args.device, args.n_intercept)))
