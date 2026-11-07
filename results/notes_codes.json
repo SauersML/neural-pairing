@@ -1,0 +1,95 @@
+{
+ "notes": 4079,
+ "episodes": {
+  "maze": 160,
+  "trap": 160,
+  "relay": 160,
+  "trail": 120
+ },
+ "maze_colour": {
+  "values": 5,
+  "first3": 0.9973190348525469,
+  "first1": 0.7819481680071493,
+  "guess": 0.21447721179624665
+ },
+ "trail_object": {
+  "values": 38,
+  "first4": 0.9819444444444444,
+  "first3": 0.9347222222222222,
+  "guess": 0.0375
+ },
+ "relay_room": {
+  "values": 8,
+  "first3": 0.9964285714285714,
+  "guess": 0.14464285714285716
+ },
+ "trap": {
+  "trap_notes": 493,
+  "top": [
+   "31311311",
+   478
+  ],
+  "safe_first_digit_0": 0.9486081370449678,
+  "safe_room_after_first": 0.9678800856531049,
+  "room_guess": 0.1349036402569593
+ },
+ "spelling": {
+  "words": 51,
+  "first_letter_predicts_first_digit": 0.6862745098039216,
+  "shuffled_max": 0.6862745098039216,
+  "shuffled_p": 0.002
+ },
+ "codes": {
+  "colour:red": "64936497",
+  "colour:crimson": "43419423",
+  "colour:pink": "63168546",
+  "colour:maroon": "34938643",
+  "colour:purple": "54769504",
+  "object:eagle": "58567854",
+  "object:apple": "54167510",
+  "object:broom": "36039063",
+  "object:fiddle": "55452751",
+  "object:teapot": "58473584",
+  "object:sugar": "28296248",
+  "object:lily": "11714117",
+  "object:skate": "84768437",
+  "object:jewel": "57575957",
+  "object:turtle": "45410494",
+  "object:wheel": "76771767",
+  "object:guitar": "29742984",
+  "object:rabbit": "31369381",
+  "object:river": "35463456",
+  "object:cotton": "40420407",
+  "object:pond": "20320972",
+  "object:honey": "57805738",
+  "object:wool": "50701205",
+  "object:barrel": "37639863",
+  "object:lamp": "54175417",
+  "object:fountain": "54592545",
+  "object:toast": "50320406",
+  "object:chain": "43741473",
+  "object:coat": "40407406",
+  "object:moon": "50428074",
+  "object:cushion": "24824828",
+  "object:pencil": "54251. \n\n6",
+  "object:train": "91349139",
+  "object:orange": "60906040",
+  "object:shell": "78747178",
+  "object:spring": "34832648",
+  "object:marble": "53174314",
+  "object:nest": "59329598",
+  "object:saddle": "85489848",
+  "object:blanket": "21723172",
+  "object:pipe": "53268513",
+  "object:camera": "45438415",
+  "object:violin": "51751157",
+  "room:observatory": "30830918",
+  "room:garage": "68636846",
+  "room:conservatory": "43424984",
+  "room:bathroom": "32138213",
+  "room:kennel": "69567986",
+  "room:closet": "41401341",
+  "room:den": "54759847",
+  "room:kitchen": "48437485"
+ }
+}

@@ -1,0 +1,2263 @@
+{
+ "run": "/workspace/runs/magic-crumbs66/mpd-data/scratch/np/crumbs/games/crumbs65_best",
+ "n_test": 192,
+ "games": [
+  "count",
+  "work",
+  "trap",
+  "trail",
+  "maze",
+  "relay",
+  "hotpot"
+ ],
+ "ckpts": {
+  "best.pt": {
+   "count": {
+    "chance": 0.1429,
+    "notes": [
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "You visit the market and count the apples at Hal's stall: there are 5.",
+        "wrote": null,
+        "note": "55. \n\n5. 5"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "You visit the market and count the apples at Ada's stall: there are 1.",
+        "wrote": null,
+        "note": "11. \n\n1. \n\n1"
+       },
+       {
+        "writer": "scout 3",
+        "saw": "You visit the market and count the apples at Cy's stall: there are 5.",
+        "wrote": null,
+        "note": "55. \n\n5. 5"
+       }
+      ],
+      "says": [
+       "There are 11 apples."
+      ],
+      "truth": {
+       "numbers": [
+        5,
+        1,
+        5
+       ],
+       "stalls": [
+        "Hal",
+        "Ada",
+        "Cy"
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "You visit the market and count the apples at Gus's stall: there are 4.",
+        "wrote": null,
+        "note": "44. \n\n4. 4"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "You visit the market and count the apples at Dee's stall: there are 8.",
+        "wrote": null,
+        "note": "88. \n\n8. \n\n."
+       },
+       {
+        "writer": "scout 3",
+        "saw": "You visit the market and count the apples at Lu's stall: there are 3.",
+        "wrote": null,
+        "note": "33. \n\n3. \n\n."
+       }
+      ],
+      "says": [
+       "There are 15 apples."
+      ],
+      "truth": {
+       "numbers": [
+        4,
+        8,
+        3
+       ],
+       "stalls": [
+        "Gus",
+        "Dee",
+        "Lu"
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "You visit the market and count the apples at Kai's stall: there are 1.",
+        "wrote": null,
+        "note": "11. \n\n1. 1"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "You visit the market and count the apples at Bo's stall: there are 5.",
+        "wrote": null,
+        "note": "55. \n\n5. 5"
+       },
+       {
+        "writer": "scout 3",
+        "saw": "You visit the market and count the apples at Lu's stall: there are 1.",
+        "wrote": null,
+        "note": "11. \n\n1. 1"
+       }
+      ],
+      "says": [
+       "There are 7 apples."
+      ],
+      "truth": {
+       "numbers": [
+        1,
+        5,
+        1
+       ],
+       "stalls": [
+        "Kai",
+        "Bo",
+        "Lu"
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "You visit the market and count the apples at Dee's stall: there are 3.",
+        "wrote": null,
+        "note": "33. \n\n3. 3"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "You visit the market and count the apples at Bo's stall: there are 3.",
+        "wrote": null,
+        "note": "33. \n\n3. 3"
+       },
+       {
+        "writer": "scout 3",
+        "saw": "You visit the market and count the apples at Kai's stall: there are 8.",
+        "wrote": null,
+        "note": "88. \n\n8. 8"
+       }
+      ],
+      "says": [
+       "There are 14 apples."
+      ],
+      "truth": {
+       "numbers": [
+        3,
+        3,
+        8
+       ],
+       "stalls": [
+        "Dee",
+        "Bo",
+        "Kai"
+       ]
+      }
+     }
+    ],
+    "trained": {
+     "episodes": 192,
+     "choice_on": 1.0,
+     "choice_swap": 0.1302,
+     "gap_swap": 11.5202,
+     "gap_swap_ci": [
+      11.0151,
+      11.9792
+     ]
+    },
+    "base": {
+     "episodes": 192,
+     "choice_on": 0.1615,
+     "choice_swap": 0.0625,
+     "gap_swap": 2.0339,
+     "gap_swap_ci": [
+      0.8217,
+      3.2964
+     ]
+    },
+    "readers": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "own": 0.2344,
+       "swap": 0.0729,
+       "off": 0.0417,
+       "english_own": 0.7083,
+       "english_swap": 0.1042,
+       "own_minus_swap": 0.1615,
+       "own_minus_swap_ci": [
+        0.0938,
+        0.2292
+       ]
+      },
+      "shots8": {
+       "own": 0.75,
+       "swap": 0.0885,
+       "off": 0.0417,
+       "english_own": 1.0,
+       "english_swap": 0.125,
+       "own_minus_swap": 0.6615,
+       "own_minus_swap_ci": [
+        0.5938,
+        0.7292
+       ]
+      }
+     }
+    },
+    "one_note": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "chance": 0.1111,
+       "own": 0.3993,
+       "swap": 0.1337,
+       "off": 0.125,
+       "english_own": 0.5069,
+       "english_swap": 0.125,
+       "own_minus_swap": 0.2656,
+       "own_minus_swap_ci": [
+        0.2326,
+        0.3021
+       ],
+       "moved": 0.7622,
+       "moved_ci": [
+        0.717,
+        0.8073
+       ],
+       "nats": 0.779,
+       "notes": 576,
+       "examples": [
+        {
+         "note": "55. \n\n5. 5",
+         "gold": "5",
+         "read": "1"
+        },
+        {
+         "note": "11. \n\n1. \n\n1",
+         "gold": "1",
+         "read": "1"
+        },
+        {
+         "note": "55. \n\n5. 5",
+         "gold": "5",
+         "read": "1"
+        },
+        {
+         "note": "44. \n\n4. 4",
+         "gold": "4",
+         "read": "1"
+        },
+        {
+         "note": "88. \n\n8. \n\n.",
+         "gold": "8",
+         "read": "8"
+        },
+        {
+         "note": "33. \n\n3. \n\n.",
+         "gold": "3",
+         "read": "1"
+        },
+        {
+         "note": "11. \n\n1. 1",
+         "gold": "1",
+         "read": "1"
+        },
+        {
+         "note": "55. \n\n5. 5",
+         "gold": "5",
+         "read": "1"
+        },
+        {
+         "note": "11. \n\n1. 1",
+         "gold": "1",
+         "read": "1"
+        },
+        {
+         "note": "33. \n\n3. 3",
+         "gold": "3",
+         "read": "1"
+        },
+        {
+         "note": "33. \n\n3. 3",
+         "gold": "3",
+         "read": "1"
+        },
+        {
+         "note": "88. \n\n8. 8",
+         "gold": "8",
+         "read": "8"
+        }
+       ]
+      },
+      "shots8": {
+       "chance": 0.1111,
+       "own": 0.9948,
+       "swap": 0.1337,
+       "off": 0.125,
+       "english_own": 1.0,
+       "english_swap": 0.0972,
+       "own_minus_swap": 0.8611,
+       "own_minus_swap_ci": [
+        0.8281,
+        0.8906
+       ],
+       "moved": 0.8576,
+       "moved_ci": [
+        0.816,
+        0.8958
+       ],
+       "nats": 49.93,
+       "notes": 576,
+       "examples": [
+        {
+         "note": "55. \n\n5. 5",
+         "gold": "5",
+         "read": "5"
+        },
+        {
+         "note": "11. \n\n1. \n\n1",
+         "gold": "1",
+         "read": "1"
+        },
+        {
+         "note": "55. \n\n5. 5",
+         "gold": "5",
+         "read": "5"
+        },
+        {
+         "note": "44. \n\n4. 4",
+         "gold": "4",
+         "read": "4"
+        },
+        {
+         "note": "88. \n\n8. \n\n.",
+         "gold": "8",
+         "read": "8"
+        },
+        {
+         "note": "33. \n\n3. \n\n.",
+         "gold": "3",
+         "read": "3"
+        },
+        {
+         "note": "11. \n\n1. 1",
+         "gold": "1",
+         "read": "1"
+        },
+        {
+         "note": "55. \n\n5. 5",
+         "gold": "5",
+         "read": "5"
+        },
+        {
+         "note": "11. \n\n1. 1",
+         "gold": "1",
+         "read": "1"
+        },
+        {
+         "note": "33. \n\n3. 3",
+         "gold": "3",
+         "read": "3"
+        },
+        {
+         "note": "33. \n\n3. 3",
+         "gold": "3",
+         "read": "3"
+        },
+        {
+         "note": "88. \n\n8. 8",
+         "gold": "8",
+         "read": "8"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "work": {
+    "chance": 0.1667,
+    "notes": [
+     {
+      "notes": [
+       {
+        "writer": "worker 1",
+        "saw": "You sit at Desk 3. The task: 31 + 32.",
+        "wrote": "63.",
+        "note": "(31) + (32"
+       },
+       {
+        "writer": "worker 1",
+        "saw": "You sit at Desk 1. The task: 13 + 46.",
+        "wrote": "59.",
+        "note": "(13) + (46"
+       },
+       {
+        "writer": "worker 2",
+        "saw": "You sit at Desk 2. The task: 28 + 19.",
+        "wrote": "47.",
+        "note": "(28) + (19"
+       },
+       {
+        "writer": "worker 2",
+        "saw": "You sit at Desk 4. The task: 37 + 28.",
+        "wrote": "65.",
+        "note": "(37 + 28)"
+       }
+      ],
+      "says": [
+       "Desk 1: 59.",
+       "Desk 2: 47.",
+       "Desk 3: 63.",
+       "Desk 4: 65.",
+       "59 + 47 + 63 + 65 = 234."
+      ],
+      "truth": {
+       "tasks": [
+        [
+         13,
+         46
+        ],
+        [
+         28,
+         19
+        ],
+        [
+         31,
+         32
+        ],
+        [
+         37,
+         28
+        ]
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "worker 1",
+        "saw": "You sit at Desk 3. The task: 30 + 10.",
+        "wrote": "40.",
+        "note": "(30) + (10"
+       },
+       {
+        "writer": "worker 1",
+        "saw": "You sit at Desk 1. The task: 22 + 23.",
+        "wrote": "45.",
+        "note": "(22) + (23"
+       },
+       {
+        "writer": "worker 2",
+        "saw": "You sit at Desk 2. The task: 26 + 36.",
+        "wrote": "62.",
+        "note": "(26) + (36"
+       },
+       {
+        "writer": "worker 2",
+        "saw": "You sit at Desk 4. The task: 16 + 35.",
+        "wrote": "51.",
+        "note": "(16. 3. "
+       }
+      ],
+      "says": [
+       "Desk 1: 45.",
+       "Desk 2: 62.",
+       "Desk 3: 40.",
+       "Desk 4: 51.",
+       "45 + 62 + 40 + 51 = 198."
+      ],
+      "truth": {
+       "tasks": [
+        [
+         22,
+         23
+        ],
+        [
+         26,
+         36
+        ],
+        [
+         30,
+         10
+        ],
+        [
+         16,
+         35
+        ]
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "worker 1",
+        "saw": "You sit at Desk 1. The task: 33 + 35.",
+        "wrote": "68.",
+        "note": "(33) + (35"
+       },
+       {
+        "writer": "worker 1",
+        "saw": "You sit at Desk 2. The task: 46 + 34.",
+        "wrote": "80.",
+        "note": "(46) + (34"
+       },
+       {
+        "writer": "worker 2",
+        "saw": "You sit at Desk 3. The task: 25 + 34.",
+        "wrote": "59.",
+        "note": "(25) + (34"
+       },
+       {
+        "writer": "worker 2",
+        "saw": "You sit at Desk 4. The task: 11 + 46.",
+        "wrote": "57.",
+        "note": "(11) + (46"
+       }
+      ],
+      "says": [
+       "Desk 1: 68.",
+       "Desk 2: 80.",
+       "Desk 3: 59.",
+       "Desk 4: 57.",
+       "68 + 80 + 59 + 57 = 264."
+      ],
+      "truth": {
+       "tasks": [
+        [
+         33,
+         35
+        ],
+        [
+         46,
+         34
+        ],
+        [
+         25,
+         34
+        ],
+        [
+         11,
+         46
+        ]
+       ]
+      }
+     }
+    ],
+    "trained": {
+     "episodes": 192,
+     "choice_on": 0.9167,
+     "choice_swap": 0.3427,
+     "gap_swap": 3.9318,
+     "gap_swap_ci": [
+      3.8033,
+      4.0695
+     ]
+    },
+    "base": {
+     "episodes": 192,
+     "choice_on": 0.8604,
+     "choice_swap": 0.3115,
+     "gap_swap": 5.9328,
+     "gap_swap_ci": [
+      5.6069,
+      6.2606
+     ]
+    },
+    "readers": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "own": 0.8771,
+       "swap": 0.3125,
+       "off": 0.35,
+       "english_own": 0.9958,
+       "english_swap": 0.2958,
+       "own_minus_swap": 0.5646,
+       "own_minus_swap_ci": [
+        0.5365,
+        0.5917
+       ]
+      },
+      "shots8": {
+       "own": 0.9052,
+       "swap": 0.2979,
+       "off": 0.3042,
+       "english_own": 0.9917,
+       "english_swap": 0.3208,
+       "own_minus_swap": 0.6073,
+       "own_minus_swap_ci": [
+        0.5813,
+        0.6333
+       ]
+      }
+     }
+    },
+    "one_note": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "chance": 0.1667,
+       "own": 0.8737,
+       "swap": 0.1628,
+       "off": 0.1823,
+       "english_own": 1.0,
+       "english_swap": 0.1406,
+       "own_minus_swap": 0.7109,
+       "own_minus_swap_ci": [
+        0.6771,
+        0.7448
+       ],
+       "moved": 0.8724,
+       "moved_ci": [
+        0.8385,
+        0.9023
+       ],
+       "nats": 22.455,
+       "notes": 768,
+       "examples": [
+        {
+         "note": "(31) + (32",
+         "gold": "63",
+         "read": "63"
+        },
+        {
+         "note": "(13) + (46",
+         "gold": "59",
+         "read": "59"
+        },
+        {
+         "note": "(28) + (19",
+         "gold": "47",
+         "read": "47"
+        },
+        {
+         "note": "(37 + 28)",
+         "gold": "65",
+         "read": "65"
+        },
+        {
+         "note": "(30) + (10",
+         "gold": "40",
+         "read": "40"
+        },
+        {
+         "note": "(22) + (23",
+         "gold": "45",
+         "read": "45"
+        },
+        {
+         "note": "(26) + (36",
+         "gold": "62",
+         "read": "62"
+        },
+        {
+         "note": "(16. 3. ",
+         "gold": "51",
+         "read": "52"
+        },
+        {
+         "note": "(33) + (35",
+         "gold": "68",
+         "read": "68"
+        },
+        {
+         "note": "(46) + (34",
+         "gold": "80",
+         "read": "80"
+        },
+        {
+         "note": "(25) + (34",
+         "gold": "59",
+         "read": "59"
+        },
+        {
+         "note": "(11) + (46",
+         "gold": "57",
+         "read": "57"
+        }
+       ]
+      },
+      "shots8": {
+       "chance": 0.1667,
+       "own": 0.8958,
+       "swap": 0.1784,
+       "off": 0.1562,
+       "english_own": 1.0,
+       "english_swap": 0.151,
+       "own_minus_swap": 0.7174,
+       "own_minus_swap_ci": [
+        0.681,
+        0.7513
+       ],
+       "moved": 0.9023,
+       "moved_ci": [
+        0.8698,
+        0.9336
+       ],
+       "nats": 27.216,
+       "notes": 768,
+       "examples": [
+        {
+         "note": "(31) + (32",
+         "gold": "63",
+         "read": "63"
+        },
+        {
+         "note": "(13) + (46",
+         "gold": "59",
+         "read": "59"
+        },
+        {
+         "note": "(28) + (19",
+         "gold": "47",
+         "read": "47"
+        },
+        {
+         "note": "(37 + 28)",
+         "gold": "65",
+         "read": "65"
+        },
+        {
+         "note": "(30) + (10",
+         "gold": "40",
+         "read": "40"
+        },
+        {
+         "note": "(22) + (23",
+         "gold": "45",
+         "read": "45"
+        },
+        {
+         "note": "(26) + (36",
+         "gold": "62",
+         "read": "62"
+        },
+        {
+         "note": "(16. 3. ",
+         "gold": "51",
+         "read": "49"
+        },
+        {
+         "note": "(33) + (35",
+         "gold": "68",
+         "read": "68"
+        },
+        {
+         "note": "(46) + (34",
+         "gold": "80",
+         "read": "80"
+        },
+        {
+         "note": "(25) + (34",
+         "gold": "59",
+         "read": "59"
+        },
+        {
+         "note": "(11) + (46",
+         "gold": "57",
+         "read": "57"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "trap": {
+    "chance": 0.5,
+    "notes": [
+     {
+      "notes": [
+       {
+        "writer": "explorer 1",
+        "saw": "You enter the bathroom. Nothing happens.",
+        "wrote": null,
+        "note": "02318231"
+       },
+       {
+        "writer": "explorer 1",
+        "saw": "You enter the garage. The floor gives way: you fall into a trap!",
+        "wrote": null,
+        "note": "31311311"
+       },
+       {
+        "writer": "explorer 1",
+        "saw": "You enter the conservatory. The floor gives way: you fall into a trap!",
+        "wrote": null,
+        "note": "31311311"
+       },
+       {
+        "writer": "explorer 2",
+        "saw": "You enter the kitchen. Nothing happens.",
+        "wrote": null,
+        "note": "08478453"
+       },
+       {
+        "writer": "explorer 2",
+        "saw": "You enter the closet. The floor gives way: you fall into a trap!",
+        "wrote": null,
+        "note": "31311311"
+       },
+       {
+        "writer": "explorer 2",
+        "saw": "You enter the den. The floor gives way: you fall into a trap!",
+        "wrote": null,
+        "note": "31311311"
+       }
+      ],
+      "says": [
+       "Safe.",
+       "Safe.",
+       "Trap.",
+       "Trap."
+      ],
+      "truth": {
+       "traps": [
+        true,
+        false,
+        true,
+        false,
+        true,
+        true
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "explorer 1",
+        "saw": "You enter the kitchen. Nothing happens.",
+        "wrote": null,
+        "note": "08478453"
+       },
+       {
+        "writer": "explorer 1",
+        "saw": "You enter the garage. Nothing happens.",
+        "wrote": null,
+        "note": "06836746"
+       },
+       {
+        "writer": "explorer 1",
+        "saw": "You enter the kennel. Nothing happens.",
+        "wrote": null,
+        "note": "06976895"
+       },
+       {
+        "writer": "explorer 2",
+        "saw": "You enter the bathroom. Nothing happens.",
+        "wrote": null,
+        "note": "02318231"
+       },
+       {
+        "writer": "explorer 2",
+        "saw": "You enter the closet. The floor gives way: you fall into a trap!",
+        "wrote": null,
+        "note": "31311311"
+       },
+       {
+        "writer": "explorer 2",
+        "saw": "You enter the conservatory. Nothing happens.",
+        "wrote": null,
+        "note": "0. 47. 4"
+       }
+      ],
+      "says": [
+       "Trap.",
+       "Safe.",
+       "Safe.",
+       "Safe."
+      ],
+      "truth": {
+       "traps": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      }
+     }
+    ],
+    "trained": {
+     "episodes": 192,
+     "choice_on": 0.9727,
+     "choice_swap": 0.474,
+     "gap_swap": 3.6819,
+     "gap_swap_ci": [
+      3.4413,
+      3.92
+     ]
+    },
+    "base": {
+     "episodes": 192,
+     "choice_on": 0.6276,
+     "choice_swap": 0.5065,
+     "gap_swap": 2.023,
+     "gap_swap_ci": [
+      1.68,
+      2.3952
+     ]
+    },
+    "readers": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "own": 0.6081,
+       "swap": 0.5143,
+       "off": 0.4219,
+       "english_own": 0.8646,
+       "english_swap": 0.4323,
+       "own_minus_swap": 0.0938,
+       "own_minus_swap_ci": [
+        0.0742,
+        0.1133
+       ]
+      },
+      "shots8": {
+       "own": 0.9896,
+       "swap": 0.4779,
+       "off": 0.4219,
+       "english_own": 1.0,
+       "english_swap": 0.4583,
+       "own_minus_swap": 0.5117,
+       "own_minus_swap_ci": [
+        0.4727,
+        0.5469
+       ]
+      }
+     }
+    },
+    "one_note": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "chance": 0.5,
+       "own": 0.4931,
+       "swap": 0.4931,
+       "off": 0.4444,
+       "english_own": 0.4444,
+       "english_swap": 0.4444,
+       "own_minus_swap": 0.0,
+       "own_minus_swap_ci": [
+        0.0,
+        0.0
+       ],
+       "moved": -0.5017,
+       "moved_ci": [
+        -0.5443,
+        -0.4583
+       ],
+       "nats": -1.59,
+       "notes": 1152,
+       "examples": [
+        {
+         "note": "02318231",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Safe"
+        },
+        {
+         "note": "08478453",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Safe"
+        },
+        {
+         "note": "08478453",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "06836746",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "06976895",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "02318231",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Safe"
+        },
+        {
+         "note": "0. 47. 4",
+         "gold": "Safe",
+         "read": "Safe"
+        }
+       ]
+      },
+      "shots8": {
+       "chance": 0.5,
+       "own": 0.9913,
+       "swap": 0.4896,
+       "off": 0.4444,
+       "english_own": 1.0,
+       "english_swap": 0.4861,
+       "own_minus_swap": 0.5017,
+       "own_minus_swap_ci": [
+        0.4722,
+        0.5286
+       ],
+       "moved": 0.5017,
+       "moved_ci": [
+        0.4644,
+        0.5365
+       ],
+       "nats": 14.52,
+       "notes": 1152,
+       "examples": [
+        {
+         "note": "02318231",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Trap"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Trap"
+        },
+        {
+         "note": "08478453",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Trap"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Trap"
+        },
+        {
+         "note": "08478453",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "06836746",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "06976895",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "02318231",
+         "gold": "Safe",
+         "read": "Safe"
+        },
+        {
+         "note": "31311311",
+         "gold": "Trap",
+         "read": "Trap"
+        },
+        {
+         "note": "0. 47. 4",
+         "gold": "Safe",
+         "read": "Safe"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "trail": {
+    "chance": 0.1667,
+    "notes": [
+     {
+      "notes": [
+       {
+        "writer": "explorer",
+        "saw": "You enter the garage. You see a violin.",
+        "wrote": null,
+        "note": "51751145"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the den. You see a river.",
+        "wrote": null,
+        "note": "53465346"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the observatory. You see a blanket.",
+        "wrote": null,
+        "note": "21732176"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the conservatory. You see a cotton.",
+        "wrote": null,
+        "note": "40474024"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the closet. You see a moon.",
+        "wrote": null,
+        "note": "50428074"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the bathroom. You see a wool. A brass key lies here.",
+        "wrote": null,
+        "note": "50720650"
+       }
+      ],
+      "says": [
+       "garage: violin.\ncloset: moon.\nbathroom: wool.\nThe key is in the bathroom."
+      ],
+      "truth": {
+       "objects": [
+        "violin",
+        "moon",
+        "blanket",
+        "cotton",
+        "wool",
+        "river"
+       ],
+       "key": 4,
+       "order": [
+        0,
+        5,
+        2,
+        3,
+        1,
+        4
+       ],
+       "visit": [
+        0,
+        1,
+        4
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "explorer",
+        "saw": "You enter the closet. You see a pond.",
+        "wrote": null,
+        "note": "20327029"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the observatory. You see a saddle.",
+        "wrote": null,
+        "note": "85489848"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the conservatory. You see a lily.",
+        "wrote": null,
+        "note": "11714117"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the bathroom. You see a fountain.",
+        "wrote": null,
+        "note": "54592546"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the garage. You see a skate. A brass key lies here.",
+        "wrote": null,
+        "note": "84786478"
+       },
+       {
+        "writer": "explorer",
+        "saw": "You enter the kitchen. You see a barrel.",
+        "wrote": null,
+        "note": "39763987"
+       }
+      ],
+      "says": [
+       "garage: skate.\ncloset: pond.\nkitchen: barrel.\nThe key is in the garage."
+      ],
+      "truth": {
+       "objects": [
+        "lily",
+        "skate",
+        "saddle",
+        "pond",
+        "barrel",
+        "fountain"
+       ],
+       "key": 1,
+       "order": [
+        3,
+        2,
+        0,
+        5,
+        1,
+        4
+       ],
+       "visit": [
+        1,
+        3,
+        4
+       ]
+      }
+     }
+    ],
+    "trained": {
+     "episodes": 192,
+     "choice_on": 0.7422,
+     "choice_swap": 0.1901,
+     "gap_swap": 29.0378,
+     "gap_swap_ci": [
+      27.6881,
+      30.2623
+     ]
+    },
+    "base": {
+     "episodes": 192,
+     "choice_on": 0.138,
+     "choice_swap": 0.1549,
+     "gap_swap": -0.1653,
+     "gap_swap_ci": [
+      -0.7417,
+      0.3931
+     ]
+    },
+    "readers": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "own": 0.1419,
+       "swap": 0.1536,
+       "off": 0.1302,
+       "english_own": 0.8646,
+       "english_swap": 0.1562,
+       "own_minus_swap": -0.0117,
+       "own_minus_swap_ci": [
+        -0.0273,
+        0.0039
+       ]
+      },
+      "shots8": {
+       "own": 0.1589,
+       "swap": 0.1549,
+       "off": 0.1875,
+       "english_own": 0.8333,
+       "english_swap": 0.1458,
+       "own_minus_swap": 0.0039,
+       "own_minus_swap_ci": [
+        -0.0117,
+        0.0208
+       ]
+      }
+     }
+    },
+    "one_note": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "chance": 0.1667,
+       "own": 0.1693,
+       "swap": 0.1554,
+       "off": 0.1667,
+       "english_own": 0.8819,
+       "english_swap": 0.1736,
+       "own_minus_swap": 0.0139,
+       "own_minus_swap_ci": [
+        0.0017,
+        0.0269
+       ],
+       "moved": 0.1293,
+       "moved_ci": [
+        0.0686,
+        0.1936
+       ],
+       "nats": 0.197,
+       "notes": 1152,
+       "examples": [
+        {
+         "note": "51751145",
+         "gold": "violin",
+         "read": "blanket"
+        },
+        {
+         "note": "53465346",
+         "gold": "river",
+         "read": "blanket"
+        },
+        {
+         "note": "21732176",
+         "gold": "blanket",
+         "read": "blanket"
+        },
+        {
+         "note": "40474024",
+         "gold": "cotton",
+         "read": "blanket"
+        },
+        {
+         "note": "50428074",
+         "gold": "moon",
+         "read": "blanket"
+        },
+        {
+         "note": "50720650",
+         "gold": "wool",
+         "read": "blanket"
+        },
+        {
+         "note": "20327029",
+         "gold": "pond",
+         "read": "saddle"
+        },
+        {
+         "note": "85489848",
+         "gold": "saddle",
+         "read": "fountain"
+        },
+        {
+         "note": "11714117",
+         "gold": "lily",
+         "read": "saddle"
+        },
+        {
+         "note": "54592546",
+         "gold": "fountain",
+         "read": "fountain"
+        },
+        {
+         "note": "84786478",
+         "gold": "skate",
+         "read": "fountain"
+        },
+        {
+         "note": "39763987",
+         "gold": "barrel",
+         "read": "skate"
+        }
+       ]
+      },
+      "shots8": {
+       "chance": 0.1667,
+       "own": 0.197,
+       "swap": 0.178,
+       "off": 0.1667,
+       "english_own": 1.0,
+       "english_swap": 0.1528,
+       "own_minus_swap": 0.0191,
+       "own_minus_swap_ci": [
+        0.0017,
+        0.0365
+       ],
+       "moved": 0.1979,
+       "moved_ci": [
+        0.1415,
+        0.2509
+       ],
+       "nats": 1.071,
+       "notes": 1152,
+       "examples": [
+        {
+         "note": "51751145",
+         "gold": "violin",
+         "read": "moon"
+        },
+        {
+         "note": "53465346",
+         "gold": "river",
+         "read": "moon"
+        },
+        {
+         "note": "21732176",
+         "gold": "blanket",
+         "read": "moon"
+        },
+        {
+         "note": "40474024",
+         "gold": "cotton",
+         "read": "moon"
+        },
+        {
+         "note": "50428074",
+         "gold": "moon",
+         "read": "moon"
+        },
+        {
+         "note": "50720650",
+         "gold": "wool",
+         "read": "moon"
+        },
+        {
+         "note": "20327029",
+         "gold": "pond",
+         "read": "saddle"
+        },
+        {
+         "note": "85489848",
+         "gold": "saddle",
+         "read": "saddle"
+        },
+        {
+         "note": "11714117",
+         "gold": "lily",
+         "read": "lily"
+        },
+        {
+         "note": "54592546",
+         "gold": "fountain",
+         "read": "saddle"
+        },
+        {
+         "note": "84786478",
+         "gold": "skate",
+         "read": "saddle"
+        },
+        {
+         "note": "39763987",
+         "gold": "barrel",
+         "read": "saddle"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "maze": {
+    "chance": 0.3333,
+    "notes": [
+     {
+      "notes": [
+       {
+        "writer": "explorer",
+        "saw": "The conservatory has purple, maroon and red doors. You take the purple door.",
+        "wrote": null,
+        "note": "54692745"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The den has red, purple and pink doors. You take the purple door.",
+        "wrote": null,
+        "note": "59475947"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The closet has maroon, pink and purple doors. You take the maroon door.",
+        "wrote": null,
+        "note": "34938491"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The bathroom has crimson, red and maroon doors. You take the maroon door.",
+        "wrote": null,
+        "note": "34938213"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The kennel has purple, crimson and pink doors. You take the purple door.",
+        "wrote": null,
+        "note": "54796509"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The observatory has pink, maroon and purple doors. You take the maroon door.",
+        "wrote": null,
+        "note": "34938649"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The kitchen has pink, purple and red doors. You take the purple door to the exit.",
+        "wrote": null,
+        "note": "54265974"
+       }
+      ],
+      "says": [
+       "The purple door.",
+       "The purple door.",
+       "The maroon door.",
+       "The maroon door.",
+       "The purple door.",
+       "The maroon door.",
+       "The purple door."
+      ],
+      "truth": {
+       "doors": [
+        [
+         "purple",
+         "maroon",
+         "red"
+        ],
+        [
+         "red",
+         "purple",
+         "pink"
+        ],
+        [
+         "maroon",
+         "pink",
+         "purple"
+        ],
+        [
+         "crimson",
+         "red",
+         "maroon"
+        ],
+        [
+         "purple",
+         "crimson",
+         "pink"
+        ],
+        [
+         "pink",
+         "maroon",
+         "purple"
+        ],
+        [
+         "pink",
+         "purple",
+         "red"
+        ]
+       ],
+       "take": [
+        "purple",
+        "purple",
+        "maroon",
+        "maroon",
+        "purple",
+        "maroon",
+        "purple"
+       ]
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "explorer",
+        "saw": "The closet has red, purple and crimson doors. You take the crimson door.",
+        "wrote": null,
+        "note": "43419423"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The kennel has pink, maroon and crimson doors. You take the maroon door.",
+        "wrote": null,
+        "note": "34913984"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The bathroom has crimson, red and pink doors. You take the crimson door.",
+        "wrote": null,
+        "note": "43419431"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The observatory has crimson, maroon and purple doors. You take the purple door.",
+        "wrote": null,
+        "note": "56795409"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The conservatory has pink, crimson and purple doors. You take the purple door.",
+        "wrote": null,
+        "note": "56795495"
+       },
+       {
+        "writer": "explorer",
+        "saw": "The garage has maroon, crimson and red doors. You take the red door to the exit.",
+        "wrote": null,
+        "note": "64937649"
+       }
+      ],
+      "says": [
+       "The crimson door.",
+       "The maroon door.",
+       "The crimson door.",
+       "The purple door.",
+       "The purple door.",
+       "The red door."
+      ],
+      "truth": {
+       "doors": [
+        [
+         "red",
+         "purple",
+         "crimson"
+        ],
+        [
+         "pink",
+         "maroon",
+         "crimson"
+        ],
+        [
+         "crimson",
+         "red",
+         "pink"
+        ],
+        [
+         "crimson",
+         "maroon",
+         "purple"
+        ],
+        [
+         "pink",
+         "crimson",
+         "purple"
+        ],
+        [
+         "maroon",
+         "crimson",
+         "red"
+        ]
+       ],
+       "take": [
+        "crimson",
+        "maroon",
+        "crimson",
+        "purple",
+        "purple",
+        "red"
+       ]
+      }
+     }
+    ],
+    "trained": {
+     "episodes": 192,
+     "choice_on": 0.8222,
+     "choice_swap": 0.3138,
+     "gap_swap": 5.7264,
+     "gap_swap_ci": [
+      5.422,
+      5.9793
+     ]
+    },
+    "base": {
+     "episodes": 192,
+     "choice_on": 0.3478,
+     "choice_swap": 0.3378,
+     "gap_swap": 0.3098,
+     "gap_swap_ci": [
+      0.2081,
+      0.4073
+     ]
+    },
+    "readers": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "own": 0.3698,
+       "swap": 0.3435,
+       "off": 0.3389,
+       "english_own": 0.8581,
+       "english_swap": 0.3318,
+       "own_minus_swap": 0.0263,
+       "own_minus_swap_ci": [
+        0.0092,
+        0.043
+       ]
+      },
+      "shots8": {
+       "own": 0.3609,
+       "swap": 0.3361,
+       "off": 0.3409,
+       "english_own": 1.0,
+       "english_swap": 0.3328,
+       "own_minus_swap": 0.0248,
+       "own_minus_swap_ci": [
+        0.0107,
+        0.0385
+       ]
+      }
+     }
+    },
+    "one_note": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "chance": 0.3333,
+       "own": 0.3317,
+       "swap": 0.3283,
+       "off": 0.3409,
+       "english_own": 0.9526,
+       "english_swap": 0.3455,
+       "own_minus_swap": 0.0033,
+       "own_minus_swap_ci": [
+        -0.0049,
+        0.0124
+       ],
+       "moved": 0.2223,
+       "moved_ci": [
+        0.1721,
+        0.2702
+       ],
+       "nats": 0.301,
+       "notes": 1324,
+       "examples": [
+        {
+         "note": "54692745",
+         "gold": "purple",
+         "read": "purple"
+        },
+        {
+         "note": "59475947",
+         "gold": "purple",
+         "read": "purple"
+        },
+        {
+         "note": "34938491",
+         "gold": "maroon",
+         "read": "pink"
+        },
+        {
+         "note": "34938213",
+         "gold": "maroon",
+         "read": "crimson"
+        },
+        {
+         "note": "54796509",
+         "gold": "purple",
+         "read": "purple"
+        },
+        {
+         "note": "34938649",
+         "gold": "maroon",
+         "read": "pink"
+        },
+        {
+         "note": "54265974",
+         "gold": "purple",
+         "read": "pink"
+        },
+        {
+         "note": "43419423",
+         "gold": "crimson",
+         "read": "purple"
+        },
+        {
+         "note": "34913984",
+         "gold": "maroon",
+         "read": "pink"
+        },
+        {
+         "note": "43419431",
+         "gold": "crimson",
+         "read": "pink"
+        },
+        {
+         "note": "56795409",
+         "gold": "purple",
+         "read": "purple"
+        },
+        {
+         "note": "56795495",
+         "gold": "purple",
+         "read": "pink"
+        }
+       ]
+      },
+      "shots8": {
+       "chance": 0.3333,
+       "own": 0.3127,
+       "swap": 0.333,
+       "off": 0.3465,
+       "english_own": 1.0,
+       "english_swap": 0.3526,
+       "own_minus_swap": -0.0203,
+       "own_minus_swap_ci": [
+        -0.0281,
+        -0.0126
+       ],
+       "moved": -0.0403,
+       "moved_ci": [
+        -0.0927,
+        0.0145
+       ],
+       "nats": -0.206,
+       "notes": 1324,
+       "examples": [
+        {
+         "note": "54692745",
+         "gold": "purple",
+         "read": "maroon"
+        },
+        {
+         "note": "59475947",
+         "gold": "purple",
+         "read": "red"
+        },
+        {
+         "note": "34938491",
+         "gold": "maroon",
+         "read": "maroon"
+        },
+        {
+         "note": "34938213",
+         "gold": "maroon",
+         "read": "crimson"
+        },
+        {
+         "note": "54796509",
+         "gold": "purple",
+         "read": "crimson"
+        },
+        {
+         "note": "34938649",
+         "gold": "maroon",
+         "read": "pink"
+        },
+        {
+         "note": "54265974",
+         "gold": "purple",
+         "read": "pink"
+        },
+        {
+         "note": "43419423",
+         "gold": "crimson",
+         "read": "red"
+        },
+        {
+         "note": "34913984",
+         "gold": "maroon",
+         "read": "pink"
+        },
+        {
+         "note": "43419431",
+         "gold": "crimson",
+         "read": "crimson"
+        },
+        {
+         "note": "56795409",
+         "gold": "purple",
+         "read": "crimson"
+        },
+        {
+         "note": "56795495",
+         "gold": "purple",
+         "read": "pink"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "relay": {
+    "chance": 0.1667,
+    "notes": [
+     {
+      "notes": [
+       {
+        "writer": "scout A",
+        "saw": "You enter the den.",
+        "wrote": null,
+        "note": "54795849"
+       },
+       {
+        "writer": "scout A",
+        "saw": "You enter the kennel. A brass key lies here.",
+        "wrote": null,
+        "note": "69567986"
+       },
+       {
+        "writer": "scout A",
+        "saw": "You enter the observatory.",
+        "wrote": null,
+        "note": "30830786"
+       },
+       {
+        "writer": "scout A",
+        "saw": "You enter the garage.",
+        "wrote": null,
+        "note": "68636486"
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the garage.",
+        "wrote": null,
+        "note": "6863486."
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the observatory.",
+        "wrote": null,
+        "note": "30830786"
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the bathroom.",
+        "wrote": null,
+        "note": "23128312"
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the conservatory.",
+        "wrote": null,
+        "note": "43464249"
+       }
+      ],
+      "says": [
+       "The key is in the kennel."
+      ],
+      "truth": {
+       "key": 0
+      }
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout A",
+        "saw": "You enter the kennel.",
+        "wrote": null,
+        "note": "69569786"
+       },
+       {
+        "writer": "scout A",
+        "saw": "You enter the observatory. A brass key lies here.",
+        "wrote": null,
+        "note": "30873081"
+       },
+       {
+        "writer": "scout A",
+        "saw": "You enter the bathroom.",
+        "wrote": null,
+        "note": "32138213"
+       },
+       {
+        "writer": "scout A",
+        "saw": "You enter the conservatory.",
+        "wrote": null,
+        "note": "43424694"
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the conservatory.",
+        "wrote": null,
+        "note": "43424694"
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the bathroom.",
+        "wrote": null,
+        "note": "32138213"
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the garage.",
+        "wrote": null,
+        "note": "68643686"
+       },
+       {
+        "writer": "scout B",
+        "saw": "You enter the kitchen.",
+        "wrote": null,
+        "note": "48457438"
+       }
+      ],
+      "says": [
+       "The key is in the observatory."
+      ],
+      "truth": {
+       "key": 1
+      }
+     }
+    ],
+    "trained": {
+     "episodes": 192,
+     "choice_on": 0.2604,
+     "choice_swap": 0.2604,
+     "gap_swap": -0.0142,
+     "gap_swap_ci": [
+      -0.0225,
+      -0.0061
+     ]
+    },
+    "base": {
+     "episodes": 192,
+     "choice_on": 0.0417,
+     "choice_swap": 0.026,
+     "gap_swap": 0.0735,
+     "gap_swap_ci": [
+      -0.2254,
+      0.3477
+     ]
+    },
+    "readers": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "own": 0.0052,
+       "swap": 0.0052,
+       "off": 0.0625,
+       "english_own": 0.0,
+       "english_swap": 0.0208,
+       "own_minus_swap": 0.0,
+       "own_minus_swap_ci": [
+        0.0,
+        0.0
+       ]
+      }
+     }
+    },
+    "one_note": {
+     "Qwen/Qwen3-1.7B": {
+      "shots0": {
+       "chance": 0.1667,
+       "own": 0.2005,
+       "swap": 0.2038,
+       "off": 0.1667,
+       "english_own": 0.1901,
+       "english_swap": 0.1667,
+       "own_minus_swap": -0.0033,
+       "own_minus_swap_ci": [
+        -0.0065,
+        -0.0007
+       ],
+       "moved": 0.0137,
+       "moved_ci": [
+        -0.0319,
+        0.0645
+       ],
+       "nats": 0.03,
+       "notes": 1536,
+       "examples": [
+        {
+         "note": "54795849",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "69567986",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "30830786",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "68636486",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "6863486.",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "30830786",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "23128312",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "43464249",
+         "gold": "kennel",
+         "read": "garage"
+        },
+        {
+         "note": "69569786",
+         "gold": "observatory",
+         "read": "garage"
+        },
+        {
+         "note": "30873081",
+         "gold": "observatory",
+         "read": "garage"
+        },
+        {
+         "note": "32138213",
+         "gold": "observatory",
+         "read": "garage"
+        },
+        {
+         "note": "43424694",
+         "gold": "observatory",
+         "read": "garage"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "hotpot": {
+    "chance": null,
+    "notes": [
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "Question: Which American pro basketball player who won gold at the 2008 Summer Olympics was signed by the Utah Jazz during the 2005-05 offseason?\nYou read the page \"2004–05 Utah Jazz season\":\nThe 2004–05 NBA season was the Jazz's 31st season in the National Basketball Association. During the offseason, the Jazz signed free agents Carlos Boozer and Mehmet Okur.",
+        "wrote": null,
+        "note": "314231. \n\n"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "Question: Which American pro basketball player who won gold at the 2008 Summer Olympics was signed by the Utah Jazz during the 2005-05 offseason?\nYou read the page \"Carlos Boozer\":\nCarlos Austin Boozer Jr. (born November 20, 1981) is an American professional basketball player who last played for the Guangdong Southern Tigers of the Chinese Basketball Association (CBA). As a member of Team USA, Boo",
+        "wrote": null,
+        "note": "80. \n\n2008"
+       }
+      ],
+      "says": [
+       "Carlos Austin Boozer Jr."
+      ],
+      "truth": null
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "Question: The Red Queen's Race is a science fiction short story that uses the Red Queen's race from a novel by Lewis Carroll that is the sequel to what?\nYou read the page \"The Red Queen's Race\":\nThe Red Queen's Race is a science fiction short story by American writer Isaac Asimov; it uses the Red Queen's race from Lewis Carroll's \"Through the Looking-Glass\" as a metaphor for the final plot twist.",
+        "wrote": null,
+        "note": "34872410"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "Question: The Red Queen's Race is a science fiction short story that uses the Red Queen's race from a novel by Lewis Carroll that is the sequel to what?\nYou read the page \"Through the Looking-Glass\":\nThrough the Looking-Glass, and What Alice Found There (1871) is a novel by Lewis Carroll (Charles Lutwidge Dodgson), the sequel to \"Alice's Adventures in Wonderland\" (1865).",
+        "wrote": null,
+        "note": "1865. 18"
+       }
+      ],
+      "says": [
+       "Alice's Adventures in Wonderland"
+      ],
+      "truth": null
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "Question: WrestleMania XXX took place at the home venue of which National Football League team?\nYou read the page \"WrestleMania XXX\":\nWrestleMania XXX (also written as WrestleMania 30) was the thirtieth annual WrestleMania professional wrestling pay-per-view (PPV) event produced by WWE. It took place on April 6, 2014, at the Mercedes-Benz Superdome in New Orleans, Louisiana.",
+        "wrote": null,
+        "note": "20140201"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "Question: WrestleMania XXX took place at the home venue of which National Football League team?\nYou read the page \"Mercedes-Benz Superdome\":\nThe Mercedes-Benz Superdome, often referred to simply as the Superdome, is a domed sports and exhibition venue located in the Central Business District of New Orleans, Louisiana, United States. It primarily serves as the home venue for the New Orleans Saints ",
+        "wrote": null,
+        "note": "98245824"
+       }
+      ],
+      "says": [
+       "New Orleans Saints"
+      ],
+      "truth": null
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "Question: Arena Essex Raceway is built alongside an out-of-town shopping centre constructed on the site of a former what?\nYou read the page \"Arena Essex Raceway\":\nArena Essex Raceway is a stock car and speedway racing track located near Purfleet, Essex. The Lakeside Shopping Centre was built alongside the venue.",
+        "wrote": null,
+        "note": "74176831"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "Question: Arena Essex Raceway is built alongside an out-of-town shopping centre constructed on the site of a former what?\nYou read the page \"Lakeside Shopping Centre\":\nLakeside Shopping Centre, branded as Intu Lakeside, is a large out-of-town shopping centre located in West Thurrock, in the borough of Thurrock, Essex just beyond the eastern boundary of Greater London. It was constructed on the sit",
+        "wrote": null,
+        "note": "47414974"
+       }
+      ],
+      "says": [
+       "chalk quarry"
+      ],
+      "truth": null
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "Question: Orson Scott Card first published his short story \"Killing Children\" in this American science-fiction magazine whose first issue was published when?\nYou read the page \"Killing Children\":\n\"Killing Children\" is a short story by Orson Scott Card. Card first published it in the November 1978 issue of \"Analog Science Fiction and Fact\".",
+        "wrote": null,
+        "note": "19781978"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "Question: Orson Scott Card first published his short story \"Killing Children\" in this American science-fiction magazine whose first issue was published when?\nYou read the page \"Analog Science Fiction and Fact\":\nAnalog Science Fiction and Fact is an American science-fiction magazine published under various titles since 1930.",
+        "wrote": null,
+        "note": "930. 193"
+       }
+      ],
+      "says": [
+       "1930"
+      ],
+      "truth": null
+     },
+     {
+      "notes": [
+       {
+        "writer": "scout 1",
+        "saw": "Question: This American film and stage actor played the self-destructive soldier Prewitt in Fred Zinnemann's 1953 film that centers around which event?\nYou read the page \"Montgomery Clift\":\nEdward Montgomery \"Monty\" Clift ( ; October 17, 1920July 23, 1966) was an American film and stage actor. \" He is best remembered for roles in \"Red River\" (1948), \"The Heiress\" (1949), George Stevens's \"A Place ",
+        "wrote": null,
+        "note": "5953. \n\n59"
+       },
+       {
+        "writer": "scout 2",
+        "saw": "Question: This American film and stage actor played the self-destructive soldier Prewitt in Fred Zinnemann's 1953 film that centers around which event?\nYou read the page \"From Here to Eternity\":\nFrom Here to Eternity is a 1953 drama film directed by Fred Zinnemann and based on the novel of the same name by James Jones. The picture deals with the tribulations of three U.S. Army soldiers, played by ",
+        "wrote": null,
+        "note": "81379. \n\n1"
+       }
+      ],
+      "says": [
+       "the attack on Pearl Harbor"
+      ],
+      "truth": null
+     }
+    ],
+    "trained": {
+     "episodes": 192,
+     "choice_on": null,
+     "choice_swap": null,
+     "gap_swap": 0.9436,
+     "gap_swap_ci": [
+      0.5999,
+      1.3207
+     ]
+    },
+    "base": {
+     "episodes": 192,
+     "choice_on": null,
+     "choice_swap": null,
+     "gap_swap": 0.6886,
+     "gap_swap_ci": [
+      -0.5461,
+      1.8458
+     ]
+    }
+   }
+  }
+ },
+ "s": 5007
+}
